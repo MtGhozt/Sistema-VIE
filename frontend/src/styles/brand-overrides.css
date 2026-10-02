@@ -87,3 +87,39 @@
   height: auto;
   display: block;
 }
+
+/* Feedback de acciones (guardar / publicar / cerrar): esquina inferior derecha */
+.toast-stack {
+  position: fixed;
+  z-index: 9999;
+  right: 28px;
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+  max-width: min(430px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toast-stack .toast {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: auto !important;
+  transform: none !important;
+  pointer-events: auto;
+  animation: toast-in 0.22s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

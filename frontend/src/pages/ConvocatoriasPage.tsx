@@ -10,6 +10,7 @@ import {
   type ConvocatoriaHito,
 } from "../api/convocatorias";
 import { useAuth } from "../auth/AuthContext";
+import { useToast } from "../components/toast/ToastContext";
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
@@ -31,6 +32,7 @@ function labelEstado(estado: string) {
 
 export function ConvocatoriasPage() {
   const { session, isAdminSession } = useAuth();
+  const { showToast } = useToast();
   const canPublish =
     session?.role === "vie_publicacion" ||
     session?.role === "admin" ||
@@ -56,17 +58,18 @@ export function ConvocatoriasPage() {
       const data = await fetchConvocatorias();
       setRows(data);
     } catch (err) {
-      setError(
+      const msg =
         err instanceof ApiError
           ? err.message
           : err instanceof Error
             ? err.message
-            : "No se pudieron cargar convocatorias",
-      );
+            : "No se pudieron cargar convocatorias";
+      setError(msg);
+      showToast(msg, "error");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     void loadList();
@@ -77,9 +80,10 @@ export function ConvocatoriasPage() {
     try {
       setDetail(await fetchConvocatoria(id));
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "No se pudo cargar el detalle",
-      );
+      const msg =
+        err instanceof Error ? err.message : "No se pudo cargar el detalle";
+      setError(msg);
+      showToast(msg, "error");
     }
   }
 
@@ -113,10 +117,13 @@ export function ConvocatoriasPage() {
       setCierre("");
       setPresupuesto("");
       setShowForm(false);
+      showToast("Borrador de convocatoria guardado", "success");
       await loadList();
       await openDetail(created.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al crear");
+      const msg = err instanceof Error ? err.message : "Error al crear";
+      setError(msg);
+      showToast(msg, "error");
     } finally {
       setSaving(false);
     }
@@ -130,10 +137,18 @@ export function ConvocatoriasPage() {
     setError(null);
     try {
       await patchConvocatoria(id, { estado });
+      const messages = {
+        activa: "Convocatoria publicada",
+        cerrada: "Convocatoria cerrada",
+        borrador: "Convocatoria vuelta a borrador",
+      } as const;
+      showToast(messages[estado], "success");
       await loadList();
       if (detail?.id === id) await openDetail(id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al actualizar");
+      const msg = err instanceof Error ? err.message : "Error al actualizar";
+      setError(msg);
+      showToast(msg, "error");
     } finally {
       setSaving(false);
     }

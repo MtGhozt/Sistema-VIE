@@ -10,10 +10,12 @@ import {
   IconMail,
 } from "../components/icons";
 import { TecLogo } from "../components/TecLogo";
+import { useToast } from "../components/toast/ToastContext";
 import { isRoleId, type RoleId } from "../data/roles";
 
 export function LoginPage() {
   const { session, loginWithRole } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [roles, setRoles] = useState<DemoRoleRow[]>([]);
   const [rolesError, setRolesError] = useState<string | null>(null);
@@ -74,6 +76,7 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       await loginWithRole(role);
+      showToast("Sesión iniciada", "success");
       navigate("/inicio", { replace: true });
     } catch (err) {
       const msg =
@@ -83,6 +86,7 @@ export function LoginPage() {
             ? err.message
             : "Error al iniciar sesión";
       setLoginError(msg);
+      showToast(msg, "error");
     } finally {
       setSubmitting(false);
     }

@@ -158,11 +158,11 @@ export function ConvocatoriasPage() {
     <>
       <header className="page-header">
         <div>
-          <p className="eyebrow">Convocatorias · CU1</p>
+          <p className="eyebrow">VIE · Publicación</p>
           <h1>Gestión de convocatorias</h1>
           <p>
-            Datos en PostgreSQL. Crear borrador, publicar o cerrar (roles VIE
-            Publicación / admin).
+            Publique, administre el cronograma y consulte convocatorias vigentes
+            e históricas (roles VIE Publicación / admin).
           </p>
         </div>
         {canPublish && (
@@ -191,7 +191,7 @@ export function ConvocatoriasPage() {
           onSubmit={onCreate}
         >
           <h2>Nueva convocatoria</h2>
-          <p>Se guarda como borrador en la base de datos (con un hito inicial).</p>
+          <p>Se guarda como borrador (incluye un hito inicial).</p>
           <div className="form-grid two-col">
             <label className="field" style={{ gridColumn: "1 / -1" }}>
               <span className="field-label">Nombre</span>
@@ -284,7 +284,7 @@ export function ConvocatoriasPage() {
               )}
               {!loading && rows.length === 0 && (
                 <tr>
-                  <td colSpan={7}>No hay convocatorias en la base.</td>
+                  <td colSpan={7}>No hay convocatorias registradas.</td>
                 </tr>
               )}
               {rows.map((c) => (

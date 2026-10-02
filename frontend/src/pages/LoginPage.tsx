@@ -142,7 +142,7 @@ export function LoginPage() {
           )}
           {apiOk === true && (
             <p className="field-hint" role="status">
-              API conectada · login demo por rol (PostgreSQL seed)
+              API conectada · login demo por rol
             </p>
           )}
 

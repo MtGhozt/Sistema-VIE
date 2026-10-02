@@ -1,40 +1,14 @@
-# Database — Sistema VIE (PostgreSQL)
-
-Diseño relacional del sistema Fondos VIE.
-
-## Fuente de verdad
-
-`Diseno_Base_Datos_Fondos_VIE (con cambios).md` — **40 tablas**.
+# Database — solo SQL ejecutable
 
 | Archivo | Uso |
-|---|---|
-| `fondos_vie_modelo.dbml` | Modelo para [dbdiagram.io](https://dbdiagram.io) |
-| `DisennoDB.sql` | DDL exportado (crear esquema en PostgreSQL) |
-| `DisennoDB.pdf` | Diagrama ER exportado |
-| `DMBL-VIE.pdf` | Propuesta intermedia del compañero (histórico) |
-| `Diseno_Base_Datos_Fondos_VIE.md` | Versión anterior (38 tablas) — archivo histórico |
+|---------|-----|
+| `DisennoDB.sql` | DDL (crear esquema) |
+| `seed.sql` | Datos demo |
 
-## Tablas añadidas (38 → 40)
-
-- `propuesta_palabra_clave`
-- `propuesta_participante_hora`
-
-También: `trl_actual` / `trl_esperado` en `propuesta`.
-
-## Cómo levantar Postgres
+Documentación del modelo (MD, DBML, PDF): `docs/database/`.
 
 ```powershell
-# Desde la raíz del repo (Docker Desktop encendido)
+# Desde la raíz
 docker compose up -d
+# o: pnpm db:up
 ```
-
-Aplica automáticamente `DisennoDB.sql` + `seed.sql` la **primera** vez (volumen vacío).
-
-Si cambiás el SQL y necesitás reinicializar:
-
-```powershell
-docker compose down -v
-docker compose up -d
-```
-
-Credenciales: `vie` / `vie` / `fondos_vie` @ `localhost:5432`

@@ -1,28 +1,8 @@
 import { IconBell } from "../components/icons";
 import { useNotifications } from "../notifications/NotificationsContext";
-import { useToast } from "../components/toast/ToastContext";
 
 export function NotificacionesPage() {
   const { items, unreadCount, markAsRead, markAllAsRead } = useNotifications();
-  const { showToast } = useToast();
-
-  function markOne(id: string, wasUnread: boolean) {
-    if (!wasUnread) {
-      showToast("Esta notificación ya estaba marcada como vista", "info");
-      return;
-    }
-    markAsRead(id);
-    showToast("Notificación marcada como vista", "success");
-  }
-
-  function markAll() {
-    if (unreadCount === 0) {
-      showToast("No hay notificaciones sin leer", "info");
-      return;
-    }
-    markAllAsRead();
-    showToast("Todas las notificaciones marcadas como vistas", "success");
-  }
 
   return (
     <>
@@ -36,7 +16,12 @@ export function NotificacionesPage() {
           </p>
         </div>
         <div className="page-actions">
-          <button type="button" className="btn btn-secondary" onClick={markAll}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled={unreadCount === 0}
+            onClick={() => markAllAsRead()}
+          >
             Marcar todas como vistas
           </button>
         </div>
@@ -61,7 +46,7 @@ export function NotificacionesPage() {
                 type="button"
                 className="btn btn-ghost"
                 disabled={!n.unread}
-                onClick={() => markOne(n.id, n.unread)}
+                onClick={() => markAsRead(n.id)}
               >
                 {n.unread ? "Marcar como vista" : "Vista"}
               </button>

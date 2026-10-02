@@ -2,10 +2,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "../auth/AuthContext";
 import { NOTIFICACIONES } from "../data/demo";
 
 export type NotificationItem = {
@@ -15,8 +17,6 @@ export type NotificationItem = {
   when: string;
   unread: boolean;
 };
-
-const STORAGE_KEY = "vie-notifications-read";
 
 type NotificationsContextValue = {
   items: NotificationItem[];
@@ -29,9 +29,15 @@ const NotificationsContext = createContext<NotificationsContextValue | null>(
   null,
 );
 
-function readMarkedIds(): Set<string> {
+const STORAGE_PREFIX = "vie-notifications-read:";
+
+function storageKey(userId: number) {
+  return `${STORAGE_PREFIX}${userId}`;
+}
+
+function readMarkedIds(userId: number): Set<string> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(userId));
     if (!raw) return new Set();
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return new Set();
@@ -41,12 +47,20 @@ function readMarkedIds(): Set<string> {
   }
 }
 
-function persistMarkedIds(ids: Set<string>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+function persistMarkedIds(userId: number, ids: Set<string>) {
+  localStorage.setItem(storageKey(userId), JSON.stringify([...ids]));
 }
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
-  const [readIds, setReadIds] = useState<Set<string>>(() => readMarkedIds());
+  const { session } = useAuth();
+  const userId = session?.userId ?? 0;
+  const [readIds, setReadIds] = useState<Set<string>>(() =>
+    userId ? readMarkedIds(userId) : new Set(),
+  );
+
+  useEffect(() => {
+    setReadIds(userId ? readMarkedIds(userId) : new Set());
+  }, [userId]);
 
   const items = useMemo<NotificationItem[]>(
     () =>
@@ -62,24 +76,29 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     [items],
   );
 
-  const markAsRead = useCallback((id: string) => {
-    setReadIds((prev) => {
-      if (prev.has(id)) return prev;
-      const next = new Set(prev);
-      next.add(id);
-      persistMarkedIds(next);
-      return next;
-    });
-  }, []);
+  const markAsRead = useCallback(
+    (id: string) => {
+      if (!userId) return;
+      setReadIds((prev) => {
+        if (prev.has(id)) return prev;
+        const next = new Set(prev);
+        next.add(id);
+        persistMarkedIds(userId, next);
+        return next;
+      });
+    },
+    [userId],
+  );
 
   const markAllAsRead = useCallback(() => {
-    setReadIds((prev) => {
-      const next = new Set(prev);
+    if (!userId) return;
+    setReadIds(() => {
+      const next = new Set<string>();
       for (const n of NOTIFICACIONES) next.add(n.id);
-      persistMarkedIds(next);
+      persistMarkedIds(userId, next);
       return next;
     });
-  }, []);
+  }, [userId]);
 
   const value = useMemo(
     () => ({ items, unreadCount, markAsRead, markAllAsRead }),
@@ -96,7 +115,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 export function useNotifications() {
   const ctx = useContext(NotificationsContext);
   if (!ctx) {
-    throw new Error("useNotifications debe usarse dentro de NotificationsProvider");
+    throw new Error(
+      "useNotifications debe usarse dentro de NotificationsProvider",
+    );
   }
   return ctx;
 }

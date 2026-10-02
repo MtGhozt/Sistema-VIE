@@ -1,22 +1,108 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ApiError } from "../api/client";
+import { fetchConvocatorias, type Convocatoria } from "../api/convocatorias";
+import { createPropuesta } from "../api/propuestas";
+import { useAuth } from "../auth/AuthContext";
+import { useToast } from "../components/toast/ToastContext";
 import { MODALIDADES } from "../data/demo";
 
 export function PropuestaNuevaPage() {
+  const { session } = useAuth();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+  const canCreate =
+    session?.role === "investigador" || session?.role === "admin";
+
   const [step, setStep] = useState(0);
+  const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
+  const [idConvocatoria, setIdConvocatoria] = useState<number | "">("");
   const [titulo, setTitulo] = useState("");
   const [modalidad, setModalidad] = useState<string>(MODALIDADES[0]);
   const [resumen, setResumen] = useState("");
   const [abstractEn, setAbstractEn] = useState("");
   const [keywordsEs, setKeywordsEs] = useState("");
   const [keywordsEn, setKeywordsEn] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const steps = [
     "Identificación",
     "Resumen y palabras clave",
-    "Equipo",
     "Revisión",
   ];
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const rows = await fetchConvocatorias();
+        const activas = rows.filter((c) => c.estado === "activa");
+        setConvocatorias(activas.length > 0 ? activas : rows);
+        if (activas[0]) setIdConvocatoria(activas[0].id);
+        else if (rows[0]) setIdConvocatoria(rows[0].id);
+      } catch (err) {
+        showToast(
+          err instanceof ApiError
+            ? err.message
+            : "No se pudieron cargar convocatorias",
+          "error",
+        );
+      }
+    })();
+  }, [showToast]);
+
+  async function onSave(enviarDespues = false) {
+    if (!canCreate) {
+      showToast("Ingresá como investigador para crear propuestas", "error");
+      return;
+    }
+    if (!titulo.trim() || idConvocatoria === "") {
+      showToast("Completá título y convocatoria", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const created = await createPropuesta({
+        titulo: titulo.trim(),
+        idConvocatoria: Number(idConvocatoria),
+        modalidad,
+        resumen: resumen.trim() || undefined,
+        abstractEn: abstractEn.trim() || undefined,
+        keywordsEs,
+        keywordsEn,
+      });
+      showToast(
+        enviarDespues
+          ? "Borrador creado"
+          : "Borrador guardado en PostgreSQL",
+        "success",
+      );
+      navigate(`/propuestas/${created.id}`, { replace: true });
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "No se pudo guardar",
+        "error",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    void onSave(false);
+  }
+
+  if (!canCreate) {
+    return (
+      <section className="card">
+        <h1>Nueva propuesta</h1>
+        <p>Esta acción requiere el rol Investigador (o admin).</p>
+        <Link to="/propuestas" className="btn btn-secondary">
+          Volver
+        </Link>
+      </section>
+    );
+  }
 
   return (
     <>
@@ -27,17 +113,16 @@ export function PropuestaNuevaPage() {
       </div>
       <header className="page-header">
         <div>
-          <p className="eyebrow">Formulación</p>
+          <p className="eyebrow">Formulación · CU2</p>
           <h1>Nueva propuesta</h1>
           <p>
-            Wizard local (sin API). Modalidades y abstract EN alineados al
-            formulario VIE 2027; el resto de secciones se irá portando del
-            prototipo.
+            Primer bloque persistente: convocatoria, título, modalidad, resumen
+            ES/EN y palabras clave. El resto del formulario se completa después.
           </p>
         </div>
       </header>
 
-      <div className="wizard-layout wizard-layout-wide">
+      <form className="wizard-layout wizard-layout-wide" onSubmit={onSubmit}>
         <aside className="wizard-sidebar card">
           <div className="wizard-progress-head">
             <span>Progreso</span>
@@ -62,7 +147,11 @@ export function PropuestaNuevaPage() {
                 <div>
                   <strong>{label}</strong>
                   <small>
-                    {i < step ? "Completado" : i === step ? "Actual" : "Pendiente"}
+                    {i < step
+                      ? "Completado"
+                      : i === step
+                        ? "Actual"
+                        : "Pendiente"}
                   </small>
                 </div>
               </button>
@@ -74,7 +163,7 @@ export function PropuestaNuevaPage() {
           <div className="wizard-card-head institutional-form-head">
             <div>
               <h2>{steps[step]}</h2>
-              <p className="save-status">Guardado local · sin backend</p>
+              <p className="save-status">Persistencia PostgreSQL</p>
             </div>
             <div className="form-code">
               <strong>Fondos VIE</strong>
@@ -86,11 +175,34 @@ export function PropuestaNuevaPage() {
             {step === 0 && (
               <>
                 <label className="field">
+                  <span className="field-label">Convocatoria</span>
+                  <select
+                    className="input"
+                    value={idConvocatoria}
+                    onChange={(e) =>
+                      setIdConvocatoria(
+                        e.target.value ? Number(e.target.value) : "",
+                      )
+                    }
+                    required
+                  >
+                    <option value="" disabled>
+                      Seleccionar…
+                    </option>
+                    {convocatorias.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nombre} ({c.estado})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
                   <span className="field-label">Título de la propuesta</span>
                   <input
                     className="input"
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
+                    required
                   />
                 </label>
                 <fieldset className="field">
@@ -160,25 +272,15 @@ export function PropuestaNuevaPage() {
             )}
 
             {step === 2 && (
-              <div className="instruction-box">
-                <span>i</span>
-                <div>
-                  <strong>Equipo investigador</strong>
-                  <p>
-                    En el port completo se capturan ORCID, instancia, rol,
-                    horas VIE y participantes externos. Por ahora este paso es
-                    un marcador estructural.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {step === 3 && (
               <div className="review-summary">
                 <strong>{titulo || "(Sin título)"}</strong>
                 <p>
                   Modalidad: {modalidad}. Keywords ES: {keywordsEs || "—"}. EN:{" "}
                   {keywordsEn || "—"}.
+                </p>
+                <p>
+                  Al guardar se crea el expediente en estado <em>borrador</em>.
+                  Desde el detalle podés enviarlo a revisión.
                 </p>
               </div>
             )}
@@ -205,14 +307,18 @@ export function PropuestaNuevaPage() {
                   Siguiente
                 </button>
               ) : (
-                <Link to="/propuestas" className="btn btn-primary">
-                  Guardar borrador local
-                </Link>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={saving}
+                >
+                  {saving ? "Guardando…" : "Guardar borrador"}
+                </button>
               )}
             </div>
           </div>
         </section>
-      </div>
+      </form>
     </>
   );
 }

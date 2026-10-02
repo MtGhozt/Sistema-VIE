@@ -95,6 +95,7 @@ Implicación: no basta el HTML en `localStorage`. Hace falta **API + PostgreSQL*
 | D17 | **pnpm monorepo** en la raíz (`pnpm install`, `pnpm dev` levanta front+back) | Preferencia Matias; menos lockfiles npm | 2026-10-01 |
 | D18 | **Solo código** en `backend/`, `frontend/`, `database/` (SQL); referencias y legado en `docs/` | Limpieza de repo | 2026-10-01 |
 | D19 | **Sidebar azul TEC** + logo oficial (`logotec.pdf` → `public/brand/logotec-*.png`) | Contraste marca; variante blanca del manual | 2026-10-01 |
+| D20 | Propuesta **editable solo en borrador**; enviada/en flujo = solo lectura | Evitar reescritura tras envío; alinea detalle + `?edit=` | 2026-10-02 |
 
 
 
@@ -389,6 +390,15 @@ Matias puede arrancar Fase 0 solo con defaults de §5.
 ## 11. Bitácora de decisiones y sesiones
 
 
+
+### 2026-10-02 — Parity UI HTML + regla edit borrador
+- Restaurado alineamiento con `Fondos-VIE-Prototipo.html` en: inicio admin/investigador, detalle de propuesta (`ProposalDetailView`), wizard de 17 pasos, bandejas de evaluación por rol.
+- Wizard: scroll contenido en `.wizard-sidebar` (no derrama los 17 pasos sobre el canvas).
+- **D20 (implícita):** editar propuesta solo en `borrador`; enviada/en flujo = read-only.
+- **CU2:** API persiste primer bloque; resto del wizard = UI local/demo.
+- Se mantienen: notificaciones, toasts, marca TEC, API CU1/CU2.
+- Huecos conscientes: PDF/documento 4 campo-a-campo, impresión de oficios, rúbricas ≠ catálogo Excel completo.
+- Detalle en `CONTINUIDAD.md` § Estado UI.
 
 ### 2026-10-01 — Marca: logo oficial TEC
 - Assets desde `docs/manual-identidad-tec/logotec.pdf` → `frontend/public/brand/` (azul/blanco).

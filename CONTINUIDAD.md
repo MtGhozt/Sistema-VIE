@@ -1,6 +1,6 @@
 # Continuidad — Sistema VIE
 
-Última actualización: 2026-10-01 (noche — limpieza + pnpm + React multiarchivo)
+Última actualización: 2026-10-02 (parity UI HTML + docs)
 
 ## Lectura para el equipo
 
@@ -39,11 +39,41 @@ Estructura:
 7. **UI fuente de verdad = `docs/prototipo-html-referencia/Fondos-VIE-Prototipo.html`** (1:1). Código en `frontend/src`. Docs fuera de frontend/backend/database.
 8. **pnpm** en la raíz; no usar npm en este repo (D17).
 9. **Sidebar azul TEC** + **logo oficial** de `docs/manual-identidad-tec/logotec.pdf` (`frontend/public/brand/logotec-blanco.png`). La variante blanca del manual exige fondo azul/oscuro; por eso la barra no es blanca.
+10. **Edición de propuesta:** solo si `estadoActual === "borrador"`. Enviada / en flujo = solo lectura (botón Editar oculto; ruta `?edit=` redirige).
+
+## Estado UI (2026-10-02) — parity HTML restaurada
+
+Paridad visual/flujo del prototipo HTML recuperada en:
+
+| Área | Qué | Notas |
+|------|-----|-------|
+| Inicio admin / investigador | `InicioPage` | Admin: acceso por instancia + carriles de flujo; investigador: recientes + timeline |
+| Detalle propuesta | `ProposalDetailView` + tabs | Demo `PROP-*` y API numérica; admin ve bloque transversal |
+| Wizard 17 pasos | `formWizard` + `FormWizardStepContent` + `PropuestaNuevaPage` | Sidebar con scroll contenido (`.wizard-sidebar`) |
+| Evaluaciones por rol | `EvaluacionesPage` + `EvaluationRolePanels` | UI demo local (CU4 pantallas); sin persistencia API aún |
+
+**Se mantiene (no es del HTML 1:1, es avance del producto):**
+
+- Campana de notificaciones + toasts
+- Marca TEC (sidebar azul, logos oficiales)
+- API **CU1** convocatorias y **CU2** propuestas (bloque inicial)
+
+**CU2 — persistencia real vs UI:**
+
+- API guarda solo el **primer bloque** (título, convocatoria, modalidad, resumen, abstract, keywords).
+- Pasos 3–17 del wizard = UI local/demo (estado React); no se persisten al guardar.
+
+**Huecos conocidos (no inventar features ahora):**
+
+- Documento 4 (formulario oficial) sin mapeo campo-a-campo completo
+- Impresión / generación de oficios (solo campos en paneles demo)
+- Rúbricas = subset por modalidad, no catálogo oficial completo del Excel
 
 ## Bitácora reciente
 
 | Fecha | Qué | Pendiente |
 |-------|-----|-----------|
+| 2026-10-02 | Parity HTML: inicio admin/investigador, detalle, wizard 17 pasos, evaluaciones por rol; edit solo borrador; scroll sidebar wizard | CU3 PI; persistir resto wizard; oficios/PDF; rúbrica completa; a11y |
 | 2026-10-01 | **CU2** propuestas: listar/crear borrador/enviar (Postgres) | CU3 PI / más secciones formulario |
 | 2026-10-01 | Notificaciones leídas **por usuario**; sin toast al marcar vista | — |
 | 2026-10-01 | **CU1** convocatorias persistidas en Postgres (`/api/convocatorias`) | — |
@@ -56,8 +86,9 @@ Estructura:
 ## Próximos pasos (orden)
 
 1. ~~Definir 5 CUs~~ / ~~Q1–Q4~~ / ~~Fase 0 cimientos~~ / ~~frontend multiarchivo sin API~~
-2. ~~Login demo ↔ API~~ · ~~**CU1 convocatoria**~~ · ~~**CU2** formular/enviar (bloque inicial)~~ · **CU3** o completar secciones del formulario.
-3. Completar port de formularios/rúbricas del prototipo + a11y + CUs restantes.
+2. ~~Login demo ↔ API~~ · ~~**CU1 convocatoria**~~ · ~~**CU2** formular/enviar (bloque inicial)~~ · ~~parity UI HTML (inicio / detalle / wizard / eval roles)~~
+3. **CU3** (dictamen PI) y/o persistir más secciones del wizard CU2.
+4. Ampliar rúbricas + oficios/print donde haga falta para demo; a11y; CUs restantes.
 
 ## Referencias rápidas
 
@@ -66,3 +97,4 @@ Estructura:
 - BD (docs): `docs/database/` · SQL: `database/`
 - **UI referencia:** `docs/prototipo-html-referencia/Fondos-VIE-Prototipo.html`
 - **App:** desde la raíz `pnpm dev`
+- Claves UI: `frontend/src/pages/InicioPage.tsx`, `PropuestaDetallePage.tsx`, `PropuestaNuevaPage.tsx`, `EvaluacionesPage.tsx`, `components/ProposalDetailView.tsx`, `components/evaluation/`, `data/formWizard.ts`

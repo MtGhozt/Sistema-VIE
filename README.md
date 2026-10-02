@@ -3,52 +3,58 @@
 Prototipo funcional — Gestión de propuestas Fondos VIE.  
 Repo: https://github.com/MatiasBS027/Sistema-VIE
 
-## Empezar aquí (equipo)
+**Gestor de paquetes:** `pnpm` (no npm).
 
-1. Leer **`PLAN-MAESTRO.md`** (decisiones Q1–Q4 ya respondidas).  
-2. Leer `CONTINUIDAD.md` y `docs/casos-de-uso/CASOS-DE-USO.md`.  
-3. Trabajar solo en este repo.
+## Empezar aquí
+
+1. `PLAN-MAESTRO.md`  
+2. `CONTINUIDAD.md`  
+3. `docs/casos-de-uso/CASOS-DE-USO.md`
 
 ## Estructura
 
 ```
 Sistema-VIE/
-├── backend/     # API Express + TypeScript + PostgreSQL
-├── frontend/    # React + TypeScript + Vite
-├── database/    # DDL 40 tablas + seed
-├── docs/        # Material académico
+├── backend/     # Solo API (src/)
+├── frontend/    # Solo app React (src/ + public/)
+├── database/    # Solo SQL (schema + seed)
+├── docs/        # Toda la documentación y referencias
+├── package.json # Workspace: pnpm dev levanta todo
 └── docker-compose.yml
 ```
 
-## Levantar el entorno (Fase 0)
+## Levantar todo (desde la raíz)
 
 ```powershell
-# 1) Postgres (Docker Desktop encendido)
-docker compose up -d
+# 1) Postgres
+pnpm db:up
 
-# 2) API
-cd backend
-npm install
-npm run dev
-# http://localhost:3000/api/health
+# 2) Dependencias (una sola vez)
+pnpm install
 
-# 3) UI
-cd ../frontend
-npm install
-npm run dev
-# http://localhost:5173
+# 3) Frontend + backend juntos
+pnpm dev
 ```
 
-Login demo (API): roles en `GET /api/demo/roles`.  
-**UI de entrega:** el prototipo HTML (`frontend/public/Fondos-VIE-Prototipo.html`) — mismo look que el diseño original.  
-Referencia/copia: `frontend/reference/Fondos-VIE-Prototipo.html`.
+- UI: http://localhost:5173  
+- API: http://localhost:3000/api/health  
 
-## Base de datos
+Solo uno: `pnpm dev:frontend` o `pnpm dev:backend`.
 
-Fuente de verdad: `database/Diseno_Base_Datos_Fondos_VIE (con cambios).md` (40 tablas).  
-Credenciales locales Docker: usuario/clave/db = `vie` / `vie` / `fondos_vie` · puerto `5432`.
+## Dónde está cada cosa
 
-## Notas Git
+| Qué | Dónde |
+|-----|--------|
+| App React | `frontend/src` |
+| Favicon / estáticos | `frontend/public` |
+| API | `backend/src` |
+| SQL | `database/*.sql` |
+| Diseño BD (MD/PDF/DBML) | `docs/database/` |
+| Prototipo HTML viejo | `docs/prototipo-html-referencia/` |
+| API SQLite antigua | `docs/backend-legacy/` |
 
-No versionar: `node_modules/`, `*.db`, `.env`.  
-Sí versionar: SQL, PDF de diseño, documentación del curso.
+## Notas
+
+- Hay **dos** `node_modules` (frontend y backend) porque son dos apps distintas en un monorepo. Eso es normal.  
+- `frontend/index.html` lo exige Vite (entrada de la SPA). El backend **no** necesita HTML.  
+- No versionar: `node_modules/`, `.env`, `*.db`.

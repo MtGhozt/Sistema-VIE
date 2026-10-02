@@ -21,7 +21,7 @@
 | 4   | `database/Diseno_Base_Datos_Fondos_VIE (con cambios).md`                                | BD 40 tablas (fuente de verdad)                     |
 | 5   | `docs/cerebro/02-DOMINIO-VIE.md`                                                        | Flujo institucional y reglas                        |
 | 6   | `docs/etapa1/Analisis-de-Personas-Fondos-VIE.md`                                        | Actores / roles                                     |
-| 7   | `frontend/Fondos-VIE-Prototipo.html`                                                    | Referencia visual de pantallas (abrir en navegador) |
+| 7   | `docs/prototipo-html-referencia/Fondos-VIE-Prototipo.html`                               | Referencia visual (docs; no va en frontend/)        |
 | 8   | Rúbrica del LMS (capturas en chat / si se agrega a `docs/rubrica-prototipo-funcional/`) | Criterios de nota                                   |
 
 
@@ -82,7 +82,7 @@ Implicación: no basta el HTML en `localStorage`. Hace falta **API + PostgreSQL*
 | D3  | Backend: **Node.js + TypeScript + Express +** `pg`                  | Simple, tipado, alineado a SQL                        | 2026-10-01      |
 | D4  | Frontend: **React + TypeScript + Vite**                             | Ya hay UI React de referencia; Vite = tooling moderno | 2026-10-01      |
 | D5  | BD: **PostgreSQL**, esquema de **40 tablas** del MD                 | Rúbrica/clase + diseño entregado                      | 2026-10-01      |
-| D6  | Fuente de verdad BD = MD `fondos_vie_modelo.dbml` + `DisennoDB.sql` | Sincronizados a 40 tablas                             | 2026-10-01      |
+| D6  | Fuente de verdad BD = MD en `docs/database/` + `database/DisennoDB.sql` | Sincronizados a 40 tablas                         | 2026-10-01      |
 | D7  | Sin integración real con Orión ni correo real                       | Alcance académico; correo = simulación/registro       | (desde dominio) |
 | D8  | Cinco CUs documentados en `docs/casos-de-uso/CASOS-DE-USO.md`       | Cubren módulos oficiales + flujo mínimo               | 2026-10-01      |
 | D9  | SQLite actual del backend es **temporal**                           | Solo andamiaje; se elimina al conectar Postgres       | 2026-10-01      |
@@ -91,7 +91,9 @@ Implicación: no basta el HTML en `localStorage`. Hace falta **API + PostgreSQL*
 | D13 | Auth = **login demo por rol** | Como el HTML; flexible a cambios | 2026-10-01 |
 | D14 | CU4 = **vistas separadas por rol** (Comité, Consejo, CIE, …) | Igual que el prototipo HTML | 2026-10-01 |
 | D15 | 5 CUs aprobados sin cambios de alcance | Confirmado Matias | 2026-10-01 |
-| D16 | **UI = prototipo HTML 1:1** (`Fondos-VIE-Prototipo.html`). Prohibido inventar otra estética. React/TS solo porta pantallas clonando ese prototipo. | Feedback Matias 2026-10-01 | 2026-10-01 |
+| D16 | **UI = prototipo HTML 1:1** (`docs/prototipo-html-referencia/Fondos-VIE-Prototipo.html`). Código en `frontend/src`. Prohibido inventar otra estética. | Feedback Matias 2026-10-01 | 2026-10-01 |
+| D17 | **pnpm monorepo** en la raíz (`pnpm install`, `pnpm dev` levanta front+back) | Preferencia Matias; menos lockfiles npm | 2026-10-01 |
+| D18 | **Solo código** en `backend/`, `frontend/`, `database/` (SQL); referencias y legado en `docs/` | Limpieza de repo | 2026-10-01 |
 
 
 
@@ -387,9 +389,15 @@ Matias puede arrancar Fase 0 solo con defaults de §5.
 
 
 
+### 2026-10-01 — Limpieza repo + frontend multiarchivo + pnpm
+- Documentación de BD → `docs/database/`; `database/` queda solo con `.sql`.
+- Prototipo HTML y análisis → `docs/prototipo-html-referencia/` (fuera de `frontend/`).
+- Demo SQLite vieja → `docs/backend-legacy/`.
+- App de entrega: React multiarchivo en `frontend/src`, CSS extraído del prototipo, login demo en `localStorage` (sin API aún).
+- Monorepo **pnpm**: `pnpm db:up`, `pnpm dev` desde la raíz (D17, D18).
+
 ### 2026-10-01 — Corrección UI
-- El shell Vite inventado **no** es la UI. Fuente de verdad: `frontend/public/Fondos-VIE-Prototipo.html`.
-- `npm run dev` redirige al prototipo. React/TS porta pantallas 1:1 desde ahí (D16).
+- Fuente de verdad visual: `docs/prototipo-html-referencia/Fondos-VIE-Prototipo.html`. App multiarchivo: `frontend/src` (D16).
 
 ### 2026-10-01 — Sesión Matias (respuestas Q1–Q4 + Fase 0)
 
@@ -418,7 +426,7 @@ Matias puede arrancar Fase 0 solo con defaults de §5.
 - [x] Plan maestro escrito  
 - [x] Equipo confirmó o Matias asume defaults Q1–Q4  
 - [x] Postgres disponible (Docker Desktop)  
-- [ ] Node LTS + pnpm/npm en las máquinas del equipo  
+- [x] Node LTS + **pnpm** en las máquinas del equipo  
 
 ---
 
@@ -434,7 +442,7 @@ Lean EN ESTE ORDEN:
 1) PLAN-MAESTRO.md
 2) CONTINUIDAD.md
 3) docs/casos-de-uso/CASOS-DE-USO.md
-4) database/Diseno_Base_Datos_Fondos_VIE (con cambios).md
+4) docs/database/Diseno_Base_Datos_Fondos_VIE (con cambios).md
 
 Ahí está el stack (Node TS + React Vite + Postgres), los 5 CUs,
 qué ya se decidió y qué falta opinar (Q1–Q4 del plan).

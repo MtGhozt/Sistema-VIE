@@ -307,4 +307,311 @@ export const NOTIFICACIONES = [
   },
 ];
 
+/** Etapas del flujo institucional (prototipo HTML `_a`). */
+export const FLOW_STAGES = [
+  "Formulación",
+  "Vinculación",
+  "Comité Técnico",
+  "Consejo de Escuela",
+  "VIE",
+  "CIE",
+  "Resolución",
+] as const;
+
+/** Tarjetas “Acceso a instancias” del panel admin (prototipo `tp`). */
+export const ADMIN_INSTANCE_CARDS: [string, string, string, string][] = [
+  ["VIE — publicación", "1", "convocatorias activas", "/convocatorias"],
+  ["Investigadores", "5", "propuestas en formulación", "/propuestas"],
+  ["Vinculación", "4", "dictámenes PI pendientes", "/evaluaciones"],
+  ["Comité Técnico", "6", "expedientes por revisar", "/evaluaciones"],
+  ["Consejo de Escuela", "2", "avales pendientes", "/evaluaciones"],
+  ["Gestora VIE", "5", "expedientes pendientes", "/evaluaciones"],
+  ["CIE", "3", "resoluciones pendientes", "/evaluaciones"],
+  [
+    "Dirección de Investigación",
+    "2",
+    "notificaciones pendientes",
+    "/evaluaciones",
+  ],
+];
+
+/** Roles en la rejilla “Vista transversal” del detalle admin. */
+export const ADMIN_STAGE_ROLES = [
+  "Vinculación",
+  "Asistente Comité",
+  "Evaluador Comité",
+  "Asistente Consejo",
+  "Consejo",
+  "Dirección Escuela",
+  "Gestora VIE",
+  "CIE",
+  "Dirección Investigación",
+] as const;
+
+export type DemoProposal = {
+  id: string;
+  titulo: string;
+  convocatoria: string;
+  investigadora: string;
+  escuela: string;
+  modalidad: string;
+  estado: string;
+  /** Índice activo 0–6 (como `etapa` del HTML). */
+  etapa: number;
+  piRequired: boolean;
+  presupuesto: string;
+  resumen: string;
+  abstract: string;
+  palabras: string[];
+  keywords: string[];
+  teamTec: {
+    nombre: string;
+    orcid?: string;
+    instancia: string;
+    rol: string;
+    horas: string;
+    periodo?: string;
+  }[];
+  teamExternal?: {
+    nombre: string;
+    orcid?: string;
+    institucion: string;
+  }[];
+  plan?: {
+    objetivo: string;
+    actividad: string;
+    resultado: string;
+    participantes: string;
+    responsabilidad: string;
+    riesgo: string;
+    mitigacion: string;
+    responsable: string;
+    inicio: number;
+    duracion: number;
+  }[];
+  presupuestoAnual?: { anio: number; operativo: number; duraderos: number }[];
+  financiamiento?: {
+    tipo: string;
+    anio1: number;
+    anio2: number;
+    anio3: number;
+    oficio: string;
+  }[];
+  productos?: string[];
+  activoPI?: string;
+  etica?: string;
+  observaciones?: string[];
+  timeline?: { titulo: string; detalle: string; fecha: string }[];
+  documentos: { nombre: string; estado: string }[];
+  evaluacionComite?: { average: number };
+  oficioComite?: string;
+  oficioPI?: string;
+  oficioAval?: string;
+  resolucion?: string;
+  notificada?: boolean;
+  justificacionAval?: string;
+  confidencialidad?: string;
+};
+
+/** Expedientes usados en Evaluaciones (selector del prototipo HTML). */
+export function getEvaluationProposals(): DemoProposal[] {
+  return DEMO_PROPOSALS.filter((p) => p.id !== "PROP-2026-031");
+}
+
+export const DEMO_PROPOSALS: DemoProposal[] = [
+  {
+    id: "PROP-2027-014",
+    titulo:
+      "Sistema inteligente para monitoreo de calidad del agua mediante sensores IoT",
+    convocatoria:
+      "Convocatoria Interna para Investigación – Fondos VIE 2027",
+    investigadora: "María Rodríguez",
+    escuela: "Escuela de Ingeniería en Computación",
+    modalidad: "Desarrollo tecnológico",
+    estado: "Pendiente de dictamen PI",
+    etapa: 1,
+    piRequired: true,
+    presupuesto: "₡18 450 000",
+    resumen:
+      "Diseño y validación de una plataforma de monitoreo de calidad del agua basada en sensores IoT, analítica de datos y visualización web para apoyar la toma de decisiones en comunidades rurales.",
+    abstract:
+      "Design and validation of an IoT-based water-quality monitoring platform combining low-cost sensors, data analytics and web visualization to support decision-making in rural communities.",
+    palabras: ["IoT", "calidad del agua", "sensores", "analítica"],
+    keywords: ["IoT", "water quality", "sensors", "analytics"],
+    teamTec: [
+      {
+        nombre: "María Rodríguez",
+        orcid: "0000-0002-3141-7782",
+        instancia: "Escuela de Ingeniería en Computación",
+        rol: "Coordinadora",
+        horas: "10 VIE",
+        periodo: "Ene 2027 – Jun 2028",
+      },
+      {
+        nombre: "José Méndez",
+        orcid: "0000-0001-1147-6209",
+        instancia: "Escuela de Ingeniería Electrónica",
+        rol: "Investigador",
+        horas: "6 VIE",
+        periodo: "Ene 2027 – Jun 2028",
+      },
+    ],
+    teamExternal: [
+      {
+        nombre: "Andrea Quesada",
+        orcid: "0000-0003-1022-5421",
+        institucion: "ASADA San Rafael",
+      },
+    ],
+    plan: [
+      {
+        objetivo: "OE1",
+        actividad: "Diseñar arquitectura IoT",
+        resultado: "Arquitectura validada",
+        participantes: "MR, JM",
+        responsabilidad: "Ejecuta",
+        riesgo: "Retraso de componentes",
+        mitigacion: "Proveedor alterno y compra temprana",
+        responsable: "MR",
+        inicio: 1,
+        duracion: 3,
+      },
+      {
+        objetivo: "OE2",
+        actividad: "Implementar prototipo",
+        resultado: "MVP funcional",
+        participantes: "JM, MR",
+        responsabilidad: "Ejecuta",
+        riesgo: "Fallas de integración",
+        mitigacion: "Pruebas incrementales",
+        responsable: "JM",
+        inicio: 4,
+        duracion: 6,
+      },
+    ],
+    presupuestoAnual: [
+      { anio: 2027, operativo: 2_800_000, duraderos: 9_500_000 },
+      { anio: 2028, operativo: 6_150_000, duraderos: 0 },
+    ],
+    financiamiento: [
+      {
+        tipo: "Financiamiento externo",
+        anio1: 1_500_000,
+        anio2: 500_000,
+        anio3: 0,
+        oficio: "Oficio-DE-001-2026 · Fundación Agua Clara",
+      },
+      {
+        tipo: "Contrapartida",
+        anio1: 750_000,
+        anio2: 250_000,
+        anio3: 0,
+        oficio: "ESC-COMP-088-2026 · Escuela de Computación",
+      },
+    ],
+    productos: [
+      "Desarrollo de Software",
+      "Artículo científico WoS/Scopus",
+    ],
+    activoPI: "Desarrollo de Software",
+    confidencialidad: "No",
+    evaluacionComite: { average: 87 },
+    oficioComite: "CT-041-2026",
+    oficioPI: "CV-023-2026",
+    etica:
+      "No requiere autorización de ente ético o regulatorio; no involucra seres humanos, biodiversidad ni animales vertebrados.",
+    observaciones: [],
+    timeline: [
+      {
+        titulo: "Propuesta creada",
+        detalle: "Se inició la formulación de la propuesta.",
+        fecha: "12 Ago",
+      },
+      {
+        titulo: "Propuesta enviada",
+        detalle:
+          "La propuesta fue enviada para continuar el flujo institucional.",
+        fecha: "18 Ago",
+      },
+    ],
+    documentos: [
+      { nombre: "Formulario de propuesta", estado: "Completo" },
+      { nombre: "Plan de acción y riesgos", estado: "Completo" },
+      { nombre: "Presupuesto", estado: "Completo" },
+      { nombre: "Acuerdo de instancia coordinadora", estado: "Completo" },
+      { nombre: "Acuerdo de instancia participante", estado: "Completo" },
+      { nombre: "Cartas de compromiso", estado: "Completo" },
+      { nombre: "Dictamen de PI", estado: "Pendiente" },
+    ],
+  },
+  {
+    id: "PROP-2027-009",
+    titulo: "Plataforma de análisis de movilidad urbana con datos abiertos",
+    convocatoria:
+      "Convocatoria Interna para Investigación – Fondos VIE 2027",
+    investigadora: "Carlos Jiménez",
+    escuela: "Escuela de Ingeniería en Computación",
+    modalidad: "Investigación aplicada",
+    estado: "En evaluación por Comité Técnico",
+    etapa: 2,
+    piRequired: false,
+    presupuesto: "₡12 780 000",
+    resumen:
+      "Análisis de patrones de movilidad urbana a partir de datos abiertos institucionales y sensores municipales.",
+    abstract:
+      "Urban mobility pattern analysis from institutional open data and municipal sensors.",
+    palabras: ["movilidad", "datos abiertos", "urbanismo"],
+    keywords: ["mobility", "open data", "urban"],
+    teamTec: [
+      {
+        nombre: "Carlos Jiménez",
+        instancia: "Escuela de Ingeniería en Computación",
+        rol: "Coordinador",
+        horas: "8 VIE",
+      },
+    ],
+    documentos: [
+      { nombre: "Formulario de propuesta", estado: "Completo" },
+      { nombre: "Plan de acción y riesgos", estado: "Completo" },
+      { nombre: "Presupuesto", estado: "Completo" },
+      { nombre: "Dictamen de PI", estado: "No requerido" },
+    ],
+  },
+  {
+    id: "PROP-2026-031",
+    titulo: "Optimización energética en microredes universitarias",
+    convocatoria:
+      "Convocatoria de Fortalecimiento de Grupos de Investigación 2026",
+    investigadora: "Ana Solano",
+    escuela: "Escuela de Electromecánica",
+    modalidad: "Investigación básica y aplicada",
+    estado: "Aprobada",
+    etapa: 7,
+    piRequired: false,
+    presupuesto: "₡21 300 000",
+    resumen:
+      "Modelo de optimización energética para microredes en campus universitarios con generación distribuida.",
+    abstract:
+      "Energy optimization model for campus microgrids with distributed generation.",
+    palabras: ["energía", "microredes", "optimización"],
+    keywords: ["energy", "microgrids", "optimization"],
+    teamTec: [
+      {
+        nombre: "Ana Solano",
+        instancia: "Escuela de Electromecánica",
+        rol: "Coordinadora",
+        horas: "10 VIE",
+      },
+    ],
+    documentos: [
+      { nombre: "Formulario de propuesta", estado: "Completo" },
+      { nombre: "Resolución CIE", estado: "Completo" },
+    ],
+  },
+];
+
+export function getDemoProposal(id: string): DemoProposal | undefined {
+  return DEMO_PROPOSALS.find((p) => p.id === id);
+}
+
 export const SESSION_KEY = "vie-session";

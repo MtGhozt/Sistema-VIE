@@ -1,25 +1,11 @@
-# Backend — Sistema VIE
+# Backend
 
-API **Express + TypeScript + PostgreSQL**.
+API Express + TypeScript + PostgreSQL. Código en `src/`.
 
-## Requisitos
+Desde la raíz: `pnpm db:up` luego `pnpm dev` (o `pnpm dev:backend`).
 
-1. Docker Desktop encendido  
-2. Desde la raíz del repo: `docker compose up -d`  
-3. Node 20+ 
+- Health: `GET /api/health`
+- Demo roles: `GET /api/demo/roles`
+- Demo login: `POST /api/demo/login` `{ "roleCode": "investigador" }`
 
-## Config
-
-```powershell
-copy .env.example .env
-pnpm install   # o: npm install
-pnpm dev
-```
-
-- Health: `GET http://localhost:3000/api/health`  
-- Roles demo: `GET http://localhost:3000/api/demo/roles`  
-- Login demo: `POST http://localhost:3000/api/demo/login` body `{ "roleCode": "investigador" }`
-
-## Legacy
-
-El prototipo SQLite anterior quedó en `legacy/` (referencia). No usarlo para desarrollo nuevo.
+Prototipo SQLite viejo (referencia): `docs/backend-legacy/`.

@@ -6,6 +6,12 @@ Repositorio del **prototipo funcional** del sistema de gestión de propuestas Fo
 Stack objetivo: **PostgreSQL** + backend Node + frontend web.  
 La base académica (rúbrica, convocatoria, marca, etapa 1) vive en `docs/`.
 
+## Empezar aquí (equipo)
+
+1. Leer **`PLAN-MAESTRO.md`** (decisiones, fases, preguntas).  
+2. Leer `CONTINUIDAD.md` y `docs/casos-de-uso/CASOS-DE-USO.md`.  
+3. Trabajar solo en este repo (no en carpetas viejas del curso).
+
 ## Estructura
 
 ```

@@ -2,6 +2,12 @@
 
 Última actualización: 2026-10-01
 
+## Lectura para el equipo
+
+1. **`PLAN-MAESTRO.md`** — plan detallado, decisiones, preguntas Q1–Q4, fases  
+2. Este `CONTINUIDAD.md` — resumen corto  
+3. `docs/casos-de-uso/CASOS-DE-USO.md` — los 5 CUs  
+
 ## GitHub
 
 - Remoto: https://github.com/MatiasBS027/Sistema-VIE (privado)

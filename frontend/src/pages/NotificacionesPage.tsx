@@ -1,7 +1,29 @@
-import { NOTIFICACIONES } from "../data/demo";
 import { IconBell } from "../components/icons";
+import { useNotifications } from "../notifications/NotificationsContext";
+import { useToast } from "../components/toast/ToastContext";
 
 export function NotificacionesPage() {
+  const { items, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { showToast } = useToast();
+
+  function markOne(id: string, wasUnread: boolean) {
+    if (!wasUnread) {
+      showToast("Esta notificación ya estaba marcada como vista", "info");
+      return;
+    }
+    markAsRead(id);
+    showToast("Notificación marcada como vista", "success");
+  }
+
+  function markAll() {
+    if (unreadCount === 0) {
+      showToast("No hay notificaciones sin leer", "info");
+      return;
+    }
+    markAllAsRead();
+    showToast("Todas las notificaciones marcadas como vistas", "success");
+  }
+
   return (
     <>
       <header className="page-header">
@@ -13,10 +35,15 @@ export function NotificacionesPage() {
             expedientes.
           </p>
         </div>
+        <div className="page-actions">
+          <button type="button" className="btn btn-secondary" onClick={markAll}>
+            Marcar todas como vistas
+          </button>
+        </div>
       </header>
 
       <section className="card notifications-card">
-        {NOTIFICACIONES.map((n) => (
+        {items.map((n) => (
           <article
             key={n.id}
             className={`notification-row${n.unread ? " unread" : ""}`}
@@ -30,8 +57,13 @@ export function NotificacionesPage() {
               <span>{n.when}</span>
             </div>
             <div className="notification-actions">
-              <button type="button" className="btn btn-ghost">
-                Marcar
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={!n.unread}
+                onClick={() => markOne(n.id, n.unread)}
+              >
+                {n.unread ? "Marcar como vista" : "Vista"}
               </button>
             </div>
           </article>

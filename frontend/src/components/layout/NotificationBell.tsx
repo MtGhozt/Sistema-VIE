@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { NOTIFICACIONES } from "../../data/demo";
+import { useNotifications } from "../../notifications/NotificationsContext";
 import { IconBell } from "../icons";
 
 const RECENT_LIMIT = 4;
@@ -8,8 +8,8 @@ const RECENT_LIMIT = 4;
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const unread = NOTIFICACIONES.filter((n) => n.unread).length;
-  const recent = NOTIFICACIONES.slice(0, RECENT_LIMIT);
+  const { items, unreadCount, markAsRead } = useNotifications();
+  const recent = items.slice(0, RECENT_LIMIT);
 
   useEffect(() => {
     if (!open) return;
@@ -37,8 +37,8 @@ export function NotificationBell() {
         type="button"
         className="topbar-icon"
         aria-label={
-          unread > 0
-            ? `Notificaciones (${unread} sin leer)`
+          unreadCount > 0
+            ? `Notificaciones (${unreadCount} sin leer)`
             : "Notificaciones"
         }
         aria-haspopup="menu"
@@ -46,15 +46,19 @@ export function NotificationBell() {
         onClick={() => setOpen((v) => !v)}
       >
         <IconBell size={18} />
-        {unread > 0 && <span className="notification-dot" aria-hidden />}
+        {unreadCount > 0 && <span className="notification-dot" aria-hidden />}
       </button>
 
       {open && (
-        <div className="notif-popover" role="menu" aria-label="Notificaciones recientes">
+        <div
+          className="notif-popover"
+          role="menu"
+          aria-label="Notificaciones recientes"
+        >
           <div className="notif-popover-head">
             <strong>Notificaciones</strong>
-            {unread > 0 && (
-              <span className="badge badge-primary">{unread} nuevas</span>
+            {unreadCount > 0 && (
+              <span className="badge badge-primary">{unreadCount} nuevas</span>
             )}
           </div>
           <ul className="notif-popover-list">
@@ -64,7 +68,9 @@ export function NotificationBell() {
                   type="button"
                   className={`notif-popover-item${n.unread ? " unread" : ""}`}
                   role="menuitem"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    markAsRead(n.id);
+                  }}
                 >
                   <strong>{n.title}</strong>
                   <p>{n.body}</p>

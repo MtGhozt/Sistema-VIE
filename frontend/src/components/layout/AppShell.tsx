@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import { NOTIFICACIONES } from "../../data/demo";
+import { useNotifications } from "../../notifications/NotificationsContext";
 import {
   NAV_ITEMS,
   ROLES,
@@ -28,9 +28,9 @@ export function AppShell() {
   const personTitle = isAdminSession
     ? session.roleName
     : getRole(viewRole).short;
+  const { unreadCount } = useNotifications();
   const allowed = ROUTES_BY_ROLE[isAdminSession ? "admin" : viewRole];
   const nav = NAV_ITEMS.filter((item) => allowed.includes(item.to));
-  const unread = NOTIFICACIONES.filter((n) => n.unread).length;
 
   function handleLogout() {
     logout();
@@ -59,8 +59,8 @@ export function AppShell() {
             >
               <NavIcon name={icon} />
               <span>{label}</span>
-              {to === "/notificaciones" && unread > 0 && (
-                <span className="nav-counter">{unread}</span>
+              {to === "/notificaciones" && unreadCount > 0 && (
+                <span className="nav-counter">{unreadCount}</span>
               )}
             </NavLink>
           ))}

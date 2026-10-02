@@ -39,16 +39,22 @@ table,td,th{font-size:.98rem}
 .toast{position:fixed!important;left:50%!important;bottom:28px!important;top:auto!important;right:auto!important;transform:translateX(-50%)!important;z-index:9999!important;background:var(--ink);color:#fff;padding:14px 18px;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.22);display:flex;gap:12px;align-items:center;max-width:min(560px,92vw);font-size:1rem;line-height:1.35}
 .toast.success{background:var(--success)}
 .toast.error{background:var(--tec-red)}
-.timeline{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:0!important;overflow:visible!important;margin:14px 0 18px;padding:14px 10px 12px;background:var(--blue-soft);border-radius:12px}
-.timeline-step{position:relative;display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important;min-width:0;padding:0 4px;text-align:center}
-.timeline-marker{z-index:3!important;position:relative;flex:0 0 28px!important;width:28px!important;height:28px!important;border-radius:50%;display:grid;place-items:center;background:#fff!important;border:2px solid var(--blue-mid)!important;font-size:.8rem;font-weight:700;color:var(--ink-55);box-sizing:border-box}
+.timeline{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:0!important;overflow:visible!important;margin:14px 0 18px;padding:14px 10px 8px;background:var(--blue-soft);border-radius:12px}
+.timeline-step{position:relative;display:grid!important;grid-template-rows:28px auto!important;grid-template-columns:1fr!important;justify-items:center!important;align-content:start!important;gap:8px!important;min-width:0;padding:0 4px;text-align:center}
+.timeline-marker{grid-row:1;z-index:3!important;position:relative;flex:none!important;width:28px!important;height:28px!important;border-radius:50%;display:grid;place-items:center;background:#fff!important;border:2px solid var(--blue-mid)!important;font-size:.8rem;font-weight:700;color:var(--ink-55);box-sizing:border-box}
 .timeline-step.done .timeline-marker{background:var(--success)!important;border-color:var(--success)!important;color:#fff!important}
 .timeline-step.active .timeline-marker{background:var(--blue)!important;border-color:var(--blue)!important;color:#fff!important;box-shadow:0 0 0 3px var(--blue-mid)}
-.timeline-copy{z-index:2;position:relative;min-width:0;width:100%;padding-top:0!important;background:transparent}
+.timeline-copy{grid-row:2;z-index:2;position:relative;min-width:0;width:100%;padding-top:0!important;background:transparent;pointer-events:none}
 .timeline-copy strong,.timeline-step strong{display:block;font-size:.78rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .timeline-copy span,.timeline-step span{display:block;font-size:.7rem;margin-top:2px;color:var(--ink-55);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.timeline-line{position:absolute!important;left:calc(50% + 16px)!important;top:13px!important;width:calc(100% - 32px)!important;height:2px!important;background:var(--ink-15)!important;z-index:1!important;pointer-events:none}
+/* Connector only between markers (row 1); never crosses titles in row 2 */
+.timeline-line{position:absolute!important;left:calc(50% + 16px)!important;top:13px!important;width:calc(100% - 32px)!important;height:2px!important;background:var(--ink-15)!important;z-index:1!important;pointer-events:none;margin:0!important}
 .timeline-step.done .timeline-line{background:var(--blue)!important}
+.wizard-steps strong{font-size:.95rem!important;line-height:1.35!important}
+.wizard-steps small{font-size:.78rem!important;margin-top:3px!important}
+.wizard-steps button{padding:10px 8px!important;grid-template-columns:32px 1fr!important;gap:10px!important}
+.wizard-steps button>span{width:28px!important;height:28px!important;font-size:.75rem!important}
+.wizard-progress-head{font-size:.85rem!important}
 .action-stack{display:flex;flex-direction:column;gap:14px;margin-top:18px;align-items:stretch}
 .action-stack > *{width:100%}
 .action-row{gap:14px;flex-wrap:wrap}

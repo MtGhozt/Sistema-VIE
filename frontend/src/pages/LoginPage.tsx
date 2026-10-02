@@ -9,6 +9,7 @@ import {
   IconLock,
   IconMail,
 } from "../components/icons";
+import { TecLogo } from "../components/TecLogo";
 import { isRoleId, type RoleId } from "../data/roles";
 
 export function LoginPage() {
@@ -97,8 +98,7 @@ export function LoginPage() {
       <div className="login-brand-panel">
         <div className="login-brand-copy">
           <div className="login-tec-lockup">
-            <span>TEC</span>
-            <i />
+            <TecLogo variant="blanco" className="login-tec-logo" />
           </div>
           <div className="eyebrow light">
             Instituto Tecnológico de Costa Rica

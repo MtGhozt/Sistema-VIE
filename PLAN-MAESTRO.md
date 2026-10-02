@@ -94,6 +94,7 @@ Implicación: no basta el HTML en `localStorage`. Hace falta **API + PostgreSQL*
 | D16 | **UI = prototipo HTML 1:1** (`docs/prototipo-html-referencia/Fondos-VIE-Prototipo.html`). Código en `frontend/src`. Prohibido inventar otra estética. | Feedback Matias 2026-10-01 | 2026-10-01 |
 | D17 | **pnpm monorepo** en la raíz (`pnpm install`, `pnpm dev` levanta front+back) | Preferencia Matias; menos lockfiles npm | 2026-10-01 |
 | D18 | **Solo código** en `backend/`, `frontend/`, `database/` (SQL); referencias y legado en `docs/` | Limpieza de repo | 2026-10-01 |
+| D19 | **Sidebar azul TEC** + logo oficial (`logotec.pdf` → `public/brand/logotec-*.png`) | Contraste marca; variante blanca del manual | 2026-10-01 |
 
 
 
@@ -388,6 +389,11 @@ Matias puede arrancar Fase 0 solo con defaults de §5.
 ## 11. Bitácora de decisiones y sesiones
 
 
+
+### 2026-10-01 — Marca: logo oficial TEC
+- Assets desde `docs/manual-identidad-tec/logotec.pdf` → `frontend/public/brand/` (azul/blanco).
+- Sidebar azul corporativo para la variante blanca; `TecLogo` en shell y login.
+- Motivo documentado en `brand-overrides.css`, CONTINUIDAD y `docs/cerebro/03-MARCA-TEC.md` (D19).
 
 ### 2026-10-01 — Limpieza repo + frontend multiarchivo + pnpm
 - Documentación de BD → `docs/database/`; `database/` queda solo con `.sql`.

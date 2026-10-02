@@ -34,8 +34,9 @@ proporciones significativas — solo como acento.
 - **Tamaño mínimo**: logo 2.5 cm / 150 px horizontal; firma TEC-1 1 cm / 50 px; TEC-2 3 cm / 110 px.
 - **Nombre**: escribir "Tecnológico de Costa Rica (TEC)" la primera vez; luego "TEC".
   Nombre legal: Instituto Tecnológico de Costa Rica (uso formal/reglamentario).
-- El prototipo usa **texto "TEC" en header** (sin incrustar el logo) para evitar violar
-  tamaño/reserva/fondos. Sustituir por `logotec.pdf`/`firmatec` cuando se maquete la versión final.
+- El prototipo usa el **logo oficial** de `docs/manual-identidad-tec/logotec.pdf`
+  exportado a `frontend/public/brand/logotec-*.png` (azul / blanco).
+  Area de reserva: no apretar el PNG; ancho ~220px en sidebar.
 
 ## 3. Tipografía y tono
 
@@ -63,7 +64,9 @@ fondo blanco, cards con borde gris. Cumple 70/20/5/5 a simple vista.
 ## 5. Checklist de cumplimiento
 
 - [x] Header azul + texto blanco, línea roja fina (línea roja del logo).
+- [x] Sidebar azul + logo oficial blanco (`frontend/public/brand/logotec-blanco.png`) — contraste marca.
 - [x] Proporción blanco/azul/rojo respetada.
 - [x] Sin fondos amarillos/cian/rojos plenos.
-- [ ] Reemplazar "TEC" textual por logo oficial con área de reserva (Etapa 2).
+- [x] Logo oficial de `logotec.pdf` en sidebar/login (`frontend/public/brand/`).
+- [ ] Sustituir PNG por SVG vectorial exportado desde Illustrator (Etapa 2).
 - [ ] Definir familia tipográfica institucional (Etapa 2).

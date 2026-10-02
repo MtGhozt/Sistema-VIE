@@ -38,12 +38,14 @@ Estructura:
 6. **Postgres = Docker Compose**; **auth = login demo por rol**; **CU4 = pantallas por rol** (como el HTML).
 7. **UI fuente de verdad = `docs/prototipo-html-referencia/Fondos-VIE-Prototipo.html`** (1:1). Código en `frontend/src`. Docs fuera de frontend/backend/database.
 8. **pnpm** en la raíz; no usar npm en este repo (D17).
+9. **Sidebar azul TEC** + **logo oficial** de `docs/manual-identidad-tec/logotec.pdf` (`frontend/public/brand/logotec-blanco.png`). La variante blanca del manual exige fondo azul/oscuro; por eso la barra no es blanca.
 
 ## Bitácora reciente
 
 | Fecha | Qué | Pendiente |
 |-------|-----|-----------|
-| 2026-10-01 | Login frontend ↔ API demo (`/api/health`, `/api/demo/roles`, `/api/demo/login`) | CU1 convocatorias contra Postgres |
+| 2026-10-01 | Logo oficial TEC (`logotec.pdf` → `public/brand/`) en sidebar/login; sidebar azul por contraste | CU1 convocatorias |
+| 2026-10-01 | Login frontend ↔ API demo (`/api/health`, `/api/demo/roles`, `/api/demo/login`) | — |
 | 2026-10-01 | Repo ordenado: docs fuera de código; monorepo pnpm; frontend React con rutas/roles del prototipo | — |
 | 2026-10-01 | Fase 0: Docker Postgres, API health/demo, Vite | — |
 | 2026-10-01 | GitHub + plan + 5 CUs | — |

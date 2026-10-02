@@ -13,6 +13,7 @@ import {
   IconShield,
   NavIcon,
 } from "../icons";
+import { TecLogo } from "../TecLogo";
 
 export function AppShell() {
   const { session, logout, setViewRole, isAdminSession } = useAuth();
@@ -39,10 +40,7 @@ export function AppShell() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand-block brand-block-tec">
-          <div className="tec-lockup" aria-label="Tecnológico de Costa Rica">
-            <span className="tec-wordmark">TEC</span>
-            <span className="tec-red-line" />
-          </div>
+          <TecLogo variant="blanco" />
           <div className="brand-copy">
             <strong>Vicerrectoría de Investigación</strong>
             <span>Fondos de Investigación</span>

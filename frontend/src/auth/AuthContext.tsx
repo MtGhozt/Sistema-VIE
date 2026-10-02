@@ -6,20 +6,33 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { postDemoLogin } from "../api/demoAuth";
 import { SESSION_KEY } from "../data/demo";
-import { getRole, type RoleId } from "../data/roles";
+import { getRole, isRoleId, type RoleId } from "../data/roles";
 
 export type Session = {
+  userId: number;
   email: string;
-  /** Rol con el que se autenticó (admin permanece admin aunque cambie la vista). */
+  name: string;
+  roleName: string;
+  /** Rol autenticado en la API demo. */
   role: RoleId;
-  /** Vista operativa actual (admin puede cambiarla). */
+  /** Vista operativa (admin puede cambiarla). */
   viewRole: RoleId;
+};
+
+type StoredSession = {
+  userId: number;
+  email: string;
+  name: string;
+  roleName: string;
+  role: string;
+  viewRole?: string;
 };
 
 type AuthContextValue = {
   session: Session | null;
-  login: (email: string, role: RoleId) => void;
+  loginWithRole: (roleCode: RoleId) => Promise<void>;
   logout: () => void;
   setViewRole: (role: RoleId) => void;
   isAdminSession: boolean;
@@ -31,21 +44,63 @@ function readSession(): Session | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as { email?: string; role?: string };
-    if (!parsed.email || !parsed.role) return null;
-    const role = getRole(parsed.role).id;
-    return { email: parsed.email, role, viewRole: role };
+    const parsed = JSON.parse(raw) as StoredSession;
+    if (
+      !parsed.email ||
+      !parsed.role ||
+      typeof parsed.userId !== "number" ||
+      !parsed.name
+    ) {
+      return null;
+    }
+    if (!isRoleId(parsed.role)) return null;
+    const viewRole =
+      parsed.viewRole && isRoleId(parsed.viewRole)
+        ? parsed.viewRole
+        : parsed.role;
+    return {
+      userId: parsed.userId,
+      email: parsed.email,
+      name: parsed.name,
+      roleName: parsed.roleName ?? getRole(parsed.role).label,
+      role: parsed.role,
+      viewRole,
+    };
   } catch {
     return null;
   }
 }
 
+function persistSession(session: Session) {
+  const payload: StoredSession = {
+    userId: session.userId,
+    email: session.email,
+    name: session.name,
+    roleName: session.roleName,
+    role: session.role,
+    viewRole: session.viewRole,
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(() => readSession());
 
-  const login = useCallback((email: string, role: RoleId) => {
-    const next: Session = { email, role, viewRole: role };
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ email, role }));
+  const loginWithRole = useCallback(async (roleCode: RoleId) => {
+    const data = await postDemoLogin(roleCode);
+    if (!isRoleId(data.user.roleCode)) {
+      throw new Error("Rol devuelto por la API no es válido en el frontend");
+    }
+    const role = data.user.roleCode;
+    const next: Session = {
+      userId: data.user.id,
+      email: data.user.email,
+      name: data.user.name,
+      roleName: data.user.roleName,
+      role,
+      viewRole: role,
+    };
+    persistSession(next);
     setSession(next);
   }, []);
 
@@ -55,18 +110,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setViewRole = useCallback((role: RoleId) => {
-    setSession((prev) => (prev ? { ...prev, viewRole: role } : prev));
+    setSession((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, viewRole: role };
+      persistSession(next);
+      return next;
+    });
   }, []);
 
   const value = useMemo(
     () => ({
       session,
-      login,
+      loginWithRole,
       logout,
       setViewRole,
       isAdminSession: session?.role === "admin",
     }),
-    [session, login, logout, setViewRole],
+    [session, loginWithRole, logout, setViewRole],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

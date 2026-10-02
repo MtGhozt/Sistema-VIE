@@ -43,14 +43,15 @@ Estructura:
 
 | Fecha | Qué | Pendiente |
 |-------|-----|-----------|
-| 2026-10-01 | Repo ordenado: docs fuera de código; monorepo pnpm; frontend React con rutas/roles del prototipo | Conectar API (login demo backend + CU1 convocatorias) |
+| 2026-10-01 | Login frontend ↔ API demo (`/api/health`, `/api/demo/roles`, `/api/demo/login`) | CU1 convocatorias contra Postgres |
+| 2026-10-01 | Repo ordenado: docs fuera de código; monorepo pnpm; frontend React con rutas/roles del prototipo | — |
 | 2026-10-01 | Fase 0: Docker Postgres, API health/demo, Vite | — |
 | 2026-10-01 | GitHub + plan + 5 CUs | — |
 
 ## Próximos pasos (orden)
 
 1. ~~Definir 5 CUs~~ / ~~Q1–Q4~~ / ~~Fase 0 cimientos~~ / ~~frontend multiarchivo sin API~~
-2. Conectar API empezando por login demo + **CU1 convocatoria**, clonando el HTML de referencia.
+2. ~~Login demo ↔ API~~ · **CU1 convocatoria** contra Postgres, clonando el HTML de referencia.
 3. Completar port de formularios/rúbricas del prototipo + a11y + CUs restantes.
 
 ## Referencias rápidas

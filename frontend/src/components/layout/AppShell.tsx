@@ -3,7 +3,6 @@ import { useAuth } from "../../auth/AuthContext";
 import { NOTIFICACIONES } from "../../data/demo";
 import {
   NAV_ITEMS,
-  PERSONAS,
   ROLES,
   ROUTES_BY_ROLE,
   getRole,
@@ -23,9 +22,10 @@ export function AppShell() {
 
   const viewRole = session.viewRole;
   const roleDef = getRole(viewRole);
-  const [personName, personTitle] = isAdminSession
-    ? PERSONAS.admin
-    : PERSONAS[viewRole];
+  const personName = session.name;
+  const personTitle = isAdminSession
+    ? session.roleName
+    : getRole(viewRole).short;
   const allowed = ROUTES_BY_ROLE[isAdminSession ? "admin" : viewRole];
   const nav = NAV_ITEMS.filter((item) => allowed.includes(item.to));
   const unread = NOTIFICACIONES.filter((n) => n.unread).length;

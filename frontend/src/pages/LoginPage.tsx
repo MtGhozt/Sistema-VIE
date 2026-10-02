@@ -1,5 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { ApiError } from "../api/client";
+import { fetchDemoRoles, fetchHealth, type DemoRoleRow } from "../api/demoAuth";
 import { useAuth } from "../auth/AuthContext";
 import {
   IconEye,
@@ -7,25 +9,88 @@ import {
   IconLock,
   IconMail,
 } from "../components/icons";
-import { ROLES, type RoleId } from "../data/roles";
+import { isRoleId, type RoleId } from "../data/roles";
 
 export function LoginPage() {
-  const { session, login } = useAuth();
+  const { session, loginWithRole } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("demo@tec.ac.cr");
+  const [roles, setRoles] = useState<DemoRoleRow[]>([]);
+  const [rolesError, setRolesError] = useState<string | null>(null);
+  const [apiOk, setApiOk] = useState<boolean | null>(null);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("prototipo2026");
-  const [role, setRole] = useState<RoleId>("admin");
+  const [role, setRole] = useState<RoleId>("investigador");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const health = await fetchHealth();
+        if (!cancelled) setApiOk(health.status === "ok");
+      } catch {
+        if (!cancelled) setApiOk(false);
+      }
+      try {
+        const rows = await fetchDemoRoles();
+        if (cancelled) return;
+        setRoles(rows);
+        setRolesError(null);
+        const first = rows[0];
+        if (first && isRoleId(first.codigo)) {
+          setRole(first.codigo);
+          setEmail(first.correo_institucional);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setRolesError(
+            err instanceof Error ? err.message : "No se pudieron cargar roles",
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (session) {
     return <Navigate to="/inicio" replace />;
   }
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    login(email, role);
-    navigate("/inicio", { replace: true });
+  function onRoleChange(next: string) {
+    if (!isRoleId(next)) return;
+    setRole(next);
+    const row = roles.find((r) => r.codigo === next);
+    if (row) setEmail(row.correo_institucional);
   }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    setLoginError(null);
+    setSubmitting(true);
+    try {
+      await loginWithRole(role);
+      navigate("/inicio", { replace: true });
+    } catch (err) {
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Error al iniciar sesión";
+      setLoginError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const roleOptions =
+    roles.length > 0
+      ? roles.filter((r) => isRoleId(r.codigo))
+      : [];
 
   return (
     <div className="login-page">
@@ -64,6 +129,18 @@ export function LoginPage() {
               prototipo.
             </p>
           </div>
+
+          {apiOk === false && (
+            <p className="field-error-text" role="alert">
+              No hay conexión con la API. Desde la raíz:{" "}
+              <code>pnpm db:up</code> y <code>pnpm dev</code>.
+            </p>
+          )}
+          {apiOk === true && (
+            <p className="field-hint" role="status">
+              API conectada · login demo por rol (PostgreSQL seed)
+            </p>
+          )}
 
           <label className="field">
             <span className="field-label">Correo institucional</span>
@@ -109,8 +186,8 @@ export function LoginPage() {
             <div>
               <strong>Perfil de demostración</strong>
               <span>
-                Permite recorrer los distintos actores sin integración con
-                cuentas reales del TEC.
+                Roles cargados desde <code>/api/demo/roles</code>. La contraseña
+                no se valida (D13).
               </span>
             </div>
             <label className="field">
@@ -118,23 +195,39 @@ export function LoginPage() {
               <select
                 className="input"
                 value={role}
-                onChange={(e) => setRole(e.target.value as RoleId)}
+                disabled={roleOptions.length === 0}
+                onChange={(e) => onRoleChange(e.target.value)}
               >
-                {ROLES.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.label}
+                {roleOptions.map((r) => (
+                  <option key={r.codigo} value={r.codigo}>
+                    {r.nombre}
                   </option>
                 ))}
               </select>
             </label>
+            {rolesError && (
+              <p className="field-error-text" role="alert">
+                {rolesError}
+              </p>
+            )}
           </div>
 
-          <button type="submit" className="btn btn-primary full-width">
-            Iniciar sesión
+          {loginError && (
+            <p className="field-error-text" role="alert">
+              {loginError}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="btn btn-primary full-width"
+            disabled={submitting || roleOptions.length === 0}
+          >
+            {submitting ? "Ingresando…" : "Iniciar sesión"}
           </button>
           <p className="login-help">
-            El prototipo no se integra con Orión ni con otros sistemas reales
-            del TEC. La sesión se guarda en localStorage (sin backend aún).
+            El prototipo no se integra con Orión. Tras login, la sesión queda en
+            el navegador con datos del usuario seed en Postgres.
           </p>
         </form>
       </div>

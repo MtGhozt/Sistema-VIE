@@ -158,3 +158,7 @@ export const ROUTES_BY_ROLE: Record<RoleId, NavKey[]> = {
 export function getRole(id: string): RoleDef {
   return ROLES.find((r) => r.id === id) ?? ROLES[0];
 }
+
+export function isRoleId(id: string): id is RoleId {
+  return ROLES.some((r) => r.id === id);
+}

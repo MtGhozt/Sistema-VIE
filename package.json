@@ -1,0 +1,13 @@
+{
+  "name": "sistema-vie",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter sistema-vie-frontend --filter sistema-vie-backend run dev",
+    "dev:frontend": "pnpm --filter sistema-vie-frontend dev",
+    "dev:backend": "pnpm --filter sistema-vie-backend dev",
+    "build": "pnpm -r run build",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down"
+  }
+}

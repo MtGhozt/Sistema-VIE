@@ -21,8 +21,20 @@ Diseño relacional del sistema Fondos VIE.
 
 También: `trl_actual` / `trl_esperado` en `propuesta`.
 
-## Regenerar diagrama
+## Cómo levantar Postgres
 
-1. Pegar `fondos_vie_modelo.dbml` en dbdiagram.io  
-2. Export PNG/PDF → actualizar `DisennoDB.pdf`  
-3. Export SQL si cambia el modelo → actualizar `DisennoDB.sql`
+```powershell
+# Desde la raíz del repo (Docker Desktop encendido)
+docker compose up -d
+```
+
+Aplica automáticamente `DisennoDB.sql` + `seed.sql` la **primera** vez (volumen vacío).
+
+Si cambiás el SQL y necesitás reinicializar:
+
+```powershell
+docker compose down -v
+docker compose up -d
+```
+
+Credenciales: `vie` / `vie` / `fondos_vie` @ `localhost:5432`

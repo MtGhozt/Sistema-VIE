@@ -99,15 +99,21 @@ Definidos a partir de:
 
 ## CU4 — Evaluar con rúbrica y resolver
 
-**Actores:** Evaluador (Comité Técnico / CIE según etapa); registro de aval/resolución.  
-**Objetivo:** Calificar con rúbrica (con apoyo de sugerencia IA **editable por humano**), y registrar decisión institucional (aval o resolución).
+**Actores:** pantallas **separadas por rol**, como en `frontend/Fondos-VIE-Prototipo.html` (no una sola UI genérica):
+- Cuerpo evaluador del Comité Técnico
+- Consejo de profesores (aval)
+- CIE (resolución)
+- (y roles de apoyo asociados: asistentes, dirección, según el HTML)
 
-### Flujo principal
-1. Abrir propuesta en etapa de evaluación.
-2. Aplicar rúbrica: puntajes por criterio + **justificación**; ajustar sugerencia IA si existe.
-3. Guardar evaluación; consolidar resultado cuando corresponda.
-4. Registrar decisión: aval de consejo **o** resolución CIE (aprobar / rechazar / observar) con fundamento.
-5. Notificar / comunicar (simulado o registro en `comunicacion_institucional` / `notificacion`).
+**Objetivo:** En cada etapa/rol, calificar o decidir con rúbrica/fundamento (sugerencia IA **editable por humano**), con el mismo patrón de vistas distintas del prototipo HTML.
+
+### Flujo principal (por rol, no unificado)
+1. Ingresar con el **rol demo** correspondiente (Comité / Consejo / CIE / …).
+2. Ver la bandeja/pantalla de ese rol (como hoy en el HTML).
+3. Abrir propuesta en la etapa que le corresponde.
+4. Aplicar rúbrica o registrar decisión (aval / resolución) con justificación obligatoria.
+5. Guardar; la propuesta avanza de etapa según el flujo institucional.
+6. Notificación in-app / registro (correo simulado).
 
 ### CRUD / persistencia
 | Operación | Entidades |
@@ -118,6 +124,7 @@ Definidos a partir de:
 ### Evidencia rúbrica
 - Evaluación + decisión con justificación obligatoria.
 - IA solo sugiere; humano confirma (requisito de clase).
+- UX por rol alineada al prototipo HTML de referencia.
 
 ---
 

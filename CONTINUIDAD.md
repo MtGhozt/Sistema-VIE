@@ -31,19 +31,20 @@ Estructura:
    - Backend: **Node.js + TypeScript + Express + PostgreSQL (`pg`)**
    - Frontend: **React + TypeScript + Vite**
    - Sin Nest/Prisma/GraphQL al inicio
-3. Los **5 casos de uso** están definidos en `docs/casos-de-uso/CASOS-DE-USO.md` (borrador de equipo; ajustables).
+3. Los **5 casos de uso** están definidos y **aprobados** en `docs/casos-de-uso/CASOS-DE-USO.md`.
 4. Rúbrica prototipo funcional: UI 22% + a11y 28% + 5 CUs con CRUD 50%.
 5. Docs académicos se pueden limpiar del entregable al final; por ahora se quedan en `docs/`.
+6. **Postgres = Docker Compose**; **auth = login demo por rol**; **CU4 = pantallas por rol** (como el HTML).
 
 ## Próximos pasos (orden)
 
-1. ~~Definir 5 CUs~~ → revisar/aprobar `docs/casos-de-uso/CASOS-DE-USO.md` con el equipo.
-2. Fase 0: Postgres + aplicar `database/DisennoDB.sql` + backend TS healthcheck.
-3. Fase 1+: CRUD CU1 → frontend Vite → CUs 2–5 → a11y → limpieza SQLite/`backend/public`.
+1. ~~Definir 5 CUs~~ / ~~Q1–Q4~~
+2. ~~Fase 0: Postgres + backend TS health + Vite~~ (en curso / verificar localmente)
+3. Fase 1: CRUD CU1 convocatoria
 
 ## Referencias rápidas
 
+- Plan: `PLAN-MAESTRO.md`
 - Casos de uso: `docs/casos-de-uso/CASOS-DE-USO.md`
-- Rúbrica: `docs/rubrica-prototipo-funcional/`
 - BD: `database/Diseno_Base_Datos_Fondos_VIE (con cambios).md`
-- UI de referencia: `frontend/Fondos-VIE-Prototipo.html`
+- UI referencia: `frontend/reference/Fondos-VIE-Prototipo.html`

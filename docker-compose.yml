@@ -1,0 +1,27 @@
+# PostgreSQL — Sistema VIE (prototipo)
+# Uso: docker compose up -d
+# Primero solo crea el volumen vacío; el init corre DisennoDB.sql + seed.sql
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sistema-vie-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vie
+      POSTGRES_PASSWORD: vie
+      POSTGRES_DB: fondos_vie
+    ports:
+      - "5432:5432"
+    volumes:
+      - vie_pgdata:/var/lib/postgresql/data
+      - ./database/DisennoDB.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vie -d fondos_vie"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  vie_pgdata:

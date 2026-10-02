@@ -1,67 +1,51 @@
 # Sistema VIE (Fondos VIE — TEC)
 
-Repositorio del **prototipo funcional** del sistema de gestión de propuestas Fondos VIE  
-(Tecnológico de Costa Rica). Curso: Diseño de Software.
-
-Stack objetivo: **PostgreSQL** + backend Node + frontend web.  
-La base académica (rúbrica, convocatoria, marca, etapa 1) vive en `docs/`.
+Prototipo funcional — Gestión de propuestas Fondos VIE.  
+Repo: https://github.com/MatiasBS027/Sistema-VIE
 
 ## Empezar aquí (equipo)
 
-1. Leer **`PLAN-MAESTRO.md`** (decisiones, fases, preguntas).  
+1. Leer **`PLAN-MAESTRO.md`** (decisiones Q1–Q4 ya respondidas).  
 2. Leer `CONTINUIDAD.md` y `docs/casos-de-uso/CASOS-DE-USO.md`.  
-3. Trabajar solo en este repo (no en carpetas viejas del curso).
+3. Trabajar solo en este repo.
 
 ## Estructura
 
 ```
 Sistema-VIE/
-├── backend/     # API / servidor (hoy: Express + SQLite de arranque)
-├── frontend/    # Interfaz (hoy: prototipo HTML/React empaquetado)
-├── database/    # Diseño y DDL PostgreSQL (40 tablas) — fuente de verdad
-└── docs/        # Material académico (rúbrica, enunciado, oficiales, marca…)
+├── backend/     # API Express + TypeScript + PostgreSQL
+├── frontend/    # React + TypeScript + Vite
+├── database/    # DDL 40 tablas + seed
+├── docs/        # Material académico
+└── docker-compose.yml
 ```
 
-## Base de datos (PostgreSQL)
-
-Fuente de verdad:  
-`database/Diseno_Base_Datos_Fondos_VIE (con cambios).md` (**40 tablas**)
-
-| Artefacto | Archivo |
-|---|---|
-| Modelo DBML | `database/fondos_vie_modelo.dbml` |
-| DDL SQL | `database/DisennoDB.sql` |
-| Diagrama | `database/DisennoDB.pdf` |
-
-> El backend actual aún usa SQLite solo como andamiaje. La implementación del prototipo funcional debe migrar a **PostgreSQL** según este diseño.
-
-## Cómo correr (estado actual — scaffolding)
+## Levantar el entorno (Fase 0)
 
 ```powershell
-# Frontend (abrir en navegador o servir estático)
-cd frontend
-npx --yes serve -l 5173 .
+# 1) Postgres (Docker Desktop encendido)
+docker compose up -d
 
-# Backend (prototipo base)
+# 2) API
 cd backend
-pnpm install
-pnpm start
-# http://localhost:3000
+npm install
+npm run dev
+# http://localhost:3000/api/health
+
+# 3) UI
+cd ../frontend
+npm install
+npm run dev
+# http://localhost:5173
 ```
 
-## Docs académicos
+Login demo: elegir rol en la UI (sin contraseña).  
+Referencia visual antigua: `frontend/reference/Fondos-VIE-Prototipo.html`.
 
-- Rúbrica prototipo funcional → `docs/rubrica-prototipo-funcional/`
-- Convocatoria / formularios → `docs/oficiales-vie/`
-- Personas / contexto etapa 1 → `docs/etapa1/`
-- Manual identidad TEC → `docs/manual-identidad-tec/`
-- Dominio / mapa → `docs/cerebro/`
+## Base de datos
 
-## Próximo objetivo (rúbrica)
-
-1. Interfaz (estética TEC, ortografía, flujo)  
-2. Accesibilidad (contraste, teclado, alt text, lector)  
-3. **5 casos de uso** con **CRUD real** sobre PostgreSQL  
+Fuente de verdad: `database/Diseno_Base_Datos_Fondos_VIE (con cambios).md` (40 tablas).  
+Credenciales locales Docker: usuario/clave/db = `vie` / `vie` / `fondos_vie` · puerto `5432`.
 
 ## Notas Git
 

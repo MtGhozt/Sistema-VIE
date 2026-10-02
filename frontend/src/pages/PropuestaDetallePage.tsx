@@ -2,14 +2,23 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import {
-  enviarPropuesta,
   fetchPropuesta,
-  patchPropuesta,
   type PropuestaDetalle,
 } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../components/toast/ToastContext";
-import { MODALIDADES } from "../data/demo";
+import {
+  ProposalDetailView,
+  type ProposalDetailModel,
+} from "../components/ProposalDetailView";
+import {
+  ProcessTimeline,
+  stepFromPropuestaEstado,
+} from "../components/ProcessTimeline";
+import {
+  ADMIN_STAGE_ROLES,
+  getDemoProposal,
+} from "../data/demo";
 
 function labelEstado(estado: string) {
   const map: Record<string, string> = {
@@ -19,22 +28,94 @@ function labelEstado(estado: string) {
   return map[estado] ?? estado;
 }
 
+function apiToDetailModel(
+  d: PropuestaDetalle,
+  template?: ReturnType<typeof getDemoProposal>,
+): ProposalDetailModel {
+  const t = template;
+  return {
+    id: d.codigo,
+    titulo: d.titulo,
+    convocatoria: d.convocatoriaNombre,
+    investigadora: d.coordinadorNombre,
+    escuela: d.escuelaNombre,
+    modalidad: d.modalidadLabel,
+    estado: labelEstado(d.estadoActual),
+    etapa: stepFromPropuestaEstado(d.estadoActual, d.etapaFlujo),
+    piRequired: t?.piRequired ?? false,
+    presupuesto: t?.presupuesto ?? "—",
+    resumen: d.resumen ?? t?.resumen ?? "",
+    abstract: d.abstractEn ?? t?.abstract ?? "",
+    palabras:
+      d.keywordsEs.length > 0 ? d.keywordsEs : (t?.palabras ?? []),
+    keywords:
+      d.keywordsEn.length > 0 ? d.keywordsEn : (t?.keywords ?? []),
+    teamTec: t?.teamTec ?? [
+      {
+        nombre: d.coordinadorNombre,
+        instancia: d.escuelaNombre,
+        rol: "Coordinadora",
+        horas: "—",
+      },
+    ],
+    teamExternal: t?.teamExternal,
+    presupuestoAnual: t?.presupuestoAnual,
+    financiamiento: t?.financiamiento,
+    productos: t?.productos,
+    activoPI: t?.activoPI,
+    etica: t?.etica,
+    observaciones: t?.observaciones ?? [],
+    timeline:
+      d.estadoActual === "borrador"
+        ? [
+            {
+              titulo: "Borrador creado",
+              detalle: "Expediente en formulación.",
+              fecha: new Date().toLocaleDateString("es-CR", {
+                day: "numeric",
+                month: "short",
+              }),
+            },
+          ]
+        : (t?.timeline ?? [
+            {
+              titulo: "Propuesta enviada",
+              detalle:
+                "La propuesta fue enviada para continuar el flujo institucional.",
+              fecha: d.fechaEnvio
+                ? new Date(d.fechaEnvio).toLocaleDateString("es-CR", {
+                    day: "numeric",
+                    month: "short",
+                  })
+                : "—",
+            },
+          ]),
+    documentos: t?.documentos ?? [
+      { nombre: "Formulario de propuesta", estado: "Completo" },
+      { nombre: "Plan de acción y riesgos", estado: "Pendiente" },
+      { nombre: "Presupuesto", estado: "Pendiente" },
+    ],
+  };
+}
+
 export function PropuestaDetallePage() {
   const { id } = useParams();
+  const demo = id ? getDemoProposal(id) : undefined;
   const proposalId = Number(id);
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, isAdminSession } = useAuth();
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(!demo && Number.isFinite(proposalId));
 
-  const canEdit =
-    (session?.role === "investigador" || session?.role === "admin") &&
-    detail?.estadoActual === "borrador";
+  const canEditRole =
+    session?.role === "investigador" || session?.role === "admin";
 
   useEffect(() => {
-    if (!Number.isFinite(proposalId)) return;
+    if (demo || !Number.isFinite(proposalId)) {
+      setLoading(false);
+      return;
+    }
     void (async () => {
       setLoading(true);
       try {
@@ -49,41 +130,52 @@ export function PropuestaDetallePage() {
         setLoading(false);
       }
     })();
-  }, [proposalId, navigate, showToast]);
+  }, [demo, proposalId, navigate, showToast]);
 
-  async function saveDraft() {
-    if (!detail || !canEdit) return;
-    setSaving(true);
-    try {
-      const updated = await patchPropuesta(detail.id, {
-        titulo: detail.titulo,
-        modalidad: detail.modalidadLabel,
-        resumen: detail.resumen ?? undefined,
-        abstractEn: detail.abstractEn ?? undefined,
-        keywordsEs: detail.keywordsEs.join(", "),
-        keywordsEn: detail.keywordsEn.join(", "),
-      });
-      setDetail(updated);
-      showToast("Cambios guardados", "success");
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Error al guardar", "error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function onEnviar() {
-    if (!detail) return;
-    setSaving(true);
-    try {
-      const updated = await enviarPropuesta(detail.id);
-      setDetail(updated);
-      showToast("Propuesta enviada a revisión", "success");
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "Error al enviar", "error");
-    } finally {
-      setSaving(false);
-    }
+  if (demo) {
+    const showAdminVista =
+      isAdminSession && session?.viewRole === "admin";
+    // Demo PROP-* están en flujo institucional (ya enviadas) → solo lectura.
+    const demoIsDraft = demo.estado.toLowerCase() === "borrador";
+    return (
+      <>
+        <div className="breadcrumbs">
+          <Link to="/propuestas">Propuestas</Link>
+          <span>/</span>
+          <span>{demo.id}</span>
+        </div>
+        <ProposalDetailView
+          proposal={demo}
+          showEdit={canEditRole && demoIsDraft}
+        />
+        {showAdminVista && (
+          <section className="card stack-md" style={{ marginTop: 18 }}>
+            <div className="section-title">
+              <div>
+                <h2>Vista transversal</h2>
+                <p>
+                  El Super Administrador no simula únicamente al investigador:
+                  use «Vista actual» en la barra superior para ingresar a
+                  cualquiera de las herramientas operativas.
+                </p>
+              </div>
+            </div>
+            <ProcessTimeline
+              currentStep={demo.etapa}
+              piRequired={demo.piRequired}
+            />
+            <div className="admin-stage-grid">
+              {ADMIN_STAGE_ROLES.map((role) => (
+                <div key={role}>
+                  <strong>{role}</strong>
+                  <span>Disponible mediante cambio de vista</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </>
+    );
   }
 
   if (loading || !detail) {
@@ -94,6 +186,9 @@ export function PropuestaDetallePage() {
     );
   }
 
+  const model = apiToDetailModel(detail, getDemoProposal("PROP-2027-014"));
+  const isDraft = detail.estadoActual === "borrador";
+
   return (
     <>
       <div className="breadcrumbs">
@@ -101,170 +196,11 @@ export function PropuestaDetallePage() {
         <span>/</span>
         <span>{detail.codigo}</span>
       </div>
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">{detail.codigo}</p>
-          <h1>{detail.titulo}</h1>
-          <p>
-            {detail.convocatoriaNombre} · {detail.escuelaNombre}
-          </p>
-        </div>
-        <div className="page-actions">
-          <Link to="/propuestas" className="btn btn-secondary">
-            Volver
-          </Link>
-          {canEdit && (
-            <>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                disabled={saving}
-                onClick={() => void saveDraft()}
-              >
-                Guardar
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={saving}
-                onClick={() => void onEnviar()}
-              >
-                Enviar a revisión
-              </button>
-            </>
-          )}
-        </div>
-      </header>
-
-      <section className="card proposal-status-card">
-        <div className="proposal-status-head">
-          <div>
-            <span>Estado</span>
-            <strong>{labelEstado(detail.estadoActual)}</strong>
-          </div>
-          <div>
-            <span>Modalidad</span>
-            <strong>{detail.modalidadLabel}</strong>
-          </div>
-          <div>
-            <span>Coordinación</span>
-            <strong>{detail.coordinadorNombre}</strong>
-          </div>
-          <div>
-            <span>Envío</span>
-            <strong>
-              {detail.fechaEnvio
-                ? new Date(detail.fechaEnvio).toLocaleString("es-CR")
-                : "—"}
-            </strong>
-          </div>
-        </div>
-      </section>
-
-      <section className="card stack-lg" style={{ marginTop: 18 }}>
-        <h2>Datos del borrador</h2>
-        {canEdit ? (
-          <div className="stack-md">
-            <label className="field">
-              <span className="field-label">Título</span>
-              <input
-                className="input"
-                value={detail.titulo}
-                onChange={(e) =>
-                  setDetail({ ...detail, titulo: e.target.value })
-                }
-              />
-            </label>
-            <fieldset className="field">
-              <legend className="field-label">Modalidad</legend>
-              <div className="choice-row" style={{ marginLeft: 0 }}>
-                {MODALIDADES.map((m) => (
-                  <label
-                    key={m}
-                    className={`radio-choice${detail.modalidadLabel === m ? " selected" : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name="modalidad-edit"
-                      checked={detail.modalidadLabel === m}
-                      onChange={() =>
-                        setDetail({ ...detail, modalidadLabel: m })
-                      }
-                    />
-                    <span className="radio-dot" />
-                    {m}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <label className="field">
-              <span className="field-label">Resumen (ES)</span>
-              <textarea
-                className="input textarea"
-                rows={4}
-                value={detail.resumen ?? ""}
-                onChange={(e) =>
-                  setDetail({ ...detail, resumen: e.target.value })
-                }
-              />
-            </label>
-            <label className="field">
-              <span className="field-label">Abstract (EN)</span>
-              <textarea
-                className="input textarea"
-                rows={4}
-                value={detail.abstractEn ?? ""}
-                onChange={(e) =>
-                  setDetail({ ...detail, abstractEn: e.target.value })
-                }
-              />
-            </label>
-            <div className="form-grid two-col">
-              <label className="field">
-                <span className="field-label">Palabras clave (ES)</span>
-                <input
-                  className="input"
-                  value={detail.keywordsEs.join(", ")}
-                  onChange={(e) =>
-                    setDetail({
-                      ...detail,
-                      keywordsEs: e.target.value
-                        .split(",")
-                        .map((x) => x.trim())
-                        .filter(Boolean),
-                    })
-                  }
-                />
-              </label>
-              <label className="field">
-                <span className="field-label">Keywords (EN)</span>
-                <input
-                  className="input"
-                  value={detail.keywordsEn.join(", ")}
-                  onChange={(e) =>
-                    setDetail({
-                      ...detail,
-                      keywordsEn: e.target.value
-                        .split(",")
-                        .map((x) => x.trim())
-                        .filter(Boolean),
-                    })
-                  }
-                />
-              </label>
-            </div>
-          </div>
-        ) : (
-          <div className="stack-md">
-            <p>{detail.resumen || "Sin resumen"}</p>
-            <p>{detail.abstractEn || "No abstract"}</p>
-            <p>
-              ES: {detail.keywordsEs.join(", ") || "—"} · EN:{" "}
-              {detail.keywordsEn.join(", ") || "—"}
-            </p>
-          </div>
-        )}
-      </section>
+      <ProposalDetailView
+        proposal={model}
+        showEdit={canEditRole && isDraft}
+        editTo={`/propuestas/nueva?edit=${detail.id}`}
+      />
     </>
   );
 }

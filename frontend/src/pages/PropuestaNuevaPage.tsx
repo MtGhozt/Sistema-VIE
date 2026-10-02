@@ -1,35 +1,44 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { fetchConvocatorias, type Convocatoria } from "../api/convocatorias";
-import { createPropuesta } from "../api/propuestas";
+import {
+  createPropuesta,
+  fetchPropuesta,
+  patchPropuesta,
+} from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
+import { FormWizardStepContent } from "../components/FormWizardStepContent";
 import { useToast } from "../components/toast/ToastContext";
-import { MODALIDADES } from "../data/demo";
+import {
+  DEFAULT_FORM_WIZARD_STATE,
+  FORM_WIZARD_STEPS,
+  type FormWizardState,
+} from "../data/formWizard";
 
 export function PropuestaNuevaPage() {
   const { session } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editIdRaw = searchParams.get("edit");
+  const editId = editIdRaw ? Number(editIdRaw) : NaN;
+  const isEditing = Number.isFinite(editId);
+
   const canCreate =
     session?.role === "investigador" || session?.role === "admin";
 
   const [step, setStep] = useState(0);
+  const [form, setForm] = useState<FormWizardState>(DEFAULT_FORM_WIZARD_STATE);
+  const [saveStatus, setSaveStatus] = useState(
+    "Guardado automáticamente hace 30 segundos",
+  );
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [idConvocatoria, setIdConvocatoria] = useState<number | "">("");
-  const [titulo, setTitulo] = useState("");
-  const [modalidad, setModalidad] = useState<string>(MODALIDADES[0]);
-  const [resumen, setResumen] = useState("");
-  const [abstractEn, setAbstractEn] = useState("");
-  const [keywordsEs, setKeywordsEs] = useState("");
-  const [keywordsEn, setKeywordsEn] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(isEditing);
 
-  const steps = [
-    "Identificación",
-    "Resumen y palabras clave",
-    "Revisión",
-  ];
+  const progressPct = Math.round(((step + 1) / FORM_WIZARD_STEPS.length) * 100);
 
   useEffect(() => {
     void (async () => {
@@ -37,8 +46,10 @@ export function PropuestaNuevaPage() {
         const rows = await fetchConvocatorias();
         const activas = rows.filter((c) => c.estado === "activa");
         setConvocatorias(activas.length > 0 ? activas : rows);
-        if (activas[0]) setIdConvocatoria(activas[0].id);
-        else if (rows[0]) setIdConvocatoria(rows[0].id);
+        if (!isEditing) {
+          if (activas[0]) setIdConvocatoria(activas[0].id);
+          else if (rows[0]) setIdConvocatoria(rows[0].id);
+        }
       } catch (err) {
         showToast(
           err instanceof ApiError
@@ -48,35 +59,84 @@ export function PropuestaNuevaPage() {
         );
       }
     })();
-  }, [showToast]);
+  }, [showToast, isEditing]);
 
-  async function onSave(enviarDespues = false) {
+  useEffect(() => {
+    if (!isEditing) return;
+    void (async () => {
+      setLoadingEdit(true);
+      try {
+        const d = await fetchPropuesta(editId);
+        if (d.estadoActual !== "borrador") {
+          showToast(
+            "Solo se pueden editar propuestas en borrador",
+            "error",
+          );
+          navigate(`/propuestas/${d.id}`, { replace: true });
+          return;
+        }
+        setIdConvocatoria(d.idConvocatoria);
+        setForm((prev) => ({
+          ...prev,
+          titulo: d.titulo,
+          modalidad: d.modalidadLabel || prev.modalidad,
+          resumen: d.resumen ?? "",
+          abstract: d.abstractEn ?? "",
+          palabras: d.keywordsEs.join(", "),
+        }));
+        setSaveStatus("Borrador cargado");
+      } catch (err) {
+        showToast(
+          err instanceof ApiError ? err.message : "No se pudo cargar el borrador",
+          "error",
+        );
+        navigate("/propuestas", { replace: true });
+      } finally {
+        setLoadingEdit(false);
+      }
+    })();
+  }, [isEditing, editId, navigate, showToast]);
+
+  function patch(partial: Partial<FormWizardState>) {
+    setForm((prev) => ({ ...prev, ...partial }));
+    setSaveStatus("Guardado automáticamente hace unos segundos");
+  }
+
+  async function onSave() {
     if (!canCreate) {
       showToast("Ingresá como investigador para crear propuestas", "error");
       return;
     }
-    if (!titulo.trim() || idConvocatoria === "") {
+    if (!form.titulo.trim() || idConvocatoria === "") {
       showToast("Completá título y convocatoria", "error");
       return;
     }
     setSaving(true);
     try {
-      const created = await createPropuesta({
-        titulo: titulo.trim(),
-        idConvocatoria: Number(idConvocatoria),
-        modalidad,
-        resumen: resumen.trim() || undefined,
-        abstractEn: abstractEn.trim() || undefined,
-        keywordsEs,
-        keywordsEn,
-      });
-      showToast(
-        enviarDespues
-          ? "Borrador creado"
-          : "Borrador guardado en PostgreSQL",
-        "success",
-      );
-      navigate(`/propuestas/${created.id}`, { replace: true });
+      if (isEditing) {
+        const updated = await patchPropuesta(editId, {
+          titulo: form.titulo.trim(),
+          modalidad: form.modalidad,
+          resumen: form.resumen.trim() || undefined,
+          abstractEn: form.abstract.trim() || undefined,
+          keywordsEs: form.palabras,
+          keywordsEn: "",
+        });
+        showToast("Borrador guardado", "success");
+        navigate(`/propuestas/${updated.id}`, { replace: true });
+      } else {
+        const created = await createPropuesta({
+          titulo: form.titulo.trim(),
+          idConvocatoria: Number(idConvocatoria),
+          modalidad: form.modalidad,
+          resumen: form.resumen.trim() || undefined,
+          abstractEn: form.abstract.trim() || undefined,
+          keywordsEs: form.palabras,
+          keywordsEn: "",
+        });
+        showToast("Borrador guardado", "success");
+        navigate(`/propuestas/${created.id}`, { replace: true });
+      }
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : "No se pudo guardar",
@@ -85,11 +145,6 @@ export function PropuestaNuevaPage() {
     } finally {
       setSaving(false);
     }
-  }
-
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    void onSave(false);
   }
 
   if (!canCreate) {
@@ -104,37 +159,33 @@ export function PropuestaNuevaPage() {
     );
   }
 
+  if (loadingEdit) {
+    return (
+      <section className="card">
+        <p>Cargando borrador…</p>
+      </section>
+    );
+  }
+
   return (
     <>
       <div className="breadcrumbs">
         <Link to="/propuestas">Propuestas</Link>
         <span>/</span>
-        <span>Nueva</span>
+        <span>{isEditing ? "Editar borrador" : "Nueva"}</span>
       </div>
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Formulación · CU2</p>
-          <h1>Nueva propuesta</h1>
-          <p>
-            Primer bloque persistente: convocatoria, título, modalidad, resumen
-            ES/EN y palabras clave. El resto del formulario se completa después.
-          </p>
-        </div>
-      </header>
 
-      <form className="wizard-layout wizard-layout-wide" onSubmit={onSubmit}>
-        <aside className="wizard-sidebar card">
+      <div className="wizard-layout wizard-layout-wide">
+        <aside className="wizard-sidebar">
           <div className="wizard-progress-head">
             <span>Progreso</span>
-            <span>
-              {step + 1}/{steps.length}
-            </span>
+            <strong>{progressPct}%</strong>
           </div>
           <div className="progress-track">
-            <div style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
+            <div style={{ width: `${progressPct}%` }} />
           </div>
           <div className="wizard-steps">
-            {steps.map((label, i) => (
+            {FORM_WIZARD_STEPS.map((label, i) => (
               <button
                 key={label}
                 type="button"
@@ -145,14 +196,10 @@ export function PropuestaNuevaPage() {
               >
                 <span>{i + 1}</span>
                 <div>
-                  <strong>{label}</strong>
-                  <small>
-                    {i < step
-                      ? "Completado"
-                      : i === step
-                        ? "Actual"
-                        : "Pendiente"}
-                  </small>
+                  <strong>
+                    {i + 1}. {label}
+                  </strong>
+                  <small>Completa</small>
                 </div>
               </button>
             ))}
@@ -162,128 +209,27 @@ export function PropuestaNuevaPage() {
         <section className="card wizard-card">
           <div className="wizard-card-head institutional-form-head">
             <div>
-              <h2>{steps[step]}</h2>
-              <p className="save-status">Persistencia PostgreSQL</p>
+              <span className="eyebrow">
+                Formulario VIE 2027 · Paso {step + 1} de{" "}
+                {FORM_WIZARD_STEPS.length}
+              </span>
+              <h2>{FORM_WIZARD_STEPS[step]}</h2>
             </div>
             <div className="form-code">
-              <strong>Fondos VIE</strong>
-              <span>Formulario institucional</span>
+              <strong>F-VIE-2027</strong>
+              <span>{saveStatus}</span>
             </div>
           </div>
 
-          <div className="wizard-body stack-lg">
-            {step === 0 && (
-              <>
-                <label className="field">
-                  <span className="field-label">Convocatoria</span>
-                  <select
-                    className="input"
-                    value={idConvocatoria}
-                    onChange={(e) =>
-                      setIdConvocatoria(
-                        e.target.value ? Number(e.target.value) : "",
-                      )
-                    }
-                    required
-                  >
-                    <option value="" disabled>
-                      Seleccionar…
-                    </option>
-                    {convocatorias.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombre} ({c.estado})
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="field">
-                  <span className="field-label">Título de la propuesta</span>
-                  <input
-                    className="input"
-                    value={titulo}
-                    onChange={(e) => setTitulo(e.target.value)}
-                    required
-                  />
-                </label>
-                <fieldset className="field">
-                  <legend className="field-label">Modalidad</legend>
-                  <div className="choice-row" style={{ marginLeft: 0 }}>
-                    {MODALIDADES.map((m) => (
-                      <label
-                        key={m}
-                        className={`radio-choice${modalidad === m ? " selected" : ""}`}
-                      >
-                        <input
-                          type="radio"
-                          name="modalidad"
-                          checked={modalidad === m}
-                          onChange={() => setModalidad(m)}
-                        />
-                        <span className="radio-dot" />
-                        {m}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              </>
-            )}
-
-            {step === 1 && (
-              <>
-                <label className="field">
-                  <span className="field-label">Resumen (español)</span>
-                  <textarea
-                    className="input textarea"
-                    rows={5}
-                    value={resumen}
-                    onChange={(e) => setResumen(e.target.value)}
-                  />
-                </label>
-                <label className="field">
-                  <span className="field-label">Abstract (English)</span>
-                  <textarea
-                    className="input textarea"
-                    rows={5}
-                    value={abstractEn}
-                    onChange={(e) => setAbstractEn(e.target.value)}
-                  />
-                </label>
-                <div className="form-grid two-col">
-                  <label className="field">
-                    <span className="field-label">Palabras clave (ES)</span>
-                    <input
-                      className="input"
-                      value={keywordsEs}
-                      onChange={(e) => setKeywordsEs(e.target.value)}
-                      placeholder="Separadas por coma"
-                    />
-                  </label>
-                  <label className="field">
-                    <span className="field-label">Keywords (EN)</span>
-                    <input
-                      className="input"
-                      value={keywordsEn}
-                      onChange={(e) => setKeywordsEn(e.target.value)}
-                      placeholder="Comma separated"
-                    />
-                  </label>
-                </div>
-              </>
-            )}
-
-            {step === 2 && (
-              <div className="review-summary">
-                <strong>{titulo || "(Sin título)"}</strong>
-                <p>
-                  Modalidad: {modalidad}. Keywords ES: {keywordsEs || "—"}. EN:{" "}
-                  {keywordsEn || "—"}.
-                </p>
-                <p>
-                  Al guardar se crea el expediente en estado <em>borrador</em>.
-                  Desde el detalle podés enviarlo a revisión.
-                </p>
-              </div>
-            )}
+          <div className="wizard-body">
+            <FormWizardStepContent
+              step={step}
+              form={form}
+              patch={patch}
+              convocatorias={convocatorias}
+              idConvocatoria={idConvocatoria}
+              setIdConvocatoria={setIdConvocatoria}
+            />
           </div>
 
           <div className="wizard-footer">
@@ -295,30 +241,41 @@ export function PropuestaNuevaPage() {
             >
               Anterior
             </button>
-            <div className="wizard-footer-right">
-              {step < steps.length - 1 ? (
+            <div className="wizard-footer-actions">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={saving}
+                onClick={() => void onSave()}
+              >
+                Guardar borrador
+              </button>
+              {step < FORM_WIZARD_STEPS.length - 1 ? (
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={() =>
-                    setStep((s) => Math.min(steps.length - 1, s + 1))
+                    setStep((s) =>
+                      Math.min(FORM_WIZARD_STEPS.length - 1, s + 1),
+                    )
                   }
                 >
                   Siguiente
                 </button>
               ) : (
                 <button
-                  type="submit"
+                  type="button"
                   className="btn btn-primary"
                   disabled={saving}
+                  onClick={() => void onSave()}
                 >
-                  {saving ? "Guardando…" : "Guardar borrador"}
+                  Guardar y salir
                 </button>
               )}
             </div>
           </div>
         </section>
-      </form>
+      </div>
     </>
   );
 }

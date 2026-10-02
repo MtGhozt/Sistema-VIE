@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { postDemoLogin } from "../api/demoAuth";
+import { setDemoAuth } from "../api/client";
 import { SESSION_KEY } from "../data/demo";
 import { getRole, isRoleId, type RoleId } from "../data/roles";
 
@@ -83,8 +84,20 @@ function persistSession(session: Session) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
 }
 
+function syncDemoAuth(session: Session | null) {
+  if (!session) {
+    setDemoAuth(null);
+    return;
+  }
+  setDemoAuth({ userId: session.userId, role: session.role });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(() => readSession());
+  const [session, setSession] = useState<Session | null>(() => {
+    const initial = readSession();
+    syncDemoAuth(initial);
+    return initial;
+  });
 
   const loginWithRole = useCallback(async (roleCode: RoleId) => {
     const data = await postDemoLogin(roleCode);
@@ -101,11 +114,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       viewRole: role,
     };
     persistSession(next);
+    syncDemoAuth(next);
     setSession(next);
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem(SESSION_KEY);
+    syncDemoAuth(null);
     setSession(null);
   }, []);
 

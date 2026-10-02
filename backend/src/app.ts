@@ -2,11 +2,14 @@ import express from "express";
 import cors from "cors";
 import { healthRouter } from "./routes/health.js";
 import { demoRouter } from "./routes/demoAuth.js";
+import { convocatoriasRouter } from "./routes/convocatorias.js";
+import { attachDemoAuth } from "./middleware/demoAuth.js";
 
 export function createApp() {
   const app = express();
   app.use(cors());
   app.use(express.json());
+  app.use(attachDemoAuth);
 
   app.get("/", (_req, res) => {
     res.json({
@@ -18,6 +21,7 @@ export function createApp() {
 
   app.use("/api", healthRouter);
   app.use("/api", demoRouter);
+  app.use("/api", convocatoriasRouter);
 
   return app;
 }

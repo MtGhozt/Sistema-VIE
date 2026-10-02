@@ -10,9 +10,38 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
+export type DemoAuthHeaders = {
+  userId: number;
+  role: string;
+};
+
+let demoAuth: DemoAuthHeaders | null = null;
+
+/** Lo llama AuthProvider cuando hay sesión. */
+export function setDemoAuth(auth: DemoAuthHeaders | null) {
+  demoAuth = auth;
+}
+
+export async function apiJson<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (!headers.has("Content-Type") && init?.body) {
+    headers.set("Content-Type", "application/json");
+  }
+  if (demoAuth) {
+    headers.set("X-Demo-User-Id", String(demoAuth.userId));
+    headers.set("X-Demo-Role", demoAuth.role);
+  }
+
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url, init);
+  const res = await fetch(url, { ...init, headers });
+
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
   let body: unknown = null;
   try {
     body = await res.json();

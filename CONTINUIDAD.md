@@ -44,7 +44,8 @@ Estructura:
 
 | Fecha | Qué | Pendiente |
 |-------|-----|-----------|
-| 2026-10-01 | Logo oficial TEC (`logotec.pdf` → `public/brand/`) en sidebar/login; sidebar azul por contraste | CU1 convocatorias |
+| 2026-10-01 | **CU1** convocatorias persistidas en Postgres (`/api/convocatorias`) | CU2 propuestas |
+| 2026-10-01 | Logo oficial TEC (`logotec.pdf` → `public/brand/`) en sidebar/login; sidebar azul por contraste | — |
 | 2026-10-01 | Login frontend ↔ API demo (`/api/health`, `/api/demo/roles`, `/api/demo/login`) | — |
 | 2026-10-01 | Repo ordenado: docs fuera de código; monorepo pnpm; frontend React con rutas/roles del prototipo | — |
 | 2026-10-01 | Fase 0: Docker Postgres, API health/demo, Vite | — |
@@ -53,7 +54,7 @@ Estructura:
 ## Próximos pasos (orden)
 
 1. ~~Definir 5 CUs~~ / ~~Q1–Q4~~ / ~~Fase 0 cimientos~~ / ~~frontend multiarchivo sin API~~
-2. ~~Login demo ↔ API~~ · **CU1 convocatoria** contra Postgres, clonando el HTML de referencia.
+2. ~~Login demo ↔ API~~ · ~~**CU1 convocatoria**~~ · **CU2** formular propuesta.
 3. Completar port de formularios/rúbricas del prototipo + a11y + CUs restantes.
 
 ## Referencias rápidas

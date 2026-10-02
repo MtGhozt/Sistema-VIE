@@ -14,6 +14,7 @@ import {
   NavIcon,
 } from "../icons";
 import { TecLogo } from "../TecLogo";
+import { NotificationBell } from "./NotificationBell";
 
 export function AppShell() {
   const { session, logout, setViewRole, isAdminSession } = useAuth();
@@ -121,6 +122,7 @@ export function AppShell() {
               <span>Rol</span>
               <strong>{roleDef.short}</strong>
             </div>
+            <NotificationBell />
             <div className="user-chip">
               <div className="avatar" aria-hidden>
                 {personName.slice(0, 1)}

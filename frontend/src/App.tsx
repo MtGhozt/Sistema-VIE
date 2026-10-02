@@ -5,7 +5,10 @@ import { AppShell } from "./components/layout/AppShell";
 import { AdministracionPage } from "./pages/AdministracionPage";
 import { ConvocatoriasPage } from "./pages/ConvocatoriasPage";
 import { EvaluacionesPage } from "./pages/EvaluacionesPage";
-import { HistoricoPage } from "./pages/HistoricoPage";
+import {
+  HistoricoDetallePage,
+  HistoricoPage,
+} from "./pages/HistoricoPage";
 import { InicioPage } from "./pages/InicioPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotificacionesPage } from "./pages/NotificacionesPage";
@@ -37,6 +40,7 @@ export default function App() {
         <Route path="/propuestas/:id" element={<PropuestaDetallePage />} />
         <Route path="/evaluaciones" element={<EvaluacionesPage />} />
         <Route path="/historico" element={<HistoricoPage />} />
+        <Route path="/historico/:codigo" element={<HistoricoDetallePage />} />
         <Route path="/notificaciones" element={<NotificacionesPage />} />
         <Route path="/administracion" element={<AdministracionPage />} />
       </Route>

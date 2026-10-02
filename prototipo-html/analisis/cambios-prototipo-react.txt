@@ -1,0 +1,18 @@
+﻿Cambios que hay que hacer en el prototipo de React
+Propuestas
+En la sección de modalidad en la pantalla de crear nueva propuesta como investigador tienen que estar las opciones: investigación básica, investigación aplicada, investigación básica y aplicada, desarrollo tecnológico. Además falta una casilla para poner el abstract y las keywords en inglés (creo).
+Falta toda la sección de preguntas generales al crear una propuesta.
+La parte de equipo investigador debería tener todos estos datos
+Problema y objetivos no requiere justificación (creo)
+La metodología creo que es solo un cuadro de texto
+La sección de plan y riesgos debería verse así
+La sección de presupuesto debería dividirse por años, no solo uno general, además falta el financiamiento externo
+Faltan de la sección 12 en adelante.
+2.  Dictamen de propiedad intelectual
+Mae, no tengo idea que hacer aquí
+3. Rúbrica
+El super admin está raro, solo ve el pov de un investigador (el menos útil, las pantallas deberían asemejarse más a las del figma creo)
+4. Resultados
+Creo que esto está bien, sino que alguien me corrija
+5. General
+Cambiar el aspecto de las imágenes, los logos y tipografías por unos que cumplan con los requisitos del TEC, ojalá aplicar las conclusiones del análisis competitivo de la etapa 1 del proyecto.

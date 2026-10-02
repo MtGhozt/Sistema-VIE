@@ -1,0 +1,335 @@
+
+===== SHEET: Actividades de Fortalecimiento =====
+RÚBRICA DE EVALUACIÓN – ACTIVIDADES DE FORTALECIMIENTO,,,,,,,,,Tabla de referencia (no editar):,Deficiente,0
+"Convocatoria con fondos VIE 2027 – Vicerrectoría de Investigación y Extensión, Instituto Tecnológico de Costa Rica",,,,,,,,,,Regular,6
+Nombre de la propuesta:,,,,,,,,,,Bueno,8
+Dependencia académica coordinadora:,,,,,,,,,,Excelente,10
+Fecha de evaluación:,,,,,,,,,,,
+,,,,,,,,,,,
+"⚠ REQUISITOS MÍNIMOS OBLIGATORIOS: Los criterios marcados con ⛔, son requisitos obligatorios. Cuando un requisito obligatorio obtenga una calificación ""deficiente"" o ""regular"", el Comité Técnico emitirá dictamen técnico desfavorable o no recomendará la propuesta, para conocimiento del Consejo de la instancia y trámite ante la VIE y CIE, según corresponda.",,,,,,,,,,,
+,,,,,,,,,,,
+Criterio de evaluación,Peso,"Deficiente
+(0 pts)","Regular
+(6 pts)","Bueno
+(8 pts)","Excelente
+(10 pts)","Nivel
+(seleccione)","Subpuntaje
+obtenido","Justificación de la
+puntuación (obligatoria)",,,
+  1. GRUPO INVESTIGADOR   —   Peso de la sección: 20%,,,,,,,,,,,
+Composición disciplinaria del equipo,5%,Las disciplinas representadas no corresponden a las necesidades temáticas o metodológicas de la actividad propuesta.,"La propuesta integra algunas de las disciplinas necesarias, aunque la experiencia del equipo en el tema es limitada o parcialmente documentada.",La propuesta integra todas las disciplinas requeridas y el equipo acredita experiencia previa documentada en el tema.,La propuesta integra todas las disciplinas requeridas; el equipo acredita trayectoria amplia y documentada de alto nivel en el tema.,,,,,,
+Experiencia académica del equipo sobre el tema,5%,"Al menos dos personas del equipo acreditan múltiples productos académicos indexados (Scopus, Web of Science, SciELO) sobre el tema, lo que evidencia una trayectoria consolidada en el área.","Al menos una persona del equipo acredita productos académicos indexados (Scopus, Web of Science, SciELO) sobre el tema en bases de datos académicas reconocidas.",Al menos una persona del equipo cuenta con productos académicos relacionados con el tema.,El equipo no presenta productos académicos relacionados con el tema de la actividad.,,,,,,
+Articulación entre dependencias y vinculación externa,5%,La propuesta involucra a una sola persona de una única dependencia académica y no contempla vinculación con actores externos.,"La propuesta involucra a varias personas de una misma dependencia académica, o menciona la participación de actores externos sin que exista un compromiso formal documentado.","La propuesta integra personas de dos o más dependencias académicas del ITCR con roles definidos, e incorpora colaboradores externos nacionales sin que se adjunte compromiso formal.","La propuesta articula múltiples dependencias académicas del ITCR con roles claramente definidos, e incorpora colaboradores externos nacionales o internacionales respaldados por cartas de compromiso formales.",,,,,,
+Participación estudiantil,5%,La propuesta no contempla participación estudiantil en ninguna modalidad.,La propuesta incorpora la participación de un estudiante de grado en calidad de asistente.,La propuesta incorpora la participación de dos o más estudiantes de grado en calidad de asistentes.,La propuesta incorpora estudiantes de grado en calidad de asistentes y vincula al menos un Trabajo Final de Graduación (TFG) al desarrollo de la actividad.,,,,,,
+  Subtotal – 1. Grupo Investigador,,,,,,,,,,,
+,,,,,,,,,,,
+  2. FUNDAMENTACIÓN DE LA ACTIVIDAD   —   Peso de la sección: 15%,,,,,,,,,,,
+Justificación del problema o necesidad,7%,"La propuesta no delimita con claridad el problema o necesidad central que la motiva, carece de argumentación lógica o no se evidencia un beneficio/impacto para la institución o el entorno.","El problema o necesidad se describe de manera general o superficial, pero la argumentación es débil, poco detallada o carece de datos cuantitativos/cualitativos que demuestren la magnitud de la situación planteada.","La necesidad se justifica de manera clara utilizando datos, diagnósticos previos o hechos institucionales pertinentes; no obstante, se requiere profundizar en la vinculación directa entre el problema identificado.","El problema o necesidad se argumenta de manera rigurosa, clara y estructurada, respaldado con datos específicos y vigentes; se identifican con total precisión y pertinencia los vacíos o demandas institucionales/sociales concretas que la actividad resolverá de forma efectiva.",,,,,,
+Coherencia de los objetivos con la actividad,8%,Los objetivos no guardan coherencia con la actividad de fortalecimiento planteada.,Los objetivos son vagos o responden parcialmente a la necesidad identificada.,Los objetivos son coherentes con la necesidad identificada y se traducen en actividades concretas dentro del plan de acción.,"Los objetivos son claros, coherentes con la necesidad, medibles y se traducen en actividades con productos verificables.",,,,,,
+  Subtotal – 2. Fundamentación de la Actividad,,,,,,,,,,,
+,,,,,,,,,,,
+  3. PLAN DE ACCIÓN Y CRONOGRAMA   —   Peso de la sección: 15%,,,,,,,,,,,
+"Claridad, responsables y supervisión por actividad",6%,Las actividades no están definidas o carecen de responsables asignados.,"Se presentan actividades básicas, pero sin responsables claramente asignados ni niveles de supervisión establecidos.","Las actividades cuentan con responsables definidos; sin embargo, no en todas se identifica la persona encargada de supervisar su cumplimiento.","Cada actividad identifica la persona responsable de su ejecución, la persona de apoyo cuando corresponde y la persona supervisora del cumplimiento, con un cronograma realista.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO –  ¿Se especifican explícitamente el responsable de ejecución, el personal de apoyo (si aplica) y la persona supervisora para cada una de las actividades del plan?",,,,,,,,,,,
+Resultados esperados y trazabilidad,5%,No se definen resultados esperados ni plazos para las actividades del plan de acción.,"Algunos resultados esperados están definidos, pero sin plazos asociados o sin cobertura de todas las actividades.","La mayoría de las actividades cuenta con resultados esperados y plazos definidos, aunque persisten algunos vacíos en la cobertura.","Todas las actividades cuentan con resultados esperados claramente definidos y plazos verificables, lo que garantiza la trazabilidad del seguimiento institucional.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO –   ¿Se definen los resultados esperados y los plazos estimados para cada actividad asegurando la trazabilidad de su seguimiento? Estos resultados son distintos de los productos académicos exigidos por la Convocatoria.,,,,,,,,,,,
+"Planificación de giras, pasantías o eventos",4%,"En la propuesta se identifican giras, trabajo de campo, pasantías o participación en congresos, pero estas actividades no están planificadas.","Las actividades de campo o movilidad identificadas en la propuesta se mencionan de manera genérica, sin cronograma ni presupuesto asociados.","Las actividades de campo o movilidad identificadas en la propuesta se planifican con un cronograma básico, aunque les faltan algunos elementos de detalle.","Todas las actividades de campo o movilidad identificadas en la propuesta están planificadas de forma explícita con cronograma, justificación, productos esperados y presupuesto asociado.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Están planificadas explícitamente en el plan de acción las giras, trabajos de campo, pasantías o congresos requeridos (o se constata que la propuesta no los requiere)?",,,,,,,,,,,
+  Subtotal – 3. Plan de Acción y Cronograma,,,,,,,,,,,
+,,,,,,,,,,,
+  4. PRESUPUESTO   —   Peso de la sección: 8%,,,,,,,,,,,
+Coherencia y proporcionalidad presupuestaria,8%,"Los recursos solicitados no están cuantificados, carecen de justificación o superan los montos máximos establecidos en la Convocatoria.","Los recursos están cuantificados, pero presentan inconsistencias respecto a los montos permitidos.","Los recursos están cuantificados y justificados dentro de los montos permitidos, con proporcionalidad parcial respecto al plan de acción.","Los recursos están debidamente cuantificados y justificados, con plena proporcionalidad respecto al plan de acción y dentro de los montos máximos establecidos en la Convocatoria.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Cumple el presupuesto formulado con los montos máximos establecidos en las disposiciones de la convocatoria VIE 2027?,,,,,,,,,,,
+  Subtotal – 4. Presupuesto,,,,,,,,,,,
+,,,,,,,,,,,
+  5. GESTIÓN DE RIESGOS   —   Peso de la sección: 10%,,,,,,,,,,,
+Identificación y mitigación de riesgos por actividad,5%,La propuesta no identifica riesgos por cada actividad del plan de acción.,"Se identifica riesgos por cada actividad del plan de acción, con acciones de mitigación de carácter básico.","Se identifica al menos un riesgo por cada actividad, con acciones de mitigación específicas y viables.","Se identifica al menos un riesgo por cada actividad, con acciones de mitigación específicas y viables y responsables de supervisión.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Asocia el plan de riesgos al menos un riesgo con su respectiva acción de mitigación por cada actividad planificada?,,,,,,,,,,,
+Viabilidad de las acciones de mitigación,5%,Las acciones de mitigación son genéricas o están ausentes; existen riesgos críticos sin atención.,"Algunas acciones de mitigación son coherentes, pero hay riesgos relevantes sin solución viable.",Las acciones de mitigación son coherentes y generalmente viables.,"Las acciones de mitigación son específicas, viables y están respaldadas por evidencias concretas de su factibilidad.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Son las acciones de mitigación propuestas coherentes, viables y suficientes para salvaguardar el éxito de la actividad?",,,,,,,,,,,
+  Subtotal – 5. Gestión de Riesgos,,,,,,,,,,,
+,,,,,,,,,,,
+  6. ASPECTOS ÉTICOS   —   Peso de la sección: 7%,,,,,,,,,,,
+Evaluación de necesidad de  revisión ética/regulatoria y justificación de exenciones,7%,La propuesta no aborda los aspectos éticos pertinentes ni incluye justificación escrita al respecto.,"Se menciona la evaluación ética, pero sin justificación escrita que la respalde.","La propuesta incluye una evaluación de los aspectos éticos con justificación escrita, aunque de forma incompleta.","La propuesta incluye una evaluación completa de los aspectos éticos con justificación escrita detallada. Si requiere autorización de un ente de revisión ética o regulatorio, el proceso de obtención está documentado; si no lo requiere, la exención está fundamentada.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Declara y justifica la propuesta, de forma obligatoria, si requiere o no la autorización de un ente ético o regulatorio?",,,,,,,,,,,
+  Subtotal – 6. Aspectos Éticos,,,,,,,,,,,
+,,,,,,,,,,,
+  7. PERTINENCIA E IMPACTO   —   Peso de la sección: 25%,,,,,,,,,,,
+Pertinencia para la generación de nuevas propuestas o áreas de conocimiento,15%,La propuesta no evidencia un potencial claro para generar nuevas iniciativas de investigación ni para identificar áreas de conocimiento.,"La propuesta presenta un potencial limitado para derivar en nuevas propuestas de investigación, o no articula con suficiente claridad cómo se lograría esa derivación.",La propuesta tiene un potencial real para identificar necesidades de investigación o abrir nuevas áreas de conocimiento.,La propuesta presenta un potencial sólido y articulado para generar propuestas de investigación concretas o abrir nuevas líneas de conocimiento con impacto institucional demostrable.,,,,,,
+Alineación con prioridades institucionales y ODS,10%,La propuesta no se vincula con las líneas de investigación institucionales ni con los Objetivos de Desarrollo Sostenible (ODS).,"La propuesta se vincula de manera vaga con alguna línea o eje institucional, sin desarrollar esa relación.","La propuesta se vincula con líneas institucionales y ODS, con justificación parcial de esa articulación.","La propuesta se vincula de manera clara y bien justificada con las líneas de investigación institucionales, los ejes estratégicos del ITCR y los ODS pertinentes.",,,,,,
+  Subtotal – 7. Pertinencia e Impacto,,,,,,,,,,,
+,,,,,,,,,,,
+CALIFICACIÓN FINAL DE LA PROPUESTA ,,,,,,,,,,,
+,,,,,,,,,,,
+ESCALA DE RESULTADOS:  ≥ 0.70 = RECOMIENDA  |  < 0.70 = NO RECOMIENDA,,,,,,,,,,,
+,,,,,,,,,,,
+8. PRODUCTOS ACADÉMICOS   —   Sección no sumativa,,,,,,,,,,,
+"ATENCIÓN: Esta sección NO agrega puntos a la calificación final. Verifica que los productos comprometidos cumplan con las disposiciones de la Convocatoria. Si el equipo NO cumple, el Comité Técnico NO DEBE RECOMENDAR la propuesta independientemente de la calificación final obtenida.",,,,,,,,,,,
+"Total de horas semanales
+asignadas al equipo",,"Indique la suma total de horas semanales (VIE + VIE-Centro + REC + CONS + DOC + VIESA) del equipo según la propuesta:
+
+           ___Indique cantidad_____  horas semanales totales",,,,,,,,,
+"Mínimo de productos requeridos
+(escala de proporcionalidad)",,"Según la Sección 3.6 de la Convocatoria:
+  1 a 10 horas semanales  →  1 producto académico mínimo
+  11 a 20 horas semanales  →  2 productos académicos mínimos
+  21 a 30 horas semanales  →  3 productos académicos mínimos
+  (un producto adicional por cada 10 horas semanales excedentes, redondeado hacia arriba)",,,,,,,,,
+"Cantidad de productos propuestos
+por el equipo",,El equipo declara comprometer  ____Indique cantidad____  productos académicos en la propuesta.,,,,,,,,,
+"Tipo(s) de producto(s) comprometidos
+(Sección 3.6)",,Marque el tipo declarado por el equipo (uno por cada producto comprometido):,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+¿Cumple con el mínimo según las horas asignadas?  ,,                        CUMPLE con los requisitos mínimos de productos académicos → La propuesta puede continuar su revisión,,,,,,,,,
+,,                       NO CUMPLE con los requisitos mínimos → La propuesta debe ser RECHAZADA por el Comité Técnico,,,,,,,,,
+,,,,,,,,,,,
+DICTAMEN DEL COMITÉ TÉCNICO:,,,     PROPUESTA RECOMENDADA    ,,             PROPUESTA NO RECOMENDADA,,,,,,
+,,,,,,,,,,,
+Nombre y firma de la persona integrante 1 del Comité Técnico:,,,,,,,,,,,
+Nombre y firma de la persona integrante 2 del Comité Técnico:,,,,,,,,,,,
+Nombre y firma de la persona integrante 3 del Comité Técnico:,,,,,,,,,,,
+Nombre y firma de la persona coordinadora del Comité Técnico:,,,,,,,,,,,
+===== SHEET: Inv Básica y Aplicada =====
+RÚBRICA DE EVALUACIÓN – INVESTIGACIÓN BÁSICA Y APLICADA,,,,,,,,,Tabla de referencia (no editar):,Deficiente,0
+"Convocatoria con fondos VIE 2027 – Vicerrectoría de Investigación y Extensión, Instituto Tecnológico de Costa Rica",,,,,,,,,,Regular,6
+Nombre de la propuesta:,,,,,,,,,,Bueno,8
+Dependencia académica coordinadora:,,,,,,,,,,Excelente,10
+Fecha de evaluación:,,,,,,,,,,,
+,,,,,,,,,,,
+"⚠ REQUISITOS MÍNIMOS OBLIGATORIOS: Los criterios marcados con ⛔, son requisitos obligatorios. Cuando un requisito obligatorio obtenga una calificación ""deficiente"" o ""regular"", el Comité Técnico emitirá dictamen técnico desfavorable o no recomendará la propuesta, para conocimiento del Consejo de la instancia y trámite ante la VIE y CIE, según corresponda.",,,,,,,,,,,
+,,,,,,,,,,,
+Criterio de evaluación,Peso,"Deficiente
+(0 pts)","Regular
+(6 pts)","Bueno
+(8 pts)","Excelente
+(10 pts)","Nivel
+(seleccione)","Subpuntaje
+obtenido","Justificación de la
+puntuación (obligatoria en caso de ser diferente a Excelente)",,,
+  1. GRUPO INVESTIGADOR   —   Peso de la sección: 20%,,,,,,,,,,,
+Composición disciplinaria del equipo,5%,"Las disciplinas representadas no corresponden a las necesidades del proyecto, o el equipo carece de experiencia comprobable en investigación sobre el tema.","La propuesta integra algunas de las disciplinas necesarias, con experiencia limitada (dos años o menos) o documentación parcial en investigación sobre el tema.",La propuesta integra todas las disciplinas requeridas y el equipo posee experiencia (entre dos años y menos de cinco) previa documentada en investigación sobre el tema.,La propuesta integra todas las disciplinas necesarias; el equipo posee experiencia extensa (más de cinco años) y documentada en investigación sobre el tema.,,,,,,
+Experiencia académica del equipo sobre el tema,4%,El equipo no presenta productos académicos relacionados con el tema de investigación.,"Al menos una persona del equipo cuenta con productos académicos sobre el tema en bases de datos académicas regionales (SciELO, Redalyc).","Al menos una persona del equipo cuentan con productos académicos indexados en Web of Science, Scopus o SciELO, lo que evidencia trayectoria en el área.","Al menos dos personas del equipo cuentan con productos académicos indexados en Web of Science o Scopus, lo que evidencia liderazgo en el tema.",,,,,,
+Articulación entre dependencias académicas,4%,La propuesta es desarrollada exclusivamente por una persona de una única dependencia académica.,La propuesta es desarrollada por varias personas de una misma dependencia académica.,La propuesta integra personas investigadoras de al menos dos dependencias académicas del ITCR con roles definidos en el plan de acción.,La propuesta articula personas investigadoras de múltiples dependencias del ITCR con articulación interdisciplinaria clara y roles definidos en el plan de acción.,,,,,,
+Vinculación externa,2%,La propuesta no contempla vinculación con actores externos.,"La propuesta menciona la participación de actores externos, pero sin roles definidos ni compromiso formal documentado.",La propuesta incorpora colaboradores externos nacionales con participación definida y evidencia de compromiso formal.,"La propuesta incorpora colaboradores externos nacionales o internacionales con participación activa en el plan de acción, respaldada por cartas de compromiso formales.",,,,,,
+Trayectoria de la persona coordinadora,2%,La persona coordinadora cuenta menos de dos años de experiencia demostrable en proyectos de investigación inscritos en el ITCR.,"La persona coordinadora cuenta entre dos y cinco años de experiencia en investigación, con grado de maestría o superior y al menos un proyecto coordinado.","La persona coordinadora cuenta con más de cinco años de experiencia, con grado de maestría o doctorado y coordinación de al menos dos proyectos de investigación.","La persona coordinadora cuenta con más de diez años de experiencia, con doctorado, coordinación de tres o más proyectos y productos académicos de alto impacto como persona coordinadora.",,,,,,
+Participación estudiantil,3%,La propuesta no contempla participación estudiantil en ninguna modalidad.,La propuesta incorpora la participación de un estudiante de grado en calidad de asistente.,La propuesta incorpora la participación de dos o más estudiantes de grado en calidad de asistentes.,La propuesta incorpora estudiantes de grado en calidad de asistentes y vincula al menos un Trabajo Final de Graduación (TFG) al desarrollo del proyecto.,,,,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Evidencia la propuesta la participación estudiantil mediante alguna de las modalidades autorizadas (estudiante asistente, tesis o TFG)?",,,,,,,,,,,
+  Subtotal – 1. Grupo Investigador,,,,,,,,,,,
+,,,,,,,,,,,
+  2. FUNDAMENTACIÓN Y VACÍO DE CONOCIMIENTO   —   Peso de la sección: 12%,,,,,,,,,,,
+Definición y justificación del problema de investigación,4%,"El problema de investigación no está definido con claridad, carece de justificación y no se formulan preguntas de investigación ni se identifican beneficios esperados.","El problema está definido y justificado de manera básica, pero faltan las preguntas de investigación o los beneficios esperados no se especifican con claridad.","El problema está bien definido y justificado con referencias; incluye preguntas de investigación, aunque los beneficios esperados no están articulados de forma completa.",El problema está definido con rigor y justificado mediante literatura actualizada; incluye preguntas específicas y explica con claridad los beneficios para la disciplina y la sociedad.,,,,,,
+Coherencia entre problema y objetivos,4%,"Los objetivos no responden al problema planteado ni abordan las preguntas fundamentales de la investigación: ¿qué?, ¿cómo? y ¿para qué?","Los objetivos responden parcialmente al problema, pero no abordan de manera completa las preguntas fundamentales de la investigación: ¿qué se investigará?, ¿cómo se investigará? y ¿para qué se realizará?","Los objetivos son coherentes con el problema y responden a las preguntas clave de la investigación, aunque su traducción en actividades específicas no resulta del todo clara.",Los objetivos son totalmente coherentes con el problema y responden de manera precisa a las preguntas clave de la investigación; cada objetivo se traduce explícitamente en actividades medibles y verificables.,,,,,,
+Estado del arte / reconocimiento de vacíos de conocimiento,4%,La propuesta no establece el estado del arte ni identifica vacíos de investigación; la revisión de literatura se plantea como una actividad futura o está ausente.,"La propuesta describe el estado del arte de manera parcial e identifica vagamente algunos vacíos, con referencias desactualizadas (más de diez años).","La propuesta establece adecuadamente el estado del arte e identifica vacíos de conocimiento, con referencias mayormente recientes (últimos diez años); la revisión de literatura es previa y sustenta el vacío identificado.","La propuesta establece con rigor el estado del arte e identifica con claridad los vacíos de conocimiento; al menos el 80 % de las referencias corresponden a los últimos diez años; la revisión es previa, sólida y fundamenta directamente la propuesta.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Evidencia la propuesta una revisión previa de literatura y artículos científicos que sustente el vacío de conocimiento (constatando que NO se plantea como una actividad futura en el cronograma)?,,,,,,,,,,,
+  Subtotal – 2. Fundamentación y Vacío de Conocimiento,,,,,,,,,,,
+,,,,,,,,,,,
+  3. METODOLOGÍA   —   Peso de la sección: 15%,,,,,,,,,,,
+"Rigor metodológico
+(enfoque, alcance y diseño de investigación)",8%,"La propuesta no define enfoque, alcance ni diseño de investigación; la metodología es inexistente o genérica, y las variables o categorías de análisis no están identificadas.",La propuesta menciona el enfoque o el diseño de investigación de manera incompleta; falta el alcance u otros elementos metodológicos esenciales.,"La propuesta define el enfoque, el alcance y el diseño de investigación, e identifica variables o categorías; sin embargo, la justificación de las elecciones metodológicas es incompleta.","La propuesta presenta una metodología rigurosa con enfoque, alcance y diseño claramente justificados; las variables o categorías están identificadas con una estrategia de medición o análisis explícita y fundamentada.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Detalla la propuesta de forma explícita el enfoque, el alcance y el diseño metodológico de la investigación?",,,,,,,,,,,
+Definición de la población de estudio,7%,"La propuesta no define la población de estudio; están ausentes los criterios de inclusión y exclusión, así como el tamaño muestral.","La propuesta menciona la población de estudio de forma genérica, sin criterios de inclusión y exclusión ni justificación del tamaño muestral.","La propuesta define la población con sus características y criterios de inclusión y exclusión; no obstante, el tamaño muestral o el procedimiento de muestreo no están suficientemente justificados.","La propuesta define completamente la población de estudio, incluyendo características, criterios de inclusión y exclusión, tamaño muestral con justificación estadística o metodológica, y procedimiento de muestreo explícito.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Define la propuesta con claridad la población de estudio, los criterios de inclusión/exclusión y el procedimiento o tamaño muestral?",,,,,,,,,,,
+  Subtotal – 3. Metodología,,,,,,,,,,,
+,,,,,,,,,,,
+  4. PLAN DE ACCIÓN Y CRONOGRAMA   —   Peso de la sección: 13%,,,,,,,,,,,
+Claridad y detalle de las actividades,4%,"El plan de acción es indefinido; no especifica actividades, responsables ni productos esperados.","El plan presenta actividades y cronograma básicos, pero los responsables y supervisores no están claramente asignados por actividad.","El plan incluye actividades, cronograma y responsables; sin embargo, no se indica la persona supervisora del cumplimiento en todas las actividades, o falta el detalle de las personas de apoyo.","El plan es detallado: cada actividad identifica la persona responsable de su ejecución, la persona de apoyo cuando corresponde y la persona supervisora del cumplimiento, con cronograma realista y productos claramente vinculados a objetivos.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO –  ¿Se especifican explícitamente el responsable de ejecución, el personal de apoyo (si aplica) y la persona supervisora para cada una de las actividades del plan?",,,,,,,,,,,
+"Planificación de giras, trabajo de campo, pasantías y congresos",4%,"En la propuesta se identifican giras, trabajo de campo, pasantías o participación en congresos, pero estas actividades no están planificadas.","Las actividades de campo o movilidad identificadas en la propuesta se mencionan de manera genérica, sin cronograma ni presupuesto asociados.","Las actividades de campo o movilidad identificadas en la propuesta se planifican con un cronograma básico, aunque les faltan algunos elementos de detalle.","Todas las actividades de campo o movilidad identificadas en la propuesta están planificadas de forma explícita con cronograma, justificación, productos esperados y presupuesto asociado.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Están planificadas explícitamente en el plan de acción las giras, trabajos de campo, pasantías o congresos requeridos (o se constata que la propuesta no los requiere)?",,,,,,,,,,,
+Trazabilidad de resultados y tiempos de seguimiento,5%,No se definen resultados esperados ni plazos para las actividades del plan de acción.,"Algunos resultados esperados están definidos, pero sin plazos asociados o sin cobertura de todas las actividades.","La mayoría de las actividades cuenta con resultados esperados y plazos definidos, aunque persisten algunos vacíos en la cobertura.","Todas las actividades cuentan con resultados esperados claramente definidos y plazos definidos, lo que garantiza la trazabilidad del seguimiento institucional.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO –   ¿Se definen los resultados esperados y los plazos estimados para cada actividad asegurando la trazabilidad de su seguimiento? Estos resultados son distintos de los productos académicos exigidos por la Convocatoria.,,,,,,,,,,,
+  Subtotal – 4. Plan de Acción y Cronograma,,,,,,,,,,,
+,,,,,,,,,,,
+  5. PRESUPUESTO   —   Peso de la sección: 10%,,,,,,,,,,,
+Proporcionalidad y coherencia presupuestaria,4%,"Los recursos solicitados no están cuantificados, carecen de justificación o superan los montos máximos establecidos en la Convocatoria.","Los recursos están cuantificados, pero la justificación no evidencia proporcionalidad con el plan de acción, o presenta inconsistencias menores respecto a los montos permitidos.",Los recursos están cuantificados y justificados con proporcionalidad parcial respecto al plan de acción; se respetan los montos máximos.,"Los recursos están debidamente cuantificados y justificados, con plena proporcionalidad respecto al plan de acción y dentro de los montos máximos establecidos en la Convocatoria.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Cumple el presupuesto formulado con los montos máximos establecidos en las disposiciones de la convocatoria VIE 2027?,,,,,,,,,,,
+Inversión y equipamiento ,4%,"La propuesta requiere equipamiento, pero no lo incluye en el presupuesto o lo programa para años posteriores sin justificación.","El equipamiento se incluye en el presupuesto, pero con justificación insuficiente o sin vincularlo claramente al plan de acción del primer año.","El equipamiento está formulado para el primer año con justificación adecuada, aunque existen inconsistencias menores respecto al plan de acción.","El equipamiento o la inversión están completamente formulados para el primer año, con justificación clara, coherencia con el plan de acción y dentro de los montos permitidos.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Se concentran las solicitudes de equipamiento e inversión en el primer año de ejecución de la propuesta (o se justifica una excepción válida)?,,,,,,,,,,,
+"Financiamiento externo, contrapartida o cofinanciamiento",2%,"La propuesta no cuenta con financiamiento externo, cofinanciamiento ni contrapartida aprobados.","El financiamiento externo o cofinanciamiento es inferior en más de un 15 % al monto solicitado a la VIE, o la propuesta cuenta únicamente con contrapartida en especie.","El financiamiento externo o cofinanciamiento es equivalente (±15 %) al monto solicitado a la VIE, o no se acredita mediante cartas de compromiso formales.","El financiamiento externo o cofinanciamiento supera en más de un 15 % el monto solicitado a la VIE, y se acredita mediante cartas de compromiso formales.",,,,,,
+  Subtotal – 5. Presupuesto,,,,,,,,,,,
+,,,,,,,,,,,
+  6. GESTIÓN DE RIESGOS   —   Peso de la sección: 8%,,,,,,,,,,,
+Identificación de riesgos por actividad,4%,La propuesta no identifica riesgos por cada actividad del plan de acción.,"Se identifica riesgos por cada actividad del plan de acción, con acciones de mitigación de carácter básico.","Se identifica al menos un riesgo por cada actividad, con acciones de mitigación específicas y viables.","Se identifica al menos un riesgo por cada actividad, con acciones de mitigación específicas y viables y responsables de supervisión.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Asocia el plan de riesgos al menos un riesgo con su respectiva acción de mitigación por cada actividad planificada?,,,,,,,,,,,
+Viabilidad de las acciones de mitigación,4%,"Las acciones de mitigación son genéricas, incoherentes o están ausentes; existen riesgos críticos sin atención.","Algunas acciones de mitigación son coherentes, pero hay riesgos importantes sin solución viable.","Las acciones de mitigación son coherentes y generalmente viables, con evidencia parcial de su factibilidad.","Todas las acciones de mitigación son específicas, viables, coherentes con el proyecto y están respaldadas por evidencias concretas de factibilidad.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Son las acciones de mitigación propuestas coherentes, viables y suficientes para salvaguardar el éxito de la actividad?",,,,,,,,,,,
+  Subtotal – 6. Gestión de Riesgos,,,,,,,,,,,
+,,,,,,,,,,,
+  7. ASPECTOS ÉTICOS   —   Peso de la sección: 7%,,,,,,,,,,,
+Evaluación un ente ético o regulatorio y justificación de exenciones,7%,La propuesta no aborda los aspectos éticos pertinentes; no se incluye evaluación alguna sobre la necesidad de autorización de un un ente ético o regulatorio.,"La propuesta menciona la evaluación ética, pero no incluye una justificación escrita que la respalde.","La propuesta incluye una evaluación de los aspectos éticos con justificación escrita, aunque de forma incompleta o con escasa especificidad.","La propuesta incluye una evaluación completa de los aspectos éticos con justificación escrita detallada. Si requiere autorización de un un ente ético o regulatorio, el proceso está documentado; si no lo requiere, la exención está explícitamente fundamentada.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Declara y justifica la propuesta, de forma obligatoria, si requiere o no la autorización de un ente ético o regulatorio?",,,,,,,,,,,
+  Subtotal – 7. Aspectos Éticos,,,,,,,,,,,
+,,,,,,,,,,,
+  8. PERTINENCIA E IMPACTO   —   Peso de la sección: 15%,,,,,,,,,,,
+Contribución disciplinaria e impacto,8%,La propuesta no evidencia una contribución al estado del arte ni al mejoramiento de la calidad de vida.,La propuesta evidencia una contribución al estado del arte o al mejoramiento de la calidad de vida.,"El problema abordado es de interés nacional y la propuesta contribuye al estado del arte, a la calidad de vida o a la competitividad del país.","El problema es de interés nacional e internacional; la propuesta contribuye al estado del arte, a la calidad de vida y a la competitividad del país.",,,,,,
+Innovación del proyecto,7%,La propuesta replica investigaciones existentes sin presentar componentes innovadores.,"La propuesta identifica un aspecto innovador, pero no articula cómo se logrará ni describe sus etapas.","La propuesta identifica aspectos innovadores con detalle de implementación, aunque la novedad es relativa.","La propuesta presenta una innovación clara y justificada, con todas las etapas detalladas y potencial para fortalecer las líneas de investigación de la dependencia académica coordinadora.",,,,,,
+  Subtotal – 8. Pertinencia e Impacto,,,,,,,,,,,
+,,,,,,,,,,,
+CALIFICACIÓN FINAL DE LA PROPUESTA ,,,,,,,,,,,
+,,,,,,,,,,,
+ESCALA DE RESULTADOS:  ≥ 0.70 = RECOMIENDA  |  < 0.70 = NO RECOMIENDA,,,,,,,,,,,
+,,,,,,,,,,,
+8. PRODUCTOS ACADÉMICOS   —   Sección no sumativa,,,,,,,,,,,
+"ATENCIÓN: Esta sección NO agrega puntos a la calificación final. Verifica que los productos comprometidos cumplan con las disposiciones de la Convocatoria . Si el equipo NO cumple, el Comité Técnico DEBE no recomendar la propuesta independientemente de la calificación final obtenida.",,,,,,,,,,,
+"Total de horas semanales
+asignadas al equipo",,"Indique la suma total de horas semanales (VIE + VIE-Centro + REC + CONS + DOC + VIESA) del equipo según la propuesta:
+
+           ___Indique cantidad___  horas semanales totales",,,,,,,,,
+"Mínimo de productos requeridos
+(escala de proporcionalidad)",,"Según la Sección 2.4.1 de la Convocatoria:
+  1 a 10 horas semanales  →  1 producto académico mínimo
+  11 a 20 horas semanales  →  2 productos académicos mínimos
+  21 a 30 horas semanales  →  3 productos académicos mínimos
+  (un producto adicional por cada 10 horas semanales excedentes, redondeado hacia arriba)",,,,,,,,,
+"Cantidad de productos propuestos
+por el equipo",,El equipo declara comprometer  ___Indique cantidad_____  productos académicos en la propuesta.,,,,,,,,,
+"Tipo(s) de producto(s) comprometidos
+(Sección 4.4)",,Marque el tipo declarado por el equipo (uno por cada producto comprometido):,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+¿Cumple con el mínimo según las horas asignadas?  ,,                        CUMPLE con los requisitos mínimos de productos académicos → La propuesta puede continuar su revisión,,,,,,,,,
+,,                       NO CUMPLE con los requisitos mínimos → La propuesta debe ser RECHAZADA por el Comité Técnico,,,,,,,,,
+,,,,,,,,,,,
+DICTAMEN DEL COMITÉ TÉCNICO:,,,     PROPUESTA RECOMENDADA    ,,             PROPUESTA NO RECOMENDADA,,,,,,
+,,,,,,,,,,,
+Nombre y firma de la persona integrante 1 del Comité Técnico:,,,,,,,,,,,
+Nombre y firma de la persona integrante 2 del Comité Técnico:,,,,,,,,,,,
+Nombre y firma de la persona integrante 3 del Comité Técnico:,,,,,,,,,,,
+Nombre y firma de la persona coordinadora del Comité Técnico:,,,,,,,,,,,
+===== SHEET: Desarrollo Tecnológico =====
+RÚBRICA DE EVALUACIÓN – DESARROLLO TECNOLÓGICO,,,,,,,,,Tabla de referencia (no editar):,Deficiente,0
+"Convocatoria con fondos VIE 2027 – Vicerrectoría de Investigación y Extensión, Instituto Tecnológico de Costa Rica",,,,,,,,,,Regular,6
+Nombre de la propuesta:,,,,,,,,,,Bueno,8
+Dependencia académica coordinadora:,,,,,,,,,,Excelente,10
+Fecha de evaluación:,,,,,,,,,,,
+,,,,,,,,,,,
+"⚠ REQUISITOS MÍNIMOS OBLIGATORIOS: Los criterios marcados con ⛔, son requisitos obligatorios. Cuando un requisito obligatorio obtenga una calificación ""deficiente"" o ""regular"", el Comité Técnico emitirá dictamen técnico desfavorable o no recomendará la propuesta, para conocimiento del Consejo de la instancia y trámite ante la VIE y CIE, según corresponda.",,,,,,,,,,,
+,,,,,,,,,,,
+Criterio de evaluación,Peso,"Deficiente
+(0 pts)","Regular
+(6 pts)","Bueno
+(8 pts)","Excelente
+(10 pts)","Nivel
+(seleccione)","Subpuntaje
+obtenido","Justificación de la
+puntuación (obligatoria)",,,
+  1. GRUPO INVESTIGADOR   —   Peso de la sección: 15%,,,,,,,,,,,
+Composición disciplinaria del equipo,3%,"Las disciplinas representadas no corresponden a las necesidades del proyecto, o el equipo carece de experiencia comprobable en investigación sobre el tema.","La propuesta integra algunas de las disciplinas necesarias, con experiencia limitada (dos años o menos) o documentación parcial en investigación sobre el tema.",La propuesta integra todas las disciplinas requeridas y el equipo posee experiencia (entre dos años y menos de cinco) previa documentada en investigación sobre el tema.,La propuesta integra todas las disciplinas necesarias; el equipo posee experiencia extensa (más de cinco años) y documentada en investigación sobre el tema.,,,,,,
+Experiencia en desarrollo tecnológico y productos de innovación,3%,El equipo no presenta productos académicos relacionados con el tema de investigación.,"Al menos una persona del equipo cuenta con productos académicos sobre el tema en bases de datos académicas regionales (SciELO, Redalyc).","Al menos una persona del equipo cuentan con productos académicos indexados en Web of Science, Scopus o SciELO, lo que evidencia trayectoria en el área.","Al menos dos personas del equipo cuentan con productos académicos indexados en Web of Science o Scopus, lo que evidencia liderazgo en el tema.",,,,,,
+Articulación entre dependencias académicas,3%,La propuesta es desarrollada exclusivamente por una persona de una única instancia académica.,La propuesta es desarrollada por varias personas de una misma instancia académica.,La propuesta integra personas investigadoras de al menos dos instancias del ITCR con roles definidos en el plan de acción.,La propuesta articula personas investigadoras de múltiples instancias del ITCR con articulación interdisciplinaria clara y roles definidos en el plan de acción.,,,,,,
+Vinculación externa,2%,La propuesta no contempla vinculación con actores externos.,"La propuesta menciona la participación de actores externos, pero sin roles definidos ni compromiso formal documentado.",La propuesta incorpora colaboradores externos nacionales con participación definida y evidencia de compromiso formal.,"La propuesta incorpora colaboradores externos nacionales o internacionales con participación activa en el plan de acción, respaldada por cartas de compromiso formales.",,,,,,
+Trayectoria de la persona coordinadora,2%,La persona coordinadora cuenta menos de dos años de experiencia demostrable en proyectos de investigación inscritos en el ITCR.,"La persona coordinadora cuenta entre dos y cinco años de experiencia en investigación, con grado de maestría o superior y al menos un proyecto coordinado.","La persona coordinadora cuenta con más de cinco años de experiencia, con grado de maestría o doctorado y coordinación de al menos dos proyectos de investigación.","La persona coordinadora cuenta con más de diez años de experiencia, con doctorado, coordinación de tres o más proyectos y productos académicos de alto impacto como persona coordinadora.",,,,,,
+Participación estudiantil,2%,La propuesta no contempla participación estudiantil en ninguna modalidad.,La propuesta incorpora la participación de un estudiante de grado en calidad de asistente.,La propuesta incorpora la participación de dos o más estudiantes de grado en calidad de asistentes.,La propuesta incorpora estudiantes de grado en calidad de asistentes y vincula al menos un Trabajo Final de Graduación (TFG) al desarrollo del proyecto.,,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Evidencia la propuesta la participación estudiantil mediante alguna de las modalidades autorizadas (estudiante asistente, tesis o TFG)?",,,,,,,,,,,
+  Subtotal – 1. Grupo Investigador,,,,,,,,,,,
+,,,,,,,,,,,
+  2. FUNDAMENTACIÓN TECNOLÓGICA   —   Peso de la sección: 12%,,,,,,,,,,,
+Definición y justificación del problema tecnológico,4%,"El problema tecnológico no está definido con claridad, carece de justificación y no se identifican los beneficios esperados.","El problema tecnológico está definido y justificado de manera básica, pero los beneficios esperados no se especifican con claridad.","El problema tecnológico está bien definido y justificado con referencias, aunque los beneficios no están articulados de forma completa.",El problema tecnológico está definido con rigor y justificado mediante literatura actualizada; especifica con claridad los beneficios para la disciplina y la sociedad.,,,,,,
+Coherencia entre problema y objetivos,4%,"Los objetivos no responden al problema tecnológico planteado ni abordan las preguntas fundamentales del desarrollo: ¿qué?, ¿cómo? y ¿para qué?","Los objetivos responden parcialmente al problema tecnológico, pero no abordan de manera completa las preguntas fundamentales del desarrollo: ¿qué?, ¿cómo? y ¿para qué?","Los objetivos son coherentes con el problema tecnológico y responden a las preguntas clave del desarrollo, aunque su traducción en el diseño tecnológico no resulta del todo clara.","Los objetivos son totalmente coherentes con el problema tecnológico, responden de manera precisa a las preguntas clave del desarrollo y cada uno se traduce explícitamente en actividades medibles y verificables.",,,,,,
+Diagnóstico tecnológico y vacío de conocimiento o innovación,4%,La propuesta no realiza un diagnóstico tecnológico ni identifica vacíos de innovación; la revisión del estado del arte se plantea como una actividad futura.,"La propuesta describe el contexto tecnológico de manera básica, sin identificar claramente los vacíos de innovación.",La propuesta establece el estado del arte tecnológico e identifica vacíos con referencias recientes.,"La propuesta realiza un diagnóstico tecnológico riguroso con revisión actualizada; al menos el 80 % de las referencias corresponden a los últimos diez años, los vacíos están claramente identificados y se justifica la necesidad del desarrollo.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Acredita la propuesta una revisión previa del estado del arte tecnológico y sus antecedentes (constatando que NO se plantea como una actividad pendiente en el cronograma)?,,,,,,,,,,,
+  Subtotal – 2. Fundamentación Tecnológica,,,,,,,,,,,
+,,,,,,,,,,,
+  3. METODOLOGÍA DE DESARROLLO   —   Peso de la sección: 15%,,,,,,,,,,,
+"Rigor metodológico del desarrollo tecnológico
+(enfoque, alcance y diseño)",8%,"La propuesta no define el enfoque, el alcance ni el diseño del desarrollo tecnológico.",La propuesta menciona el enfoque o el diseño del desarrollo de manera incompleta.,"La propuesta define el enfoque, el alcance y el diseño del desarrollo con una justificación básica.","La propuesta presenta una metodología de desarrollo rigurosa y justificada, con enfoque, alcance y diseño claramente especificados, y métricas de validación tecnológica definidas.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Especifica la propuesta explícitamente el enfoque metodológico, el alcance tecnológico (ej. prototipo, prueba de concepto) y el diseño del proceso de desarrollo?",,,,,,,,,,,
+Definición de usuarios/beneficiarios y validación,7%,"La propuesta no define los usuarios o beneficiarios del desarrollo tecnológico, ni contempla una estrategia de validación.","La propuesta menciona los usuarios de manera genérica, sin criterios de selección ni plan de validación.","La propuesta define los usuarios con características básicas y presenta una estrategia de validación, aunque sin criterios explícitos de selección.","La propuesta define completamente los usuarios o beneficiarios (características, criterios de selección, tamaño del grupo) con una estrategia de validación tecnológica explícita y justificada.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Define la propuesta con claridad a los usuarios o beneficiarios, sus criterios de selección y la estrategia para la validación del desarrollo tecnológico?",,,,,,,,,,,
+  Subtotal – 3. Metodología de Desarrollo,,,,,,,,,,,
+,,,,,,,,,,,
+  4. PLAN DE ACCIÓN Y CRONOGRAMA   —   Peso de la sección: 13%,,,,,,,,,,,
+Claridad y detalle de las actividades,4%,"El plan de acción es indefinido; no especifica actividades, responsables ni productos esperados.","El plan presenta actividades y cronograma básicos, pero los responsables y supervisores no están claramente asignados por actividad.","El plan incluye actividades, cronograma y responsables; sin embargo, no se indica la persona supervisora del cumplimiento en todas las actividades, o falta el detalle de las personas de apoyo.","El plan es detallado: cada actividad identifica la persona responsable de su ejecución, la persona de apoyo cuando corresponde y la persona supervisora del cumplimiento, con cronograma realista y productos claramente vinculados a objetivos.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO –  ¿Se especifican explícitamente el responsable de ejecución, el personal de apoyo (si aplica) y la persona supervisora para cada una de las actividades del plan?",,,,,,,,,,,
+"Planificación de giras, trabajo de campo, pasantías y congresos",4%,"En la propuesta se identifican giras, trabajo de campo, pasantías o participación en congresos, pero estas actividades no están planificadas.","Las actividades de campo o movilidad identificadas en la propuesta se mencionan de manera genérica, sin cronograma ni presupuesto asociados.","Las actividades de campo o movilidad identificadas en la propuesta se planifican con un cronograma básico, aunque les faltan algunos elementos de detalle.","Todas las actividades de campo o movilidad identificadas en la propuesta están planificadas de forma explícita con cronograma, justificación, productos esperados y presupuesto asociado.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Están planificadas explícitamente en el plan de acción las giras, trabajos de campo, pasantías o congresos requeridos (o se constata que la propuesta no los requiere)?",,,,,,,,,,,
+Trazabilidad de resultados y tiempos de seguimiento,5%,No se definen resultados esperados ni plazos para las actividades del plan de acción.,"Algunos resultados esperados están definidos, pero sin plazos asociados o sin cobertura de todas las actividades.","La mayoría de las actividades cuenta con resultados esperados y plazos definidos, aunque persisten algunos vacíos en la cobertura.","Todas las actividades cuentan con resultados esperados claramente definidos y plazos definidos, lo que garantiza la trazabilidad del seguimiento institucional.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO –   ¿Se definen los resultados esperados y los plazos estimados para cada actividad asegurando la trazabilidad de su seguimiento? Estos resultados son distintos de los productos académicos exigidos por la Convocatoria.,,,,,,,,,,,
+  Subtotal – 4. Plan de Acción y Cronograma,,,,,,,,,,,
+,,,,,,,,,,,
+  5. PRESUPUESTO   —   Peso de la sección: 10%,,,,,,,,,,,
+Coherencia y proporcionalidad presupuestaria,4%,"Los recursos solicitados no están cuantificados, carecen de justificación o superan los montos máximos establecidos en la Convocatoria.","Los recursos están cuantificados, pero la justificación no evidencia proporcionalidad con el plan de acción, o presenta inconsistencias menores respecto a los montos permitidos.",Los recursos están cuantificados y justificados con proporcionalidad parcial respecto al plan de acción; se respetan los montos máximos.,"Los recursos están debidamente cuantificados y justificados, con plena proporcionalidad respecto al plan de acción y dentro de los montos máximos establecidos en la Convocatoria.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Cumple el presupuesto formulado con los montos máximos establecidos en las disposiciones de la convocatoria VIE 2027?,,,,,,,,,,,
+Inversión y equipamiento ,4%,"La propuesta requiere equipamiento, pero no lo incluye en el presupuesto o lo programa para años posteriores sin justificación.","El equipamiento se incluye en el presupuesto, pero con justificación insuficiente o sin vincularlo claramente al plan de acción del primer año.","El equipamiento está formulado para el primer año con justificación adecuada, aunque existen inconsistencias menores respecto al plan de acción.","El equipamiento o la inversión están completamente formulados para el primer año, con justificación clara, coherencia con el plan de acción y dentro de los montos permitidos.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Se concentran las solicitudes de equipamiento e inversión en el primer año de ejecución de la propuesta (o se justifica una excepción válida)?,,,,,,,,,,,
+"Financiamiento externo, contrapartida o cofinanciamiento",2%,"La propuesta no cuenta con financiamiento externo, cofinanciamiento ni contrapartida aprobados.","El financiamiento externo o cofinanciamiento es inferior en más de un 15 % al monto solicitado a la VIE, o la propuesta cuenta únicamente con contrapartida en especie.","El financiamiento externo o cofinanciamiento es equivalente (±15 %) al monto solicitado a la VIE, o no se acredita mediante cartas de compromiso formales.","El financiamiento externo o cofinanciamiento supera en más de un 15 % el monto solicitado a la VIE, y se acredita mediante cartas de compromiso formales.",,,,,,
+  Subtotal – 5. Presupuesto,,,,,,,,,,,
+,,,,,,,,,,,
+  6. GESTIÓN DE RIESGOS   —   Peso de la sección: 8%,,,,,,,,,,,
+Identificación de riesgos por actividad,4%,La propuesta no identifica riesgos por cada actividad del plan de acción.,"Se identifica riesgos por cada actividad del plan de acción, con acciones de mitigación de carácter básico.","Se identifica al menos un riesgo por cada actividad, con acciones de mitigación específicas y viables.","Se identifica al menos un riesgo por cada actividad, con acciones de mitigación específicas y viables y responsables de supervisión.",,,Esta justificación es obligatoria.,,,
+⛔ REQUISITO OBLIGATORIO – ¿Asocia el plan de riesgos al menos un riesgo con su respectiva acción de mitigación por cada actividad planificada?,,,,,,,,,,,
+Viabilidad de las acciones de mitigación,4%,"Las acciones de mitigación son genéricas, incoherentes o están ausentes; existen riesgos críticos sin atención.","Algunas acciones de mitigación son coherentes, pero hay riesgos importantes sin solución técnica viable.","Las acciones de mitigación son viables y coherentes con el desarrollo tecnológico, respaldadas con evidencias técnicas parciales.","Todas las acciones de mitigación son específicas, viables y coherentes con el desarrollo tecnológico, respaldadas con evidencias técnicas concretas.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Son las acciones de mitigación propuestas coherentes, viables y suficientes para salvaguardar el éxito de la actividad?",,,,,,,,,,,
+  Subtotal – 6. Gestión de Riesgos,,,,,,,,,,,
+,,,,,,,,,,,
+  7. ASPECTOS ÉTICOS Y DE PROPIEDAD INTELECTUAL   —   Peso de la sección: 10%,,,,,,,,,,,
+Evaluación de necesidad de un ente ético o regulatorio y justificación de exenciones,4%,La propuesta no aborda los aspectos éticos pertinentes; no se incluye evaluación alguna sobre la necesidad de autorización de un ente ético o regulatorio.,"La propuesta menciona la evaluación ética, pero no incluye una justificación escrita que la respalde.","La propuesta incluye una evaluación de los aspectos éticos con justificación escrita, aunque de forma incompleta o con escasa especificidad.","La propuesta incluye una evaluación completa de los aspectos éticos con justificación escrita detallada. Si requiere autorización de un ente ético o regulatorio, el proceso está documentado; si no lo requiere, la exención está explícitamente fundamentada.",,,Esta justificación es obligatoria.,,,
+"⛔ REQUISITO OBLIGATORIO – ¿Declara y justifica la propuesta, de forma obligatoria, si requiere o no la autorización de un un ente ético o regulatorio?",,,,,,,,,,,
+Gestión de propiedad intelectual,6%,No se identifican posibilidades de protección de propiedad intelectual en resultados tecnológicos. Y no cuenta con revisión previa del Centro de Vinculación.,Se menciona la propiedad intelectual pero sin estrategia de gestión.,Se identifican posibilidades de propiedad intelectual y se describe una estrategia básica de gestión.,"Se identifican claramente los activos tecnológicos susceptibles de protección, con estrategia de gestión alineada con el Centro de Vinculación.",,,,,,
+⛔ REQUISITO OBLIGATORIO – ¿Se adjunta a la propuesta el dictamen técnico previo emitido por el Centro de Vinculación relativo al potencial de innovación y propiedad intelectual?,,,,,,,,,,,
+  Subtotal – 7. Aspectos Éticos y de Propiedad Intelectual,,,,,,,,,,,
+,,,,,,,,,,,
+"  8. PERTINENCIA, INNOVACIÓN E IMPACTO   —   Peso de la sección: 17%",,,,,,,,,,,
+Contribución tecnológica e impacto,10%,La propuesta no evidencia una contribución clara al avance del sector o a la mejora de las condiciones de la sociedad.,"La propuesta contribuye al sector tecnológico, pero con un impacto limitado al ámbito local.",La propuesta realiza una contribución tecnológica significativa con potencial impacto nacional y vinculación sectorial demostrada.,"La propuesta realiza una contribución tecnológica sólida con potencial impacto nacional e internacional, articulando beneficios concretos para el sector productivo y la sociedad.",,,,,,
+Nivel de innovación del desarrollo,7%,El desarrollo tecnológico propuesto replica tecnologías existentes sin presentar componentes innovadores.,"El desarrollo identifica un aspecto innovador, pero no articula cómo se logrará ni describe sus etapas.",El desarrollo identifica innovación tecnológica con detalles de implementación.,"El desarrollo presenta una innovación tecnológica clara y justificada, con todas las etapas detalladas y potencial de escala o transferencia tecnológica.",,,,,,
+"  Subtotal – 8. Pertinencia, Innovación e Impacto",,,,,,,,,,,
+,,,,,,,,,,,
+PUNTAJE TOTAL DE LA PROPUESTA (escala 0 – 1),,,,,,,,,,,
+,,,,,,,,,,,
+ESCALA DE RESULTADOS:  ≥ 0.70 = RECOMIENDA  |  < 0.70 = NO RECOMIENDA,,,,,,,,,,,
+,,,,,,,,,,,
+8. PRODUCTOS ACADÉMICOS   —   Sección no sumativa,,,,,,,,,,,
+"ATENCIÓN: Esta sección NO agrega puntos a la calificación final. Verifica que los productos comprometidos cumplan con las disposiciones de la Convocatoria . Todo proyecto de desarrollo tecnológico requiere MÍNIMO 2 productos (1 de propiedad industrial obligatorio + 1 adicional). Si la formulación de la propuesta NO cumple, el Comité Técnico DEBE no recomendar la propuesta.",,,,,,,,,,,
+"Total de horas semanales
+asignadas al equipo",,"Indique la suma total de horas semanales (VIE + VIE-Centro + REC + CONS + DOC + VIESA) del equipo según la propuesta:
+
+           ___Indique cantidad_____  horas semanales totales",,,,,,,,,
+"Mínimo de productos requeridos
+(escala de proporcionalidad)",,"Todo proyecto de desarrollo tecnológico exige MÍNIMO 2 productos (Sección 5.5):
+  1)  Al menos 1 activo de propiedad industrial (obligatorio)
+  2)  Al menos 1 producto adicional académico o de PI
+  3)  Más 1 producto adicional por cada 10 horas semanales excedentes
+
+Según la Sección 2.4.1 de la Convocatoria:
+  1 a 10 horas semanales  →  1 producto académico mínimo
+  11 a 20 horas semanales  →  2 productos académicos mínimos
+  21 a 30 horas semanales  →  3 productos académicos mínimos
+  (un producto adicional por cada 10 horas semanales excedentes, redondeado hacia arriba)",,,,,,,,,
+"Cantidad de productos propuestos
+por el equipo",,El equipo declara comprometer  ___Indique cantidad_____  productos académicos en la propuesta.,,,,,,,,,
+  ① Producto de propiedad industrial OBLIGATORIO — al menos uno (Sección 5.4.a),,,,,,,,,,,
+"Activo de propiedad industrial seleccionado
+(obligatorio)",,Todo proyecto DEBE incluir al menos un activo de propiedad industrial. Marque el tipo seleccionado:,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,¿Está declarado explícitamente en la formulación?  ,,,,,,,,,
+  ② Segundo producto (y adicionales según horas) — Sección 5.4.b,,,,,,,,,,,
+Producto adicional seleccionado,,El segundo producto (y adicionales según las horas) puede ser otro activo de PI de la lista anterior o uno de los siguientes:,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,,,,,,,,,,
+,,¿Está declarado explícitamente en la formulación?  ,,,,,,,,,
+¿Cumple con el mínimo según las horas asignadas?  ,,                        CUMPLE con los requisitos mínimos de productos académicos → La propuesta puede continuar su revisión,,,,,,,,,
+,,                       NO CUMPLE con los requisitos mínimos → La propuesta debe ser RECHAZADA por el Comité Técnico,,,,,,,,,
+,,,,,,,,,,,
+DICTAMEN DEL COMITÉ TÉCNICO:,,,     PROPUESTA RECOMENDADA    ,,             PROPUESTA NO RECOMENDADA,,,,,,
+,,,,,,,,,,,
+Nombre y firma de la persona integrante 1 del Comité Técnico:,,,,,,,,,,,
+Nombre y firma de la persona integrante 2 del Comité Técnico:,,,,,,,,,,,
+Nombre y firma de la persona integrante 3 del Comité Técnico:,,,,,,,,,,,
+Nombre y firma de la persona coordinadora del Comité Técnico:,,,,,,,,,,,

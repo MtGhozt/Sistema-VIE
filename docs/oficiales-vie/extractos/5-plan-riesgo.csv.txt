@@ -1,0 +1,52 @@
+
+===== SHEET: Plan de Acción-Riesgos =====
+,Plan de Acción y Gestión del Riesgo de una Iniciativa de Investigación ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,Dirección de Investigación,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Nombre de propuesta:,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Tipo de iniciativa,,Seleccionar,Equipo de investigación: ,,Personas participantes,Iniciales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Duración,,,,,Ejemplo: Alexis Brenes Campos,Ejemplo: ABC,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,Nombre completo,Iniciales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,Nombre completo,Iniciales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,Nombre completo,Iniciales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,Nombre completo,Iniciales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,Nombre completo,Iniciales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+PLAN DE ACCIÓN Y GESTIÓN DE RIESGOS,,,,,,,,,,PERIODO DE EJECUCIÓN,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OBJETIVO,ACTIVIDADES,RESULTADO ESPERADO,PARTICIPANTES,RESPONSABILIDAD,RIESGOS IDENTIFICADOS,MEDIDAS DE MITIGACIÓN,RESPONSABLE DE LA GESTIÓN ,MES DE INICIO DE ACTIVIDAD,DURACIÓN (MESES),AÑO 1,,,,,,,,,,,,AÑO 2,,,,,,,,,,,,AÑO 3,,,,,,,,,,,,,,
+,,,,,,,,,,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,,,
+OE1,Ejemplo: Actividad 1,Ejemplo de resultado,Ejemplo: ABC,Ejecuta,Ejemplo,Ejemplo,Ejemplo,1,1.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,Ejemplo: XYZ,Participa,Ejemplo,Ejemplo,Ejemplo,1,1.00,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OE2,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OE3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+OE4,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+[Inserte las filas en la tabla según sea necesario] ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Notas:,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Dentro de la programación de actividades se debe incluir obligatoriamente las giras y la entrega de informes de avance.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+"Además, deberán de registrarse cualquier pasantía nacional o internacional que se requiera para el desarrollo del proyecto. ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+===== SHEET: Hoja1 =====
+Rol,,Responsabilidad,,Iniciativa
+Persona coordinadora,,Ejecuta,,Seleccionar
+Persona investigadora,,Supervisa,,Actividad de fortalecimiento
+Estudiante asistente,,Participa,,Investigación básica o aplicada
+Persona colaboradora externa,,,,Desarrollo Tecnológico
+Persona estudiante posgrado,,,,Posgrados-Maestría
+Otro,,,,Posgrados-Doctorado
+Seleccione,,,,

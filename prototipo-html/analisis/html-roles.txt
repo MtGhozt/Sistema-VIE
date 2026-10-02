@@ -1,0 +1,12 @@
+﻿vie_publicacion | VIE | VIE — Publicación
+investigador | Investigador | Persona Investigadora Coordinadora
+vinculacion | Vinculación | Centro de Vinculación
+comite_asistente | Asistente Comité | Asistente del Comité Técnico
+comite_evaluador | Evaluador Comité | Cuerpo Evaluador del Comité Técnico
+consejo_asistente | Asistente Consejo | Asistente del Consejo de Escuela
+consejo | Consejo | Consejo de Profesores
+direccion_escuela | Dirección Escuela | Dirección de Escuela
+gestora_vie | Gestora VIE | Persona Gestora VIE
+cie | CIE | Consejo de Investigación y Extensión (CIE)
+direccion_investigacion | Dirección Investigación | Dirección de Investigación
+admin | Super Admin | Super Administrador

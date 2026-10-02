@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fondos VIE (TEC) — Prototipo base</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="marca">TEC <span>Tecnológico de Costa Rica</span></div>
+  <h1>Fondos VIE — Prototipo base 0.1</h1>
+  <label>Rol simulado:
+    <select id="rol">
+      <option value="investigador">Investigadora (redacta)</option>
+      <option value="comite">Comité Técnico (evalúa)</option>
+      <option value="vie">VIE / CIE (resuelve)</option>
+    </select>
+  </label>
+</header>
+
+<main>
+  <!-- MÓDULO 1: REDACCIÓN -->
+  <section id="modulo-redactar">
+    <h2>1. Redactar propuesta</h2>
+    <form id="form-propuesta">
+      <input name="titulo" placeholder="Título" required>
+      <input name="coordinador" placeholder="Coordinadora" required>
+      <input name="escuela" placeholder="Escuela (ej. Computación)" required>
+      <input name="tematica" placeholder="Temática (ej. IA)" required>
+      <textarea name="resumen" placeholder="Resumen: problema, objetivos, metodología"></textarea>
+      <input name="presupuesto" type="number" placeholder="Presupuesto (₡)" min="0">
+      <button type="submit">Guardar borrador</button>
+    </form>
+  </section>
+
+  <!-- MÓDULO 2: EVALUACIÓN -->
+  <section id="modulo-evaluar">
+    <h2>2. Evaluar (bandeja en revisión)</h2>
+    <p class="ayuda">Rúbrica simplificada 0–100. La rúbrica oficial CIE se conecta en Etapa 2.</p>
+    <div id="bandeja"></div>
+  </section>
+
+  <!-- MÓDULO 3: HISTÓRICO -->
+  <section id="modulo-historico">
+    <h2>3. Consulta histórica</h2>
+    <div class="filtros">
+      <input id="f-q" placeholder="Buscar título o investigadora">
+      <input id="f-escuela" placeholder="Escuela">
+      <input id="f-tematica" placeholder="Temática">
+      <select id="f-estado">
+        <option value="">Todos los estados</option>
+        <option value="borrador">Borrador</option>
+        <option value="en_revision">En revisión</option>
+        <option value="aprobada">Aprobada</option>
+        <option value="rechazada">Rechazada</option>
+        <option value="observada">Observada</option>
+      </select>
+      <button onclick="cargarHistorico()">Filtrar</button>
+    </div>
+    <div id="historico"></div>
+  </section>
+</main>
+
+<footer>Prototipo académico — no se integra con Orión en esta etapa.</footer>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+﻿/*
+/administracion
+/convocatorias
+/evaluaciones
+/historico
+/inicio
+/login
+/notificaciones
+/propuestas
+/propuestas/:id
+/propuestas/nueva

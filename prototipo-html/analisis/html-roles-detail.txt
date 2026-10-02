@@ -1,0 +1,90 @@
+﻿===== vie_publicacion =====
+vie_publicacion",label:"VIE — Publicación",short:"VIE"},{id:"investigador",label:"Persona Investigadora Coordinadora",short:"Investigador"},{id:"vinculacion",label:"Centro de Vinculación",short:"Vinculación"},{id:"comite_asistente",label:"Asistente del Comité Técnico",short:"Asistente Comité"},{id:"comite_evaluador",label:"Cuerpo Evaluador del Comi
+vie_publicacion:{eyebrow:"P1 · VIE",title:"Gestión de convocatorias",description:"Publicá la convocatoria Fondos VIE, administrá el cronograma y consultá convocatorias vigentes e históricas.",stats:[["Convocatorias activas","1"],["Borradores","2"],["Próximas a cerrar","1"],["Finalizadas","8"]]},investigador:{eyebrow:"P2 · Investigación",title:"Inic
+vie_publicacion:["/inicio","/convocatorias","/historico","/notificaciones"],investigador:["/inicio","/convocatorias","/propuestas","/historico","/notificaciones"],vinculacion:["/inicio","/evaluaciones","/historico","/notificaciones"],comite_asistente:["/inicio","/evaluaciones","/historico","/notificaciones"],comite_evaluador:["/inicio","/evaluacion
+===== investigador =====
+investigador",label:"Persona Investigadora Coordinadora",short:"Investigador"},{id:"vinculacion",label:"Centro de Vinculación",short:"Vinculación"},{id:"comite_asistente",label:"Asistente del Comité Técnico",short:"Asistente Comité"},{id:"comite_evaluador",label:"Cuerpo Evaluador del Comité Técnico",short:"Evaluador Comité"},{id:"consejo_asistente"
+investigador:{eyebrow:"P2 · Investigación",title:"Inicio",description:"Panel de control académico y postulación de propuestas de investigación.",stats:[["Borradores","1"],["En revisión","1"],["Requieren corrección","0"],["Aprobadas","2"],["Rechazadas","1"]]},vinculacion:{eyebrow:"P3 · Vinculación",title:"Dictámenes de Propiedad Intelectual",descrip
+investigadoras.",stats:[["Pendientes de notificar","2"],["Notificadas","26"],["Aprobaciones","21"],["Rechazos","5"]]},admin:{eyebrow:"Super Administrador",title:"Panel general del sistema",description:"Supervisá el flujo completo, ingresá a cualquier bandeja y administrá la configuración transversal del prototipo.",stats:[["Propuestas activas","18"
+===== vinculacion =====
+vinculacion",label:"Centro de Vinculación",short:"Vinculación"},{id:"comite_asistente",label:"Asistente del Comité Técnico",short:"Asistente Comité"},{id:"comite_evaluador",label:"Cuerpo Evaluador del Comité Técnico",short:"Evaluador Comité"},{id:"consejo_asistente",label:"Asistente del Consejo de Escuela",short:"Asistente Consejo"},{id:"consejo",l
+vinculacion:{eyebrow:"P3 · Vinculación",title:"Dictámenes de Propiedad Intelectual",description:"Revisá propuestas con potencial de protección y registrá el dictamen técnico de propiedad intelectual.",stats:[["Pendientes de dictamen","4"],["En revisión","1"],["Dictámenes emitidos","18"],["No requeridos","7"]]},comite_asistente:{eyebrow:"P4-a · Comi
+vinculacion","Vinculación externa",2,!1,8,"Existe participación de una organización beneficiaria externa."],["trayectoria","Trayectoria de la persona coordinadora",2,!1,8,"La persona coordinadora acredita experiencia en proyectos y productos académicos."],["estudiantes","Participación estudiantil",3,!0,8,"La propuesta contempla participación estudi
+===== comite_asistente =====
+comite_asistente",label:"Asistente del Comité Técnico",short:"Asistente Comité"},{id:"comite_evaluador",label:"Cuerpo Evaluador del Comité Técnico",short:"Evaluador Comité"},{id:"consejo_asistente",label:"Asistente del Consejo de Escuela",short:"Asistente Consejo"},{id:"consejo",label:"Consejo de Profesores",short:"Consejo"},{id:"direccion_escuela"
+comite_asistente:{eyebrow:"P4-a · Comité Técnico",title:"Revisión de completitud",description:"Verificá que cada expediente esté completo antes de enviarlo al cuerpo evaluador.",stats:[["Pendientes","6"],["Con faltantes","2"],["Listas para evaluación","3"],["Devueltas","1"]]},comite_evaluador:{eyebrow:"P4-b · Comité Técnico",title:"Evaluaciones asi
+comite_asistente:["/inicio","/evaluaciones","/historico","/notificaciones"],comite_evaluador:["/inicio","/evaluaciones","/historico","/notificaciones"],consejo_asistente:["/inicio","/evaluaciones","/historico","/notificaciones"],consejo:["/inicio","/evaluaciones","/historico","/notificaciones"],direccion_escuela:["/inicio","/evaluaciones","/histori
+===== comite_evaluador =====
+comite_evaluador",label:"Cuerpo Evaluador del Comité Técnico",short:"Evaluador Comité"},{id:"consejo_asistente",label:"Asistente del Consejo de Escuela",short:"Asistente Consejo"},{id:"consejo",label:"Consejo de Profesores",short:"Consejo"},{id:"direccion_escuela",label:"Dirección de Escuela",short:"Dirección Escuela"},{id:"gestora_vie",label:"Pers
+comite_evaluador:{eyebrow:"P4-b · Comité Técnico",title:"Evaluaciones asignadas",description:"Evaluá con la rúbrica oficial, registrá una nota independiente y justificá la revisión humana.",stats:[["Pendientes","3"],["En progreso","2"],["Completadas","12"],["Consolidación pendiente","1"]]},consejo_asistente:{eyebrow:"P5-a · Consejo de Escuela",titl
+comite_evaluador:["/inicio","/evaluaciones","/historico","/notificaciones"],consejo_asistente:["/inicio","/evaluaciones","/historico","/notificaciones"],consejo:["/inicio","/evaluaciones","/historico","/notificaciones"],direccion_escuela:["/inicio","/evaluaciones","/historico","/notificaciones"],gestora_vie:["/inicio","/evaluaciones","/historico","
+===== consejo_asistente =====
+consejo_asistente",label:"Asistente del Consejo de Escuela",short:"Asistente Consejo"},{id:"consejo",label:"Consejo de Profesores",short:"Consejo"},{id:"direccion_escuela",label:"Dirección de Escuela",short:"Dirección Escuela"},{id:"gestora_vie",label:"Persona Gestora VIE",short:"Gestora VIE"},{id:"cie",label:"Consejo de Investigación y Extensión (
+consejo_asistente:{eyebrow:"P5-a · Consejo de Escuela",title:"Preparación de expedientes",description:"Recibí la calificación y el oficio del Comité, prepará el expediente y remitilo al Consejo.",stats:[["Recibidos","4"],["Pendientes de preparar","2"],["Listos para sesión","2"],["Enviados","9"]]},consejo:{eyebrow:"P5-b · Consejo de Profesores",titl
+consejo_asistente:["/inicio","/evaluaciones","/historico","/notificaciones"],consejo:["/inicio","/evaluaciones","/historico","/notificaciones"],direccion_escuela:["/inicio","/evaluaciones","/historico","/notificaciones"],gestora_vie:["/inicio","/evaluaciones","/historico","/notificaciones"],cie:["/inicio","/evaluaciones","/historico","/notificacion
+===== consejo =====
+consejo_asistente",label:"Asistente del Consejo de Escuela",short:"Asistente Consejo"},{id:"consejo",label:"Consejo de Profesores",short:"Consejo"},{id:"direccion_escuela",label:"Dirección de Escuela",short:"Dirección Escuela"},{id:"gestora_vie",label:"Persona Gestora VIE",short:"Gestora VIE"},{id:"cie",label:"Consejo de Investigación y Extensión (
+consejo_asistente:{eyebrow:"P5-a · Consejo de Escuela",title:"Preparación de expedientes",description:"Recibí la calificación y el oficio del Comité, prepará el expediente y remitilo al Consejo.",stats:[["Recibidos","4"],["Pendientes de preparar","2"],["Listos para sesión","2"],["Enviados","9"]]},consejo:{eyebrow:"P5-b · Consejo de Profesores",titl
+consejo_asistente:["/inicio","/evaluaciones","/historico","/notificaciones"],consejo:["/inicio","/evaluaciones","/historico","/notificaciones"],direccion_escuela:["/inicio","/evaluaciones","/historico","/notificaciones"],gestora_vie:["/inicio","/evaluaciones","/historico","/notificaciones"],cie:["/inicio","/evaluaciones","/historico","/notificacion
+===== direccion_escuela =====
+direccion_escuela",label:"Dirección de Escuela",short:"Dirección Escuela"},{id:"gestora_vie",label:"Persona Gestora VIE",short:"Gestora VIE"},{id:"cie",label:"Consejo de Investigación y Extensión (CIE)",short:"CIE"},{id:"direccion_investigacion",label:"Dirección de Investigación",short:"Dirección Investigación"},{id:"admin",label:"Super Administrad
+direccion_escuela:{eyebrow:"P5-c · Dirección de Escuela",title:"Comunicación de avales",description:"Comunicá a la VIE los avales aprobados por el Consejo de Escuela.",stats:[["Pendientes de comunicar","2"],["Enviados","14"],["Con confirmación","13"],["Por revisar","1"]]},gestora_vie:{eyebrow:"P6-a · VIE",title:"Verificación de expedientes",descrip
+direccion_escuela:["/inicio","/evaluaciones","/historico","/notificaciones"],gestora_vie:["/inicio","/evaluaciones","/historico","/notificaciones"],cie:["/inicio","/evaluaciones","/historico","/notificaciones"],direccion_investigacion:["/inicio","/evaluaciones","/historico","/notificaciones"],admin:rp.map(o=>o.to)},$s={investigador:["María Rodrígue
+===== gestora_vie =====
+gestora_vie",label:"Persona Gestora VIE",short:"Gestora VIE"},{id:"cie",label:"Consejo de Investigación y Extensión (CIE)",short:"CIE"},{id:"direccion_investigacion",label:"Dirección de Investigación",short:"Dirección Investigación"},{id:"admin",label:"Super Administrador",short:"Super Admin"}],jv=["Investigación básica","Investigación aplicada","I
+gestora_vie:{eyebrow:"P6-a · VIE",title:"Verificación de expedientes",description:"Revisá contenido, completitud y observaciones antes de remitir las propuestas al CIE.",stats:[["Expedientes pendientes","5"],["Con observaciones","2"],["Listos para CIE","3"],["Devueltos","1"]]},cie:{eyebrow:"P6-b · CIE",title:"Evaluación y resolución",description:"E
+gestora_vie:["/inicio","/evaluaciones","/historico","/notificaciones"],cie:["/inicio","/evaluaciones","/historico","/notificaciones"],direccion_investigacion:["/inicio","/evaluaciones","/historico","/notificaciones"],admin:rp.map(o=>o.to)},$s={investigador:["María Rodríguez","Investigadora"],vie_publicacion:["Laura Solano","VIE — Publicación"],vinc
+===== cie =====
+cies,e!==null&&e.firstContext!==null&&((e.lanes&n)!==0&&(cn=!0),e.firstContext=null)}function kn(e){var n=e._currentValue;if(_o!==e)if(e={context:e,memoizedValue:n,next:null},or===null){if(Bi===null)throw Error(l(308));or=e,Bi.dependencies={lanes:0,firstContext:e}}else or=or.next=e;return n}var It=null;function Do(e){It===null?It=[e]:It.push(e)}fun
+cies=null,s.stateNode=null):(s.childLanes=p.childLanes,s.lanes=p.lanes,s.child=p.child,s.subtreeFlags=0,s.deletions=null,s.memoizedProps=p.memoizedProps,s.memoizedState=p.memoizedState,s.updateQueue=p.updateQueue,s.type=p.type,e=p.dependencies,s.dependencies=e===null?null:{lanes:e.lanes,firstContext:e.firstContext}),r=r.sibling;return be(Ae,Ae.curr
+cies=null,e.memoizedProps=null,e.memoizedState=null,e.pendingProps=null,e.stateNode=null,e.updateQueue=null}function zu(e){return e.tag===5
+===== direccion_investigacion =====
+direccion_investigacion",label:"Dirección de Investigación",short:"Dirección Investigación"},{id:"admin",label:"Super Administrador",short:"Super Admin"}],jv=["Investigación básica","Investigación aplicada","Investigación básica y aplicada","Desarrollo tecnológico"],Fs={vie_publicacion:{eyebrow:"P1 · VIE",title:"Gestión de convocatorias",descriptio
+direccion_investigacion:{eyebrow:"P6-c · Dirección de Investigación",title:"Notificación de resoluciones",description:"Recibí los dictámenes del CIE y notificá formalmente el resultado a las instancias y personas investigadoras.",stats:[["Pendientes de notificar","2"],["Notificadas","26"],["Aprobaciones","21"],["Rechazos","5"]]},admin:{eyebrow:"Sup
+direccion_investigacion:["/inicio","/evaluaciones","/historico","/notificaciones"],admin:rp.map(o=>o.to)},$s={investigador:["María Rodríguez","Investigadora"],vie_publicacion:["Laura Solano","VIE — Publicación"],vinculacion:["Sofía Vargas","Centro de Vinculación"],comite_asistente:["Andrés Salazar","Asistente Comité"],comite_evaluador:["Carlos Jimé
+===== admin =====
+admin",label:"Super Administrador",short:"Super Admin"}],jv=["Investigación básica","Investigación aplicada","Investigación básica y aplicada","Desarrollo tecnológico"],Fs={vie_publicacion:{eyebrow:"P1 · VIE",title:"Gestión de convocatorias",description:"Publicá la convocatoria Fondos VIE, administrá el cronograma y consultá convocatorias vigentes 
+admin:{eyebrow:"Super Administrador",title:"Panel general del sistema",description:"Supervisá el flujo completo, ingresá a cualquier bandeja y administrá la configuración transversal del prototipo.",stats:[["Propuestas activas","18"],["Usuarios","47"],["Acciones pendientes","12"],["Convocatorias","11"],["Resoluciones 2026","27"]]}},Cv=[{id:"VIE-202
+admin:rp.map(o=>o.to)},$s={investigador:["María Rodríguez","Investigadora"],vie_publicacion:["Laura Solano","VIE — Publicación"],vinculacion:["Sofía Vargas","Centro de Vinculación"],comite_asistente:["Andrés Salazar","Asistente Comité"],comite_evaluador:["Carlos Jiménez","Evaluador Comité"],consejo_asistente:["Paola Mora","Asistente Consejo"],conse
+===== MAPS =====
+===== TITLE/DESC =====
+Acceso a instancias || Resumen de tareas disponibles al Super Administrador.
+Administración del sistema || Gestione los elementos transversales y supervise la configuración de todos los roles, no únicamente la vista del investigador.
+Avales pendientes || Revisá el expediente consolidado, aprobá o rechazá el aval y generá el oficio correspondiente.
+Catálogos || Valores de apoyo para los formularios y flujos.
+Checklist de completitud || Verifique la documentación formal antes de iniciar la evaluación técnica.
+Comunicación de avales || Comunicá a la VIE los avales aprobados por el Consejo de Escuela.
+Comunicar aval a VIE || El aval fue aprobado por el Consejo y está listo para comunicación formal.
+Confirmar envío || Al confirmar, la propuesta continuará a la etapa institucional que corresponda.
+Decisión del Consejo de Profesores || Revise el expediente consolidado, la evaluación del Comité y los oficios de respaldo.
+Devolver propuesta || Registre claramente los faltantes que debe atender la persona investigadora.
+Dictamen técnico de Propiedad Intelectual || Documento técnico del Centro de Vinculación. Su resultado se incorpora al expediente y el flujo continúa hacia el Comité Técnico.
+Dictámenes de Propiedad Intelectual || Revisá propuestas con potencial de protección y registrá el dictamen técnico de propiedad intelectual.
+Emitir resolución de rechazo || Registre el fundamento que acompañará la resolución del CIE.
+Evaluación y resolución || Evaluá mediante rúbrica, registrá observaciones y determiná aprobación o rechazo.
+Evaluaciones asignadas || Evaluá con la rúbrica oficial, registrá una nota independiente y justificá la revisión humana.
+Evaluaciones independientes del Comité || Cinco integrantes registran su evaluación por separado antes de consolidar el oficio.
+Expedientes activos || El administrador puede consultar cualquier propuesta y luego cambiar a la vista del rol responsable de su etapa.
+Flujo institucional en tiempo real || Carga de trabajo simulada por instancia.
+Formularios || Estructuras del prototipo basadas en la documentación VIE 2027.
+Gestión de convocatorias || Publicá la convocatoria Fondos VIE, administrá el cronograma y consultá convocatorias vigentes e históricas.
+Inicio || Panel de control académico y postulación de propuestas de investigación.
+Mapa operativo || Todas las instancias del proceso están disponibles al Super Administrador mediante el selector “Vista actual”.
+Mis propuestas recientes || Seguimiento de las propuestas asociadas a la persona investigadora coordinadora.
+Notificación de resoluciones || Recibí los dictámenes del CIE y notificá formalmente el resultado a las instancias y personas investigadoras.
+Notificación formal de resolución || Comunique el resultado emitido por el CIE y cierre el flujo institucional.
+Notificaciones || Revise cambios de estado, observaciones y tareas asociadas a los expedientes.
+Nueva convocatoria || Defina la información principal y el periodo de recepción de propuestas.
+Panel general del sistema || Supervisá el flujo completo, ingresá a cualquier bandeja y administrá la configuración transversal del prototipo.
+Pendientes prioritarios || Tareas que requieren atención según la responsabilidad institucional actual.
+Preparación de expedientes || Recibí la calificación y el oficio del Comité, prepará el expediente y remitilo al Consejo.
+Preparar expediente para sesión || Verifique que el expediente recibido del Comité esté listo para el Consejo.
+Propuestas resueltas || Consulte expedientes históricos mediante filtros combinables por dependencia, persona investigadora, temática y resultado.
+Rechazar aval || El rechazo detendrá el avance de la propuesta hacia VIE.
+Revisión de completitud || Verificá que cada expediente esté completo antes de enviarlo al cuerpo evaluador.
+Roles y permisos || Permisos alineados con el desglose institucional del Análisis de Personas.
+Rúbricas oficiales simuladas || Se utilizan variantes según modalidad y escala 0/6/8/10 con revisión humana de toda sugerencia de IA.
+Usuarios || Personas habilitadas para utilizar el prototipo.
+Verificación de expedientes || Revisá contenido, completitud y observaciones antes de remitir las propuestas al CIE.
+Verificación VIE || Confirme que el expediente contiene la ruta previa y la documentación necesaria.
+Vista transversal || El Super Administrador no simula únicamente al investigador: use ‘Vista actual’ en la barra superior para ingresar a cualquiera de las herramientas operativas.

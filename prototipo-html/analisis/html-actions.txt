@@ -1,0 +1,48 @@
+﻿=== CHECKLIST ===
+Checklist de completitud",description:"Verifique la documentación formal antes de iniciar la evaluación técnica."}),t.jsx("div",{className:"checklist",children:Object.entries(f).map(([R,w])=>t.jsxs("label",{className:"check-row",children:[t.jsx("input",{type:"checkbox",checked:w,onChange:()=>d({...f,[R]:!w})}),t.jsx("span",{className:"custom-check",children:w&&t.jsx(ba,{size:16})}),t.jsxs("div",{c
+=== RUBRIC GROUPS ===
+1. Grupo investigador
+2. Fundamentación y vacío de conocimiento
+3. Metodología
+4. Plan de acción y cronograma
+5. Presupuesto
+6. Gestión de riesgos
+7. Aspectos éticos
+8. Pertinencia e impacto
+1. Grupo investigador
+2. Fundamentación tecnológica
+3. Metodología de desarrollo
+4. Plan de acción y cronograma
+5. Presupuesto
+6. Gestión de riesgos
+7. Aspectos éticos y de propiedad intelectual
+8. Pertinencia, innovación e impacto
+=== AVAL / CIE / NOTIF ===
+--- Decisión del Consejo ---
+Decisión del Consejo de Profesores",description:"Revise el expediente consolidado, la evaluación del Comité y los oficios de respaldo."}),t.jsxs("div",{className:"decision-score",children:[t.jsx("span",{children:"Calificación consolidada del Comité"}),t.jsxs("strong",{children:[((v=o.evaluacionComite)==null?void 0:v.average)||87,"%"]})]}),t.jsxs("d
+--- Comunicar aval ---
+Comunicar avales",path:"/evaluaciones",icon:Bn},gestora_vie:{label:"Revisar expedientes",path:"/evaluaciones",icon:Bn},cie:{label:"Evaluar propuestas",path:"/evaluaciones",icon:Bn},direccion_investigacion:{label:"Ver resoluciones",path:"/evaluaciones",icon:Bn},admin:{label:"Administrar sistema",path:"/administracion",icon:Vt}},zv={vie_publicacion:[
+--- Verificación VIE ---
+Verificación VIE",description:"Confirme que el expediente contiene la ruta previa y la documentación necesaria."}),t.jsx("div",{className:"checklist simple",children:d.map(u=>t.jsxs("div",{className:"check-row static",children:[t.jsx("span",{className:"custom-check",children:t.jsx(ba,{size:16})}),t.jsxs("div",{children:[t.jsx("strong",{children:u})
+--- Emitir resolución ---
+Emitir resolución de rechazo",description:"Registre el fundamento que acompañará la resolución del CIE.",footer:t.jsxs(t.Fragment,{children:[t.jsx(re,{variant:"secondary",onClick:()=>h(!1),children:"Cancelar"}),t.jsx(re,{variant:"danger",onClick:()=>{c("cie-reject",{average:P,scores:u,motivo:E}),h(!1)},children:"Confirmar rechazo"})]}),children:t.j
+--- Notificación formal ---
+Notificación formal de resolución",description:"Comunique el resultado emitido por el CIE y cierre el flujo institucional."}),t.jsxs("div",{className:"official-doc",children:[t.jsx(ol,{size:24}),t.jsxs("div",{children:[t.jsx("span",{children:"Resolución CIE"}),t.jsx("strong",{children:o.resolucion||"CIE-RES-084-2026"}),t.jsxs("small",{children:["Re
+--- Nueva convocatoria ---
+Nueva convocatoria",path:"/convocatorias",icon:lv},investigador:{label:"Crear propuesta",path:"/propuestas/nueva",icon:il},vinculacion:{label:"Revisar dictámenes",path:"/evaluaciones",icon:fv},comite_asistente:{label:"Revisar expedientes",path:"/evaluaciones",icon:Bn},comite_evaluador:{label:"Ir a evaluaciones",path:"/evaluaciones",icon:Bn},consejo
+--- Centro de notificaciones ---
+Centro de notificaciones"}),t.jsx(Ot,{size:17})]}),t.jsxs("button",{onClick:()=>f(u.path),children:[t.jsx("span",{children:u.label}),t.jsx(Ot,{size:17})]})]})]})]})}function Tv({role:o,toast:c}){const l=o==="vie_publicacion"||o==="admin",[f,d]=C.useState(Cv),[u,v]=C.useState(""),[y,h]=C.useState(!1),[E,R]=C.useState(null),[w,P]=C.useState({nombre:"
+=== DOC NAMES ===
+Formulario de propuesta | Completo
+Plan de acción y riesgos | Completo
+Presupuesto | Completo
+Acuerdo de instancia coordinadora | Completo
+Acuerdo de instancia participante | Completo
+Cartas de compromiso | Completo
+Dictamen de PI | Pendiente
+Formulario de propuesta | Completo
+Plan de acción y riesgos | Completo
+Presupuesto | Completo
+Acuerdo de instancia coordinadora | Completo
+Acuerdo de instancia participante | Completo
+Cartas de compromiso | Completo

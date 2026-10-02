@@ -1,0 +1,22 @@
+﻿python : Traceback (most recent call last):
+At C:\Users\Matias\AppData\Local\Temp\ps-script-3b9d7b18-5cdb-467f-8d15-2421bdfca8a0.ps1:107 char:1
++ python -c "
++ ~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<string>", line 21, in <module>
+  File "C:\Program 
+Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 
+19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2610' in position 0: character maps to <undefined>
+files ['word/document.xml']
+tables 13
+--- table 0 rows=3 ---
+0 Nombre del proyecto | 
+1 Fecha de inicio | 
+2 Fecha de finalizaci≤n | 
+--- table 1 rows=4 ---
+0 

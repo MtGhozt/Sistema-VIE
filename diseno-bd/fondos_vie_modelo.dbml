@@ -1,0 +1,557 @@
+// ============================================================
+// Fondos VIE — Modelo relacional PostgreSQL (Diseño de BD)
+// Estándar: snake_case, tablas en singular, PK id_<tabla>, FK = PK referenciada
+// Pegar en: https://dbdiagram.io
+// Fuente de verdad: Diseno_Base_Datos_Fondos_VIE (con cambios).md (40 tablas)
+// Fuentes oficiales: Disposiciones 2027, Formulario VIE, Plan/Riesgos, Rúbricas, Acuerdos
+// ============================================================
+
+Project fondos_vie {
+  database_type: 'PostgreSQL'
+  Note: '''
+    Modelo 40 tablas: flujo completo Fondos VIE sin sobreingeniería.
+    Cubre redacción (formulario + plan/riesgos + presupuesto),
+    evaluación institucional y consulta histórica.
+    Keywords en propuesta_palabra_clave; horas en propuesta_participante_hora.
+  '''
+}
+
+// ------------------------------------------------------------
+// 1. Catálogos y seguridad
+// ------------------------------------------------------------
+
+Table escuela {
+  id_escuela int [pk, increment]
+  codigo varchar(20) [unique, not null, note: 'Ej. EIC, BIO']
+  nombre varchar(150) [not null]
+  activo boolean [not null, default: true]
+
+  Note: 'Unidad académica / dependencia del TEC'
+}
+
+Table rol {
+  id_rol int [pk, increment]
+  codigo varchar(40) [unique, not null]
+  nombre varchar(120) [not null]
+  descripcion varchar(300)
+
+  Note: 'Roles institucionales del flujo Fondos VIE'
+}
+
+Table usuario {
+  id_usuario int [pk, increment]
+  correo_institucional varchar(120) [unique, not null]
+  clave_hash varchar(255) [not null]
+  nombre_completo varchar(150) [not null]
+  cedula varchar(20)
+  orcid char(19)
+  id_escuela int [ref: > escuela.id_escuela]
+  activo boolean [not null, default: true]
+  fecha_registro timestamptz [not null]
+
+  Note: 'Persona usuaria (investigadores e instancias)'
+}
+
+Table usuario_rol {
+  id_usuario int [not null, ref: > usuario.id_usuario]
+  id_rol int [not null, ref: > rol.id_rol]
+  fecha_asignacion date [not null]
+
+  indexes {
+    (id_usuario, id_rol) [pk]
+  }
+}
+
+// ------------------------------------------------------------
+// 2. Convocatoria
+// ------------------------------------------------------------
+
+Table convocatoria {
+  id_convocatoria int [pk, increment]
+  nombre varchar(200) [not null]
+  descripcion text
+  fecha_apertura date [not null]
+  fecha_cierre date [not null]
+  presupuesto_estimado numeric(14,2)
+  estado varchar(20) [not null, note: 'borrador | activa | cerrada | finalizada']
+  id_publicada_por int [ref: > usuario.id_usuario]
+  fecha_publicacion timestamptz
+
+  Note: 'Convocatoria Fondos VIE'
+}
+
+Table convocatoria_hito {
+  id_hito int [pk, increment]
+  id_convocatoria int [not null, ref: > convocatoria.id_convocatoria]
+  nombre varchar(200) [not null]
+  responsable varchar(120) [not null, note: 'Ej. Comité Técnico, CIE, VIE']
+  fecha_inicio date [not null]
+  fecha_fin date [not null]
+  orden smallint [not null]
+
+  Note: 'Cronograma oficial de la convocatoria (Disposiciones §6)'
+}
+
+// ------------------------------------------------------------
+// 3. Propuesta (módulo redacción)
+// ------------------------------------------------------------
+
+Table propuesta {
+  id_propuesta int [pk, increment]
+  codigo varchar(20) [unique, not null]
+  id_convocatoria int [not null, ref: > convocatoria.id_convocatoria]
+  id_coordinador int [not null, ref: > usuario.id_usuario]
+  id_escuela int [not null, ref: > escuela.id_escuela]
+
+  titulo varchar(500) [not null]
+  modalidad varchar(40) [not null, note: 'fortalecimiento | basica | aplicada | basica_aplicada | desarrollo_tecnologico']
+  fecha_inicio date
+  fecha_finalizacion date
+  fecha_envio timestamptz
+
+  resumen text
+  abstract_en text
+
+  problema text
+  objetivo_general text
+  estado_arte text
+  metodologia text
+  hoja_ruta text
+  referencias text
+  divulgacion text
+
+  trl_actual smallint [note: 'TRL actual 1-9; NULL si no aplica']
+  trl_esperado smallint [note: 'TRL esperado 1-9; NULL si no aplica']
+  requiere_dictamen_pi boolean [not null, default: false]
+
+  estado_actual varchar(40) [not null]
+  etapa_flujo smallint [not null, default: 0]
+
+  Note: 'Expediente central. Keywords → propuesta_palabra_clave; horas → propuesta_participante_hora; OE en tabla hija.'
+}
+
+Table propuesta_palabra_clave {
+  id_palabra_clave int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  idioma char(2) [not null, note: 'es | en']
+  palabra varchar(100) [not null]
+
+  indexes {
+    (id_propuesta, idioma, palabra) [unique]
+  }
+
+  Note: 'Palabras clave ES/EN normalizadas (ya no embebidas en propuesta)'
+}
+
+Table propuesta_pregunta_general {
+  id_respuesta int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  numero_pregunta smallint [not null]
+  codigo_pregunta varchar(40) [not null]
+  respuesta varchar(20) [not null, note: 'si | no | parcial | total']
+  detalle text
+
+  indexes {
+    (id_propuesta, codigo_pregunta) [unique]
+  }
+}
+
+Table propuesta_objetivo_especifico {
+  id_objetivo int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  numero smallint [not null, note: 'OE1, OE2...']
+  descripcion text [not null]
+
+  indexes {
+    (id_propuesta, numero) [unique]
+  }
+
+  Note: 'Objetivos específicos normalizados (Formulario §6 + Plan)'
+}
+
+Table propuesta_participante {
+  id_participante int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  tipo varchar(20) [not null, note: 'funcionario_tec | externo']
+  id_usuario int [ref: > usuario.id_usuario, note: 'FK si es funcionario TEC registrado']
+  nombre_completo varchar(150) [not null, note: 'Obligatorio para externos; denormalizado opcional para TEC']
+  orcid char(19)
+  instancia_o_institucion varchar(200)
+  rol_en_proyecto varchar(80)
+  periodo_nombramiento varchar(60)
+  iniciales varchar(10) [note: 'Para referenciar en plan de acción']
+
+  Note: 'Cuadros 2 y 3. Horas semanales viven en propuesta_participante_hora.'
+}
+
+Table propuesta_participante_hora {
+  id_participante_hora int [pk, increment]
+  id_participante int [not null, ref: > propuesta_participante.id_participante]
+  tipo_hora varchar(30) [not null, note: 'VIE, VIE-Centros, CONS, REC, DOC o VIESA']
+  cantidad_horas numeric(5,2) [not null]
+
+  indexes {
+    (id_participante, tipo_hora) [unique]
+  }
+
+  Note: 'Tipos de hora por participante; totales semanales se derivan'
+}
+
+Table propuesta_presupuesto_anual {
+  id_presupuesto int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  anio smallint [not null]
+  monto_operativo numeric(14,2) [not null, default: 0]
+  monto_bienes_duraderos numeric(14,2) [not null, default: 0]
+  monto_total numeric(14,2) [not null, default: 0]
+
+  indexes {
+    (id_propuesta, anio) [unique]
+  }
+
+  Note: 'Cuadro 4. Desglose por OG queda en Excel adjunto.'
+}
+
+Table propuesta_financiamiento {
+  id_financiamiento int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  tipo varchar(30) [not null, note: 'externo | contrapartida | cofinanciamiento']
+  anio smallint [not null]
+  monto numeric(14,2) [not null, default: 0]
+  numero_oficio varchar(60)
+}
+
+Table propuesta_producto {
+  id_producto int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  id_objetivo int [ref: > propuesta_objetivo_especifico.id_objetivo]
+  ambito varchar(30) [not null, note: 'basica_aplicada | desarrollo_tecnologico | adicional | activo_pi']
+  codigo_opcion varchar(40) [not null]
+  descripcion varchar(500) [not null]
+  cantidad smallint [not null, default: 1]
+  dictamen_consecutivo varchar(40)
+
+  Note: 'Productos con OE asociado (Formulario cuadros 7/10)'
+}
+
+Table propuesta_documento {
+  id_documento int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  nombre varchar(200) [not null]
+  tipo varchar(40) [not null, note: 'formulario, plan_riesgos, presupuesto, acuerdo, carta, dictamen...']
+  estado varchar(20) [not null, note: 'completo | pendiente']
+  ruta_archivo varchar(500)
+  numero_version smallint [not null, default: 1]
+  fecha_carga timestamptz
+
+  Note: 'Metadatos de anexos; versionado simple en la misma fila al reemplazar'
+}
+
+Table propuesta_historial_estado {
+  id_historial int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  estado_anterior varchar(40)
+  estado_nuevo varchar(40) [not null]
+  id_usuario int [ref: > usuario.id_usuario]
+  fecha_hora timestamptz [not null]
+  observacion varchar(500)
+
+  Note: 'Timeline del expediente'
+}
+
+Table linea_investigacion {
+  id_linea_investigacion int [pk, increment]
+  nombre varchar(100) [unique, not null]
+}
+
+Table propuesta_linea {
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  id_linea_investigacion int [not null, ref: > linea_investigacion.id_linea_investigacion]
+
+  indexes {
+    (id_propuesta, id_linea_investigacion) [pk]
+  }
+}
+
+Table aspecto_etico {
+  id_aspecto_etico int [pk, increment]
+  id_propuesta int [unique, not null, ref: - propuesta.id_propuesta]
+  involucra_humanos boolean [not null, default: false]
+  involucra_biodiversidad boolean [not null, default: false]
+  involucra_animales boolean [not null, default: false]
+  involucra_pueblos_indigenas boolean [not null, default: false]
+  justificacion_exencion text
+
+  Note: 'Declaración ética de admisibilidad (1:1)'
+}
+
+Table permiso_etico {
+  id_permiso int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  ente varchar(40) [not null, note: 'CEC | CONAGEBIO | CICUA | COBAB | ADI | OTRO']
+  detalle varchar(300)
+  estado_tramite varchar(30) [not null, default: 'pendiente']
+
+  Note: 'Uno o más entes regulatorios por propuesta'
+}
+
+// ------------------------------------------------------------
+// 4. Plan de acción y riesgos (Excel oficial)
+// ------------------------------------------------------------
+
+Table actividad_plan {
+  id_actividad int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  id_objetivo int [not null, ref: > propuesta_objetivo_especifico.id_objetivo]
+  numero smallint [not null]
+  descripcion text [not null]
+  resultado_esperado text
+  responsabilidad varchar(40) [note: 'ejecuta | supervisa | participa']
+  mes_inicio smallint [note: '1-36 del periodo']
+  duracion_meses numeric(4,1)
+
+  indexes {
+    (id_propuesta, id_objetivo, numero) [unique]
+  }
+
+  Note: 'Fila del Plan de Acción'
+}
+
+Table actividad_participante {
+  id_actividad_participante int [pk, increment]
+  id_actividad int [not null, ref: > actividad_plan.id_actividad]
+  id_participante int [ref: > propuesta_participante.id_participante]
+  iniciales varchar(10)
+  responsabilidad varchar(40) [note: 'ejecuta | supervisa | participa']
+
+  Note: 'Participantes por actividad (Plan)'
+}
+
+Table actividad_riesgo {
+  id_riesgo int [pk, increment]
+  id_actividad int [not null, ref: > actividad_plan.id_actividad]
+  riesgo_identificado text [not null]
+  medida_mitigacion text [not null]
+  responsable_gestion varchar(150)
+
+  Note: 'Al menos un riesgo por actividad (requisito rúbrica/plan)'
+}
+
+// ------------------------------------------------------------
+// 5. Flujo institucional (evaluación)
+// ------------------------------------------------------------
+
+Table dictamen_pi {
+  id_dictamen_pi int [pk, increment]
+  id_propuesta int [unique, not null, ref: - propuesta.id_propuesta]
+  id_emisor int [not null, ref: > usuario.id_usuario]
+  potencial_proteccion boolean [not null]
+  es_innovador boolean [not null]
+  activo_identificable varchar(200)
+  mecanismo_pi varchar(200)
+  novedad text
+  titularidad text
+  recomendaciones_divulgacion text
+  confidencialidad text
+  analisis_tecnico text
+  recomendaciones_vinculacion text
+  numero_oficio varchar(40) [unique]
+  fecha_dictamen date
+  estado varchar(20) [not null, note: 'pendiente | emitido | no_requerido']
+
+  Note: 'Dictamen Centro de Vinculación'
+}
+
+Table revision_expediente {
+  id_revision int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  etapa varchar(20) [not null, note: 'comite | vie']
+  ciclo smallint [not null, default: 1]
+  id_revisor int [not null, ref: > usuario.id_usuario]
+  resultado varchar(20) [not null, note: 'en_revision | completo | devuelto']
+  fecha_inicio timestamptz [not null]
+  fecha_fin timestamptz
+
+  indexes {
+    (id_propuesta, etapa, ciclo) [unique]
+  }
+
+  Note: 'Ciclos de completitud (Comité asistente o Gestora VIE)'
+}
+
+Table revision_checklist {
+  id_item int [pk, increment]
+  id_revision int [not null, ref: > revision_expediente.id_revision]
+  codigo_item varchar(50) [not null, note: 'FORMULARIO, PLAN, PRESUPUESTO, ADJUNTOS, DICTAMEN_PI...']
+  etiqueta varchar(180) [not null]
+  obligatorio boolean [not null, default: true]
+  verificado boolean [not null, default: false]
+  nota varchar(500)
+
+  indexes {
+    (id_revision, codigo_item) [unique]
+  }
+}
+
+Table observacion {
+  id_observacion int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  id_revision int [ref: > revision_expediente.id_revision]
+  etapa varchar(20) [not null, note: 'comite | vie | cie']
+  seccion_formulario varchar(70)
+  id_creada_por int [not null, ref: > usuario.id_usuario]
+  mensaje text [not null]
+  requiere_respuesta boolean [not null, default: true]
+  fecha_creacion timestamptz [not null]
+  fecha_resolucion timestamptz
+}
+
+Table observacion_respuesta {
+  id_respuesta int [pk, increment]
+  id_observacion int [not null, ref: > observacion.id_observacion]
+  id_usuario int [not null, ref: > usuario.id_usuario]
+  respuesta text [not null]
+  fecha_respuesta timestamptz [not null]
+}
+
+Table rubrica {
+  id_rubrica int [pk, increment]
+  codigo varchar(40) [unique, not null]
+  nombre varchar(150) [not null]
+  modalidad_aplica varchar(40) [not null, note: 'fortalecimiento | basica_aplicada | desarrollo_tecnologico']
+  puntaje_maximo numeric(6,2) [not null, default: 100]
+}
+
+Table rubrica_criterio {
+  id_criterio int [pk, increment]
+  id_rubrica int [not null, ref: > rubrica.id_rubrica]
+  seccion varchar(120) [not null, note: 'Ej. Grupo investigador, Plan de acción']
+  numero smallint [not null]
+  nombre varchar(200) [not null]
+  peso numeric(5,2) [not null]
+  puntaje_maximo numeric(5,2) [not null]
+  es_obligatorio boolean [not null, default: false]
+
+  indexes {
+    (id_rubrica, numero) [unique]
+  }
+}
+
+Table rubrica_nivel {
+  id_nivel int [pk, increment]
+  id_criterio int [not null, ref: > rubrica_criterio.id_criterio]
+  puntaje smallint [not null, note: '0, 6, 8 o 10']
+  etiqueta varchar(40) [not null, note: 'deficiente | regular | bueno | excelente']
+  descripcion text [not null]
+
+  indexes {
+    (id_criterio, puntaje) [unique]
+  }
+
+  Note: 'Descriptores oficiales de la rúbrica'
+}
+
+Table evaluacion {
+  id_evaluacion int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  id_rubrica int [not null, ref: > rubrica.id_rubrica]
+  id_evaluador int [not null, ref: > usuario.id_usuario]
+  instancia varchar(20) [not null, note: 'comite | cie']
+  puntaje_total numeric(6,2)
+  estado varchar(20) [not null, note: 'pendiente | en_progreso | completada']
+  comentarios text
+  fecha_envio timestamptz
+
+  Note: 'Evaluación independiente por evaluador'
+}
+
+Table evaluacion_puntaje {
+  id_puntaje int [pk, increment]
+  id_evaluacion int [not null, ref: > evaluacion.id_evaluacion]
+  id_criterio int [not null, ref: > rubrica_criterio.id_criterio]
+  id_nivel int [ref: > rubrica_nivel.id_nivel]
+  puntaje numeric(5,2) [not null]
+  puntaje_sugerido_ia numeric(5,2) [note: 'Opcional; editable por humano']
+  justificacion text [note: 'Obligatoria según rúbrica oficial']
+
+  indexes {
+    (id_evaluacion, id_criterio) [unique]
+  }
+}
+
+Table resultado_comite {
+  id_resultado_comite int [pk, increment]
+  id_propuesta int [unique, not null, ref: - propuesta.id_propuesta]
+  recomendacion varchar(20) [not null, note: 'recomendada | no_recomendada']
+  calificacion_promedio numeric(6,2)
+  numero_oficio varchar(40) [unique]
+  fundamento text
+  fecha_dictamen date
+  id_coordinador_comite int [ref: > usuario.id_usuario]
+
+  Note: 'Oficio consolidado del Comité tras las evaluaciones individuales'
+}
+
+Table sesion_consejo {
+  id_sesion int [pk, increment]
+  id_escuela int [not null, ref: > escuela.id_escuela]
+  numero_sesion varchar(60) [not null]
+  tipo varchar(30) [not null, note: 'ordinaria | extraordinaria | consulta_formal']
+  fecha_sesion date [not null]
+
+  indexes {
+    (id_escuela, numero_sesion) [unique]
+  }
+
+  Note: 'Sesión citada en formatos de acuerdo 7/8'
+}
+
+Table aval_consejo {
+  id_aval int [pk, increment]
+  id_propuesta int [unique, not null, ref: - propuesta.id_propuesta]
+  id_sesion int [ref: > sesion_consejo.id_sesion]
+  id_aprobador int [ref: > usuario.id_usuario]
+  resultado varchar(20) [not null, note: 'aprobado | rechazado']
+  articulo varchar(40)
+  numero_oficio varchar(40) [unique]
+  observaciones text
+  fecha_aval date
+}
+
+Table comunicacion_institucional {
+  id_comunicacion int [pk, increment]
+  id_propuesta int [not null, ref: > propuesta.id_propuesta]
+  tipo varchar(40) [not null, note: 'aval_a_vie | notificacion_resolucion | otro']
+  id_emisor int [not null, ref: > usuario.id_usuario]
+  id_destinatario int [ref: > usuario.id_usuario]
+  destinatario_texto varchar(200)
+  id_documento int [ref: > propuesta_documento.id_documento]
+  confirmada boolean [not null, default: false]
+  fecha_envio timestamptz [not null]
+  fecha_confirmacion timestamptz
+  mensaje text
+
+  Note: 'Comunicación formal (Dirección Escuela→VIE / Dirección Investigación→coordinador)'
+}
+
+Table resolucion_cie {
+  id_resolucion int [pk, increment]
+  id_propuesta int [unique, not null, ref: - propuesta.id_propuesta]
+  id_responsable int [ref: > usuario.id_usuario]
+  resultado varchar(20) [not null, note: 'aprobada | rechazada']
+  numero_resolucion varchar(40) [unique, not null]
+  fundamento text
+  fecha_resolucion date [not null]
+}
+
+Table notificacion {
+  id_notificacion int [pk, increment]
+  id_usuario_destino int [not null, ref: > usuario.id_usuario]
+  id_propuesta int [ref: > propuesta.id_propuesta]
+  titulo varchar(200) [not null]
+  mensaje varchar(500) [not null]
+  leida boolean [not null, default: false]
+  fecha_hora timestamptz [not null]
+
+  Note: 'Campana interna del sistema (distinta de comunicación formal)'
+}

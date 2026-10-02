@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local databases / runtime data
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs and caches
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.cache/
+.turbo/
+dist/
+build/
+coverage/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temp / backups
+*.tmp
+*.bak
+*~
+__pycache__/
+.pytest_cache/

@@ -1,0 +1,942 @@
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+*
+1
+escuela
+id_escuela 	integer
+codigo 	varchar(20)
+nombre 	varchar(150)
+activo 	boolean
+rol
+id_rol 	integer
+codigo 	varchar(40)
+nombre 	varchar(100)
+descripcion 	varchar(300)
+usuario
+id_usuario 	integer
+correo_institucional 	varchar(150)
+clave_hash 	varchar(255)
+nombre_completo 	varchar(150)
+cedula 	varchar(30)
+orcid 	char(19)
+id_escuela 	integer
+activo 	boolean
+fecha_registro 	timestamp
+usuario_rol
+id_usuario 	integer
+id_rol 	integer
+fecha_asignacion 	date
+convocatoria
+id_convocatoria 	integer
+nombre 	varchar(200)
+descripcion 	text
+fecha_apertura 	date
+fecha_cierre 	date
+presupuesto_estimado 	numeric(14,2)
+estado 	varchar(20)
+id_publicada_por 	integer
+fecha_publicacion 	timestamp
+convocatoria_hito
+id_hito 	integer
+id_convocatoria 	integer
+nombre 	varchar(200)
+responsable 	varchar(120)
+fecha_inicio 	date
+fecha_fin 	date
+orden 	smallint
+propuesta
+id_propuesta 	integer
+codigo 	varchar(20)
+id_convocatoria 	integer
+id_coordinador 	integer
+id_escuela 	integer
+titulo 	varchar(500)
+modalidad 	varchar(40)
+fecha_inicio 	date
+fecha_finalizacion 	date
+fecha_envio 	timestamp
+resumen 	text
+abstract_en 	text
+problema 	text
+objetivo_general 	text
+estado_arte 	text
+metodologia 	text
+hoja_ruta 	text
+referencias 	text
+divulgacion 	text
+trl_actual 	smallint
+trl_esperado 	smallint
+requiere_dictamen_pi 	boolean
+estado_actual 	varchar(40)
+etapa_flujo 	smallint
+propuesta_palabra_clave
+id_palabra_clave 	integer
+id_propuesta 	integer
+idioma 	char(2)
+palabra 	varchar(100)
+propuesta_pregunta_general
+id_respuesta 	integer
+id_propuesta 	integer
+numero_pregunta 	smallint
+codigo_pregunta 	varchar(40)
+respuesta 	varchar(20)
+detalle 	text
+propuesta_objetivo_especifico
+id_objetivo 	integer
+id_propuesta 	integer
+numero 	smallint
+descripcion 	text
+propuesta_participante
+id_participante 	integer
+id_propuesta 	integer
+tipo 	varchar(20)
+id_usuario 	integer
+nombre_completo 	varchar(150)
+orcid 	char(19)
+instancia_o_institucion 	varchar(200)
+rol_en_proyecto 	varchar(80)
+periodo_nombramiento 	varchar(60)
+iniciales 	varchar(10)
+propuesta_participante_hora
+id_participante_hora 	integer
+id_participante 	integer
+tipo_hora 	varchar(30)
+cantidad_horas 	numeric(5,2)
+propuesta_presupuesto_anual
+id_presupuesto 	integer
+id_propuesta 	integer
+anio 	smallint
+monto_operativo 	numeric(14,2)
+monto_bienes_duraderos 	numeric(14,2)
+propuesta_financiamiento
+id_financiamiento 	integer
+id_propuesta 	integer
+tipo 	varchar(30)
+entidad 	varchar(200)
+numero_oficio 	varchar(100)
+monto_anio_1 	numeric(14,2)
+monto_anio_2 	numeric(14,2)
+monto_anio_3 	numeric(14,2)
+propuesta_producto
+id_producto 	integer
+id_propuesta 	integer
+id_objetivo 	integer
+ambito 	varchar(30)
+codigo_opcion 	varchar(40)
+descripcion 	varchar(500)
+cantidad 	smallint
+dictamen_consecutivo 	varchar(40)
+propuesta_documento
+id_documento 	integer
+id_propuesta 	integer
+nombre 	varchar(200)
+tipo 	varchar(40)
+estado 	varchar(20)
+ruta_archivo 	varchar(500)
+numero_version 	smallint
+fecha_carga 	timestamp
+propuesta_historial_estado
+id_historial 	integer
+id_propuesta 	integer
+estado_anterior 	varchar(40)
+estado_nuevo 	varchar(40)
+etapa 	varchar(40)
+id_usuario 	integer
+motivo 	varchar(500)
+fecha_hora 	timestamp
+linea_investigacion
+id_linea 	integer
+id_escuela 	integer
+codigo 	varchar(40)
+nombre 	varchar(180)
+activo 	boolean
+propuesta_linea
+id_propuesta 	integer
+id_linea 	integer
+principal 	boolean
+aspecto_etico
+id_propuesta 	integer
+involucra_humanos 	boolean
+involucra_biodiversidad 	boolean
+involucra_animales 	boolean
+involucra_indigenas 	boolean
+justificacion_exencion 	text
+permiso_etico
+id_permiso 	integer
+id_propuesta 	integer
+ente 	varchar(30)
+detalle 	text
+estado 	varchar(20)
+id_documento 	integer
+actividad_plan
+id_actividad 	integer
+id_objetivo 	integer
+numero 	smallint
+descripcion 	text
+resultado_esperado 	text
+responsabilidad 	varchar(200)
+mes_inicio 	smallint
+duracion_meses 	numeric(6,2)
+actividad_participante
+id_actividad 	integer
+id_participante 	integer
+rol_actividad 	varchar(30)
+actividad_riesgo
+id_riesgo 	integer
+id_actividad 	integer
+riesgo 	text
+mitigacion 	text
+id_responsable_participante 	integer
+dictamen_pi
+id_dictamen 	integer
+id_propuesta 	integer
+id_emisor 	integer
+numero_oficio 	varchar(100)
+potencial_innovacion 	boolean
+potencial_proteccion 	boolean
+activo_resultado 	varchar(250)
+mecanismo_proteccion 	varchar(250)
+novedad 	text
+titularidad 	text
+divulgacion 	text
+confidencialidad 	text
+analisis_tecnico 	text
+recomendaciones 	text
+fecha_emision 	timestamp
+revision_expediente
+id_revision 	integer
+id_propuesta 	integer
+etapa 	varchar(20)
+ciclo 	integer
+id_revisor 	integer
+resultado 	varchar(20)
+fecha_inicio 	timestamp
+fecha_fin 	timestamp
+revision_checklist
+id_item 	integer
+id_revision 	integer
+codigo_item 	varchar(50)
+etiqueta 	varchar(180)
+obligatorio 	boolean
+verificado 	boolean
+observacion 	varchar(500)
+observacion
+id_observacion 	integer
+id_propuesta 	integer
+etapa 	varchar(30)
+id_revision 	integer
+id_usuario 	integer
+seccion_formulario 	varchar(70)
+mensaje 	text
+requiere_respuesta 	boolean
+fecha_creacion 	timestamp
+fecha_resolucion 	timestamp
+observacion_respuesta
+id_respuesta 	integer
+id_observacion 	integer
+id_usuario 	integer
+respuesta 	text
+fecha_respuesta 	timestamp
+rubrica
+id_rubrica 	integer
+nombre 	varchar(200)
+modalidad 	varchar(40)
+instancia 	varchar(20)
+numero_version 	integer
+activa 	boolean
+rubrica_criterio
+id_criterio 	integer
+id_rubrica 	integer
+seccion 	varchar(160)
+codigo 	varchar(60)
+nombre 	varchar(220)
+descripcion 	text
+peso 	numeric(5,2)
+obligatorio 	boolean
+orden 	smallint
+rubrica_nivel
+id_nivel 	integer
+id_criterio 	integer
+puntaje 	smallint
+descripcion 	text
+evaluacion
+id_evaluacion 	integer
+id_propuesta 	integer
+id_rubrica 	integer
+id_evaluador 	integer
+instancia 	varchar(20)
+rol_evaluador 	varchar(40)
+estado 	varchar(20)
+puntaje_total 	numeric(7,2)
+fecha_inicio 	timestamp
+fecha_fin 	timestamp
+evaluacion_puntaje
+id_evaluacion 	integer
+id_criterio 	integer
+id_nivel 	integer
+puntaje 	numeric(5,2)
+puntaje_sugerido_ia 	numeric(5,2)
+justificacion 	text
+resultado_comite
+id_resultado 	integer
+id_propuesta 	integer
+recomendacion 	varchar(30)
+promedio 	numeric(7,2)
+numero_oficio 	varchar(100)
+id_documento 	integer
+id_consolidado_por 	integer
+fecha_consolidacion 	timestamp
+sesion_consejo
+id_sesion 	integer
+id_escuela 	integer
+numero_sesion 	varchar(60)
+tipo 	varchar(40)
+fecha_sesion 	date
+estado 	varchar(20)
+aval_consejo
+id_aval 	integer
+id_propuesta 	integer
+id_sesion 	integer
+resultado 	varchar(20)
+motivo 	text
+numero_oficio 	varchar(100)
+id_documento 	integer
+id_registrado_por 	integer
+fecha_decision 	timestamp
+comunicacion_institucional
+id_comunicacion 	integer
+id_propuesta 	integer
+tipo 	varchar(40)
+id_emisor 	integer
+id_destinatario_usuario 	integer
+id_destinatario_escuela 	integer
+id_documento 	integer
+asunto 	varchar(220)
+mensaje 	text
+confirmada 	boolean
+fecha_envio 	timestamp
+resolucion_cie
+id_resolucion 	integer
+id_propuesta 	integer
+resultado 	varchar(20)
+numero_resolucion 	varchar(100)
+fundamento 	text
+id_documento 	integer
+id_registrado_por 	integer
+fecha_resolucion 	timestamp
+notificacion
+id_notificacion 	integer
+id_usuario 	integer
+id_propuesta 	integer
+tipo 	varchar(60)
+titulo 	varchar(180)
+mensaje 	varchar(1000)
+accion 	varchar(50)
+leida 	boolean
+fecha_creacion 	timestamp
+
+-- 1 of 2 --
+
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+*
+1
+1
+1
+*
+1
+*
+1
+*
+1
+*
+1
+escuela
+id_escuela 	integer
+codigo 	varchar(20)
+nombre 	varchar(150)
+activo 	boolean
+rol
+id_rol 	integer
+codigo 	varchar(40)
+nombre 	varchar(100)
+descripcion 	varchar(300)
+usuario
+id_usuario 	integer
+correo_institucional 	varchar(150)
+clave_hash 	varchar(255)
+nombre_completo 	varchar(150)
+cedula 	varchar(30)
+orcid 	char(19)
+id_escuela 	integer
+activo 	boolean
+fecha_registro 	timestamp
+usuario_rol
+id_usuario 	integer
+id_rol 	integer
+fecha_asignacion 	date
+convocatoria
+id_convocatoria 	integer
+nombre 	varchar(200)
+descripcion 	text
+fecha_apertura 	date
+fecha_cierre 	date
+presupuesto_estimado 	numeric(14,2)
+estado 	varchar(20)
+id_publicada_por 	integer
+fecha_publicacion 	timestamp
+convocatoria_hito
+id_hito 	integer
+id_convocatoria 	integer
+nombre 	varchar(200)
+responsable 	varchar(120)
+fecha_inicio 	date
+fecha_fin 	date
+orden 	smallint
+propuesta
+id_propuesta 	integer
+codigo 	varchar(20)
+id_convocatoria 	integer
+id_coordinador 	integer
+id_escuela 	integer
+titulo 	varchar(500)
+modalidad 	varchar(40)
+fecha_inicio 	date
+fecha_finalizacion 	date
+fecha_envio 	timestamp
+resumen 	text
+abstract_en 	text
+problema 	text
+objetivo_general 	text
+estado_arte 	text
+metodologia 	text
+hoja_ruta 	text
+referencias 	text
+divulgacion 	text
+trl_actual 	smallint
+trl_esperado 	smallint
+requiere_dictamen_pi 	boolean
+estado_actual 	varchar(40)
+etapa_flujo 	smallint
+propuesta_palabra_clave
+id_palabra_clave 	integer
+id_propuesta 	integer
+idioma 	char(2)
+palabra 	varchar(100)
+propuesta_pregunta_general
+id_respuesta 	integer
+id_propuesta 	integer
+numero_pregunta 	smallint
+codigo_pregunta 	varchar(40)
+respuesta 	varchar(20)
+detalle 	text
+propuesta_objetivo_especifico
+id_objetivo 	integer
+id_propuesta 	integer
+numero 	smallint
+descripcion 	text
+propuesta_participante
+id_participante 	integer
+id_propuesta 	integer
+tipo 	varchar(20)
+id_usuario 	integer
+nombre_completo 	varchar(150)
+orcid 	char(19)
+instancia_o_institucion 	varchar(200)
+rol_en_proyecto 	varchar(80)
+periodo_nombramiento 	varchar(60)
+iniciales 	varchar(10)
+propuesta_participante_hora
+id_participante_hora 	integer
+id_participante 	integer
+tipo_hora 	varchar(30)
+cantidad_horas 	numeric(5,2)
+propuesta_presupuesto_anual
+id_presupuesto 	integer
+id_propuesta 	integer
+anio 	smallint
+monto_operativo 	numeric(14,2)
+monto_bienes_duraderos 	numeric(14,2)
+propuesta_financiamiento
+id_financiamiento 	integer
+id_propuesta 	integer
+tipo 	varchar(30)
+entidad 	varchar(200)
+numero_oficio 	varchar(100)
+monto_anio_1 	numeric(14,2)
+monto_anio_2 	numeric(14,2)
+monto_anio_3 	numeric(14,2)
+propuesta_producto
+id_producto 	integer
+id_propuesta 	integer
+id_objetivo 	integer
+ambito 	varchar(30)
+codigo_opcion 	varchar(40)
+descripcion 	varchar(500)
+cantidad 	smallint
+dictamen_consecutivo 	varchar(40)
+propuesta_documento
+id_documento 	integer
+id_propuesta 	integer
+nombre 	varchar(200)
+tipo 	varchar(40)
+estado 	varchar(20)
+ruta_archivo 	varchar(500)
+numero_version 	smallint
+fecha_carga 	timestamp
+propuesta_historial_estado
+id_historial 	integer
+id_propuesta 	integer
+estado_anterior 	varchar(40)
+estado_nuevo 	varchar(40)
+etapa 	varchar(40)
+id_usuario 	integer
+motivo 	varchar(500)
+fecha_hora 	timestamp
+linea_investigacion
+id_linea 	integer
+id_escuela 	integer
+codigo 	varchar(40)
+nombre 	varchar(180)
+activo 	boolean
+propuesta_linea
+id_propuesta 	integer
+id_linea 	integer
+principal 	boolean
+aspecto_etico
+id_propuesta 	integer
+involucra_humanos 	boolean
+involucra_biodiversidad 	boolean
+involucra_animales 	boolean
+involucra_indigenas 	boolean
+justificacion_exencion 	text
+permiso_etico
+id_permiso 	integer
+id_propuesta 	integer
+ente 	varchar(30)
+detalle 	text
+estado 	varchar(20)
+id_documento 	integer
+actividad_plan
+id_actividad 	integer
+id_objetivo 	integer
+numero 	smallint
+descripcion 	text
+resultado_esperado 	text
+responsabilidad 	varchar(200)
+mes_inicio 	smallint
+duracion_meses 	numeric(6,2)
+actividad_participante
+id_actividad 	integer
+id_participante 	integer
+rol_actividad 	varchar(30)
+actividad_riesgo
+id_riesgo 	integer
+id_actividad 	integer
+riesgo 	text
+mitigacion 	text
+id_responsable_participante 	integer
+dictamen_pi
+id_dictamen 	integer
+id_propuesta 	integer
+id_emisor 	integer
+numero_oficio 	varchar(100)
+potencial_innovacion 	boolean
+potencial_proteccion 	boolean
+activo_resultado 	varchar(250)
+mecanismo_proteccion 	varchar(250)
+novedad 	text
+titularidad 	text
+divulgacion 	text
+confidencialidad 	text
+analisis_tecnico 	text
+recomendaciones 	text
+fecha_emision 	timestamp
+revision_expediente
+id_revision 	integer
+id_propuesta 	integer
+etapa 	varchar(20)
+ciclo 	integer
+id_revisor 	integer
+resultado 	varchar(20)
+fecha_inicio 	timestamp
+fecha_fin 	timestamp
+revision_checklist
+id_item 	integer
+id_revision 	integer
+codigo_item 	varchar(50)
+etiqueta 	varchar(180)
+obligatorio 	boolean
+verificado 	boolean
+observacion 	varchar(500)
+observacion
+id_observacion 	integer
+id_propuesta 	integer
+etapa 	varchar(30)
+id_revision 	integer
+id_usuario 	integer
+seccion_formulario 	varchar(70)
+mensaje 	text
+requiere_respuesta 	boolean
+fecha_creacion 	timestamp
+fecha_resolucion 	timestamp
+observacion_respuesta
+id_respuesta 	integer
+id_observacion 	integer
+id_usuario 	integer
+respuesta 	text
+fecha_respuesta 	timestamp
+rubrica
+id_rubrica 	integer
+nombre 	varchar(200)
+modalidad 	varchar(40)
+instancia 	varchar(20)
+numero_version 	integer
+activa 	boolean
+rubrica_criterio
+id_criterio 	integer
+id_rubrica 	integer
+seccion 	varchar(160)
+codigo 	varchar(60)
+nombre 	varchar(220)
+descripcion 	text
+peso 	numeric(5,2)
+obligatorio 	boolean
+orden 	smallint
+rubrica_nivel
+id_nivel 	integer
+id_criterio 	integer
+puntaje 	smallint
+descripcion 	text
+evaluacion
+id_evaluacion 	integer
+id_propuesta 	integer
+id_rubrica 	integer
+id_evaluador 	integer
+instancia 	varchar(20)
+rol_evaluador 	varchar(40)
+estado 	varchar(20)
+puntaje_total 	numeric(7,2)
+fecha_inicio 	timestamp
+fecha_fin 	timestamp
+evaluacion_puntaje
+id_evaluacion 	integer
+id_criterio 	integer
+id_nivel 	integer
+puntaje 	numeric(5,2)
+puntaje_sugerido_ia 	numeric(5,2)
+justificacion 	text
+resultado_comite
+id_resultado 	integer
+id_propuesta 	integer
+recomendacion 	varchar(30)
+promedio 	numeric(7,2)
+numero_oficio 	varchar(100)
+id_documento 	integer
+id_consolidado_por 	integer
+fecha_consolidacion 	timestamp
+sesion_consejo
+id_sesion 	integer
+id_escuela 	integer
+numero_sesion 	varchar(60)
+tipo 	varchar(40)
+fecha_sesion 	date
+estado 	varchar(20)
+aval_consejo
+id_aval 	integer
+id_propuesta 	integer
+id_sesion 	integer
+resultado 	varchar(20)
+motivo 	text
+numero_oficio 	varchar(100)
+id_documento 	integer
+id_registrado_por 	integer
+fecha_decision 	timestamp
+comunicacion_institucional
+id_comunicacion 	integer
+id_propuesta 	integer
+tipo 	varchar(40)
+id_emisor 	integer
+id_destinatario_usuario 	integer
+id_destinatario_escuela 	integer
+id_documento 	integer
+asunto 	varchar(220)
+mensaje 	text
+confirmada 	boolean
+fecha_envio 	timestamp
+resolucion_cie
+id_resolucion 	integer
+id_propuesta 	integer
+resultado 	varchar(20)
+numero_resolucion 	varchar(100)
+fundamento 	text
+id_documento 	integer
+id_registrado_por 	integer
+fecha_resolucion 	timestamp
+notificacion
+id_notificacion 	integer
+id_usuario 	integer
+id_propuesta 	integer
+tipo 	varchar(60)
+titulo 	varchar(180)
+mensaje 	varchar(1000)
+accion 	varchar(50)
+leida 	boolean
+fecha_creacion 	timestamp
+
+-- 2 of 2 --
+

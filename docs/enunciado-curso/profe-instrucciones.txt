@@ -1,0 +1,262 @@
+Instituto Tecnológico de Costa Rica (TEC)
+Carrera: Ingeniería en Computación
+Curso: Diseño de Software
+Prototipo de Sistema para la Gestión de Propuestas de Investigación
+(Fondos VIE)
+Descripción
+El proyecto consiste en el diseño y desarrollo de un prototipo de software orientado a la automatización y
+gestión del ciclo de vida de las iniciativas de investigación del Instituto Tecnológico de Costa Rica. El
+sistema debe digitalizar los procesos definidos para la convocatoria de Fondos VIE, contemplando un
+módulo para la redacción y presentación estructurada de propuestas, un módulo de evaluación para la
+revisión, aprobación o rechazo por parte de las instancias correspondientes (Comité Técnico, Dirección de
+Investigación y el Consejo de Investigación y Extensión - CIE), y un módulo de consulta histórica que
+permita filtrar proyectos por escuela, investigador, tema o línea de investigación y estatus (aprobada,
+rechazada, etc.). El desarrollo seguirá un enfoque iterativo estructurado en cuatro etapas fundamentales
+del diseño de software.
+Objetivo General
+Diseñar y desarrollar un prototipo funcional de software para la gestión integral de propuestas de
+investigación, aplicando metodologías de arquitectura de la información, diseño de interfaces y modelado
+de bases de datos para satisfacer los requerimientos del proceso institucional de evaluación académica.
+Objetivos Específicos
+● Establecer la arquitectura de información del sistema mediante el análisis de la normativa
+existente, perfiles de usuario (personas) y soluciones competitivas en el ámbito académico.
+● Diseñar interfaces de usuario intuitivas y accesibles para los módulos de redacción, evaluación y
+consulta histórica, garantizando una óptima experiencia de usuario.
+● Modelar la base de datos relacional y la arquitectura de software necesaria para soportar los flujos
+de información, los distintos roles de usuario y los estados de las propuestas.
+● Implementar un prototipo funcional que demuestre la operabilidad de los módulos de formulación,
+revisión y consulta histórica.
+Instrucciones
+El proyecto se desarrollará en equipos de trabajo y la entrega se dividirá en cuatro etapas secuenciales.
+
+-- 1 of 4 --
+
+Los estudiantes deben tomar como base de requerimientos de negocio el documento "1-Disposiciones
+Convocatoria Fondos VIE 2027.pdf".
+● Etapa 1: Arquitectura de información
+○ Análisis de lo existente: Analizar a profundidad las reglas de negocio del proceso de
+postulación y evaluación. Identificar los estados por los que pasa una propuesta (ej. en
+redacción, sometida, dictaminada, resuelta).
+○ Análisis de personas: Definir los perfiles de usuario involucrados, tales como la persona
+investigadora coordinadora, el Comité Técnico de la instancia académica, la Dirección de
+Investigación y los miembros del CIE.
+○ Análisis competitivo: Evaluar al menos dos plataformas existentes de gestión de grants o
+proyectos de investigación académicos para identificar buenas prácticas y áreas de mejora.
+○ Entregable: Documento que contenga los user personas, user journeys para los tres
+módulos principales, y el mapa del sitio del sistema.
+● Etapa 2: Diseño de Interfaz
+○ Crear wireframes de baja fidelidad y mockups de alta fidelidad interactivos.
+○ El módulo de redacción debe contemplar campos clave como problema, metodología,
+equipo de investigación (con validación de horas asignadas y tipo de horas: VIE, CONS,
+DOC, etc.), y presupuesto.
+○ El módulo de revisión debe permitir a los evaluadores visualizar la propuesta y emitir un
+aval o rechazo, simulando la evaluación según la composición disciplinaria,
+fundamentación, rigor metodológico y plan de riesgos.
+○ El módulo de histórico debe presentar un dashboard o tabla avanzada con filtros
+combinados (por escuela, persona investigadora, temática, y estatus final).
+○ Entregable: Enlace al prototipo navegable en una herramienta de diseño (ej. Figma, Adobe
+XD) y guía de estilos UI.
+● Etapa 3: Diseño de Base de Datos y Arquitectura de Software
+○ Diseñar el Modelo Entidad-Relación (MER) y el diagrama relacional asegurando la
+normalización de datos. Debe modelarse correctamente la relación entre Investigadores,
+Escuelas, Propuestas, Líneas de Investigación y Evaluaciones.
+○ Elaborar el diagrama de componentes y el diagrama de despliegue para el sistema.
+○ Entregable: Documento de diseño técnico con los diagramas de base de datos (con su
+diccionario de datos) y diagramas arquitectónicos UML.
+● Etapa 4: Prototipo funcional
+○ Desarrollar el frontend y backend del sistema implementando los tres módulos principales.
+○ El prototipo no requiere integrarse con los sistemas reales de la universidad, pero la base de
+datos debe contener seed data (datos semilla) realista que permita demostrar el
+funcionamiento del módulo de consultas históricas con diversas escuelas, investigadores y
+estatus.
+○ Demostrar el flujo completo: un usuario investigador crea y envía la propuesta; un usuario
+evaluador la aprueba o rechaza; un usuario administrador busca la propuesta en el histórico.
+○ Entregable: Código fuente alojado en un repositorio, instrucciones de despliegue
+(README) y demostración funcional ante la clase.
+
+-- 2 of 4 --
+
+Rúbrica de Evaluación
+Criterio Excelente
+(100%)
+Bueno (80%) Regular (60%) Deficiente (0-
+40%)
+Etapa 1:
+Arquitectura de
+Información
+(20%)
+Análisis
+profundo del
+documento base.
+Perfiles de
+usuario y
+journeys reflejan
+fielmente el
+proceso de
+postulación y
+revisión
+institucional.
+Análisis
+competitivo bien
+documentado.
+Perfiles y flujos
+adecuados, pero
+faltan detalles
+específicos sobre
+los roles de
+evaluación
+institucionales.
+Análisis
+competitivo
+básico.
+Análisis
+superficial.
+Flujos de
+usuario
+incompletos o
+que no
+concuerdan con
+el proceso de
+investigación
+requerido.
+No se presentan
+perfiles claros,
+ni análisis del
+proceso actual o
+de la
+competencia.
+Etapa 2: Diseño
+de Interfaz
+(20%)
+Mockups
+altamente
+interactivos,
+intuitivos y
+estéticamente
+acordes a un
+sistema
+institucional.
+Todos los
+módulos
+(redacción,
+evaluación,
+histórico con
+filtros) están
+completamente
+diseñados.
+Diseño funcional
+e interactivo.
+Falta
+refinamiento
+visual o el
+diseño de filtros
+en el histórico es
+básico y poco
+escalable.
+Interfaz difícil
+de navegar. Los
+prototipos no
+son interactivos
+o faltan vistas
+clave de los
+módulos
+solicitados.
+Diseños
+ausentes,
+incompletos o
+realizados sin
+herramientas de
+prototipado.
+Etapa 3: Base
+de Datos y
+Arquitectura
+(25%)
+Modelo
+relacional
+óptimo,
+normalizado y
+Modelo de datos
+funcional pero
+con
+redundancias
+Base de datos
+con problemas
+graves de diseño
+(ej. incapacidad
+No se entrega
+diseño de base
+de datos ni
+diagramas
+
+-- 3 of 4 --
+
+con un
+diccionario de
+datos completo.
+Diagramas UML
+precisos que
+soportan
+claramente los
+tres módulos
+requeridos.
+menores.
+Diagramas UML
+presentes pero
+con errores de
+notación.
+para filtrar por
+escuela o
+estatus).
+Arquitectura no
+justificada.
+arquitectónicos,
+o son
+incomprensibles.
+Etapa 4:
+Prototipo
+Funcional
+(35%)
+Sistema
+desplegado y
+operando sin
+errores. El flujo
+de los tres
+módulos es
+demostrable de
+principio a fin.
+Base de datos
+poblada con
+datos realistas
+para probar
+filtros históricos.
+El sistema
+funciona en su
+mayoría, pero
+presenta bugs no
+críticos o algún
+filtro del módulo
+histórico no
+opera
+correctamente.
+Prototipo
+incompleto; solo
+funciona la
+interfaz pero sin
+conexión real a
+base de datos, o
+falta desarrollar
+un módulo
+completo.
+El software no
+compila, no
+ejecuta o no
+cumple con las
+funcionalidades
+mínimas
+requeridas.
+Consideraciones adicionales:
+1. El proyecto será generado en grupos de 4 personas.
+2. Las fechas de entrega de las etapas son las que se indican en el TEC Digital.
+
+-- 4 of 4 --
+

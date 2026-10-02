@@ -1,7 +1,4 @@
-:root {
-  color-scheme: light;
-}
-
-body {
-  margin: 0;
+/* Ajustes mínimos encima del CSS del prototipo */
+#root {
+  min-height: 100%;
 }

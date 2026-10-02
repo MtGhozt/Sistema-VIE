@@ -1,123 +1,47 @@
-import { useEffect, useState, type FormEvent } from "react";
-import "./App.css";
+import type { ReactNode } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "./auth/AuthContext";
+import { AppShell } from "./components/layout/AppShell";
+import { AdministracionPage } from "./pages/AdministracionPage";
+import { ConvocatoriasPage } from "./pages/ConvocatoriasPage";
+import { EvaluacionesPage } from "./pages/EvaluacionesPage";
+import { HistoricoPage } from "./pages/HistoricoPage";
+import { InicioPage } from "./pages/InicioPage";
+import { LoginPage } from "./pages/LoginPage";
+import { NotificacionesPage } from "./pages/NotificacionesPage";
+import { PropuestaDetallePage } from "./pages/PropuestaDetallePage";
+import { PropuestaNuevaPage } from "./pages/PropuestaNuevaPage";
+import { PropuestasPage } from "./pages/PropuestasPage";
 
-const API = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
-
-type Health = { status: string; database?: string; message?: string };
-type RoleRow = {
-  codigo: string;
-  nombre: string;
-  correo_institucional: string;
-  nombre_completo: string;
-};
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { session } = useAuth();
+  if (!session) return <Navigate to="/login" replace />;
+  return children;
+}
 
 export default function App() {
-  const [health, setHealth] = useState<Health | null>(null);
-  const [roles, setRoles] = useState<RoleRow[]>([]);
-  const [selected, setSelected] = useState("");
-  const [session, setSession] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch(`${API}/api/health`)
-      .then(async (r) => setHealth(await r.json()))
-      .catch(() =>
-        setHealth({ status: "error", message: "No se pudo conectar al backend" }),
-      );
-
-    fetch(`${API}/api/demo/roles`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error("roles");
-        setRoles(await r.json());
-      })
-      .catch(() => setRoles([]));
-  }, []);
-
-  async function loginDemo(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    try {
-      const r = await fetch(`${API}/api/demo/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roleCode: selected }),
-      });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error ?? "Login falló");
-      setSession(`${data.user.name} · ${data.user.roleName}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error de login");
-    }
-  }
-
-  const dbOk = health?.status === "ok";
-
   return (
-    <div className="shell">
-      <header className="top">
-        <div>
-          <p className="brand">Tecnológico de Costa Rica · VIE</p>
-          <h1>Sistema VIE</h1>
-          <p className="muted">Prototipo funcional — Fase 0 (cimiento)</p>
-        </div>
-        <div className={`pill ${dbOk ? "ok" : "bad"}`} aria-live="polite">
-          API: {health?.status ?? "…"}
-          {health?.database ? ` · BD ${health.database}` : ""}
-        </div>
-      </header>
-
-      <main>
-        <section className="card" aria-labelledby="login-title">
-          <h2 id="login-title">Login demo por rol</h2>
-          <p className="muted">
-            Sin contraseña real (decisión D13). Elegí un rol seed y entrás.
-          </p>
-          <form onSubmit={loginDemo} className="form">
-            <label htmlFor="role">Rol</label>
-            <select
-              id="role"
-              required
-              value={selected}
-              onChange={(e) => setSelected(e.target.value)}
-            >
-              <option value="" disabled>
-                Seleccionar…
-              </option>
-              {roles.map((r) => (
-                <option key={r.codigo} value={r.codigo}>
-                  {r.nombre}
-                </option>
-              ))}
-            </select>
-            <button type="submit" disabled={!selected}>
-              Entrar (demo)
-            </button>
-          </form>
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
-          )}
-          {session && (
-            <p className="ok-text" role="status">
-              Sesión: {session}
-            </p>
-          )}
-        </section>
-
-        <section className="card">
-          <h2>Siguiente</h2>
-          <ul>
-            <li>
-              Referencia UI:{" "}
-              <code>frontend/reference/Fondos-VIE-Prototipo.html</code>
-            </li>
-            <li>
-              Plan: <code>PLAN-MAESTRO.md</code> · CU1 convocatoria
-            </li>
-          </ul>
-        </section>
-      </main>
-    </div>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        element={
+          <RequireAuth>
+            <AppShell />
+          </RequireAuth>
+        }
+      >
+        <Route path="/inicio" element={<InicioPage />} />
+        <Route path="/convocatorias" element={<ConvocatoriasPage />} />
+        <Route path="/propuestas" element={<PropuestasPage />} />
+        <Route path="/propuestas/nueva" element={<PropuestaNuevaPage />} />
+        <Route path="/propuestas/:id" element={<PropuestaDetallePage />} />
+        <Route path="/evaluaciones" element={<EvaluacionesPage />} />
+        <Route path="/historico" element={<HistoricoPage />} />
+        <Route path="/notificaciones" element={<NotificacionesPage />} />
+        <Route path="/administracion" element={<AdministracionPage />} />
+      </Route>
+      <Route path="/" element={<Navigate to="/inicio" replace />} />
+      <Route path="*" element={<Navigate to="/inicio" replace />} />
+    </Routes>
   );
 }

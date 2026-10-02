@@ -39,8 +39,9 @@ npm run dev
 # http://localhost:5173
 ```
 
-Login demo: elegir rol en la UI (sin contraseña).  
-Referencia visual antigua: `frontend/reference/Fondos-VIE-Prototipo.html`.
+Login demo (API): roles en `GET /api/demo/roles`.  
+**UI de entrega:** el prototipo HTML (`frontend/public/Fondos-VIE-Prototipo.html`) — mismo look que el diseño original.  
+Referencia/copia: `frontend/reference/Fondos-VIE-Prototipo.html`.
 
 ## Base de datos
 

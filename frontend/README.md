@@ -1,31 +1,42 @@
-# Sistema VIE — Frontend
+# Frontend — Sistema VIE
 
-React + TypeScript + **Vite**.
+## Fuente de verdad de UI (obligatorio)
+
+El diseño visual y de interacción es **exactamente**:
+
+`public/Fondos-VIE-Prototipo.html`  
+(= copia de `reference/Fondos-VIE-Prototipo.html`)
+
+- `npm run dev` abre **ese** prototipo (no un shell inventado).
+- Cualquier pantalla nueva en React/TS debe **portarse 1:1** desde ese HTML (mismos layouts, clases, flujos, labels).
+- Está **prohibido** inventar otra estética “temporal”.
+
+CSS extraído para el port gradual: `src/styles/prototipo-extraido.css`.
 
 ## Correr
 
 ```powershell
-# Terminal 1 (raíz del repo): Docker Postgres
-docker compose up -d
-
-# Terminal 2: API
-cd backend
-pnpm install
-pnpm dev
-
-# Terminal 3: UI
 cd frontend
 npm install
 npm run dev
 ```
 
-Abrí la URL que imprime Vite (suele ser `http://localhost:5173`).
+Abrí la URL de Vite → verás el prototipo original.
 
-## Referencia
+## App Vite (`src/`)
 
-El prototipo HTML multi-rol quedó en `reference/Fondos-VIE-Prototipo.html` (no es el app Vite).
+Reserva para ir **reemplazando** pantallas del HTML monolítico por componentes React+TS **clonando** el prototipo.
+Mientras tanto, la entrada (`index.html`) redirige al HTML de referencia.
+
+Para abrir el playground experimental de Vite (no es la UI de entrega):
+
+```
+http://localhost:5173/src-dev.html
+```
+
+(solo si existe; no usar para demos de curso)
 
 ## API
 
-Por defecto llama a `http://localhost:3000`.  
-Podés definir `VITE_API_URL` en `.env` si cambia el puerto.
+Cuando una pantalla se porte a React, consumirá `http://localhost:3000` (`VITE_API_URL`).
+El HTML de referencia hoy sigue en localStorage hasta que se conecte endpoint por endpoint.

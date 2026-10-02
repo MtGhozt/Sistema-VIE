@@ -91,6 +91,7 @@ Implicación: no basta el HTML en `localStorage`. Hace falta **API + PostgreSQL*
 | D13 | Auth = **login demo por rol** | Como el HTML; flexible a cambios | 2026-10-01 |
 | D14 | CU4 = **vistas separadas por rol** (Comité, Consejo, CIE, …) | Igual que el prototipo HTML | 2026-10-01 |
 | D15 | 5 CUs aprobados sin cambios de alcance | Confirmado Matias | 2026-10-01 |
+| D16 | **UI = prototipo HTML 1:1** (`Fondos-VIE-Prototipo.html`). Prohibido inventar otra estética. React/TS solo porta pantallas clonando ese prototipo. | Feedback Matias 2026-10-01 | 2026-10-01 |
 
 
 
@@ -385,6 +386,10 @@ Matias puede arrancar Fase 0 solo con defaults de §5.
 ## 11. Bitácora de decisiones y sesiones
 
 
+
+### 2026-10-01 — Corrección UI
+- El shell Vite inventado **no** es la UI. Fuente de verdad: `frontend/public/Fondos-VIE-Prototipo.html`.
+- `npm run dev` redirige al prototipo. React/TS porta pantallas 1:1 desde ahí (D16).
 
 ### 2026-10-01 — Sesión Matias (respuestas Q1–Q4 + Fase 0)
 

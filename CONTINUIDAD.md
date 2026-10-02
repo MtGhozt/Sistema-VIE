@@ -35,16 +35,17 @@ Estructura:
 4. Rúbrica prototipo funcional: UI 22% + a11y 28% + 5 CUs con CRUD 50%.
 5. Docs académicos se pueden limpiar del entregable al final; por ahora se quedan en `docs/`.
 6. **Postgres = Docker Compose**; **auth = login demo por rol**; **CU4 = pantallas por rol** (como el HTML).
+7. **UI fuente de verdad = `Fondos-VIE-Prototipo.html`** (1:1). No inventar otra interfaz.
 
 ## Próximos pasos (orden)
 
-1. ~~Definir 5 CUs~~ / ~~Q1–Q4~~
-2. ~~Fase 0: Postgres + backend TS health + Vite~~ (en curso / verificar localmente)
-3. Fase 1: CRUD CU1 convocatoria
+1. ~~Definir 5 CUs~~ / ~~Q1–Q4~~ / ~~Fase 0 cimientos~~
+2. Portar/conectar pantallas del prototipo a API empezando por login demo + **CU1 convocatoria**, siempre clonando el HTML.
+3. Fase 1+: CUs restantes + a11y
 
 ## Referencias rápidas
 
 - Plan: `PLAN-MAESTRO.md`
 - Casos de uso: `docs/casos-de-uso/CASOS-DE-USO.md`
 - BD: `database/Diseno_Base_Datos_Fondos_VIE (con cambios).md`
-- UI referencia: `frontend/reference/Fondos-VIE-Prototipo.html`
+- **UI:** `frontend/public/Fondos-VIE-Prototipo.html`

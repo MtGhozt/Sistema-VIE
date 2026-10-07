@@ -10,7 +10,7 @@
 | **Motor** | PostgreSQL |
 | **Base** | `fondos_vie` |
 | **Modelo fuente** | `fondos_vie_modelo.dbml` |
-| **Tablas** | 38 |
+| **Tablas** | 40 |
 | **Integrantes** | [Completar] |
 | **Profesor** | [Completar] |
 | **Fecha** | Septiembre 2026 |
@@ -41,7 +41,7 @@ El modelo cubre los tres módulos del proyecto:
 2. **Evaluación:** dictamen PI, revisión de completitud por ciclos, rúbrica con niveles y justificación, consolidado del Comité, sesión y aval del Consejo, comunicación formal, verificación VIE, resolución CIE.
 3. **Consulta histórica:** filtros por escuela, investigador/coordinador, línea de investigación y estatus.
 
-**Principio de diseño:** normalización hasta 3FN en datos de negocio, nombres en español, tipos eficientes y **38 tablas**. Se agregan solo entidades con respaldo en los documentos oficiales o en el flujo institucional del prototipo. Se excluyen a propósito motores de formularios dinámicos, catálogos masivos de logs y desglose presupuestario por objeto de gasto (ese detalle vive en el Excel adjunto, según el formulario).
+**Principio de diseño:** normalización hasta 3FN en datos de negocio, nombres en español, tipos eficientes y **40 tablas**. Se agregan solo entidades con respaldo en los documentos oficiales o en el flujo institucional del prototipo. Se excluyen a propósito motores de formularios dinámicos, catálogos masivos de logs y desglose presupuestario por objeto de gasto (ese detalle vive en el Excel adjunto, según el formulario).
 
 **Alcance:** diseño de BD (diccionario, ER, estándares, análisis de tamaños). Los binarios (PDF/DOCX/XLSX) se almacenan fuera de PostgreSQL.
 
@@ -81,7 +81,7 @@ El modelo cubre los tres módulos del proyecto:
 - Toda FK referencia una PK/UK válida.
 - Ciclos de revisión: `UNIQUE (id_propuesta, etapa, ciclo)` — no se pierde historial al devolver.
 - Listas multivaluadas en tablas hijas (objetivos, actividades, riesgos, puntajes, permisos éticos).
-- Totales de horas semanales se **derivan** de `propuesta_participante` (no se duplican como única fuente).
+- Totales de horas semanales se **derivan** de `propuesta_participante_hora` (no se duplican como única fuente).
 
 ## 2.4 Normalización
 
@@ -93,7 +93,7 @@ El modelo cubre los tres módulos del proyecto:
 
 # 3. Modelo de datos
 
-## 3.1 Inventario (38 tablas)
+## 3.1 Inventario (40 tablas)
 
 | # | Tabla | Dominio |
 |---|---|---|
@@ -104,37 +104,39 @@ El modelo cubre los tres módulos del proyecto:
 | 5 | `convocatoria` | Convocatoria |
 | 6 | `convocatoria_hito` | Convocatoria |
 | 7 | `propuesta` | Núcleo |
-| 8 | `propuesta_pregunta_general` | Formulario |
-| 9 | `propuesta_objetivo_especifico` | Formulario / Plan |
-| 10 | `propuesta_participante` | Equipo |
-| 11 | `propuesta_presupuesto_anual` | Presupuesto |
-| 12 | `propuesta_financiamiento` | Presupuesto |
-| 13 | `propuesta_producto` | Productos |
-| 14 | `propuesta_documento` | Anexos |
-| 15 | `propuesta_historial_estado` | Auditoría |
-| 16 | `linea_investigacion` | Histórico |
-| 17 | `propuesta_linea` | Histórico |
-| 18 | `aspecto_etico` | Ética |
-| 19 | `permiso_etico` | Ética |
-| 20 | `actividad_plan` | Plan / riesgos |
-| 21 | `actividad_participante` | Plan / riesgos |
-| 22 | `actividad_riesgo` | Plan / riesgos |
-| 23 | `dictamen_pi` | PI |
-| 24 | `revision_expediente` | Completitud |
-| 25 | `revision_checklist` | Completitud |
-| 26 | `observacion` | Correcciones |
-| 27 | `observacion_respuesta` | Correcciones |
-| 28 | `rubrica` | Evaluación |
-| 29 | `rubrica_criterio` | Evaluación |
-| 30 | `rubrica_nivel` | Evaluación |
-| 31 | `evaluacion` | Evaluación |
-| 32 | `evaluacion_puntaje` | Evaluación |
-| 33 | `resultado_comite` | Comité |
-| 34 | `sesion_consejo` | Consejo |
-| 35 | `aval_consejo` | Consejo |
-| 36 | `comunicacion_institucional` | Comunicación formal |
-| 37 | `resolucion_cie` | CIE |
-| 38 | `notificacion` | UI / campana |
+| 8 | `propuesta_palabra_clave` | Formulario |
+| 9 | `propuesta_pregunta_general` | Formulario |
+| 10 | `propuesta_objetivo_especifico` | Formulario / Plan |
+| 11 | `propuesta_participante` | Equipo |
+| 12 | `propuesta_participante_hora` | Equipo |
+| 13 | `propuesta_presupuesto_anual` | Presupuesto |
+| 14 | `propuesta_financiamiento` | Presupuesto |
+| 15 | `propuesta_producto` | Productos |
+| 16 | `propuesta_documento` | Anexos |
+| 17 | `propuesta_historial_estado` | Auditoría |
+| 18 | `linea_investigacion` | Histórico |
+| 19 | `propuesta_linea` | Histórico |
+| 20 | `aspecto_etico` | Ética |
+| 21 | `permiso_etico` | Ética |
+| 22 | `actividad_plan` | Plan / riesgos |
+| 23 | `actividad_participante` | Plan / riesgos |
+| 24 | `actividad_riesgo` | Plan / riesgos |
+| 25 | `dictamen_pi` | PI |
+| 26 | `revision_expediente` | Completitud |
+| 27 | `revision_checklist` | Completitud |
+| 28 | `observacion` | Correcciones |
+| 29 | `observacion_respuesta` | Correcciones |
+| 30 | `rubrica` | Evaluación |
+| 31 | `rubrica_criterio` | Evaluación |
+| 32 | `rubrica_nivel` | Evaluación |
+| 33 | `evaluacion` | Evaluación |
+| 34 | `evaluacion_puntaje` | Evaluación |
+| 35 | `resultado_comite` | Comité |
+| 36 | `sesion_consejo` | Consejo |
+| 37 | `aval_consejo` | Consejo |
+| 38 | `comunicacion_institucional` | Comunicación formal |
+| 39 | `resolucion_cie` | CIE |
+| 40 | `notificacion` | UI / campana |
 
 ## 3.2 Flujo de estados
 
@@ -218,13 +220,26 @@ Las revisiones de Comité y Gestora VIE usan `revision_expediente.etapa` (`comit
 | `fecha_inicio` / `fecha_finalizacion` | DATE | NULL | Periodo del proyecto |
 | `fecha_envio` | TIMESTAMPTZ | NULL | Envío |
 | `resumen`, `abstract_en`, `problema`, `objetivo_general`, `estado_arte`, `metodologia`, `hoja_ruta`, `referencias`, `divulgacion` | TEXT | NULL | Narrativa |
-| `palabras_clave`, `keywords_en` | VARCHAR(300) | NULL | Keywords |
-| `nivel_trl` | SMALLINT | NULL | TRL 1–9 |
+| `trl_actual` | SMALLINT | NULL | TRL actual 1–9 |
+| `trl_esperado` | SMALLINT | NULL | TRL esperado 1–9 |
 | `requiere_dictamen_pi` | BOOLEAN | NOT NULL | ¿Requiere PI? |
 | `estado_actual` | VARCHAR(40) | NOT NULL | Estado del flujo |
 | `etapa_flujo` | SMALLINT | NOT NULL | Etapa numérica |
 
 **Nota:** no se guarda `total_horas_semanales` ni `progreso` como fuente de verdad; se calculan.
+
+---
+
+### propuesta_palabra_clave
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| `id_palabra_clave` | INTEGER | PK | Identificador |
+| `id_propuesta` | INTEGER | FK NOT NULL | Propuesta |
+| `idioma` | CHAR(2) | NOT NULL | `es` \| `en` |
+| `palabra` | VARCHAR(100) | NOT NULL | Término descriptor |
+
+UNIQUE (`id_propuesta`, `idioma`, `palabra`).
 
 ---
 
@@ -268,12 +283,23 @@ UNIQUE (`id_propuesta`, `codigo_pregunta`).
 | `orcid` | CHAR(19) | NULL | ORCID |
 | `instancia_o_institucion` | VARCHAR(200) | NULL | Adscripción |
 | `rol_en_proyecto` | VARCHAR(80) | NULL | Rol |
-| `tipo_horas` | VARCHAR(30) | NULL | REC, CONS, DOC_VIE… |
-| `cantidad_horas` | NUMERIC(5,2) | NULL | Horas |
 | `periodo_nombramiento` | VARCHAR(60) | NULL | Periodo |
 | `iniciales` | VARCHAR(10) | NULL | Referencia en plan |
 
 **3FN:** si `id_usuario` está presente, nombre/ORCID pueden tomarse de `usuario`; se permiten en la fila para externos y para snapshots legibles del expediente.
+
+---
+
+### propuesta_participante_hora
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| `id_participante_hora` | INTEGER | PK | Identificador |
+| `id_participante` | INTEGER | FK NOT NULL | Participante |
+| `tipo_hora` | VARCHAR(30) | NOT NULL | VIE, VIE-Centros, CONS, REC, DOC o VIESA |
+| `cantidad_horas` | NUMERIC(5,2) | NOT NULL | Horas semanales |
+
+UNIQUE (`id_participante`, `tipo_hora`).
 
 ---
 
@@ -409,7 +435,7 @@ Resolución final del CIE y notificaciones internas de UI.
 
 | Módulo | Evidencia en el modelo |
 |---|---|
-| Redacción | convocatoria + hitos, propuesta, OE, equipo, presupuesto, financiamiento, productos, plan/riesgos, ética, documentos |
+| Redacción | convocatoria + hitos, propuesta, `propuesta_palabra_clave`, OE, equipo + `propuesta_participante_hora`, presupuesto, financiamiento, productos, plan/riesgos, ética, documentos |
 | Evaluación | PI, revisión+checklist por ciclo, observaciones, rúbrica/niveles/justificación, consolidado comité, sesión/aval, comunicación, CIE |
 | Histórico | escuela, coordinador, `propuesta_linea`, `estado_actual` |
 
@@ -430,7 +456,7 @@ Resolución final del CIE y notificaciones internas de UI.
 
 Generar desde `fondos_vie_modelo.dbml` en [dbdiagram.io](https://dbdiagram.io) e insertar como **Figura 1**.
 
-**Figura 1.** Diagrama relacional `fondos_vie` (38 tablas).  
+**Figura 1.** Diagrama relacional `fondos_vie` (40 tablas).  
 *[Insertar exportación PNG/PDF]*
 
 ### Vista lógica
@@ -443,10 +469,10 @@ Generar desde `fondos_vie_modelo.dbml` en [dbdiagram.io](https://dbdiagram.io) e
      ┌───────────────┼────────────────┬─────────────────┐
      ▼               ▼                ▼                 ▼
   formulario      plan/riesgos     flujo eval.      auditoría
-  (OE, equipo,    (actividad_*,    (PI, revisión,   historial
-   presupuesto,    riesgos)         rúbrica,        notificacion
-   productos,                       consejo, CIE,
-   ética)                           comunicación)
+  (keywords, OE,  (actividad_*,    (PI, revisión,   historial
+   equipo+horas,   riesgos)         rúbrica,        notificacion
+   presupuesto,                     consejo, CIE,
+   productos, ética)                comunicación)
 ```
 
 ## 4.2 Componentes (UML)
@@ -490,9 +516,11 @@ Por tanto, los totales son **órdenes de magnitud para diseño**, no el tamaño 
 | convocatoria | 400 | +TEXT corto |
 | convocatoria_hito | 200 | Cronograma |
 | propuesta | 8 500 | Narrativa; TOAST probable |
+| propuesta_palabra_clave | 130 | Keyword individual ES/EN |
 | propuesta_pregunta_general | 180 | |
 | propuesta_objetivo_especifico | 350 | |
-| propuesta_participante | 280 | |
+| propuesta_participante | 240 | |
+| propuesta_participante_hora | 48 | Tipo/cantidad de horas |
 | propuesta_presupuesto_anual | 62 | |
 | propuesta_financiamiento | 100 | |
 | propuesta_producto | 280 | |
@@ -571,9 +599,11 @@ Año1 120 + Año2 144 + Año3 173 + Año4 207 + Año5 249 ≈ 893 propuestas
 | convocatoria | 10 | 4 KB | |
 | convocatoria_hito | 80 | 16 KB | ~8 hitos × convocatorias |
 | propuesta | 893 | 7.2 MB | Dominante por TEXT |
+| propuesta_palabra_clave | 7 144 | 910 KB | ~8 keywords ES/EN por propuesta |
 | propuesta_pregunta_general | 7 144 | 1.2 MB | ~8/prop. |
 | propuesta_objetivo_especifico | 3 572 | 1.2 MB | ~4 OE |
-| propuesta_participante | 3 572 | 1.0 MB | ~4 |
+| propuesta_participante | 3 572 | 840 KB | ~4 |
+| propuesta_participante_hora | 5 358 | 250 KB | ~1,5 tipos de hora por participante |
 | propuesta_presupuesto_anual | 2 679 | 160 KB | ~3 años |
 | propuesta_financiamiento | 1 340 | 130 KB | |
 | propuesta_producto | 3 572 | 950 KB | |
@@ -603,7 +633,7 @@ Año1 120 + Año2 144 + Año3 173 + Año4 207 + Año5 249 ≈ 893 propuestas
 | resolucion_cie | 700 | 340 KB | |
 | notificacion | 10 000 | 2.7 MB | |
 
-**Total orientativo del esquema al año 5:** ≈ **45–55 MB** de datos lógicos (sin índices). Adecuado para PostgreSQL en un prototipo institucional.
+**Total orientativo del esquema al año 5:** ≈ **46–56 MB** de datos lógicos (sin índices). Adecuado para PostgreSQL en un prototipo institucional.
 
 ## 6.3 Lectura
 
@@ -615,7 +645,7 @@ Año1 120 + Año2 144 + Año3 173 + Año4 207 + Año5 249 ≈ 893 propuestas
 
 # 7. Conclusiones
 
-1. El modelo de **38 tablas** cubre el flujo Fondos VIE de punta a punta y los tres módulos del curso, con respaldo en los documentos oficiales del zip.
+1. El modelo de **40 tablas** cubre el flujo Fondos VIE de punta a punta y los tres módulos del curso, con respaldo en los documentos oficiales del zip.
 2. Corrige los huecos críticos del modelo de 26 tablas (plan/riesgos, OE, niveles de rúbrica + justificación, checklist por ciclo, hitos, ética multi-ente, consolidado del Comité, sesión/acuerdo, comunicación formal) **sin** volver a un diseño de 56–100+ tablas.
 3. Cumple la relación exigida entre investigadores, escuelas, propuestas, líneas de investigación y evaluaciones.
 4. Los estándares, PK/FK y tipos PostgreSQL están documentados de forma uniforme.
@@ -623,4 +653,4 @@ Año1 120 + Año2 144 + Año3 173 + Año4 207 + Año5 249 ≈ 893 propuestas
 
 ---
 
-*Fin del documento — Diseño de Base de Datos Fondos VIE (38 tablas)*
+*Fin del documento — Diseño de Base de Datos Fondos VIE (40 tablas)*

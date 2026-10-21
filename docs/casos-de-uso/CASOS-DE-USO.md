@@ -135,19 +135,29 @@ Definidos a partir de:
 
 ### Flujo principal
 1. Entrar a módulo Histórico.
-2. Filtrar por **escuela**, **investigadora**, **línea/temática** y **estado** (combinables).
+2. Filtrar por **escuela**, **investigadora**, **línea/temática** y **estado** (combinables), más **año**.
 3. Ver listado; abrir ficha resumen (estado, etapa, notas, oficios clave).
 4. (Opcional admin) corregir metadatos menores sin romper el flujo.
 
 ### CRUD / persistencia
 | Operación | Entidades |
 |---|---|
-| Read | `propuesta` + joins (`escuela`, `usuario`, `propuesta_linea`, `propuesta_historial_estado`, resoluciones) |
+| Read | `propuesta` + joins (`escuela`, `usuario`, `propuesta_linea`, `linea_investigacion`, `propuesta_historial_estado`, `resolucion_cie`, `aval_consejo`, `resultado_comite`, `dictamen_pi`) |
 | Update | solo campos permitidos de consulta/admin si se implementa |
 
 ### Evidencia rúbrica
 - Filtros obligatorios del alcance del curso.
 - Resultados desde PostgreSQL, no datos hardcodeados.
+
+### Estado de implementación (2026-10-21)
+- `GET /api/historico/propuestas?escuela=&investigadora=&linea=&estado=&anio=` — los
+  filtros se aplican en PostgreSQL, no en memoria.
+- `frontend/src/pages/HistoricoPage.tsx` consume ese endpoint; ya no existe el
+  array `HISTORICO_ITEMS` hardcodeado.
+- `database/seed.sql` siembra 6 escuelas, 12 personas investigadoras, 8 líneas y
+  16 propuestas (2024–2026) con historial de estados, oficios y resoluciones del CIE.
+- El filtro "Temática" de la UI se llama **Línea / Temática** y mapea a
+  `linea_investigacion`, que es la tabla real del modelo.
 
 ---
 

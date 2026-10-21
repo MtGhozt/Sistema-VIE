@@ -1,0 +1,225 @@
+/**
+ * Capa de accesibilidad (WCAG 2.1 AA) — Sistema VIE
+ * =====================================================
+ *
+ * Se carga DESPUÉS de `prototipo.css` y `brand-overrides.css` (ver main.tsx)
+ * para ganar la cascada sin tocar el CSS extraído del prototipo HTML.
+ *
+ * Cubre los 4 criterios de accesibilidad de la rúbrica del curso:
+ *   1. Uso de alto contraste          → 1.4.3 (contraste), 1.4.11 (no textual)
+ *   2. Navegación por teclado          → 2.1.1, 2.1.2, 2.4.1, 2.4.3, 2.4.7
+ *   3. Descripción de imágenes/videos  → 1.1.1
+ *   4. Lector de pantalla              → 1.3.1, 2.4.6, 4.1.2, 4.1.3
+ *
+ * ── Tokens ────────────────────────────────────────────────────────────────
+ * Todos derivados de `--ink` (#17212b) sobre fondo blanco (#fff):
+ *
+ *   token        valor                     ratio sobre blanco   uso
+ *   ───────────  ───────────────────────  ───────────────────  ─────────────────
+ *   --ink-70     rgba(23,33,43,.70)       6.04 : 1             texto secundario
+ *   --ink-55     rgba(23,33,43,.68)       5.65 : 1             hints, tabs, meta
+ *   --ink-35     rgba(23,33,43,.52)       3.40 : 1             bordes / iconos
+ *   --ink-15     rgba(23,33,43,.50)       3.22 : 1             contorno de control
+ *
+ * Antes: --ink-55 = 3.73:1 y --ink-15 = 1.35:1 (fallaban 1.4.3 y 1.4.11).
+ *
+ * `--tec-red` (#EF3340) se conserva para uso decorativo (línea del logo,marker
+ * de la barra lateral). Sobre superficies con texto se usa `--tec-red-strong`.
+ */
+
+:root {
+  /* Texto secundario y metadatos — 6.04:1 */
+  --ink-70: rgba(23, 33, 43, 0.7);
+  /* Hints, placeholders, pestañas inactivas — 5.65:1 */
+  --ink-55: rgba(23, 33, 43, 0.68);
+  /* Bordes de control e iconos no textuales — 3.40:1 */
+  --ink-35: rgba(23, 33, 43, 0.52);
+  /* Contorno de input / botón secundario — 3.22:1 (WCAG 1.4.11) */
+  --ink-15: rgba(23, 33, 43, 0.5);
+
+  /* Rojo TEC accesible para texto sobre fondo claro — 5.81:1 */
+  --tec-red-strong: #c2262f;
+  /* Ámbar accesible para texto sobre fondo claro — 5.92:1 */
+  --warning-strong: #8a5a0f;
+
+  /* Anillo de foco: 12.94:1 sobre blanco */
+  --focus-ring: #002f6c;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * 1. Indicador de foco visible (WCAG 2.4.7)
+ *
+ * `!important` es deliberado: el prototipo CSS anula el `outline` en varios
+ * selectores con clase + elemento (`.search-field input`, `.filter-select
+ * select`, `.admin-role-switch select`, `.role-select`), cuya especificidad
+ * (0,1,1) supera la de cualquier regla normal. Con `!important` el anillo
+ * gana siempre y nunca depende del orden de las hojas.
+ *
+ * El foco solo se oculta con ratón: `:focus-visible` no aplica al pulsar.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus-ring) !important;
+  outline-offset: 2px !important;
+}
+
+/* La barra lateral es azul (#002F6C): un anillo azul sería invisible. */
+.sidebar :focus-visible {
+  outline-color: #ffffff !important;
+}
+
+/* Controles con representación visual propia: el input real va invisible
+ * (opacity:0), así que el anillo se dibuja sobre el control visible. */
+.radio-choice input:focus-visible + .radio-dot,
+.check-row input:focus-visible + .custom-check {
+  outline: 3px solid var(--focus-ring) !important;
+  outline-offset: 2px !important;
+}
+
+/* El anillo del .input usaba --blue-soft (1.1:1 → invisible). */
+.input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(0, 47, 108, 0.28);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * 2. Contraste (WCAG 1.4.3 / 1.4.11)
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/* Botones y toasts de error: blanco sobre #EF3340 daba 4.02:1. */
+.btn-danger,
+.toast.error {
+  background: var(--tec-red-strong);
+}
+
+button[class*="danger"],
+.btn-danger,
+.variant-danger {
+  background: var(--tec-red-strong) !important;
+  border-color: var(--tec-red-strong) !important;
+}
+
+/* Botón "Enviar observación": blanco sobre #B7791F daba 3.64:1. */
+.btn-observation,
+button.btn-observation {
+  background: var(--warning-strong) !important;
+  color: #fff !important;
+  border-color: var(--warning-strong) !important;
+}
+
+/* Texto legal de 9px: --ink-35 no alcanzaba 4.5:1. */
+.copyright-note {
+  color: var(--ink-70);
+}
+
+/* Botones que se presentan como tarjetas: su borde es parte del control. */
+.admin-flow-cards button,
+.admin-proposal-list > button {
+  border-color: var(--ink-35);
+}
+
+/* Checklist: el borde del control visible debe alcanzar 3:1. */
+.check-row {
+  border-color: var(--ink-35);
+}
+
+.custom-check {
+  border-color: var(--ink-35);
+}
+
+/* El chevron de "entrar" quedaba en ~1.3:1 con opacity .45. */
+.admin-flow-cards svg {
+  opacity: 0.85;
+  color: var(--ink-70);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * 3. Utilidades
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/* La línea de tiempo pasó de <div> a <ol> para exponer la lista de etapas:
+ * se quitan los marcadores nativos de <ol>. */
+.timeline {
+  list-style: none;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link: visible solo al recibir foco por teclado (WCAG 2.4.1). */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  padding: 12px 18px;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 0 0 10px 0;
+  transform: translateY(-120%);
+  transition: transform 0.15s ease;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline-color: #ffffff;
+}
+
+/* El contenido principal recibe foco al saltar a él. */
+.content:focus {
+  outline: none;
+}
+
+.content:focus-visible {
+  outline: 3px solid var(--focus-ring) !important;
+  outline-offset: -3px !important;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * 4. Preferencias del sistema
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Modo de alto contraste del sistema: los bordes por token desaparecen. */
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid Highlight !important;
+  }
+
+  .input,
+  .btn-secondary,
+  .radio-choice,
+  .checkbox-ui,
+  .search-field,
+  .filter-select,
+  .custom-check,
+  .radio-dot,
+  .check-row,
+  .admin-flow-cards button,
+  .admin-proposal-list > button {
+    border-color: CanvasText !important;
+  }
+}

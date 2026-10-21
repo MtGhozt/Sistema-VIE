@@ -181,14 +181,22 @@ export function PropuestaNuevaPage() {
             <span>Progreso</span>
             <strong>{progressPct}%</strong>
           </div>
-          <div className="progress-track">
+          <div
+            className="progress-track"
+            role="progressbar"
+            aria-label="Avance del formulario"
+            aria-valuenow={progressPct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
             <div style={{ width: `${progressPct}%` }} />
           </div>
-          <div className="wizard-steps">
+          <nav className="wizard-steps" aria-label="Pasos del formulario">
             {FORM_WIZARD_STEPS.map((label, i) => (
               <button
                 key={label}
                 type="button"
+                aria-current={i === step ? "step" : undefined}
                 className={
                   i === step ? "active" : i < step ? "done" : undefined
                 }
@@ -203,7 +211,7 @@ export function PropuestaNuevaPage() {
                 </div>
               </button>
             ))}
-          </div>
+          </nav>
         </aside>
 
         <section className="card wizard-card">
@@ -213,11 +221,16 @@ export function PropuestaNuevaPage() {
                 Formulario VIE 2027 · Paso {step + 1} de{" "}
                 {FORM_WIZARD_STEPS.length}
               </span>
+              <h1 className="sr-only">
+                {isEditing ? "Editar borrador de propuesta" : "Nueva propuesta de investigación"}
+              </h1>
               <h2>{FORM_WIZARD_STEPS[step]}</h2>
             </div>
             <div className="form-code">
               <strong>F-VIE-2027</strong>
-              <span>{saveStatus}</span>
+              <span role="status" aria-live="polite">
+                {saveStatus}
+              </span>
             </div>
           </div>
 

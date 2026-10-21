@@ -29,17 +29,24 @@ export function ProcessTimeline({
   const active = Math.max(0, Math.min(currentStep, FLOW_STEPS.length - 1));
 
   return (
-    <div className="timeline process-timeline" aria-label="Etapas del flujo">
+    // `role="list"` + `aria-label`: un div genérico ignora el nombre accesible.
+    <ol
+      className="timeline process-timeline"
+      role="list"
+      aria-label="Etapas del flujo"
+    >
       {FLOW_STEPS.map((label, i) => {
         const done = completed ? i <= active : i < active;
         const isActive = !completed && i === active;
         const skipPi = label === "Vinculación" && !piRequired;
         return (
-          <div
+          <li
             key={label}
             className={`timeline-step${done ? " done" : ""}${isActive ? " active" : ""}`}
           >
-            <div className="timeline-marker">{done ? "✓" : i + 1}</div>
+            <div className="timeline-marker" aria-hidden>
+              {done ? "✓" : i + 1}
+            </div>
             {i < FLOW_STEPS.length - 1 && <div className="timeline-line" aria-hidden />}
             <div className="timeline-copy">
               <strong>{label}</strong>
@@ -53,10 +60,10 @@ export function ProcessTimeline({
                       : "Pendiente"}
               </span>
             </div>
-          </div>
+          </li>
         );
       })}
-    </div>
+    </ol>
   );
 }
 

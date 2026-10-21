@@ -92,11 +92,37 @@ export function ProposalDetailView({
 
       <div className="detail-layout">
         <section className="card">
-          <div className="tabs">
+          <div
+            className="tabs"
+            role="tablist"
+            aria-label="Secciones de la propuesta"
+            onKeyDown={(e) => {
+              const ids = Object.keys(TAB_LABELS) as TabId[];
+              const i = ids.indexOf(tab);
+              let next = -1;
+              if (e.key === "ArrowRight") next = (i + 1) % ids.length;
+              if (e.key === "ArrowLeft")
+                next = (i - 1 + ids.length) % ids.length;
+              if (e.key === "Home") next = 0;
+              if (e.key === "End") next = ids.length - 1;
+              if (next < 0) return;
+              e.preventDefault();
+              const target = ids[next]!;
+              setTab(target);
+              document
+                .getElementById(`tab-${target}`)
+                ?.focus();
+            }}
+          >
             {(Object.keys(TAB_LABELS) as TabId[]).map((id) => (
               <button
                 key={id}
+                id={`tab-${id}`}
                 type="button"
+                role="tab"
+                aria-selected={tab === id}
+                aria-controls={`panel-${id}`}
+                tabIndex={tab === id ? 0 : -1}
                 className={tab === id ? "active" : ""}
                 onClick={() => setTab(id)}
               >
@@ -105,15 +131,22 @@ export function ProposalDetailView({
             ))}
           </div>
 
+          <div
+            role="tabpanel"
+            id={`panel-${tab}`}
+            aria-labelledby={`tab-${tab}`}
+            tabIndex={0}
+          >
+
           {tab === "resumen" && (
             <div className="stack-lg">
               <div>
-                <h3>Resumen</h3>
+                <h2>Resumen</h2>
                 <p className="body-copy">{proposal.resumen}</p>
               </div>
               {proposal.abstract && (
                 <div>
-                  <h3>Abstract</h3>
+                  <h2>Abstract</h2>
                   <p className="body-copy">{proposal.abstract}</p>
                 </div>
               )}
@@ -136,7 +169,7 @@ export function ProposalDetailView({
                 </div>
               </div>
               <div>
-                <h3>Palabras clave</h3>
+                <h2>Palabras clave</h2>
                 <div className="tag-row">
                   {proposal.palabras.map((w) => (
                     <span key={w} className="badge">
@@ -147,7 +180,7 @@ export function ProposalDetailView({
               </div>
               {proposal.keywords.length > 0 && (
                 <div>
-                  <h3>Keywords</h3>
+                  <h2>Keywords</h2>
                   <div className="tag-row">
                     {proposal.keywords.map((w) => (
                       <span key={w} className="badge">
@@ -163,7 +196,7 @@ export function ProposalDetailView({
           {tab === "equipo" && (
             <div className="stack-lg">
               <div>
-                <h3>Personas investigadoras funcionarias del TEC</h3>
+                <h2>Personas investigadoras funcionarias del TEC</h2>
                 <div className="table-wrap">
                   <table className="data-table">
                     <thead>
@@ -193,7 +226,7 @@ export function ProposalDetailView({
               </div>
               {(proposal.teamExternal?.length ?? 0) > 0 && (
                 <div>
-                  <h3>Colaboradores externos</h3>
+                  <h2>Colaboradores externos</h2>
                   <div className="table-wrap">
                     <table className="data-table">
                       <thead>
@@ -222,7 +255,7 @@ export function ProposalDetailView({
           {tab === "presupuesto" && (
             <div className="stack-lg">
               <div>
-                <h3>Presupuesto por año</h3>
+                <h2>Presupuesto por año</h2>
                 {(proposal.presupuestoAnual ?? []).length === 0 ? (
                   <p className="muted">Sin desglose anual en el borrador.</p>
                 ) : (
@@ -250,7 +283,7 @@ export function ProposalDetailView({
               </div>
               {(proposal.financiamiento?.length ?? 0) > 0 && (
                 <div>
-                  <h3>Financiamiento y contrapartida</h3>
+                  <h2>Financiamiento y contrapartida</h2>
                   <div className="table-wrap">
                     <table className="data-table">
                       <thead>
@@ -283,7 +316,7 @@ export function ProposalDetailView({
           {tab === "productos" && (
             <div className="stack-md">
               <div>
-                <h3>Compromisos de productos</h3>
+                <h2>Compromisos de productos</h2>
                 <ul>
                   {(proposal.productos ?? []).map((p) => (
                     <li key={p}>{p}</li>
@@ -292,13 +325,13 @@ export function ProposalDetailView({
               </div>
               {proposal.activoPI && (
                 <div>
-                  <h3>Activo de propiedad intelectual</h3>
+                  <h2>Activo de propiedad intelectual</h2>
                   <p>{proposal.activoPI}</p>
                 </div>
               )}
               {proposal.etica && (
                 <div>
-                  <h3>Aspectos éticos</h3>
+                  <h2>Aspectos éticos</h2>
                   <p>{proposal.etica}</p>
                 </div>
               )}
@@ -339,6 +372,7 @@ export function ProposalDetailView({
               )}
             </div>
           )}
+          </div>
         </section>
 
         <aside className="card">

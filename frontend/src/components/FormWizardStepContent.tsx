@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
 import { MODALIDADES } from "../data/demo";
 import { DEMO_PROPOSALS } from "../data/demo";
@@ -23,11 +23,14 @@ function QuestionBlock({
   question: string;
   children: ReactNode;
 }) {
+  const questionId = useId();
   return (
-    <div className="question-block">
+    // El bloque completo se anuncia como grupo con el nombre de la pregunta,
+    // para que un lector de pantalla anuncie el contexto antes del control.
+    <div className="question-block" role="group" aria-labelledby={questionId}>
       <div className="question-title">
         <span>{number}</span>
-        <p>{question}</p>
+        <p id={questionId}>{question}</p>
       </div>
       {children}
     </div>
@@ -43,6 +46,9 @@ function YesNoRow({
   onChange: (v: YesNo) => void;
   extra?: ReactNode;
 }) {
+  // Sin `name` compartido los dos radios no son un grupo real: no navegan con
+  // las flechas ni se anuncian como "1 de 2".
+  const groupName = useId();
   return (
     <div className="stack-md">
       <div className="choice-row" style={{ marginLeft: 0 }}>
@@ -53,6 +59,7 @@ function YesNoRow({
           >
             <input
               type="radio"
+              name={groupName}
               checked={value === opt}
               onChange={() => onChange(opt)}
             />
@@ -527,8 +534,10 @@ export function FormWizardStepContent({
 
   if (step === 14) {
     return (
-      <label className="field">
-        <span className="field-label">Declaración jurada</span>
+      <div className="field" role="group" aria-labelledby="decl-jurada-label">
+        <span className="field-label" id="decl-jurada-label">
+          Declaración jurada
+        </span>
         <label className="radio-choice selected">
           <input
             type="checkbox"
@@ -539,7 +548,7 @@ export function FormWizardStepContent({
           Confirmo que la información es veraz y completa según el formulario
           VIE 2027.
         </label>
-      </label>
+      </div>
     );
   }
 

@@ -31,7 +31,12 @@ function PanelIntro({
 type ActionHandler = (action: string, payload?: unknown) => void;
 
 function CheckIcon() {
-  return <span className="custom-check">✓</span>;
+  // Decorativo: el estado ya lo anuncia el texto "Verificado" / "Falta verificar".
+  return (
+    <span className="custom-check" aria-hidden="true">
+      ✓
+    </span>
+  );
 }
 
 export function VinculacionPanel({
@@ -220,7 +225,7 @@ export function ComiteAsistentePanel({
           title="Checklist de completitud"
           description="Verifique la documentación formal antes de iniciar la evaluación técnica."
         />
-        <div className="checklist">
+        <div className="checklist" role="group" aria-label="Checklist de completitud">
           {Object.entries(checks).map(([name, ok]) => (
             <label key={name} className="check-row">
               <input
@@ -444,9 +449,10 @@ function RubricPanel({
                     <p>{full.aiReason}</p>
                   </div>
                   <div className="human-eval">
-                    <label className="field">
+                    <label className="field" htmlFor={`valoracion-${id}`}>
                       <span className="field-label">Valoración humana</span>
                       <select
+                        id={`valoracion-${id}`}
                         className="input"
                         value={row?.score ?? full.aiScore}
                         onChange={(e) =>
@@ -466,11 +472,15 @@ function RubricPanel({
                         ))}
                       </select>
                     </label>
-                    <label className="field">
+                    <label
+                      className="field"
+                      htmlFor={`justificacion-${id}`}
+                    >
                       <span className="field-label">
                         Justificación humana obligatoria
                       </span>
                       <textarea
+                        id={`justificacion-${id}`}
                         className="input textarea"
                         rows={3}
                         value={row?.reason ?? ""}

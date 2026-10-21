@@ -185,7 +185,15 @@ export function PropuestasPage() {
                         </span>
                       </td>
                       <td>
-                        <div className="mini-progress">
+                        <div
+                          className="mini-progress"
+                          role="progressbar"
+                          aria-label={`Avance del expediente ${p.id}`}
+                          aria-valuenow={pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuetext={`${pct}%`}
+                        >
                           <div style={{ width: `${pct}%` }} />
                           <span>{pct}%</span>
                         </div>

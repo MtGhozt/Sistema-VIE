@@ -238,6 +238,7 @@ export function EvaluacionesPage() {
                   className="input"
                   value={selectedId}
                   onChange={(e) => setSelectedId(e.target.value)}
+                  aria-label="Expediente activo"
                 >
                   {proposals.map((p) => (
                     <option key={p.id} value={p.id}>

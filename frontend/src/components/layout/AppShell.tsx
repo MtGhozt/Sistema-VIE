@@ -18,6 +18,7 @@ import { NotificationBell } from "./NotificationBell";
 
 export function AppShell() {
   const { session, logout, setViewRole, isAdminSession } = useAuth();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
   if (!session) return null;
@@ -28,7 +29,6 @@ export function AppShell() {
   const personTitle = isAdminSession
     ? session.roleName
     : getRole(viewRole).short;
-  const { unreadCount } = useNotifications();
   const allowed = ROUTES_BY_ROLE[isAdminSession ? "admin" : viewRole];
   const nav = NAV_ITEMS.filter((item) => allowed.includes(item.to));
 
@@ -39,6 +39,9 @@ export function AppShell() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#contenido">
+        Saltar al contenido principal
+      </a>
       <aside className="sidebar">
         <div className="brand-block brand-block-tec">
           <TecLogo variant="blanco" />
@@ -77,7 +80,7 @@ export function AppShell() {
           )}
         </nav>
 
-        <div className="sidebar-footer">
+        <footer className="sidebar-footer">
           <div className="security-note">
             <IconShield size={15} /> Prototipo académico · TEC
           </div>
@@ -90,7 +93,7 @@ export function AppShell() {
             <span>Cerrar sesión</span>
           </button>
           <div className="copyright-note">© 2026 ITCR Costa Rica</div>
-        </div>
+        </footer>
       </aside>
 
       <div className="app-main">
@@ -134,7 +137,7 @@ export function AppShell() {
             </div>
           </div>
         </header>
-        <main className="content">
+        <main className="content" id="contenido" tabIndex={-1}>
           <Outlet />
         </main>
       </div>

@@ -15,14 +15,20 @@ export function AdministracionPage() {
       </header>
 
       <div className="admin-layout">
-        <aside className="card admin-tabs">
-          <button type="button" className="active">
+        <nav className="card admin-tabs" aria-label="Secciones de administración">
+          <button type="button" className="active" aria-current="page">
             Roles y permisos
           </button>
-          <button type="button">Usuarios</button>
-          <button type="button">Catálogos</button>
-          <button type="button">Formularios</button>
-        </aside>
+          <button type="button" disabled title="No implementado en el prototipo">
+            Usuarios
+          </button>
+          <button type="button" disabled title="No implementado en el prototipo">
+            Catálogos
+          </button>
+          <button type="button" disabled title="No implementado en el prototipo">
+            Formularios
+          </button>
+        </nav>
 
         <section className="card admin-content">
           <div className="section-title">

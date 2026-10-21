@@ -19,8 +19,10 @@ const SRC = {
 } as const;
 
 /**
- * Logo institucional TEC (docs/manual-identidad-tec/logotec.pdf).
- * PNGs en frontend/public/brand/.
+ * Logo institucional TEC.
+ *
+ * Assets generados desde el Manual de Identidad (docs/manual-identidad-tec/)
+ * con `pnpm brand` → PNGs en frontend/public/brand/.
  */
 export function TecLogo({
   variant = "blanco",
@@ -34,7 +36,7 @@ export function TecLogo({
       alt="TEC · Tecnológico de Costa Rica"
       className={`tec-logo-oficial ${className}`.trim()}
       width={mark === "full" ? 240 : 96}
-      height={mark === "full" ? 38 : 40}
+      height={mark === "full" ? 47 : 38}
       decoding="async"
       {...rest}
     />

@@ -8,6 +8,12 @@
     "dev:backend": "pnpm --filter sistema-vie-backend dev",
     "build": "pnpm -r run build",
     "db:up": "docker compose up -d",
-    "db:down": "docker compose down"
+    "db:down": "docker compose down",
+    "brand": "node scripts/build-brand-assets.mjs",
+    "brand:preview": "node scripts/extract-logotec.mjs"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^1.0.10",
+    "pdfjs-dist": "^6.3.289"
   }
 }

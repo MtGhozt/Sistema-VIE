@@ -15,6 +15,9 @@ yarn.lock
 *.sqlite
 *.sqlite3
 
+# Salida de scripts (renders de inspección, etc.)
+out/
+
 # Logs and caches
 *.log
 npm-debug.log*

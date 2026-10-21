@@ -47,11 +47,24 @@ Solo uno: `pnpm dev:frontend` o `pnpm dev:backend`.
 |-----|--------|
 | App React | `frontend/src` |
 | Favicon / estáticos | `frontend/public` |
+| Logo TEC (assets de marca) | `frontend/public/brand/` + `docs/manual-identidad-tec/` |
+| Scripts de repo | `scripts/` |
 | API | `backend/src` |
 | SQL | `database/*.sql` |
 | Diseño BD (MD/PDF/DBML) | `docs/database/` |
 | Prototipo HTML viejo | `docs/prototipo-html-referencia/` |
 | API SQLite antigua | `docs/backend-legacy/` |
+
+## Scripts de la raíz
+
+```powershell
+pnpm brand          # regenera los PNG del logo TEC desde el manual de marca
+pnpm brand:preview  # renderiza los PDF del manual a out/brand-render/ (inspección)
+```
+
+Los assets de marca se generan desde los PDF vectoriales que están en
+`docs/manual-identidad-tec/`. No hay rutas absolutas ni dependencias de una sola
+máquina: cualquier compañero puede correrlos.
 
 ## Notas
 

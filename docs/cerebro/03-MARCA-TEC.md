@@ -37,6 +37,9 @@ proporciones significativas — solo como acento.
 - El prototipo usa el **logo oficial** de `docs/manual-identidad-tec/logotec.pdf`
   exportado a `frontend/public/brand/logotec-*.png` (azul / blanco).
   Area de reserva: no apretar el PNG; ancho ~220px en sidebar.
+- Los PNG **no** son capturas de pantalla: se generan desde el PDF vectorial del
+  manual con `pnpm brand` (`scripts/build-brand-assets.mjs`). Regenerarlos si se
+  cambia el manual, y no editarlos a mano.
 
 ## 3. Tipografía y tono
 

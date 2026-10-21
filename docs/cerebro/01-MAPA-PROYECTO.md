@@ -1,6 +1,6 @@
 # 01 — MAPA DEL PROYECTO | Qué hay en cada carpeta
 
-> Inventario físico del repo. Ruta base: `C:\Universidad\ProyectosU\IVSemestre\Diseno\Proeycto1\`
+> Inventario físico del repo. Las rutas de este documento son **relativas a la raíz del repo** (donde clones el proyecto), no a una carpeta local concreta.
 
 ## Raíz (cerebro teórico — fuera de todas las carpetas)
 

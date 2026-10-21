@@ -13,11 +13,17 @@
 - Remoto: https://github.com/MatiasBS027/Sistema-VIE (privado)
 - Rama: `master`
 
-## Repo oficial (local)
+## Repo oficial
 
-`C:\Universidad\ProyectosU\IVSemestre\Diseno\Sistema-VIE`
+Clon desde GitHub (repo privado → pedir acceso a Matias):
 
-Estructura:
+```powershell
+git clone https://github.com/MatiasBS027/Sistema-VIE
+cd Sistema-VIE
+pnpm install
+```
+
+Estructura (todas las rutas son relativas a la raíz del repo):
 
 - `backend/` — **solo código** API Express + TS + PostgreSQL
 - `frontend/` — **solo código** React + TS + Vite

@@ -3,7 +3,7 @@
 **Audiencia:** todo el equipo.  
 **Autor de esta versión:** Matias + asistente Cursor (2026-10-01).  
 **Repo:** [https://github.com/MatiasBS027/Sistema-VIE](https://github.com/MatiasBS027/Sistema-VIE) (privado)  
-**Carpeta local:** `C:\Universidad\ProyectosU\IVSemestre\Diseno\Sistema-VIE`
+**Carpeta local:** la raíz del repo donde clones el proyecto (todas las rutas de este doc son relativas a esa raíz)
 
 > **Cómo usar este documento:** léelo de arriba abajo una vez.  
 > Luego trabaja solo la fase activa. Toda decisión nueva se anota en §11 (bitácora).

@@ -3,10 +3,17 @@ import { useToast } from "./ToastContext";
 export function ToastHost() {
   const { toasts, dismissToast } = useToast();
 
-  if (toasts.length === 0) return null;
-
+  // La región live debe existir en el DOM ANTES de que aparezca el contenido:
+  // si se monta junto con el toast, la mayoría de lectores de pantalla
+  // (NVDA/JAWS) no lo anuncia (WCAG 4.1.3). Por eso el contenedor nunca se
+  // desmonta; solo se vacía.
   return (
-    <div className="toast-stack" aria-live="polite" aria-relevant="additions">
+    <div
+      className="toast-stack"
+      aria-live="polite"
+      aria-relevant="additions"
+      aria-atomic="false"
+    >
       {toasts.map((t) => (
         <div
           key={t.id}

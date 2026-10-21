@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ProcessTimeline } from "../components/ProcessTimeline";
+import { SimpleModal } from "../components/evaluation/SimpleModal";
 
 type HistoricoItem = {
   id: string;
@@ -75,74 +76,54 @@ function HistoricoModal({
   onClose: () => void;
 }) {
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="historico-modal-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="modal-header">
-          <div>
-            <h2 id="historico-modal-title">{item.proyecto}</h2>
-            <p>
-              {item.id} · Expediente histórico
-            </p>
-          </div>
-          <button
-            type="button"
-            className="icon-btn"
-            aria-label="Cerrar"
-            onClick={onClose}
-          >
-            ×
-          </button>
+    <SimpleModal
+      open
+      title={item.proyecto}
+      description={`${item.id} · Expediente histórico`}
+      onClose={onClose}
+      bodyClassName="historical-detail"
+      footer={
+        <button type="button" className="btn btn-primary" onClick={onClose}>
+          Cerrar expediente
+        </button>
+      }
+    >
+      <div className="detail-grid">
+        <div>
+          <span>Escuela</span>
+          <strong>{item.escuela}</strong>
         </div>
-        <div className="modal-body historical-detail">
-          <div className="detail-grid">
-            <div>
-              <span>Escuela</span>
-              <strong>{item.escuela}</strong>
-            </div>
-            <div>
-              <span>Persona investigadora</span>
-              <strong>{item.investigador}</strong>
-            </div>
-            <div>
-              <span>Temática</span>
-              <strong>{item.tema}</strong>
-            </div>
-            <div>
-              <span>Resultado</span>
-              <strong>
-                <span
-                  className={
-                    item.estado === "Aprobada" ? "badge badge-primary" : "badge"
-                  }
-                >
-                  {item.estado}
-                </span>
-              </strong>
-            </div>
-          </div>
-          <h3>Ruta institucional</h3>
-          <ProcessTimeline currentStep={6} completed />
-          <div className="historical-docs">
-            <strong>Documentos generados</strong>
-            <span>Dictamen PI · CV-023-2026</span>
-            <span>Oficio Comité · CT-041-2026</span>
-            <span>Aval Consejo · ESC-COMP-117-2026</span>
-            <span>Resolución · CIE-RES-084-2026</span>
-          </div>
+        <div>
+          <span>Persona investigadora</span>
+          <strong>{item.investigador}</strong>
         </div>
-        <div className="modal-footer">
-          <button type="button" className="btn btn-primary" onClick={onClose}>
-            Cerrar expediente
-          </button>
+        <div>
+          <span>Temática</span>
+          <strong>{item.tema}</strong>
+        </div>
+        <div>
+          <span>Resultado</span>
+          <strong>
+            <span
+              className={
+                item.estado === "Aprobada" ? "badge badge-primary" : "badge"
+              }
+            >
+              {item.estado}
+            </span>
+          </strong>
         </div>
       </div>
-    </div>
+      <h3>Ruta institucional</h3>
+      <ProcessTimeline currentStep={6} completed />
+      <div className="historical-docs">
+        <strong>Documentos generados</strong>
+        <span>Dictamen PI · CV-023-2026</span>
+        <span>Oficio Comité · CT-041-2026</span>
+        <span>Aval Consejo · ESC-COMP-117-2026</span>
+        <span>Resolución · CIE-RES-084-2026</span>
+      </div>
+    </SimpleModal>
   );
 }
 
@@ -201,9 +182,10 @@ export function HistoricoPage() {
           </button>
         </div>
         <div className="form-grid five-col">
-          <label className="field">
+          <label className="field" htmlFor="filtro-escuela">
             <span className="field-label">Escuela / Dependencia</span>
             <input
+              id="filtro-escuela"
               className="input"
               value={filters.escuela}
               onChange={(e) =>
@@ -212,9 +194,10 @@ export function HistoricoPage() {
               placeholder="Ej. Computación"
             />
           </label>
-          <label className="field">
+          <label className="field" htmlFor="filtro-investigador">
             <span className="field-label">Persona investigadora</span>
             <input
+              id="filtro-investigador"
               className="input"
               value={filters.investigador}
               onChange={(e) =>
@@ -223,18 +206,20 @@ export function HistoricoPage() {
               placeholder="Nombre"
             />
           </label>
-          <label className="field">
+          <label className="field" htmlFor="filtro-tema">
             <span className="field-label">Temática</span>
             <input
+              id="filtro-tema"
               className="input"
               value={filters.tema}
               onChange={(e) => setFilters({ ...filters, tema: e.target.value })}
               placeholder="Ej. Energía"
             />
           </label>
-          <label className="field">
+          <label className="field" htmlFor="filtro-estado">
             <span className="field-label">Estado</span>
             <select
+              id="filtro-estado"
               className="input"
               value={filters.estado}
               onChange={(e) =>
@@ -246,9 +231,10 @@ export function HistoricoPage() {
               <option>Rechazada</option>
             </select>
           </label>
-          <label className="field">
+          <label className="field" htmlFor="filtro-anio">
             <span className="field-label">Año</span>
             <select
+              id="filtro-anio"
               className="input"
               value={filters.anio}
               onChange={(e) =>

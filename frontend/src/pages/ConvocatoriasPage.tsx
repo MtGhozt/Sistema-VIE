@@ -178,11 +178,15 @@ export function ConvocatoriasPage() {
         )}
       </header>
 
-      {error && (
-        <p className="field-error-text" role="alert" style={{ marginBottom: 12 }}>
-          {error}
-        </p>
-      )}
+      {/* Región live siempre montada: si el mensaje llega con el nodo, el
+          lector de pantalla puede no anunciarlo (WCAG 4.1.3). */}
+      <div role="alert" aria-live="assertive">
+        {error && (
+          <p className="field-error-text" style={{ marginBottom: 12 }}>
+            {error}
+          </p>
+        )}
+      </div>
 
       {showForm && canPublish && (
         <form

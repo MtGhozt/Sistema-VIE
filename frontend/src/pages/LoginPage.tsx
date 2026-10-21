@@ -123,7 +123,7 @@ export function LoginPage() {
         </div>
       </div>
 
-      <div className="login-form-panel">
+      <main className="login-form-panel">
         <form className="login-form" onSubmit={onSubmit}>
           <div className="login-form-title">
             <span className="eyebrow">Acceso institucional</span>
@@ -134,23 +134,28 @@ export function LoginPage() {
             </p>
           </div>
 
-          {apiOk === false && (
-            <p className="field-error-text" role="alert">
-              No hay conexión con la API. Desde la raíz:{" "}
-              <code>pnpm db:up</code> y <code>pnpm dev</code>.
-            </p>
-          )}
-          {apiOk === true && (
-            <p className="field-hint" role="status">
-              API conectada · login demo por rol
-            </p>
-          )}
+          {/* Las regiones live existen siempre en el DOM: si se montan junto
+              con el mensaje, el lector de pantalla puede no anunciarlo. */}
+          <div role="alert" aria-live="assertive">
+            {apiOk === false && (
+              <p className="field-error-text">
+                No hay conexión con la API. Desde la raíz:{" "}
+                <code>pnpm db:up</code> y <code>pnpm dev</code>.
+              </p>
+            )}
+          </div>
+          <div role="status" aria-live="polite">
+            {apiOk === true && (
+              <p className="field-hint">API conectada · login demo por rol</p>
+            )}
+          </div>
 
-          <label className="field">
+          <label className="field" htmlFor="login-correo">
             <span className="field-label">Correo institucional</span>
             <div className="input-icon-wrap">
               <IconMail size={17} />
               <input
+                id="login-correo"
                 className="input"
                 type="email"
                 value={email}
@@ -161,11 +166,12 @@ export function LoginPage() {
             </div>
           </label>
 
-          <label className="field">
+          <label className="field" htmlFor="login-contrasena">
             <span className="field-label">Contraseña</span>
             <div className="input-icon-wrap">
               <IconLock size={17} />
               <input
+                id="login-contrasena"
                 className="input"
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -234,7 +240,7 @@ export function LoginPage() {
             el navegador con datos del usuario seed en Postgres.
           </p>
         </form>
-      </div>
+      </main>
     </div>
   );
 }

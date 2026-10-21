@@ -8,6 +8,8 @@ const RECENT_LIMIT = 4;
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverId = "notif-popover";
   const { items, unreadCount, markAsRead } = useNotifications();
   const recent = items.slice(0, RECENT_LIMIT);
 
@@ -20,7 +22,11 @@ export function NotificationBell() {
       }
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        // El foco vuelve al botón que abrió el popover (WCAG 2.4.3).
+        buttonRef.current?.focus();
+      }
     }
 
     document.addEventListener("mousedown", onPointerDown);
@@ -34,6 +40,7 @@ export function NotificationBell() {
   return (
     <div className="notif-bell" ref={rootRef}>
       <button
+        ref={buttonRef}
         type="button"
         className="topbar-icon"
         aria-label={
@@ -41,8 +48,9 @@ export function NotificationBell() {
             ? `Notificaciones (${unreadCount} sin leer)`
             : "Notificaciones"
         }
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
         aria-expanded={open}
+        aria-controls={popoverId}
         onClick={() => setOpen((v) => !v)}
       >
         <IconBell size={18} />
@@ -50,9 +58,12 @@ export function NotificationBell() {
       </button>
 
       {open && (
+        // Popover de notificaciones: se anuncia como diálogo (no como menú,
+        // porque sus hijos no son menuitem y no navega con flechas).
         <div
           className="notif-popover"
-          role="menu"
+          id={popoverId}
+          role="dialog"
           aria-label="Notificaciones recientes"
         >
           <div className="notif-popover-head">
@@ -67,7 +78,6 @@ export function NotificationBell() {
                 <button
                   type="button"
                   className={`notif-popover-item${n.unread ? " unread" : ""}`}
-                  role="menuitem"
                   onClick={() => {
                     markAsRead(n.id);
                   }}

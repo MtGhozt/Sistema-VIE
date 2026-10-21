@@ -1,72 +1,38 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import {
+  EMPTY_HISTORICO_FILTROS,
+  fetchHistorico,
+  type HistoricoFiltros,
+  type HistoricoItem,
+  type HistoricoOpciones,
+} from "../api/historico";
+import { ApiError } from "../api/client";
 import { ProcessTimeline } from "../components/ProcessTimeline";
 import { SimpleModal } from "../components/evaluation/SimpleModal";
+import { useToast } from "../components/toast/ToastContext";
 
-type HistoricoItem = {
-  id: string;
-  proyecto: string;
-  escuela: string;
-  investigador: string;
-  tema: string;
-  estado: "Aprobada" | "Rechazada";
-  anio: string;
+const EMPTY_OPTIONS: HistoricoOpciones = {
+  escuelas: [],
+  lineas: [],
+  estados: [],
+  anios: [],
 };
 
-export const HISTORICO_ITEMS: HistoricoItem[] = [
-  {
-    id: "PROP-2026-031",
-    proyecto: "Optimización energética en microredes universitarias",
-    escuela: "Escuela de Electromecánica",
-    investigador: "Ana Solano",
-    tema: "Energía",
-    estado: "Aprobada",
-    anio: "2026",
-  },
-  {
-    id: "PROP-2026-018",
-    proyecto: "Modelo predictivo de erosión en cuencas del Caribe",
-    escuela: "Escuela de Ingeniería Forestal",
-    investigador: "David Mora",
-    tema: "Ambiente",
-    estado: "Aprobada",
-    anio: "2026",
-  },
-  {
-    id: "PROP-2025-044",
-    proyecto: "Herramienta de apoyo para diagnóstico de enfermedades del café",
-    escuela: "Escuela de Computación",
-    investigador: "Laura Vega",
-    tema: "Agrotecnología",
-    estado: "Rechazada",
-    anio: "2025",
-  },
-  {
-    id: "PROP-2025-027",
-    proyecto: "Análisis de materiales sostenibles para construcción",
-    escuela: "Escuela de Construcción",
-    investigador: "Mario Rojas",
-    tema: "Materiales",
-    estado: "Aprobada",
-    anio: "2025",
-  },
-];
+function yearOf(iso: string | null) {
+  return iso ? Number(iso.slice(0, 4)) : null;
+}
 
-type Filters = {
-  escuela: string;
-  investigador: string;
-  tema: string;
-  estado: string;
-  anio: string;
-};
-
-const EMPTY_FILTERS: Filters = {
-  escuela: "",
-  investigador: "",
-  tema: "",
-  estado: "",
-  anio: "",
-};
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("es-CR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 function HistoricoModal({
   item,
@@ -78,8 +44,8 @@ function HistoricoModal({
   return (
     <SimpleModal
       open
-      title={item.proyecto}
-      description={`${item.id} · Expediente histórico`}
+      title={item.titulo}
+      description={`${item.codigo} · Expediente histórico`}
       onClose={onClose}
       bodyClassName="historical-detail"
       footer={
@@ -95,77 +61,123 @@ function HistoricoModal({
         </div>
         <div>
           <span>Persona investigadora</span>
-          <strong>{item.investigador}</strong>
+          <strong>{item.investigadora}</strong>
         </div>
         <div>
-          <span>Temática</span>
-          <strong>{item.tema}</strong>
+          <span>Línea / Temática</span>
+          <strong>{item.lineas.length ? item.lineas.join(", ") : "—"}</strong>
+        </div>
+        <div>
+          <span>Modalidad</span>
+          <strong>{item.modalidadLabel}</strong>
         </div>
         <div>
           <span>Resultado</span>
           <strong>
             <span
               className={
-                item.estado === "Aprobada" ? "badge badge-primary" : "badge"
+                item.estado === "aprobada"
+                  ? "badge badge-primary"
+                  : "badge"
               }
             >
-              {item.estado}
+              {item.estadoLabel}
             </span>
           </strong>
         </div>
+        <div>
+          <span>Fecha de resolución</span>
+          <strong>{formatDate(item.fechaResolucion)}</strong>
+        </div>
       </div>
       <h3>Ruta institucional</h3>
-      <ProcessTimeline currentStep={6} completed />
-      <div className="historical-docs">
-        <strong>Documentos generados</strong>
-        <span>Dictamen PI · CV-023-2026</span>
-        <span>Oficio Comité · CT-041-2026</span>
-        <span>Aval Consejo · ESC-COMP-117-2026</span>
-        <span>Resolución · CIE-RES-084-2026</span>
-      </div>
+      <ProcessTimeline
+        currentStep={item.etapaFlujo}
+        completed={item.estado === "aprobada" || item.estado === "rechazada"}
+      />
+      {item.documentos.length > 0 && (
+        <div className="historical-docs">
+          <strong>Documentos generados</strong>
+          {item.documentos.map((d) => (
+            <span key={d.numero}>
+              {d.tipo} · {d.numero}
+            </span>
+          ))}
+        </div>
+      )}
     </SimpleModal>
   );
 }
 
 export function HistoricoPage() {
   const { codigo } = useParams();
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const { showToast } = useToast();
+  const [filtros, setFiltros] = useState<HistoricoFiltros>(
+    EMPTY_HISTORICO_FILTROS,
+  );
+  const [items, setItems] = useState<HistoricoItem[]>([]);
+  const [opciones, setOpciones] = useState<HistoricoOpciones>(EMPTY_OPTIONS);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<HistoricoItem | null>(null);
 
+  const cargar = useCallback(async (f: HistoricoFiltros) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchHistorico(f);
+      setItems(data.items);
+      setOpciones(data.opciones);
+    } catch (err) {
+      setItems([]);
+      const mensaje =
+        err instanceof ApiError
+          ? err.message
+          : "No se pudo consultar el histórico de propuestas";
+      setError(mensaje);
+      showToast(mensaje, "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
+
+  // La búsqueda por texto se difiere 300 ms para no golpear la API en cada tecla.
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      void cargar(filtros);
+    }, 300);
+    return () => window.clearTimeout(t);
+  }, [filtros, cargar]);
+
+  // Deep-link /historico/:codigo → abre el expediente directamente.
   useEffect(() => {
     if (!codigo) return;
-    const found = HISTORICO_ITEMS.find((h) => h.id === codigo);
+    const found = items.find((h) => h.codigo === codigo);
     if (found) setSelected(found);
-  }, [codigo]);
+  }, [codigo, items]);
 
-  const filtered = useMemo(() => {
-    return HISTORICO_ITEMS.filter((h) => {
-      const esc =
-        !filters.escuela ||
-        h.escuela.toLowerCase().includes(filters.escuela.toLowerCase());
-      const inv =
-        !filters.investigador ||
-        h.investigador
-          .toLowerCase()
-          .includes(filters.investigador.toLowerCase());
-      const tema =
-        !filters.tema ||
-        h.tema.toLowerCase().includes(filters.tema.toLowerCase());
-      const est = !filters.estado || h.estado === filters.estado;
-      const anio = !filters.anio || h.anio === filters.anio;
-      return esc && inv && tema && est && anio;
-    });
-  }, [filters]);
+  const activos = useMemo(
+    () => Object.values(filtros).filter(Boolean).length,
+    [filtros],
+  );
+
+  function set<K extends keyof HistoricoFiltros>(
+    key: K,
+    value: HistoricoFiltros[K],
+  ) {
+    setFiltros((f) => ({ ...f, [key]: value }));
+  }
 
   return (
     <>
       <header className="page-header">
         <div>
           <p className="eyebrow">Consulta histórica</p>
-          <h1>Propuestas resueltas</h1>
+          <h1>Histórico de propuestas</h1>
           <p>
             Consulte expedientes históricos mediante filtros combinables por
-            dependencia, persona investigadora, temática y resultado.
+            dependencia, persona investigadora, línea de investigación, estado
+            y año.
           </p>
         </div>
       </header>
@@ -176,59 +188,69 @@ export function HistoricoPage() {
           <button
             type="button"
             className="btn btn-ghost"
-            onClick={() => setFilters(EMPTY_FILTERS)}
+            onClick={() => setFiltros(EMPTY_HISTORICO_FILTROS)}
+            disabled={activos === 0}
           >
-            Limpiar
+            Limpiar{activos > 0 ? ` (${activos})` : ""}
           </button>
         </div>
         <div className="form-grid five-col">
           <label className="field" htmlFor="filtro-escuela">
             <span className="field-label">Escuela / Dependencia</span>
-            <input
+            <select
               id="filtro-escuela"
               className="input"
-              value={filters.escuela}
-              onChange={(e) =>
-                setFilters({ ...filters, escuela: e.target.value })
-              }
-              placeholder="Ej. Computación"
-            />
+              value={filtros.escuela}
+              onChange={(e) => set("escuela", e.target.value)}
+            >
+              <option value="">Todas</option>
+              {opciones.escuelas.map((e) => (
+                <option key={e.codigo} value={e.nombre}>
+                  {e.nombre}
+                </option>
+              ))}
+            </select>
           </label>
-          <label className="field" htmlFor="filtro-investigador">
+          <label className="field" htmlFor="filtro-investigadora">
             <span className="field-label">Persona investigadora</span>
             <input
-              id="filtro-investigador"
+              id="filtro-investigadora"
               className="input"
-              value={filters.investigador}
-              onChange={(e) =>
-                setFilters({ ...filters, investigador: e.target.value })
-              }
-              placeholder="Nombre"
+              value={filtros.investigadora}
+              onChange={(e) => set("investigadora", e.target.value)}
+              placeholder="Nombre o apellido"
             />
           </label>
-          <label className="field" htmlFor="filtro-tema">
-            <span className="field-label">Temática</span>
-            <input
-              id="filtro-tema"
+          <label className="field" htmlFor="filtro-linea">
+            <span className="field-label">Línea / Temática</span>
+            <select
+              id="filtro-linea"
               className="input"
-              value={filters.tema}
-              onChange={(e) => setFilters({ ...filters, tema: e.target.value })}
-              placeholder="Ej. Energía"
-            />
+              value={filtros.linea}
+              onChange={(e) => set("linea", e.target.value)}
+            >
+              <option value="">Todas</option>
+              {opciones.lineas.map((l) => (
+                <option key={l} value={l}>
+                  {l}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="field" htmlFor="filtro-estado">
             <span className="field-label">Estado</span>
             <select
               id="filtro-estado"
               className="input"
-              value={filters.estado}
-              onChange={(e) =>
-                setFilters({ ...filters, estado: e.target.value })
-              }
+              value={filtros.estado}
+              onChange={(e) => set("estado", e.target.value)}
             >
               <option value="">Todos</option>
-              <option>Aprobada</option>
-              <option>Rechazada</option>
+              {opciones.estados.map((s) => (
+                <option key={s.valor} value={s.valor}>
+                  {s.label}
+                </option>
+              ))}
             </select>
           </label>
           <label className="field" htmlFor="filtro-anio">
@@ -236,14 +258,15 @@ export function HistoricoPage() {
             <select
               id="filtro-anio"
               className="input"
-              value={filters.anio}
-              onChange={(e) =>
-                setFilters({ ...filters, anio: e.target.value })
-              }
+              value={filtros.anio}
+              onChange={(e) => set("anio", e.target.value)}
             >
               <option value="">Todos</option>
-              <option>2026</option>
-              <option>2025</option>
+              {opciones.anios.map((a) => (
+                <option key={a} value={String(a)}>
+                  {a}
+                </option>
+              ))}
             </select>
           </label>
         </div>
@@ -251,74 +274,101 @@ export function HistoricoPage() {
 
       <section className="card">
         <div className="results-head">
-          <strong>{filtered.length} resultados</strong>
+          <strong>
+            {loading
+              ? "Consultando…"
+              : `${items.length} ${items.length === 1 ? "resultado" : "resultados"}`}
+          </strong>
           <span>Los filtros pueden combinarse.</span>
         </div>
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Proyecto</th>
-                <th>Escuela</th>
-                <th>Persona investigadora</th>
-                <th>Temática</th>
-                <th>Año</th>
-                <th>Estado</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((row) => (
-                <tr
-                  key={row.id}
-                  className="clickable"
-                  tabIndex={0}
-                  onClick={() => setSelected(row)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSelected(row);
-                    }
-                  }}
-                >
-                  <td>
-                    <div className="table-primary">
-                      <strong>{row.proyecto}</strong>
-                      <span>{row.id}</span>
-                    </div>
-                  </td>
-                  <td>{row.escuela}</td>
-                  <td>{row.investigador}</td>
-                  <td>{row.tema}</td>
-                  <td>{row.anio}</td>
-                  <td>
-                    <span
-                      className={
-                        row.estado === "Aprobada"
-                          ? "badge badge-primary"
-                          : "badge"
-                      }
-                    >
-                      {row.estado}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelected(row);
-                      }}
-                    >
-                      Ver expediente
-                    </button>
-                  </td>
+
+        {error && (
+          <div role="alert" aria-live="assertive">
+            <p className="field-error-text">{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && items.length === 0 && (
+          <div className="empty-state small">
+            <strong>Sin resultados</strong>
+            <span>
+              Ninguna propuesta coincide con los filtros seleccionados.
+              Ajustá o limpiá los filtros para ampliar la búsqueda.
+            </span>
+          </div>
+        )}
+
+        {!loading && items.length > 0 && (
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Propuesta</th>
+                  <th>Escuela</th>
+                  <th>Persona investigadora</th>
+                  <th>Línea / Temática</th>
+                  <th>Año</th>
+                  <th>Estado</th>
+                  <th />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {items.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="clickable"
+                    tabIndex={0}
+                    onClick={() => setSelected(row)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelected(row);
+                      }
+                    }}
+                  >
+                    <td>
+                      <div className="table-primary">
+                        <strong>{row.titulo}</strong>
+                        <span>
+                          {row.codigo} · {row.modalidadLabel}
+                        </span>
+                      </div>
+                    </td>
+                    <td>{row.escuela}</td>
+                    <td>{row.investigadora}</td>
+                    <td>{row.lineas.length ? row.lineas.join(", ") : "—"}</td>
+                    <td>
+                      {yearOf(row.fechaResolucion ?? row.fechaEnvio) ?? "—"}
+                    </td>
+                    <td>
+                      <span
+                        className={
+                          row.estado === "aprobada"
+                            ? "badge badge-primary"
+                            : "badge"
+                        }
+                      >
+                        {row.estadoLabel}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelected(row);
+                        }}
+                      >
+                        Ver expediente
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {selected && (

@@ -70,9 +70,9 @@ el volumen por primera vez.
 La pantalla de login ofrece los **12 roles institucionales** (VIE publicación,
 persona investigadora, Centro de Vinculación, Comité Técnico, Consejo de
 Escuela, Dirección de Escuela, Gestora VIE, CIE, Dirección de Investigación y
-Super Administrador). El correo es `<codigo_rol>@tec.ac.cr` y la contraseña es
-la que se escriba: el prototipo **no valida credenciales** (login demo por
-rol, sin token).
+Super Administrador). El correo es `<codigo_rol>@tec.ac.cr` y la contraseña
+demo para todas las cuentas es `prototipo2026`; el backend valida el hash
+guardado en PostgreSQL.
 
 > El rol Super Administrador puede cambiar la "Vista actual" en la barra
 > superior para operar la app completa como CIE, Comité o Consejo.

@@ -33,7 +33,7 @@ type StoredSession = {
 
 type AuthContextValue = {
   session: Session | null;
-  loginWithRole: (roleCode: RoleId) => Promise<void>;
+  loginWithRole: (email: string, password: string, roleCode: RoleId) => Promise<void>;
   logout: () => void;
   setViewRole: (role: RoleId) => void;
   isAdminSession: boolean;
@@ -99,8 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return initial;
   });
 
-  const loginWithRole = useCallback(async (roleCode: RoleId) => {
-    const data = await postDemoLogin(roleCode);
+  const loginWithRole = useCallback(async (email: string, password: string, roleCode: RoleId) => {
+    const data = await postDemoLogin(email, password, roleCode);
     if (!isRoleId(data.user.roleCode)) {
       throw new Error("Rol devuelto por la API no es válido en el frontend");
     }

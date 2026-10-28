@@ -33,10 +33,10 @@ export function fetchDemoRoles() {
   return apiJson<DemoRoleRow[]>("/api/demo/roles");
 }
 
-export function postDemoLogin(roleCode: string) {
+export function postDemoLogin(email: string, password: string, roleCode: string) {
   return apiJson<DemoLoginResponse>("/api/demo/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roleCode }),
+    body: JSON.stringify({ email, password, roleCode }),
   });
 }

@@ -75,7 +75,7 @@ export function LoginPage() {
     setLoginError(null);
     setSubmitting(true);
     try {
-      await loginWithRole(role);
+      await loginWithRole(email, password, role);
       showToast("Sesión iniciada", "success");
       navigate("/inicio", { replace: true });
     } catch (err) {
@@ -146,7 +146,7 @@ export function LoginPage() {
           </div>
           <div role="status" aria-live="polite">
             {apiOk === true && (
-              <p className="field-hint">API conectada · login demo por rol</p>
+              <p className="field-hint">API conectada · acceso por credenciales</p>
             )}
           </div>
 
@@ -196,8 +196,7 @@ export function LoginPage() {
             <div>
               <strong>Perfil de demostración</strong>
               <span>
-                Roles cargados desde <code>/api/demo/roles</code>. La contraseña
-                no se valida (D13).
+                Cuenta demo: contraseña <code>prototipo2026</code>.
               </span>
             </div>
             <label className="field">

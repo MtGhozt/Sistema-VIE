@@ -50,18 +50,26 @@ INSERT INTO rol (codigo, nombre, descripcion) VALUES
 
 -- ---------------------------------------------------------------------------
 -- 3. Un usuario demo por rol (para el selector de login)
---    clave_hash se deja como marcador 'demo': el prototipo no valida claves.
+--    Contraseña de todas las cuentas: prototipo2026 (hash scrypt con salt único).
 -- ---------------------------------------------------------------------------
 INSERT INTO usuario (correo_institucional, clave_hash, nombre_completo, cedula, id_escuela, activo, fecha_registro)
-SELECT
-  r.codigo || '@tec.ac.cr',
-  'demo',
-  'Demo ' || r.nombre,
-  NULL,
-  (SELECT id_escuela FROM escuela WHERE codigo = 'EIC'),
-  true,
-  NOW()
-FROM rol r;
+SELECT r.codigo || '@tec.ac.cr', credentials.clave_hash, 'Demo ' || r.nombre, NULL,
+  (SELECT id_escuela FROM escuela WHERE codigo = 'EIC'), true, NOW()
+FROM rol r
+JOIN (VALUES
+  ('vie_publicacion', 'scrypt$18916e0b57dfedbaa1a6b4fd05255a6a$64c610e033b219a7e9b90e059b11e680497ca67c3440e5ae622141476c071ed9e63cc68f91e9a2be157354f34d05e7731828888e8eb5f2b9b6600d15c5dd0f85'),
+  ('investigador', 'scrypt$ef5314bdfb18fea1fe6dec84b9d248e4$681f867e1fc9fa8d31cfc14636cb7755ee69c7905cfad8cfdcb40bf24b8124396f07c8fecb62142f2a51dbb3ebe03e397f61ca0d7b0b31ecc7fe12a9a8622b80'),
+  ('vinculacion', 'scrypt$b18a6bb859cae5117c62cf1c4c1025ff$f33fc464b941710ad52fe2add58c1b114d18b3a3738043ea10d07db93330cd7c1f44f4363846fc97dbdeb107dcafed51be1c52bdd45122f6c2ecaaebe3f2b6f0'),
+  ('comite_asistente', 'scrypt$7cbd9227f38c1785b6a0ed0857e5888c$5dd4b51ef10e143b84a8971e32ba6b12ab0f16dec3529daad1571df339c8e49119229a5015b15e7869124fca0431da9ab3b3358111bb49e55ffee8ff1a95b772'),
+  ('comite_evaluador', 'scrypt$31c7c3ccd12c73bbcca16a4e689657c0$024186d10e3938f7b9d5e3d269490cdf434d0a2b8ab440ad55a743abb4bf689a5f078ab6c6f17901f5dd5a18f114c5199f6cf73f0e0ea4f67a9095e0537e2bf3'),
+  ('consejo_asistente', 'scrypt$28aa43c65af57c8e6c933c40e6644c64$1efb04c931540ce09806449505957f12ed356fa0d39d4f690c3bfa7875dd4136e93c24a6c7a9eee17bc1359a4c5d69463a22dc940cf279e580c2b04efaaab8fc'),
+  ('consejo', 'scrypt$bb970a3166b453bb95132790655f7eff$1c674383b809d03ca37a0e26fcbf8ddea0d7059e4d6bb32f33b6e0a0df1267e298da0c4dcfb34b8a26b4a32801f2adb6b8951fca5652f0a06bd79751b6a7ed4f'),
+  ('direccion_escuela', 'scrypt$e9eea304db3ee015dc5942c361641d65$7843a63066ecb93a10b6bc1263e5a6efe679796fadbe8cc3d89eeaa0f435693f4505b8e48b22e7c41f1f73160d93efd7f21b21d0a71bc6e54e04116b1adfedb9'),
+  ('gestora_vie', 'scrypt$d54d98f351e2e0582fdda098acfdcfba$6129b2adafdade9dcc5b0da99014ee5569e5f79352da666fce662b1c099c6c34a555f53709a16a6a86de33573338d038a8f30133d440ce67f65757119dc8bf9f'),
+  ('cie', 'scrypt$ce07a303c72924d0447bc8c5c1c6e46e$9eabf52ac36eb51ec87aa77428de5b80a243433c91fef505db6f663d7400e4776dac6d59092954d4adeb65ba81d82747ac27b9ecb005fae2d4570a9273dbea70'),
+  ('direccion_investigacion', 'scrypt$002cef2c7a9c959cdad7840c9fa68a08$25244bff52f4d429fa2701a63a2d533e7bf10b2178a04a5123ad8542110105b9391d0aa509b76044041fbcc8e486b5207c1b2a1631c43f481fec25cd4cbf1a90'),
+  ('admin', 'scrypt$b4e9051ab3b81c096d4bf4c1f9e5c07d$7bfa8d9baefdd2a5346ddbfa80fda07e7eeeac24ab198abf83708e47be5a9847f858ba06a8e715de36cdbc25f9e1e1d127c05b7bd7783ff69aea35988f1c0a10')
+) AS credentials(codigo, clave_hash) ON credentials.codigo = r.codigo;
 
 INSERT INTO usuario_rol (id_usuario, id_rol, fecha_asignacion)
 SELECT u.id_usuario, r.id_rol, CURRENT_DATE

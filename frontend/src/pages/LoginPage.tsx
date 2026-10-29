@@ -13,6 +13,8 @@ import { TecLogo } from "../components/TecLogo";
 import { useToast } from "../components/toast/ToastContext";
 import { isRoleId, type RoleId } from "../data/roles";
 
+const LAST_LOGIN_ROLE_KEY = "sistema-vie:last-login-role";
+
 export function LoginPage() {
   const { session, loginWithRole } = useAuth();
   const { showToast } = useToast();
@@ -41,10 +43,13 @@ export function LoginPage() {
         if (cancelled) return;
         setRoles(rows);
         setRolesError(null);
-        const first = rows[0];
-        if (first && isRoleId(first.codigo)) {
-          setRole(first.codigo);
-          setEmail(first.correo_institucional);
+        const savedRole = localStorage.getItem(LAST_LOGIN_ROLE_KEY);
+        const selected =
+          rows.find((row) => row.codigo === savedRole && isRoleId(row.codigo)) ??
+          rows.find((row) => isRoleId(row.codigo));
+        if (selected && isRoleId(selected.codigo)) {
+          setRole(selected.codigo);
+          setEmail(selected.correo_institucional);
         }
       } catch (err) {
         if (!cancelled) {
@@ -66,6 +71,7 @@ export function LoginPage() {
   function onRoleChange(next: string) {
     if (!isRoleId(next)) return;
     setRole(next);
+    localStorage.setItem(LAST_LOGIN_ROLE_KEY, next);
     const row = roles.find((r) => r.codigo === next);
     if (row) setEmail(row.correo_institucional);
   }
@@ -74,6 +80,7 @@ export function LoginPage() {
     e.preventDefault();
     setLoginError(null);
     setSubmitting(true);
+    localStorage.setItem(LAST_LOGIN_ROLE_KEY, role);
     try {
       await loginWithRole(email, password, role);
       showToast("Sesión iniciada", "success");

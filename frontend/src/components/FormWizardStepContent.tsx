@@ -573,8 +573,9 @@ export function FormWizardStepContent({
         {form.palabras}.
       </p>
       <p>
-        Al guardar se crea o actualiza el borrador con identificación y resumen.
-        El resto de secciones permanecen en el expediente del formulario.
+        «Guardar y salir» deja el expediente en borrador. «Enviar a revisión»
+        persiste el bloque núcleo (identificación, resumen, problema, objetivos,
+        metodología) y pasa la propuesta a la bandeja de evaluación.
       </p>
     </div>
   );

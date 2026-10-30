@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import {
+  enviarPropuesta,
   fetchPropuesta,
   type PropuestaDetalle,
 } from "../api/propuestas";
@@ -107,9 +108,27 @@ export function PropuestaDetallePage() {
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [loading, setLoading] = useState(!demo && Number.isFinite(proposalId));
+  const [sending, setSending] = useState(false);
 
   const canEditRole =
     session?.role === "investigador" || session?.role === "admin";
+
+  async function onEnviarBorrador() {
+    if (!detail || detail.estadoActual !== "borrador") return;
+    setSending(true);
+    try {
+      const sent = await enviarPropuesta(detail.id);
+      setDetail(sent);
+      showToast(`Propuesta ${sent.codigo} enviada a revisión`, "success");
+    } catch (err) {
+      showToast(
+        err instanceof ApiError ? err.message : "No se pudo enviar",
+        "error",
+      );
+    } finally {
+      setSending(false);
+    }
+  }
 
   useEffect(() => {
     if (demo || !Number.isFinite(proposalId)) {
@@ -200,6 +219,9 @@ export function PropuestaDetallePage() {
         proposal={model}
         showEdit={canEditRole && isDraft}
         editTo={`/propuestas/nueva?edit=${detail.id}`}
+        showSend={canEditRole && isDraft}
+        sending={sending}
+        onSend={() => void onEnviarBorrador()}
       />
     </>
   );

@@ -117,6 +117,7 @@ Paridad visual/flujo del prototipo HTML recuperada en:
 |-------|-----|-----------|
 | 2026-10-29 | **CU3/CU4 API + UI**: bandeja y acciones persistidas; flujo investigador→evaluador→histórico demostrable | `evaluacion_puntaje` fino; oficios PDF |
 | 2026-10-29 | **CU2 ampliación**: problema / objetivo general / metodología en create+patch | equipo, plan, presupuesto en tablas hijas |
+| 2026-10-29 | **CU2 enviar desde UI**: wizard «Enviar a revisión» + detalle de borrador llaman `POST /propuestas/:id/enviar` | — |
 | 2026-10-29 | Oficiales VIE convertidos a Markdown (`docs/oficiales-vie/markdown/`) | — |
 | 2026-10-21 | **Sprint 3 — a11y WCAG AA**: contraste, foco visible, modales accesibles, live regions, roles ARIA, skip-link, jerarquía de encabezados | Toggle alto contraste; alt text uploads; NVDA/JAWS |
 | 2026-10-21 | **Sprint 1 — CU5 histórico**: endpoint con filtros combinables en Postgres, frontend conectado, seed realista (6 escuelas · 12 investigadoras · 16 propuestas · 8 líneas) | — |

@@ -4,8 +4,10 @@ import { ApiError } from "../api/client";
 import { fetchConvocatorias, type Convocatoria } from "../api/convocatorias";
 import {
   createPropuesta,
+  enviarPropuesta,
   fetchPropuesta,
   patchPropuesta,
+  type PropuestaDetalle,
 } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
 import { FormWizardStepContent } from "../components/FormWizardStepContent";
@@ -105,6 +107,30 @@ export function PropuestaNuevaPage() {
     setSaveStatus("Guardado automáticamente hace unos segundos");
   }
 
+  function draftPayload() {
+    return {
+      titulo: form.titulo.trim(),
+      modalidad: form.modalidad,
+      resumen: form.resumen.trim() || undefined,
+      abstractEn: form.abstract.trim() || undefined,
+      problema: form.problema.trim() || undefined,
+      objetivoGeneral: form.objetivos.trim() || undefined,
+      metodologia: form.metodologia.trim() || undefined,
+      keywordsEs: form.palabras,
+      keywordsEn: "",
+    };
+  }
+
+  async function persistDraft(): Promise<PropuestaDetalle> {
+    if (isEditing) {
+      return patchPropuesta(editId, draftPayload());
+    }
+    return createPropuesta({
+      ...draftPayload(),
+      idConvocatoria: Number(idConvocatoria),
+    });
+  }
+
   async function onSave() {
     if (!canCreate) {
       showToast("Ingresá como investigador para crear propuestas", "error");
@@ -116,39 +142,45 @@ export function PropuestaNuevaPage() {
     }
     setSaving(true);
     try {
-      if (isEditing) {
-        const updated = await patchPropuesta(editId, {
-          titulo: form.titulo.trim(),
-          modalidad: form.modalidad,
-          resumen: form.resumen.trim() || undefined,
-          abstractEn: form.abstract.trim() || undefined,
-          problema: form.problema.trim() || undefined,
-          objetivoGeneral: form.objetivos.trim() || undefined,
-          metodologia: form.metodologia.trim() || undefined,
-          keywordsEs: form.palabras,
-          keywordsEn: "",
-        });
-        showToast("Borrador guardado", "success");
-        navigate(`/propuestas/${updated.id}`, { replace: true });
-      } else {
-        const created = await createPropuesta({
-          titulo: form.titulo.trim(),
-          idConvocatoria: Number(idConvocatoria),
-          modalidad: form.modalidad,
-          resumen: form.resumen.trim() || undefined,
-          abstractEn: form.abstract.trim() || undefined,
-          problema: form.problema.trim() || undefined,
-          objetivoGeneral: form.objetivos.trim() || undefined,
-          metodologia: form.metodologia.trim() || undefined,
-          keywordsEs: form.palabras,
-          keywordsEn: "",
-        });
-        showToast("Borrador guardado", "success");
-        navigate(`/propuestas/${created.id}`, { replace: true });
-      }
+      const saved = await persistDraft();
+      showToast("Borrador guardado", "success");
+      navigate(`/propuestas/${saved.id}`, { replace: true });
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : "No se pudo guardar",
+        "error",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  /** Guarda el borrador y lo envía a revisión (CU2 → bandeja CU3). */
+  async function onEnviar() {
+    if (!canCreate) {
+      showToast("Ingresá como investigador para enviar propuestas", "error");
+      return;
+    }
+    if (!form.titulo.trim() || idConvocatoria === "") {
+      showToast("Completá título y convocatoria antes de enviar", "error");
+      return;
+    }
+    if (!form.declaracion) {
+      showToast("Debés aceptar la declaración jurada antes de enviar", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const saved = await persistDraft();
+      const sent = await enviarPropuesta(saved.id);
+      showToast(
+        `Propuesta ${sent.codigo} enviada a revisión`,
+        "success",
+      );
+      navigate(`/propuestas/${sent.id}`, { replace: true });
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "No se pudo enviar la propuesta",
         "error",
       );
     } finally {
@@ -285,14 +317,24 @@ export function PropuestaNuevaPage() {
                   Siguiente
                 </button>
               ) : (
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={saving}
-                  onClick={() => void onSave()}
-                >
-                  Guardar y salir
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={saving}
+                    onClick={() => void onSave()}
+                  >
+                    Guardar y salir
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={saving}
+                    onClick={() => void onEnviar()}
+                  >
+                    Enviar a revisión
+                  </button>
+                </>
               )}
             </div>
           </div>

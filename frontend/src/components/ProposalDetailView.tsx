@@ -30,11 +30,18 @@ export function ProposalDetailView({
   proposal,
   showEdit = false,
   editTo = "/propuestas/nueva",
+  showSend = false,
+  sending = false,
+  onSend,
 }: {
   proposal: ProposalDetailModel;
   /** Solo borradores: enviadas / en flujo = solo lectura. */
   showEdit?: boolean;
   editTo?: string;
+  /** Botón para enviar borrador a revisión (API). */
+  showSend?: boolean;
+  sending?: boolean;
+  onSend?: () => void;
 }) {
   const [tab, setTab] = useState<TabId>("resumen");
 
@@ -53,9 +60,19 @@ export function ProposalDetailView({
             Volver
           </Link>
           {showEdit && (
-            <Link to={editTo} className="btn btn-primary">
+            <Link to={editTo} className="btn btn-secondary">
               Editar propuesta
             </Link>
+          )}
+          {showSend && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={sending}
+              onClick={() => onSend?.()}
+            >
+              {sending ? "Enviando…" : "Enviar a revisión"}
+            </button>
           )}
         </div>
       </header>

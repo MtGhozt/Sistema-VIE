@@ -5,6 +5,7 @@ import { demoRouter } from "./routes/demoAuth.js";
 import { convocatoriasRouter } from "./routes/convocatorias.js";
 import { propuestasRouter } from "./routes/propuestas.js";
 import { historicoRouter } from "./routes/historico.js";
+import { evaluacionesRouter } from "./routes/evaluaciones.js";
 import { attachDemoAuth } from "./middleware/demoAuth.js";
 
 export function createApp() {
@@ -26,6 +27,7 @@ export function createApp() {
   app.use("/api", convocatoriasRouter);
   app.use("/api", propuestasRouter);
   app.use("/api", historicoRouter);
+  app.use("/api", evaluacionesRouter);
 
   return app;
 }

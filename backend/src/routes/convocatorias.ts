@@ -1,10 +1,40 @@
-import { Router } from "express";
+import { Router, type Response } from "express";
 import { query } from "../db.js";
 import { requireDemoAuth, requirePublisher } from "../middleware/demoAuth.js";
 
 export const convocatoriasRouter = Router();
 
 const ESTADOS = new Set(["borrador", "activa", "cerrada", "finalizada"]);
+const MAX_PRESUPUESTO = 999_999_999_999.99;
+
+type PresupuestoResult =
+  | { valid: true; value: number | null }
+  | { valid: false };
+
+function parsePresupuesto(value: unknown): PresupuestoResult {
+  if (value === undefined || value === null || value === "") {
+    return { valid: true, value: null };
+  }
+  if (typeof value !== "number" && typeof value !== "string") {
+    return { valid: false };
+  }
+
+  const parsed = typeof value === "string" ? Number(value.trim()) : value;
+  if (
+    !Number.isFinite(parsed) ||
+    parsed < 0 ||
+    parsed > MAX_PRESUPUESTO
+  ) {
+    return { valid: false };
+  }
+  return { valid: true, value: parsed };
+}
+
+function sendInvalidPresupuesto(res: Response) {
+  res.status(400).json({
+    error: "presupuestoEstimado debe ser un número entre 0 y 999999999999.99",
+  });
+}
 
 type ConvocatoriaRow = {
   id_convocatoria: number;
@@ -132,12 +162,12 @@ convocatoriasRouter.post(
       : null;
     const fechaApertura = String(req.body?.fechaApertura ?? "").trim();
     const fechaCierre = String(req.body?.fechaCierre ?? "").trim();
-    const presupuesto =
-      req.body?.presupuestoEstimado !== undefined &&
-      req.body?.presupuestoEstimado !== null &&
-      req.body?.presupuestoEstimado !== ""
-        ? Number(req.body.presupuestoEstimado)
-        : null;
+    const presupuestoResult = parsePresupuesto(req.body?.presupuestoEstimado);
+    if (!presupuestoResult.valid) {
+      sendInvalidPresupuesto(res);
+      return;
+    }
+    const presupuesto = presupuestoResult.value;
     let estado = String(req.body?.estado ?? "borrador").trim().toLowerCase();
     if (!ESTADOS.has(estado)) estado = "borrador";
 
@@ -259,12 +289,12 @@ convocatoriasRouter.patch(
       set("fecha_cierre", String(req.body.fechaCierre));
     }
     if (req.body?.presupuestoEstimado !== undefined) {
-      const p =
-        req.body.presupuestoEstimado === null ||
-        req.body.presupuestoEstimado === ""
-          ? null
-          : Number(req.body.presupuestoEstimado);
-      set("presupuesto_estimado", p);
+      const presupuestoResult = parsePresupuesto(req.body.presupuestoEstimado);
+      if (!presupuestoResult.valid) {
+        sendInvalidPresupuesto(res);
+        return;
+      }
+      set("presupuesto_estimado", presupuestoResult.value);
     }
     if (req.body?.estado !== undefined) {
       const estado = String(req.body.estado).trim().toLowerCase();

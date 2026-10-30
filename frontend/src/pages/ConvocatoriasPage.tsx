@@ -241,6 +241,7 @@ export function ConvocatoriasPage() {
                 className="input"
                 type="number"
                 min={0}
+                max={999999999999.99}
                 step={1000}
                 value={presupuesto}
                 onChange={(e) => setPresupuesto(e.target.value)}

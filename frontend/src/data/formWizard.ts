@@ -22,6 +22,18 @@ export const FORM_WIZARD_STEPS = [
 export type YesNo = "No" | "Sí";
 export type GradoVinculo = "No" | "Sí, parcial" | "Sí, totalmente";
 
+/** Recurso gráfico del paso Documentación (rúbrica: alt text editable). */
+export type GraphicResource = {
+  id: string;
+  tipo: "imagen" | "video";
+  nombreArchivo: string;
+  /** Texto alternativo / descripción accesible (editable). */
+  altText: string;
+};
+
+/** Longitud mínima sugerida para una descripción útil (rúbrica a11y). */
+export const ALT_TEXT_MIN_CHARS = 40;
+
 export type FormWizardState = {
   titulo: string;
   modalidad: string;
@@ -47,6 +59,8 @@ export type FormWizardState = {
   metodologia: string;
   referencias: string;
   declaracion: boolean;
+  /** Imágenes y videos con texto alternativo editable. */
+  recursosGraficos: GraphicResource[];
 };
 
 export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
@@ -82,4 +96,13 @@ export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
   referencias:
     "[1] WHO, 2023. Guidelines for drinking-water quality.\n[2] Sensors, 2024. Edge analytics for environmental monitoring.",
   declaracion: true,
+  recursosGraficos: [
+    {
+      id: "demo-img-1",
+      tipo: "imagen",
+      nombreArchivo: "diagrama-arquitectura-iot.png",
+      altText:
+        "Diagrama de arquitectura IoT con sensores de calidad del agua, gateway LoRaWAN y panel web de analítica para comunidades rurales.",
+    },
+  ],
 };

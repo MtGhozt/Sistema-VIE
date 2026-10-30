@@ -2,7 +2,13 @@ import { useId, type ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
 import { MODALIDADES } from "../data/demo";
 import { DEMO_PROPOSALS } from "../data/demo";
-import type { FormWizardState, GradoVinculo, YesNo } from "../data/formWizard";
+import {
+  ALT_TEXT_MIN_CHARS,
+  type FormWizardState,
+  type GradoVinculo,
+  type GraphicResource,
+  type YesNo,
+} from "../data/formWizard";
 import { formatCRC } from "../data/proposalView";
 
 type Props = {
@@ -553,14 +559,149 @@ export function FormWizardStepContent({
   }
 
   if (step === 15) {
+    function addResource(tipo: GraphicResource["tipo"], fileList: FileList | null) {
+      const file = fileList?.[0];
+      if (!file) return;
+      const next: GraphicResource = {
+        id: `res-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        tipo,
+        nombreArchivo: file.name,
+        altText: "",
+      };
+      patch({ recursosGraficos: [...form.recursosGraficos, next] });
+    }
+
+    function updateAlt(id: string, altText: string) {
+      patch({
+        recursosGraficos: form.recursosGraficos.map((r) =>
+          r.id === id ? { ...r, altText } : r,
+        ),
+      });
+    }
+
+    function removeResource(id: string) {
+      patch({
+        recursosGraficos: form.recursosGraficos.filter((r) => r.id !== id),
+      });
+    }
+
     return (
-      <div className="task-list">
-        {rich.documentos.map((d) => (
-          <div key={d.nombre} className="task-row" style={{ cursor: "default" }}>
-            <strong>{d.nombre}</strong>
-            <span className="badge badge-primary">{d.estado}</span>
+      <div className="stack-md">
+        <div>
+          <h3>Documentos del expediente</h3>
+          <p className="field-hint">
+            Formulario, plan de acción, presupuesto y acuerdos (referencia del
+            prototipo).
+          </p>
+          <div className="task-list" style={{ marginTop: 12 }}>
+            {rich.documentos.map((d) => (
+              <div
+                key={d.nombre}
+                className="task-row"
+                style={{ cursor: "default" }}
+              >
+                <strong>{d.nombre}</strong>
+                <span className="badge badge-primary">{d.estado}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        <div>
+          <h3>Recursos gráficos (imágenes y videos)</h3>
+          <p className="field-hint">
+            Cada recurso debe incluir un texto alternativo editable y
+            suficientemente descriptivo (rúbrica de accesibilidad · WCAG 1.1.1).
+          </p>
+
+          <div className="resource-alt-actions" style={{ marginTop: 12 }}>
+            <label className="btn btn-secondary">
+              Agregar imagen
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => {
+                  addResource("imagen", e.target.files);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <label className="btn btn-secondary">
+              Agregar video
+              <input
+                type="file"
+                accept="video/*"
+                className="sr-only"
+                onChange={(e) => {
+                  addResource("video", e.target.files);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+
+          {form.recursosGraficos.length === 0 ? (
+            <p className="empty-state" style={{ marginTop: 16 }}>
+              Todavía no hay recursos gráficos. Agregue una imagen o un video y
+              complete su descripción alternativa.
+            </p>
+          ) : (
+            <ul className="resource-alt-list" style={{ marginTop: 16 }}>
+              {form.recursosGraficos.map((r) => {
+                const len = r.altText.trim().length;
+                const short = len > 0 && len < ALT_TEXT_MIN_CHARS;
+                const altId = `alt-${r.id}`;
+                return (
+                  <li key={r.id} className="resource-alt-card">
+                    <div className="resource-alt-card-head">
+                      <div className="resource-alt-meta">
+                        <span className="badge">
+                          {r.tipo === "imagen" ? "Imagen" : "Video"}
+                        </span>
+                        <strong>{r.nombreArchivo}</strong>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        onClick={() => removeResource(r.id)}
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                    <label className="field" htmlFor={altId}>
+                      <span className="field-label">
+                        Texto alternativo / descripción
+                      </span>
+                      <textarea
+                        id={altId}
+                        className="input textarea"
+                        rows={3}
+                        value={r.altText}
+                        onChange={(e) => updateAlt(r.id, e.target.value)}
+                        placeholder={
+                          r.tipo === "imagen"
+                            ? "Describa el contenido visual relevante de la imagen…"
+                            : "Describa el contenido del video (tema, escenas, información clave)…"
+                        }
+                      />
+                    </label>
+                    <p
+                      className={`resource-alt-hint${short ? " warn" : ""}`}
+                      role="status"
+                    >
+                      {len === 0
+                        ? "Falta el texto alternativo."
+                        : short
+                          ? `La descripción es corta (${len} caracteres). Se recomienda al menos ${ALT_TEXT_MIN_CHARS} para que sea útil con lector de pantalla.`
+                          : `Descripción lista (${len} caracteres). Puede editarla en cualquier momento.`}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </div>
     );
   }

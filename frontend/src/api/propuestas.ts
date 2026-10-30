@@ -14,6 +14,9 @@ export type Propuesta = {
   modalidadLabel: string;
   resumen: string | null;
   abstractEn: string | null;
+  problema: string | null;
+  objetivoGeneral: string | null;
+  metodologia: string | null;
   estadoActual: string;
   etapaFlujo: number;
   fechaEnvio: string | null;
@@ -30,6 +33,9 @@ export type PropuestaInput = {
   modalidad: string;
   resumen?: string;
   abstractEn?: string;
+  problema?: string;
+  objetivoGeneral?: string;
+  metodologia?: string;
   keywordsEs?: string;
   keywordsEn?: string;
 };

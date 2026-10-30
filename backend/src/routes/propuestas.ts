@@ -34,6 +34,9 @@ type PropuestaRow = {
   modalidad: string;
   resumen: string | null;
   abstract_en: string | null;
+  problema: string | null;
+  objetivo_general: string | null;
+  metodologia: string | null;
   estado_actual: string;
   etapa_flujo: number;
   fecha_envio: string | null;
@@ -57,6 +60,9 @@ function mapPropuesta(row: PropuestaRow) {
     modalidadLabel: MODALIDAD_LABEL[row.modalidad] ?? row.modalidad,
     resumen: row.resumen,
     abstractEn: row.abstract_en,
+    problema: row.problema,
+    objetivoGeneral: row.objetivo_general,
+    metodologia: row.metodologia,
     estadoActual: row.estado_actual,
     etapaFlujo: row.etapa_flujo,
     fechaEnvio: row.fecha_envio,
@@ -193,6 +199,13 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
   const abstractEn = req.body?.abstractEn
     ? String(req.body.abstractEn).trim()
     : null;
+  const problema = req.body?.problema ? String(req.body.problema).trim() : null;
+  const objetivoGeneral = req.body?.objetivoGeneral
+    ? String(req.body.objetivoGeneral).trim()
+    : null;
+  const metodologia = req.body?.metodologia
+    ? String(req.body.metodologia).trim()
+    : null;
   const keywordsEs = parseKeywordInput(req.body?.keywordsEs) ?? [];
   const keywordsEn = parseKeywordInput(req.body?.keywordsEn) ?? [];
 
@@ -235,8 +248,9 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
     INSERT INTO propuesta (
       codigo, id_convocatoria, id_coordinador, id_escuela,
       titulo, modalidad, resumen, abstract_en,
+      problema, objetivo_general, metodologia,
       estado_actual, etapa_flujo
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'borrador', 0)
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'borrador', 0)
     RETURNING id_propuesta
     `,
     [
@@ -248,6 +262,9 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
       modalidad,
       resumen,
       abstractEn,
+      problema,
+      objetivoGeneral,
+      metodologia,
     ],
   );
 
@@ -335,6 +352,28 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, async (req, res) => {
   }
   if (req.body?.idConvocatoria !== undefined) {
     set("id_convocatoria", Number(req.body.idConvocatoria));
+  }
+  if (req.body?.problema !== undefined) {
+    set(
+      "problema",
+      req.body.problema === null ? null : String(req.body.problema).trim(),
+    );
+  }
+  if (req.body?.objetivoGeneral !== undefined) {
+    set(
+      "objetivo_general",
+      req.body.objetivoGeneral === null
+        ? null
+        : String(req.body.objetivoGeneral).trim(),
+    );
+  }
+  if (req.body?.metodologia !== undefined) {
+    set(
+      "metodologia",
+      req.body.metodologia === null
+        ? null
+        : String(req.body.metodologia).trim(),
+    );
   }
 
   if (fields.length > 0) {

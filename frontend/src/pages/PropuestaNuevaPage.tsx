@@ -83,6 +83,9 @@ export function PropuestaNuevaPage() {
           resumen: d.resumen ?? "",
           abstract: d.abstractEn ?? "",
           palabras: d.keywordsEs.join(", "),
+          problema: d.problema ?? prev.problema,
+          objetivos: d.objetivoGeneral ?? prev.objetivos,
+          metodologia: d.metodologia ?? prev.metodologia,
         }));
         setSaveStatus("Borrador cargado");
       } catch (err) {
@@ -119,6 +122,9 @@ export function PropuestaNuevaPage() {
           modalidad: form.modalidad,
           resumen: form.resumen.trim() || undefined,
           abstractEn: form.abstract.trim() || undefined,
+          problema: form.problema.trim() || undefined,
+          objetivoGeneral: form.objetivos.trim() || undefined,
+          metodologia: form.metodologia.trim() || undefined,
           keywordsEs: form.palabras,
           keywordsEn: "",
         });
@@ -131,6 +137,9 @@ export function PropuestaNuevaPage() {
           modalidad: form.modalidad,
           resumen: form.resumen.trim() || undefined,
           abstractEn: form.abstract.trim() || undefined,
+          problema: form.problema.trim() || undefined,
+          objetivoGeneral: form.objetivos.trim() || undefined,
+          metodologia: form.metodologia.trim() || undefined,
           keywordsEs: form.palabras,
           keywordsEn: "",
         });

@@ -831,9 +831,17 @@ export function ConsejoPanel({
                 type="button"
                 className="btn btn-primary"
                 disabled={!rejectText.trim()}
+                title={
+                  rejectText.trim()
+                    ? "Registrar rechazo de aval"
+                    : "Escriba la justificación para habilitar Confirmar"
+                }
                 onClick={() => {
-                  onAction("council-reject", { texto: rejectText.trim() });
+                  void onAction("council-reject", {
+                    texto: rejectText.trim(),
+                  });
                   setRejectOpen(false);
+                  setRejectText("");
                 }}
               >
                 Confirmar rechazo
@@ -850,8 +858,14 @@ export function ConsejoPanel({
               rows={5}
               value={rejectText}
               onChange={(e) => setRejectText(e.target.value)}
+              required
             />
           </label>
+          {!rejectText.trim() && (
+            <p className="field-hint" role="status">
+              Escriba la justificación para habilitar «Confirmar rechazo».
+            </p>
+          )}
         </SimpleModal>
         <SimpleModal
           open={approveOpen}
@@ -871,9 +885,17 @@ export function ConsejoPanel({
                 type="button"
                 className="btn btn-primary"
                 disabled={!approveText.trim()}
+                title={
+                  approveText.trim()
+                    ? "Registrar aval aprobatorio"
+                    : "Escriba la justificación para habilitar Confirmar"
+                }
                 onClick={() => {
-                  onAction("council-approve", { texto: approveText.trim() });
+                  void onAction("council-approve", {
+                    texto: approveText.trim(),
+                  });
                   setApproveOpen(false);
+                  setApproveText("");
                 }}
               >
                 Confirmar aprobación
@@ -891,8 +913,14 @@ export function ConsejoPanel({
               value={approveText}
               onChange={(e) => setApproveText(e.target.value)}
               placeholder="Explique por qué se otorga el aval..."
+              required
             />
           </label>
+          {!approveText.trim() && (
+            <p className="field-hint" role="status">
+              Escriba la justificación para habilitar «Confirmar aprobación».
+            </p>
+          )}
         </SimpleModal>
       </article>
     </div>

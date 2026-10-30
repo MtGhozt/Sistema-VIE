@@ -137,6 +137,7 @@ export function EvaluacionesPage() {
   const [selectedKey, setSelectedKey] = useState("");
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState<"api" | "demo">("demo");
+  const [bandejaNote, setBandejaNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const role = session?.viewRole ?? "investigador";
@@ -144,6 +145,7 @@ export function EvaluacionesPage() {
   const loadBandeja = useCallback(async () => {
     if (!session) return;
     setLoading(true);
+    setBandejaNote(null);
     try {
       const res = await fetchEvaluacionBandeja();
       if (res.items.length > 0) {
@@ -162,24 +164,36 @@ export function EvaluacionesPage() {
         const demo = getEvaluationProposals().map((p) => ({
           key: p.id,
           numericId: null as number | null,
-          demo: p,
+          demo: { ...p },
           api: null,
         }));
         setBandeja(demo);
         setSource("demo");
+        setBandejaNote(
+          "No hay expedientes en esta etapa en PostgreSQL. Se muestra la bandeja demo; las decisiones no se guardan en la base hasta que exista una propuesta enviada en flujo.",
+        );
         setSelectedKey((prev) =>
           demo.some((e) => e.key === prev) ? prev : (demo[0]?.key ?? ""),
         );
       }
-    } catch {
+    } catch (err) {
       const demo = getEvaluationProposals().map((p) => ({
         key: p.id,
         numericId: null as number | null,
-        demo: p,
+        demo: { ...p },
         api: null,
       }));
       setBandeja(demo);
       setSource("demo");
+      const detail =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "error de red";
+      setBandejaNote(
+        `No se pudo cargar la bandeja API (${detail}). Modo demo local: las acciones no persisten.`,
+      );
       setSelectedKey((prev) =>
         demo.some((e) => e.key === prev) ? prev : (demo[0]?.key ?? ""),
       );
@@ -201,12 +215,108 @@ export function EvaluacionesPage() {
 
   const [eyebrow, title, description] = EVAL_HEADERS[role];
 
+  /** Actualiza el expediente demo en pantalla tras una decisión (sin API). */
+  function applyDemoAction(action: string, payload?: unknown) {
+    if (!selected) return;
+    const texto =
+      payload &&
+      typeof payload === "object" &&
+      "texto" in payload &&
+      typeof (payload as { texto: unknown }).texto === "string"
+        ? (payload as { texto: string }).texto.trim()
+        : "";
+
+    setBandeja((prev) =>
+      prev.map((e) => {
+        if (e.key !== selected.key) return e;
+        const next = { ...e.demo };
+        switch (action) {
+          case "pi":
+            next.estado = "En evaluación";
+            next.etapa = Math.max(next.etapa, 2);
+            next.oficioPI =
+              (payload as { oficio?: string } | undefined)?.oficio ??
+              next.oficioPI;
+            break;
+          case "committee-ready":
+          case "send-council":
+          case "send-cie":
+          case "communicate-aval":
+            next.etapa = Math.min(6, next.etapa + 1);
+            break;
+          case "return":
+          case "vie-observation":
+            if (texto) {
+              next.observaciones = [...(next.observaciones ?? []), texto];
+            }
+            break;
+          case "committee-score":
+            next.estado = "Dictaminada";
+            next.etapa = Math.max(next.etapa, 3);
+            next.evaluacionComite = {
+              average:
+                Number(
+                  (payload as { average?: number } | undefined)?.average,
+                ) || 80,
+            };
+            break;
+          case "council-approve":
+            next.estado = "Avalada";
+            next.etapa = Math.max(next.etapa, 4);
+            next.justificacionAval = texto || next.justificacionAval;
+            next.oficioAval = next.oficioAval || `ESC-DEMO-${next.id}`;
+            break;
+          case "council-reject":
+            next.estado = "Rechazada";
+            next.etapa = 6;
+            next.justificacionAval = texto || next.justificacionAval;
+            break;
+          case "cie-approve":
+            next.estado = "Aprobada";
+            next.etapa = 6;
+            next.resolucion = next.resolucion || `CIE-DEMO-${next.id}`;
+            break;
+          case "cie-reject":
+            next.estado = "Rechazada";
+            next.etapa = 6;
+            next.resolucion = next.resolucion || `CIE-DEMO-${next.id}`;
+            break;
+          case "notify-resolution":
+            next.notificada = true;
+            break;
+          default:
+            break;
+        }
+        return { ...e, demo: next };
+      }),
+    );
+  }
+
   const onAction = async (action: string, payload?: unknown) => {
     if (busy) return;
+
+    // Justificaciones obligatorias también en modo demo (evita “Confirmar” vacío).
+    if (
+      (action === "council-approve" ||
+        action === "council-reject" ||
+        action === "cie-reject" ||
+        action === "return" ||
+        action === "vie-observation") &&
+      !(
+        payload &&
+        typeof payload === "object" &&
+        "texto" in payload &&
+        String((payload as { texto: unknown }).texto ?? "").trim()
+      )
+    ) {
+      showToast("La justificación u observación es obligatoria.", "error");
+      return;
+    }
+
     if (source !== "api" || selected?.numericId == null) {
+      applyDemoAction(action, payload);
       showToast(
-        ACTION_TOAST[action] ??
-          "Acción registrada en modo demo (sin persistencia).",
+        `${ACTION_TOAST[action] ?? "Acción registrada."} (demo local · no se guardó en PostgreSQL)`,
         "success",
       );
       return;
@@ -322,8 +432,13 @@ export function EvaluacionesPage() {
           <p className="muted" style={{ marginTop: 8, fontSize: 13 }}>
             {source === "api"
               ? "Expedientes desde PostgreSQL · las acciones se persisten."
-              : "Modo demo local · sin propuestas en etapa para este rol en la API."}
+              : "Modo demo local · las acciones actualizan esta pantalla pero no la base de datos."}
           </p>
+          {bandejaNote && (
+            <p className="field-hint" role="status" style={{ marginTop: 8 }}>
+              {bandejaNote}
+            </p>
+          )}
         </div>
       </header>
 

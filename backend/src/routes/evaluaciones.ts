@@ -157,7 +157,8 @@ function bandejaClause(role: string | null | undefined): {
     case "consejo":
     case "direccion_escuela":
       return {
-        sql: ` AND p.etapa_flujo BETWEEN 2 AND 3 AND p.estado_actual IN ('en_evaluacion', 'dictaminada', 'avalada')`,
+        // Incluye dictaminada/en_evaluación (por decidir) y avalada (ya decidida, aún visible).
+        sql: ` AND p.etapa_flujo BETWEEN 2 AND 4 AND p.estado_actual IN ('en_evaluacion', 'dictaminada', 'avalada')`,
         params: [],
       };
     case "gestora_vie":

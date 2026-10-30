@@ -122,6 +122,7 @@ recursos del wizard · checklist NVDA en `docs/a11y/INFORME-WCAG.md`.
 | 2026-10-29 | **CU2 enviar desde UI**: wizard «Enviar a revisión» + detalle de borrador llaman `POST /propuestas/:id/enviar` | — |
 | 2026-10-29 | **a11y**: control alto contraste, alt text en Documentación, checklist lector de pantalla | axe/Playwright |
 | 2026-10-29 | **fix evaluaciones**: modo demo ya no finge persistencia; actualiza UI y avisa; Confirmar aval exige justificación visible | — |
+| 2026-10-29 | **smoke API**: `pnpm smoke` → `scripts/smoke-e2e.mjs` (CU1/CU2/CU5 + bandeja). Los FAIL viejos de `out-e2e-smoke.txt` eran falsos (PowerShell `H`=`Get-History`) | — |
 | 2026-10-29 | Oficiales VIE convertidos a Markdown (`docs/oficiales-vie/markdown/`) | — |
 | 2026-10-21 | **Sprint 3 — a11y WCAG AA**: contraste, foco visible, modales accesibles, live regions, roles ARIA, skip-link, jerarquía de encabezados | Toggle alto contraste; alt text uploads; NVDA/JAWS |
 | 2026-10-21 | **Sprint 1 — CU5 histórico**: endpoint con filtros combinables en Postgres, frontend conectado, seed realista (6 escuelas · 12 investigadoras · 16 propuestas · 8 líneas) | — |

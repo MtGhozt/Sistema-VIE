@@ -95,6 +95,10 @@ Definidos a partir de:
 - Camino “revisar → observar / dictaminar” visible.
 - Dictamen y observaciones persistidos.
 
+### Implementación (2026-10-29)
+- API: `POST /api/evaluaciones/propuestas/:id/acciones` con `action=pi|committee-ready|return|vie-observation`.
+- UI: `EvaluacionesPage` carga bandeja desde Postgres y envía el payload del panel.
+
 ---
 
 ## CU4 — Evaluar con rúbrica y resolver
@@ -125,6 +129,12 @@ Definidos a partir de:
 - Evaluación + decisión con justificación obligatoria.
 - IA solo sugiere; humano confirma (requisito de clase).
 - UX por rol alineada al prototipo HTML de referencia.
+
+### Implementación (2026-10-29)
+- API: mismas rutas de evaluaciones; acciones `committee-score`, `council-approve|reject`,
+  `cie-approve|reject`, `notify-resolution`, etc. Actualizan estado y oficios en BD.
+- Pendiente fino: filas en `evaluacion` / `evaluacion_puntaje` por criterio (hoy se guarda
+  el consolidado en `resultado_comite.calificacion_promedio`).
 
 ---
 

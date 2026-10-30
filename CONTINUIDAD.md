@@ -1,6 +1,6 @@
 # Continuidad — Sistema VIE
 
-Última actualización: 2026-10-02 (parity UI HTML + docs)
+Última actualización: 2026-10-29 (CU3/CU4 persistidos + CU2 campos núcleo)
 
 ## Lectura para el equipo
 
@@ -56,7 +56,7 @@ Paridad visual/flujo del prototipo HTML recuperada en:
 | Inicio admin / investigador | `InicioPage` | Admin: acceso por instancia + carriles de flujo; investigador: recientes + timeline |
 | Detalle propuesta | `ProposalDetailView` + tabs | Demo `PROP-*` y API numérica; admin ve bloque transversal |
 | Wizard 17 pasos | `formWizard` + `FormWizardStepContent` + `PropuestaNuevaPage` | Sidebar con scroll contenido (`.wizard-sidebar`) |
-| Evaluaciones por rol | `EvaluacionesPage` + `EvaluationRolePanels` | UI demo local (CU4 pantallas); sin persistencia API aún |
+| Evaluaciones por rol | `EvaluacionesPage` + `EvaluationRolePanels` | **CU3/CU4 persistidos** vía `/api/evaluaciones/*` (bandeja + acciones) |
 | **Histórico (CU5)** | `HistoricoPage` | **Datos desde Postgres** con filtros combinables por escuela, investigadora, línea, estado y año |
 
 **Accesibilidad (Sprint 3) — `docs/a11y/INFORME-WCAG.md`:**
@@ -86,23 +86,40 @@ Paridad visual/flujo del prototipo HTML recuperada en:
 
 **CU2 — persistencia real vs UI:**
 
-- API guarda solo el **primer bloque** (título, convocatoria, modalidad, resumen, abstract, keywords).
-- Pasos 3–17 del wizard = UI local/demo (estado React); no se persisten al guardar.
+- API guarda bloque inicial **más** `problema`, `objetivo_general`, `metodologia` (columnas ya en `propuesta`).
+- Equipo/horas tipificadas, plan de riesgos, presupuesto anual y adjuntos = UI local/demo (pasos restantes del wizard).
+
+**CU3 / CU4 — persistencia real (2026-10-29):**
+
+- `GET /api/evaluaciones/bandeja` — expedientes no-borrador filtrados por rol/etapa.
+- `POST /api/evaluaciones/propuestas/:id/acciones` — `{ action, payload }` escribe en
+  `dictamen_pi`, `revision_expediente`, `observacion`, `resultado_comite`,
+  `aval_consejo`, `resolucion_cie`, `comunicacion_institucional`, `notificacion`
+  y avanza `estado_actual` + `etapa_flujo` + `propuesta_historial_estado`.
+- Acciones clave del flujo demostrable: `pi` → `committee-score` → `council-approve|reject`
+  → `send-cie` → `cie-approve|reject` → `notify-resolution` (histórico refleja el estado final).
+- UI: si la bandeja API tiene ítems, persiste; si está vacía para el rol, cae a demo local
+  (toast sin escritura) para no romper la paridad HTML.
 
 **Huecos conocidos (no inventar features ahora):**
 
 - Documento 4 (formulario oficial) sin mapeo campo-a-campo completo
-- Impresión / generación de oficios (solo campos en paneles demo)
-- Rúbricas = subset por modalidad, no catálogo oficial completo del Excel
-- Los 9 roles institucionales (vinculación, comité, consejo, CIE…) siguen sin ruta
-  de escritura: CU3 y CU4 siguen siendo UI demo
+- Impresión / generación de oficios PDF (números de oficio sí se registran en BD)
+- Rúbricas = subset por modalidad; puntajes criterio-a-criterio aún no en `evaluacion_puntaje`
+- a11y pendiente de rúbrica de curso: toggle alto contraste, alt text editable en uploads,
+  verificación con lector de pantalla real
+
+**Fuentes oficiales en Markdown:** `docs/oficiales-vie/markdown/` (markitdown).
 
 ## Bitácora reciente
 
 | Fecha | Qué | Pendiente |
 |-------|-----|-----------|
-| 2026-10-21 | **Sprint 3 — a11y WCAG AA**: contraste, foco visible, modales accesibles, live regions, roles ARIA, skip-link, jerarquía de encabezados | Verificar con lector de pantalla real; Playwright + axe-core |
-| 2026-10-21 | **Sprint 1 — CU5 histórico**: endpoint con filtros combinables en Postgres, frontend conectado, seed realista (6 escuelas · 12 investigadoras · 16 propuestas · 8 líneas) | CU3 / CU4 backend; rúbrica oficial desde el xlsx |
+| 2026-10-29 | **CU3/CU4 API + UI**: bandeja y acciones persistidas; flujo investigador→evaluador→histórico demostrable | `evaluacion_puntaje` fino; oficios PDF |
+| 2026-10-29 | **CU2 ampliación**: problema / objetivo general / metodología en create+patch | equipo, plan, presupuesto en tablas hijas |
+| 2026-10-29 | Oficiales VIE convertidos a Markdown (`docs/oficiales-vie/markdown/`) | — |
+| 2026-10-21 | **Sprint 3 — a11y WCAG AA**: contraste, foco visible, modales accesibles, live regions, roles ARIA, skip-link, jerarquía de encabezados | Toggle alto contraste; alt text uploads; NVDA/JAWS |
+| 2026-10-21 | **Sprint 1 — CU5 histórico**: endpoint con filtros combinables en Postgres, frontend conectado, seed realista (6 escuelas · 12 investigadoras · 16 propuestas · 8 líneas) | — |
 | 2026-10-02 | Parity HTML: inicio admin/investigador, detalle, wizard 17 pasos, evaluaciones por rol; edit solo borrador; scroll sidebar wizard | CU3 PI; persistir resto wizard; oficios/PDF; rúbrica completa |
 | 2026-10-01 | **CU2** propuestas: listar/crear borrador/enviar (Postgres) | CU3 PI / más secciones formulario |
 | 2026-10-01 | Notificaciones leídas **por usuario**; sin toast al marcar vista | — |
@@ -120,8 +137,9 @@ Paridad visual/flujo del prototipo HTML recuperada en:
 
 1. ~~Definir 5 CUs~~ / ~~Q1–Q4~~ / ~~Fase 0 cimientos~~ / ~~frontend multiarchivo sin API~~
 2. ~~Login demo ↔ API~~ · ~~**CU1 convocatoria**~~ · ~~**CU2** formular/enviar (bloque inicial)~~ · ~~parity UI HTML~~ · ~~**a11y WCAG AA**~~ · ~~**CU5 histórico con datos reales**~~
-3. **CU3** (dictamen PI, checklist, observaciones) y **CU4** (evaluación, aval, resolución) con API + rúbrica oficial sembrada desde el xlsx.
-4. Persistir los pasos 3–17 del wizard CU2 + oficios/PDF.
+3. ~~**CU3/CU4** persistencia (dictamen, aval, resolución) + avance de estado~~
+4. a11y rúbrica restante: toggle alto contraste, alt text en recursos, lector de pantalla.
+5. Persistir resto del wizard CU2 (equipo/horas, plan, presupuesto) + oficios/PDF + rúbrica xlsx → `evaluacion_puntaje`.
 
 ## Referencias rápidas
 

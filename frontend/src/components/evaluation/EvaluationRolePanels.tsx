@@ -28,7 +28,10 @@ function PanelIntro({
   );
 }
 
-type ActionHandler = (action: string, payload?: unknown) => void;
+type ActionHandler = (
+  action: string,
+  payload?: unknown,
+) => void | Promise<void>;
 
 function CheckIcon() {
   // Decorativo: el estado ya lo anuncia el texto "Verificado" / "Falta verificar".

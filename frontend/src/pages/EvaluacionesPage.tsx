@@ -1,5 +1,11 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ApiError } from "../api/client";
+import {
+  fetchEvaluacionBandeja,
+  postEvaluacionAccion,
+  type EvaluacionBandejaItem,
+} from "../api/evaluaciones";
 import {
   AdminEvalTransversal,
   CiePanel,
@@ -14,7 +20,8 @@ import {
 } from "../components/evaluation/EvaluationRolePanels";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../components/toast/ToastContext";
-import { getEvaluationProposals } from "../data/demo";
+import { getEvaluationProposals, type DemoProposal } from "../data/demo";
+import { bandejaToDemoProposal } from "../data/evalProposal";
 import type { RoleId } from "../data/roles";
 
 const EVAL_HEADERS: Record<RoleId, [string, string, string]> = {
@@ -115,22 +122,133 @@ const EVAL_ROLES: RoleId[] = [
   "direccion_investigacion",
 ];
 
+type BandejaEntry = {
+  key: string;
+  numericId: number | null;
+  demo: DemoProposal;
+  api: EvaluacionBandejaItem | null;
+};
+
 export function EvaluacionesPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const proposals = useMemo(() => getEvaluationProposals(), []);
-  const [selectedId, setSelectedId] = useState(proposals[0]?.id ?? "");
+  const [bandeja, setBandeja] = useState<BandejaEntry[]>([]);
+  const [selectedKey, setSelectedKey] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [source, setSource] = useState<"api" | "demo">("demo");
+  const [busy, setBusy] = useState(false);
+
+  const role = session?.viewRole ?? "investigador";
+
+  const loadBandeja = useCallback(async () => {
+    if (!session) return;
+    setLoading(true);
+    try {
+      const res = await fetchEvaluacionBandeja();
+      if (res.items.length > 0) {
+        const entries: BandejaEntry[] = res.items.map((item) => ({
+          key: item.codigo,
+          numericId: item.id,
+          demo: bandejaToDemoProposal(item),
+          api: item,
+        }));
+        setBandeja(entries);
+        setSource("api");
+        setSelectedKey((prev) =>
+          entries.some((e) => e.key === prev) ? prev : (entries[0]?.key ?? ""),
+        );
+      } else {
+        const demo = getEvaluationProposals().map((p) => ({
+          key: p.id,
+          numericId: null as number | null,
+          demo: p,
+          api: null,
+        }));
+        setBandeja(demo);
+        setSource("demo");
+        setSelectedKey((prev) =>
+          demo.some((e) => e.key === prev) ? prev : (demo[0]?.key ?? ""),
+        );
+      }
+    } catch {
+      const demo = getEvaluationProposals().map((p) => ({
+        key: p.id,
+        numericId: null as number | null,
+        demo: p,
+        api: null,
+      }));
+      setBandeja(demo);
+      setSource("demo");
+      setSelectedKey((prev) =>
+        demo.some((e) => e.key === prev) ? prev : (demo[0]?.key ?? ""),
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    void loadBandeja();
+  }, [loadBandeja, role]);
+
+  const selected = useMemo(
+    () => bandeja.find((e) => e.key === selectedKey) ?? bandeja[0],
+    [bandeja, selectedKey],
+  );
 
   if (!session) return null;
 
-  const role = session.viewRole;
   const [eyebrow, title, description] = EVAL_HEADERS[role];
-  const proposal =
-    proposals.find((p) => p.id === selectedId) ?? proposals[0];
 
-  const onAction = (action: string) => {
-    showToast(ACTION_TOAST[action] ?? "Acción registrada.", "success");
+  const onAction = async (action: string, payload?: unknown) => {
+    if (busy) return;
+    if (source !== "api" || selected?.numericId == null) {
+      showToast(
+        ACTION_TOAST[action] ??
+          "Acción registrada en modo demo (sin persistencia).",
+        "success",
+      );
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const res = await postEvaluacionAccion(
+        selected.numericId,
+        action,
+        payload,
+      );
+      showToast(res.message || ACTION_TOAST[action] || "Acción registrada.", "success");
+      if (res.propuesta) {
+        const mapped = bandejaToDemoProposal(res.propuesta);
+        setBandeja((prev) =>
+          prev.map((e) =>
+            e.numericId === res.propuesta!.id
+              ? {
+                  key: res.propuesta!.codigo,
+                  numericId: res.propuesta!.id,
+                  demo: mapped,
+                  api: res.propuesta,
+                }
+              : e,
+          ),
+        );
+        setSelectedKey(res.propuesta.codigo);
+      } else {
+        await loadBandeja();
+      }
+    } catch (err) {
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "No se pudo persistir la acción";
+      showToast(msg, "error");
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (role === "vie_publicacion") {
@@ -171,14 +289,27 @@ export function EvaluacionesPage() {
     );
   }
 
-  if (!proposal) {
+  if (loading) {
     return (
       <section className="card empty-state">
-        <strong>No hay propuestas disponibles</strong>
+        <strong>Cargando bandeja…</strong>
       </section>
     );
   }
 
+  if (!selected) {
+    return (
+      <section className="card empty-state">
+        <strong>No hay propuestas disponibles</strong>
+        <p className="muted">
+          Cuando una investigadora envíe una propuesta, aparecerá aquí según la
+          etapa del flujo.
+        </p>
+      </section>
+    );
+  }
+
+  const proposal = selected.demo;
   const panelProps = { proposal, onAction };
 
   return (
@@ -188,6 +319,11 @@ export function EvaluacionesPage() {
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
           <p>{description}</p>
+          <p className="muted" style={{ marginTop: 8, fontSize: 13 }}>
+            {source === "api"
+              ? "Expedientes desde PostgreSQL · las acciones se persisten."
+              : "Modo demo local · sin propuestas en etapa para este rol en la API."}
+          </p>
         </div>
       </header>
 
@@ -198,13 +334,14 @@ export function EvaluacionesPage() {
               <span>Expediente activo</span>
               <select
                 className="input"
-                value={selectedId}
-                onChange={(e) => setSelectedId(e.target.value)}
+                value={selected.key}
+                onChange={(e) => setSelectedKey(e.target.value)}
                 aria-label="Expediente activo"
+                disabled={busy}
               >
-                {proposals.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.id} — {p.titulo}
+                {bandeja.map((e) => (
+                  <option key={e.key} value={e.key}>
+                    {e.key} — {e.demo.titulo}
                   </option>
                 ))}
               </select>
@@ -236,13 +373,14 @@ export function EvaluacionesPage() {
                 <span>Expediente activo</span>
                 <select
                   className="input"
-                  value={selectedId}
-                  onChange={(e) => setSelectedId(e.target.value)}
+                  value={selected.key}
+                  onChange={(e) => setSelectedKey(e.target.value)}
                   aria-label="Expediente activo"
+                  disabled={busy}
                 >
-                  {proposals.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.id} — {p.titulo}
+                  {bandeja.map((e) => (
+                    <option key={e.key} value={e.key}>
+                      {e.key} — {e.demo.titulo}
                     </option>
                   ))}
                 </select>

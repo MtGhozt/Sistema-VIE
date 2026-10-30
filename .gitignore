@@ -15,8 +15,9 @@ yarn.lock
 *.sqlite
 *.sqlite3
 
-# Salida de scripts (renders de inspección, etc.)
+# Salida de scripts (renders de inspección, smoke, etc.)
 out/
+out-e2e-smoke.txt
 
 # Logs and caches
 *.log

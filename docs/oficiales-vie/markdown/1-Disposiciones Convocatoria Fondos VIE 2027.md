@@ -1,0 +1,922 @@
+# 1-Disposiciones Convocatoria Fondos VIE 2027.pdf
+
+> Fuente: C:\Users\Matias\Downloads\Telegram Desktop\Docs Proyecto\1-Disposiciones Convocatoria Fondos VIE 2027.pdf
+> Convertido con markitdown
+
+---
+
+CONVOCATORIA
+INTERNA PARA
+INVESTIGACIÓN
+(RECURSOS VIE)
+Dirección de Investigación
+
+1
+Tabla de Contenidos
+1. Definiciones ........................................................................................................................ 2
+1.1. Sobre las iniciativas de investigación .............................................................................. 2
+1.2. Sobre el tipo de horas ..................................................................................................... 4
+1.3. Sobre los tipos de financiamiento .................................................................................... 4
+1.4. Sobre los productos de investigación .............................................................................. 5
+1.5. Sobre los productos de propiedad industrial y software ................................................... 6
+1.6. Sobre el plan de administración de riesgos ..................................................................... 7
+1.7. Otras definiciones ........................................................................................................... 8
+2. Disposiciones generales ..................................................................................................... 9
+2.1. Alcance ........................................................................................................................... 9
+2.2. Objetivo ........................................................................................................................... 9
+2.3. Condiciones particulares de esta convocatoria .............................................................. 10
+2.4 . Productos académicos ................................................................................................ 11
+2.5 . Asignación de horas en iniciativas de investigación ..................................................... 12
+2.6 . ¿Quiénes pueden participar? ...................................................................................... 12
+2.7 . Avales de las instancias académicas y administrativas ............................................... 13
+2.8 . Financiamiento ............................................................................................................ 14
+2.9 . Distribución de remanentes ......................................................................................... 15
+2.10. Autorizaciones, permisos y propiedad intelectual .......................................................... 15
+2.11. Evaluación, dictamen y valoración de propuestas ......................................................... 16
+2.12. Seguimiento, informes y cierre ...................................................................................... 18
+3 Disposiciones específicas para actividades de fortalecimiento ......................................... 20
+4. Disposiciones específicas para proyectos de investigación básica o aplicada .................. 22
+5. Disposiciones específicas para proyectos de desarrollo tecnológico ................................ 23
+6. Cronograma de actividades para esta convocatoria ......................................................... 25
+
+2
+1. Definiciones
+1.1. Sobre las iniciativas de investigación
+Actividad de fortalecimiento de investigación: es la labor que tiene como finalidad llegar
+a generar nuevas propuestas de proyectos de investigación o de desarrollo tecnológico,
+nuevas áreas de conocimiento o necesidades de investigación. Entre ellas se incluyen
+actividades como diagnósticos, estudios de factibilidad, estudios de mercado, ensayos de
+laboratorio, ensayos de campo, pruebas de concepto, investigación-creación, procesos de
+experimentación creación artística, menor a un año. Estas actividades por sí mismas no
+constituyen proyectos de investigación.
+Cierre administrativo de un proyecto: procedimiento que formaliza la conclusión de un
+proyecto una vez verificado el cumplimiento de los objetivos, actividades, productos y
+compromisos establecidos en la propuesta aprobada y su cronograma de ejecución. Este
+cierre incluye la revisión y aprobación de los informes correspondientes, así como la
+emisión de las certificaciones o constancias institucionales que acreditan la finalización
+satisfactoria del proyecto. Este cierre es independiente del seguimiento de 2 años a la
+publicación de los artículos que realiza la VIE según se describe en estas disposiciones.
+En adelante en estas disposiciones se debe interpretar la palabra cierre como cierre
+administrativo.
+Incremento de carga: aumento en la cantidad de horas, independientemente de su tipo,
+para algún miembro del equipo de la propuesta. Toda ampliación de carga debe estar
+justificada con nuevas actividades y nuevos productos asociados al plan de trabajo.
+Innovación: producto o proceso nuevo o significativamente mejorado, o una combinación
+de ambos, que presenta una novedad o mejora sustancial respecto al estado previo del
+contexto de aplicación y que ha alcanzado un nivel de aplicación efectiva mediante su
+implementación, transferencia, adopción o disponibilidad para uso por actores internos o
+externos.
+Innovación de producto: introducción de un bien, servicio, tecnología, herramienta,
+material, dispositivo, sistema o solución significativamente nuevo o mejorado en cuanto a
+sus características técnicas, funcionalidad, desempeño, eficiencia, calidad o utilidad, que
+representa una mejora sustancial o una novedad respecto al estado previo del contexto de
+aplicación y que genera valor mediante su adopción, transferencia o utilización efectiva.
+Innovación de proceso: implementación de métodos, técnicas, procedimientos,
+protocolos, modelos de operación o sistemas significativamente nuevos o mejorados para
+la investigación, producción, prestación de servicios, gestión, transferencia o ejecución de
+actividades, que presentan una mejora sustancial respecto al estado previo del contexto
+de aplicación y que han alcanzado un nivel de aplicación efectiva mediante su adopción,
+integración o utilización por actores internos o externos.
+El objetivo de la innovación de proceso es mejorar variables como eficiencia, calidad,
+productividad, sostenibilidad, trazabilidad, seguridad, escalabilidad, capacidad de
+respuesta.
+
+3
+Modificación del equipo de investigación: incorporación o salida de una persona
+investigadora en el equipo de la propuesta. En caso de incorporación, la persona contaría
+con carga adicional, independientemente del tipo de hora. Toda inclusión de carga debe
+estar justificada con nuevas actividades y nuevos productos asociados al plan de trabajo.
+En el caso de la salida de una persona investigadora, deben presentar una justificación del
+movimiento.
+Movimiento de carga: redistribución de las horas, independientemente de su tipo, entre
+el equipo que participa de la propuesta.
+Niveles de Madurez Tecnológica o Technology Readiness Levels (TRL): constituyen
+una escala utilizada para medir el grado de desarrollo, validación y madurez de una
+tecnología, desde la investigación básica y generación del conocimiento hasta su
+implementación, escalamiento y uso en condiciones reales. Permiten evaluar el estado de
+avance de una tecnología, producto, proceso, prototipo, sistema o solución tecnológica,
+facilitando la toma de decisiones relacionadas con investigación, desarrollo tecnológico,
+escalamiento, transferencia, inversión y comercialización.
+Es importante aclarar que los TRL no constituyen una escala para medir el nivel de
+innovación, sino una herramienta para evaluar el grado de madurez tecnológica de una
+solución. Por tanto, el nivel de TRL no determina por sí mismo el carácter innovador de un
+resultado, sino su nivel de desarrollo y cercanía a la implementación real.
+Proyecto de investigación: toda actividad creadora y sistemática en el campo de la
+ciencia, la tecnología, la educación, la administración y la acción sociocultural. Esta
+actividad está dirigida a aumentar el conocimiento científico o resolver problemas
+particulares siguiendo un método específico y cuyos objetivos, fundamentos teóricos,
+justificación y procedimiento son explícitamente establecidos. Existen tres tipos de
+proyectos de investigación: proyectos de investigación básica, proyectos de investigación
+aplicada y proyectos de Desarrollo Tecnológico.
+Proyecto de investigación aplicada: es el tipo de proyecto orientado a resolver
+problemas prácticos y concretos del mundo real, generando soluciones o conocimientos
+directamente aplicables en contextos específicos, como empresas, organizaciones o
+industrias.
+Proyecto de investigación básica: es el tipo de proyecto que se centra en generar
+conocimiento teórico nuevo y ampliar el entendimiento de fenómenos, sin pretender una
+aplicación práctica inmediata.
+Proyecto de investigación de desarrollo tecnológico: proyectos enfocados en generar
+y estructurar los conocimientos, habilidades y capacidades organizativas necesarias
+para producir, implementar, distribuir o comercializar bienes o servicios nuevos o
+mejorados, basándose en principios científicos, innovación tecnológica y experiencia
+práctica.
+
+4
+Suspensión temporal o permanente de una actividad o proyecto: finalización
+anticipada de un proyecto debido a circunstancias excepcionales que impiden su
+ejecución, continuidad o culminación conforme a los objetivos, actividades o cronograma
+originalmente aprobados. Estas circunstancias pueden incluir, entre otras, situaciones de
+fuerza mayor, razones operativas, administrativas, financieras o de salud de las personas
+participantes, debidamente justificadas y documentadas. Su gestión se realizará de
+acuerdo con lo establecido en el artículo 50 del “Reglamento de Investigación y Extensión
+del Instituto Tecnológico de Costa Rica”.
+1.2. Sobre el tipo de horas
+Horas consolidado (CONS): asignación de horas, dentro de la carga laboral de una
+persona investigadora, con cargo a plazas administradas por la Vicerrectoría de
+Investigación y Extensión que pertenecen al régimen de Investigador Consolidado.
+Horas DOC (ViDa): asignación de horas docencia en la carga laboral de una persona
+investigadora para el desarrollo de actividades de investigación en proyectos formalmente
+aprobados por el CIE, con cargo a plazas adscritas a la Vicerrectoría de Docencia (ViDa).
+Horas por reconocimiento (REC): asignación de horas en la carga laboral sin
+remuneración adicional asignada a una persona funcionaria que participa en una iniciativa
+de investigación, equivalente a una participación ad honorem y dentro de su carga
+académica regular.
+Horas VIE: se refiere a la asignación de horas, con cargo a plazas administradas por la
+Vicerrectoría de Investigación y Extensión (VIE), dentro de la carga laboral de una persona
+investigadora.
+Horas VIE-Centros: se refiere a las horas, con cargo a plazas administradas por la
+Vicerrectoría de Investigación y Extensión (VIE) asignadas al Centro de Investigación y
+Extensión.
+Horas VIESA: asignación de horas en la carga laboral de una persona investigadora para
+el desarrollo de actividades de investigación en proyectos formalmente aprobados por el
+CIE, con cargo a plazas adscritas a la Vicerrectoría de Vida Estudiantil y Servicios
+Académicos (VIESA).
+1.3. Sobre los tipos de financiamiento
+Cofinanciamiento: corresponde a los recursos generados mediante actividades de
+vinculación remunerada externa que son destinados por la instancia académica para la
+ejecución técnica de la actividad o proyecto de investigación.
+Contrapartida externa: se refiere a todo apoyo o colaboración proporcionado por una
+entidad ajena al ITCR en forma de bienes o servicios (aporte no monetario), el cual no
+constituye un ingreso de flujo de caja para el proyecto.
+
+5
+Financiamiento externo: recursos monetarios otorgados por una fuente de cooperación
+nacional o internacional, pública o privada, que ingresan como flujo de caja al ITCR o a la
+FUNDATEC para apoyar la ejecución de la actividad o proyecto de investigación.
+1.4. Sobre los productos de investigación
+Artículo: es aquel escrito en los campos de la tecnología, las ciencias, las letras, las artes
+y la administración, que se publica en revistas, periódicos, memorias de congresos,
+simposios, seminarios o compilaciones que posean un Consejo Editorial. Constituye una
+obra susceptible de protección mediante el régimen de derecho de autor, conforme a la
+normativa vigente.
+Artículo científico indexado: es una publicación de investigación que ha sido
+seleccionada y registrada en bases de datos académicas internacionales de alta calidad
+(como Web of Science, Scopus, SciELO o Redalyc), tras superar un proceso riguroso de
+revisión por pares. Debe ser verificable en el portal institucional de índices de evaluación
+de revistas. Asimismo, constituye una obra protegible por derecho de autor, en los términos
+establecidos por la normativa aplicable.
+Producto académico: se define como el resultado verificable de una actividad de
+investigación, que puede expresarse mediante distintos tipos de entregables tales como
+publicaciones científicas, libros, desarrollos tecnológicos, prototipos, bases de datos u
+otros resultados reconocidos por el Consejo de Investigación y Extensión (CIE). Los
+productos académicos pueden manifestarse tanto en formas tangibles como intangibles
+con un valor científico, técnico, social o institucional. Estos productos pueden dar origen,
+cuando corresponda, a activos de propiedad intelectual.
+Producto académico intangible: son aquellos productos académicos que, si bien no
+cuentan directamente con un soporte material o digital verificable como entregable
+específico, generan valor científico, técnico, social o institucional derivado de la actividad
+investigativa. Como ejemplos se incluyen entre otros: formación de recurso humano,
+generación de capacidades, asesorías técnicas, transferencia de conocimiento,
+fortalecimiento de redes de colaboración y procesos de innovación. Estos resultados
+pueden verificarse a través de evidencias indirectas o resultados asociados.
+Producto académico tangible: son aquellos productos académicos que cuentan con un
+soporte material o digital verificable, que permite su observación, medición,
+almacenamiento o distribución como evidencia del resultado de investigación (ej. artículos
+científicos, libros, prototipos, informes técnicos, bases de datos, y desarrollos de software
+(en su código fuente o ejecutable).
+Productos de divulgación: corresponden a los medios y materiales utilizados para la
+comunicación científica y técnica de los resultados hacia la sociedad y la comunidad
+académica. Incluyen memorias de congresos, productos audiovisuales, notas en medios
+de comunicación institucionales (como InvestigaTEC), prensa nacional e internacional, y
+programas de radio o televisión.
+
+6
+Productos de socialización: son las acciones dirigidas a devolver el conocimiento
+generado a la población meta y los sectores interesados. Incluyen los procesos de
+sistematización de experiencias, las actividades de rendición de cuentas, la consolidación
+de redes de cooperación comunitaria y la transferencia de conocimiento para la eventual
+aplicación o adaptación de los resultados por parte de terceros.
+1.5. Sobre los productos de propiedad industrial y software
+Activo de propiedad industrial: se refiere a todo resultado derivado de actividades de
+investigación, desarrollo e innovación que cumple con los requisitos legales para ser
+protegido mediante alguna de las modalidades de propiedad industrial, tales como patente
+de invención de invención, modelos de utilidad, diseños industriales, obtenciones
+vegetales, sistemas de trazado de circuitos integrados, denominaciones de origen o
+indicaciones geográficas. Estos activos constituyen bienes intangibles susceptibles de
+protección jurídica, cuya titularidad, gestión, valorización y eventual explotación se rigen
+por la normativa institucional vigente. Su adecuada identificación y protección permite
+facilitar procesos de transferencia tecnológica y generación de valor a partir del
+conocimiento.
+Denominación de origen o indicación geográfica: consiste en el nombre de una región
+o lugar geográfico que sirve para designar un producto originario del mismo, cuya calidad
+o características se deban exclusivamente al medio geográfico. Se evidencia mediante la
+entrega del pliego de condiciones técnico correspondiente, la solicitud completa o el
+derecho otorgado.
+Desarrollo de software: se define como la creación de programas informáticos con
+utilidad y funcionalidad específica. Aunque su protección se rige por el derecho de autor,
+el software es gestionado institucionalmente como un activo tecnológico. Para su
+validación institucional, requiere la entrega de: código fuente, manual técnico, manual de
+usuario y la definición del ciclo de vida del software para asegurar su mantenimiento y
+acceso.
+Diseño industrial (dibujo o modelo industrial): corresponde a la protección de la
+apariencia estética de un producto, ya sea bidimensional (dibujo) o tridimensional (modelo),
+siempre que sea nueva y susceptible de aplicación industrial. Se evidencia mediante la
+solicitud completa correspondiente o derecho otorgado.
+Modelo de utilidad: es una protección para invenciones que, sin tener la complejidad de
+una patente de invención, representan una mejora técnica o funcional a herramientas,
+objetos o aparatos existentes. Se evidencia mediante el documento técnico preliminar de
+la solicitud, la solicitud completa o el derecho otorgado.
+Obtención vegetal: es el derecho otorgado al fitomejorador que haya creado o
+desarrollado una variedad vegetal nueva, distinta, homogénea y estable. Se requiere el
+documento técnico con la caracterización de la nueva variedad, la solicitud completa
+(incluyendo el examen técnico DHE) o el derecho otorgado.
+
+7
+Patente de invención: es un derecho exclusivo otorgado por el Estado para la protección
+de una invención que sea nueva, tenga nivel inventivo y aplicación industrial. Para fines
+del proyecto, se entrega el documento técnico preliminar de la solicitud, la solicitud
+completa o el derecho otorgado.
+Propiedad intelectual: conjunto de doctrinas y normas que regulan lo referente a la
+apropiación e interrelación de los bienes jurídicos inmateriales que se deriven del intelecto.
+La propiedad intelectual se divide en dos grandes ramas: la propiedad industrial y el
+derecho de autor, y derechos conexos.
+Secreto (Información no divulgada): comprende información de carácter técnico,
+comercial o industrial que posee un valor económico por ser confidencial y que ha sido
+objeto de medidas razonables para mantener su secreto. El producto debe formalizarse
+mediante un documento técnico depositado y resguardado en el Centro de Vinculación.
+Sistema de trazado de circuitos integrados: es la disposición tridimensional de los
+elementos que componen un circuito integrado. Se evidencia mediante el expediente de
+solicitud completa de registro o bien, el derecho otorgado.
+Otros activos: comprende cualquier otro resultado susceptible de protección o gestión
+como activo de propiedad industrial o tecnológico no contemplado en las categorías
+anteriores. Su reconocimiento y validación quedará sujeto al criterio técnico del Centro de
+Vinculación.
+1.6. Sobre el plan de administración de riesgos
+Identificación del riesgo: consiste en la descripción detallada de cada evento potencial,
+interno o externo, que pueda afectar el cumplimiento de los objetivos o el cronograma. Por
+normativa institucional, el equipo investigador debe identificar al menos un riesgo por cada
+actividad definida en el plan de acción.
+Medidas de mitigación: estrategias específicas, preventivas o correctivas, que buscan
+reducir la probabilidad de ocurrencia del riesgo o minimizar su impacto negativo. Deben
+ser prácticas, medibles y coherentes con los recursos disponibles.
+Responsable de la gestión: persona investigadora o entidad encargada de monitorear
+cada riesgo y asegurar la ejecución de las medidas de mitigación en el tiempo y forma
+establecidos.
+Riesgos de permisos y autorizaciones: en proyectos que involucren sujetos humanos,
+biodiversidad o animales, el plan de riesgos debe contemplar obligatoriamente las acciones
+para mitigar retrasos en la obtención de permisos ante entes como el Comité Ético
+Científico (CEC), la Comisión Nacional para la Gestión de la Biodiversidad (CONAGEBIO)
+o el Comité Institucional para el Cuidado y Usos de los Animales (CICUA).
+
+8
+1.7. Otras definiciones
+Consejo de Investigación y Extensión (CIE): máximo órgano colegiado de la
+Vicerrectoría de Investigación y Extensión (VIE), responsable de dictar las normas de
+aprobación y evaluación, así como de analizar y resolver todas las iniciativas de
+investigación y extensión del ITCR.
+Comité Técnico: órgano de la instancia académica (Escuela o Centro) encargado de
+dictaminar la viabilidad técnica y metodológica de las propuestas de actividades de
+fortalecimiento de investigación y extensión, proyectos de investigación básica, proyectos
+de investigación aplicada, proyectos de desarrollo tecnológico y proyectos de extensión,
+asegurando su rigor mediante la aplicación de las rúbricas oficiales aprobadas por el CIE.
+Dirección de Investigación: unidad técnica-administrativa de la VIE responsable de
+gestionar, administrar y supervisar el portafolio institucional de iniciativas de investigación.
+Su función principal es emitir los dictámenes técnicos que sirven de base para las
+decisiones del CIE.
+Persona que se encuentra al día con sus responsabilidades ante la Vicerrectoría de
+Investigación y Extensión: funcionario que ha cumplido con la entrega de informes finales
+o productos comprometidos, según las condiciones de la convocatoria de origen.
+
+9
+2. Disposiciones generales
+2.1. Alcance
+Esta convocatoria está dirigida a propuestas nuevas de investigación y actividades de
+fortalecimiento presentadas por las instancias académicas con asignación de horas VIE y
+presupuesto operativo por parte de la Vicerrectoría de Investigación y Extensión; personas
+investigadoras activas en la Categoría Persona Investigadora y Extensionista Consolidada
+(horas CONS) y por los Centros de Investigación y Extensión (en adelante Centros, horas
+VIE-Centros) del Instituto Tecnológico de Costa Rica.
+Nota: las propuestas de investigación se podrán complementar con otro tipo de horas
+(DOC, VIESA, REC) según las presentes disposiciones.
+Artículo 32. Asignación de plazas VIE a los Centros de Investigación y
+Extensión (Reglamento de Investigación y Extensión)
+La VIE asignará, conforme a su disponibilidad presupuestaria, al menos un tiempo
+completo de sus plazas a cada Centro de Investigación y Extensión para el
+desarrollo de sus actividades de fortalecimiento o proyectos de investigación o
+extensión. Tales proyectos se aprobarán según lo dispuesto en este reglamento.
+Adicionalmente, podrán desarrollar proyectos financiados con recursos externos o
+los que se les apruebe en las convocatorias realizadas por la VIE. De no tener
+proyectos activos aprobados por el CIE en los tiempos asignados por este artículo,
+las plazas disponibles serán utilizadas por la VIE para el desarrollo de proyectos de
+otras instancias.
+Las horas VIE asignadas a cada instancia académica o Centro de Investigación y
+Extensión que vayan a ser utilizadas para proyectos de investigación y actividades de
+fortalecimiento, tienen como objetivo fomentar el desarrollo de la investigación en la
+Institución, de acuerdo con las necesidades del país y en el marco de los “Ejes de
+conocimiento estratégicos” aprobados por la AIR, Plan Estratégico Institucional y los
+Objetivos de Desarrollo Sostenible y sus metas, enunciadas por la Organización de las
+Naciones Unidas (Decreto No. 40203-PLAN-RE-MINAE).
+Esta convocatoria no aplica para ampliaciones de actividades de fortalecimiento ni
+proyectos de investigación.
+2.2. Objetivo
+Estimular la generación de iniciativas de investigación lideradas por dependencias
+académicas; Centros de Investigación o Extensión; o personas investigadoras
+consolidadas dentro de las modalidades:
+a. Actividades de fortalecimiento en investigación
+b. Proyectos de investigación básica, aplicada, o ambas
+c. Proyectos de investigación de desarrollo tecnológico
+
+10
+Mediante este proceso, la Dirección de Investigación integrará las iniciativas aprobadas a
+la cartera de proyectos de la VIE, garantizando con ello la trazabilidad de la ejecución, el
+rigor metodológico institucional y la visibilidad global de sus resultados científicos y
+tecnológicos.
+2.3. Condiciones particulares de esta convocatoria
+2.3.1 Todas las iniciativas deben ingresarse a través del sistema Orión
+(https://orion.tec.ac.cr/). Es requisito indispensable adjuntar la documentación de
+respaldo completa, utilizando los formatos vigentes aprobados por el CIE.
+2.3.2 Una vez cerrado el proceso de recepción, la plataforma no permitirá el ingreso de
+nuevas propuestas, ni se recibirá extemporáneamente ningún documento para
+completar la solicitud.
+2.3.3 Las iniciativas de proyectos que hayan sido presentadas o aprobadas en
+convocatorias externas, no se consideran para esta convocatoria; estas deben estar
+asociadas a los requerimientos de las respectivas convocatorias específicas en las
+que se está participando.
+2.3.4 Las iniciativas de proyectos que de acuerdo con el “Reglamento para la Vinculación
+Remunerada Externa del ITCR” con la coadyuvancia de la FUNDATEC califican
+como acciones de vinculación remunerada externa, quedan excluidas de esta
+convocatoria.
+2.3.5 La asignación de recursos se realizará en función de la disponibilidad de dichos
+recursos, de la prioridad determinada por la calificación final obtenida según rubrica
+aplicada por el Comité Técnico y del análisis realizado por el CIE.
+2.3.6 Es responsabilidad del equipo investigador identificar los requerimientos para el
+desarrollo de la iniciativa de investigación. En caso de incluirse dentro del
+presupuesto a financiar por la VIE, deberá justificarse en el formato facilitado por el
+CIE para dicho fin.
+2.3.7 Las iniciativas que impliquen el desarrollo de giras deberán incluir dentro de su plan
+de acción, una proyección de la cantidad de giras a desarrollar. El transporte
+institucional no se presupuestará como gasto operativo; los demás costos asociados
+que sean admisibles según la normativa institucional (viáticos, alimentación,
+hospedajes, peajes, becas u otros) deberán formularse y justificarse en el
+presupuesto correspondiente”.
+2.3.8 El equipo proponente deberá considerar dentro de la planificación, el realizar la
+gestión de las compras internacionales y de equipo, en el primer semestre del
+proyecto.
+2.3.9 El presupuesto debe ser coherente con los montos máximos establecidos en las
+disposiciones de esta convocatoria. Toda compra en bienes duraderos debe
+formularse obligatoriamente para el primer año de ejecución del proyecto. No se
+
+11
+aceptará diferir la inversión para años posteriores sin justificación excepcional
+aprobada por el CIE.
+2.3.10 Las iniciativas de investigación básica, aplicada, y de desarrollo tecnológico,
+deberán incluir en su presupuesto operativo al menos 10 h por semana para el pago de
+“Becas estudiante asistente especial”, tomados del presupuesto de esta ronda.
+2.3.11 Las propuestas de investigación serán evaluadas por el comité técnico de la
+dependencia académica coordinadora utilizando las rúbricas aprobadas por el CIE,
+avaladas por los consejos de las dependencias participantes, dictaminadas por la
+Dirección de Investigación y resueltas por el CIE. La calificación asignada por la
+dependencia académica corresponderá a un 100% de la nota total obtenida por la
+propuesta.
+2.4 . Productos académicos
+2.4.1 La cantidad de productos finales obligatorios se calculará, exclusivamente, sobre
+la suma total de horas semanales asignadas al equipo de trabajo
+independientemente del tipo de horas (VIE+ VIE-Centros+ REC + CONS + DOC +
+VIESA), según la siguiente métrica de proporcionalidad:
+Total de horas Productos académicos
+semanales asignadas mínimos requeridos
+1 a 10 horas 1 producto
+11 a 20 horas 2 productos
+21 a 30 horas 3 productos
+(La escala mantendrá la proporción de un producto adicional por cada diez horas
+semanales excedentes redondeado hacia arriba).
+2.4.2 Los productos académicos comprometidos (según la escala del punto 2.4.1) deberán
+seleccionarse de las listas de opciones definidas en las secciones 3, 4 o 5 de esta
+convocatoria, según la modalidad de la iniciativa: actividad de fortalecimiento;
+investigación básica y aplicada, o desarrollo tecnológico, respectivamente.
+2.4.3 En cumplimiento del artículo 44 del “Reglamento de Investigación y Extensión del
+Instituto Tecnológico de Costa Rica”, el informe final de proyectos, tanto de
+investigación y extensión, deberá ser depositado en el repositorio institucional, salvo
+que exista prohibición por concepto de protección de la propiedad intelectual o que
+se afecten procesos de arbitraje propios de publicación. En el caso de activos
+digitales como bases de datos o software, la información técnica deberá entregarse
+a la Dirección de Investigación para su custodia.
+
+12
+2.5 . Asignación de horas en iniciativas de investigación
+2.5.1 La dependencia académica puede presentar propuestas hasta un máximo de las
+horas VIE y VIE-Centros que le fueron asignadas. En caso de que la cantidad de
+horas solicitadas supere las asignadas, la diferencia será asumida por horas REC,
+VIESA, DOC o CONS.
+2.5.2 Las personas investigadoras que se encuentran dentro de la categoría de persona
+investigadora y extensionista consolidada podrán presentar propuestas desde su
+dependencia académica haciendo uso de los recursos que el régimen le otorga.
+2.5.3 Durante el primer año no se admitirán movimientos de carga, incrementos de
+horas ni modificaciones de equipo independientemente del tipo de hora que
+no estén contemplados en el plan de acción, salvo casos excepcionales
+debidamente justificados, con aval de las instancias académicas involucradas
+y aprobación del CIE.
+2.5.4 A partir del segundo año de ejecución, cualquier modificación del proyecto deberá
+realizarse atendiendo los procedimientos establecidos por la Dirección de
+Investigación, según corresponda. En el caso de movimientos con horas CONS, ya
+sea por incremento de horas de una persona que forma parte del equipo de
+investigación o por la incorporación de una nueva persona investigadora, deberá
+justificarse mediante la adición de actividades sustantivas al plan de acción y
+la incorporación de productos académicos adicionales que respalden la asignación
+de estas horas al proyecto.
+2.6 . ¿Quiénes pueden participar?
+2.6.1 Para todos los casos, únicamente podrán participar en la propuesta (en cualquier
+rol) aquellas personas investigadoras que se encuentren al día con sus
+responsabilidades ante la Vicerrectoría de Investigación y Extensión al momento
+del cierre de la recepción de las propuestas, según el cronograma aprobado por el
+CIE.
+2.6.2 Se podrá considerar la participación de personas en condición de profesor Ad-
+honorem, siempre y cuando se cumpla con lo establecido en el “Reglamento para el
+nombramiento y la designación especial de personas profesoras o profesionales en
+el Instituto Tecnológico de Costa Rica”.
+2.6.3 El personal de apoyo a la academia podrá participar en actividades de fortalecimiento
+y proyectos de investigación, bajo la figura de horas reconocimiento, es decir, sin
+asignación de horas VIE para el desarrollo de las actividades que tenga a cargo. Su
+participación estará supeditada al cumplimiento de los siguientes requisitos:
+a. Las actividades asignadas no deben formar parte de sus labores ordinarias de
+servicio.
+b. Deberá contar con el aval formal y por escrito de su jefatura inmediata o
+Consejo, según corresponda.
+
+13
+c. Su dedicación al proyecto será entre dos a cinco horas REC semanales.
+2.6.4 Las personas investigadoras que se encuentren nombradas temporalmente en
+puesto de Dirección o Coordinación (Rectoría; Vicerrectorías; Direcciones y
+similares), podrán participar en actividades de fortalecimiento y proyectos de
+investigación, siempre que estén apoyadas por la instancia académica a la cual
+pertenecen cuando ejercen el nombramiento de profesor(a).
+2.6.5 Se admite la vinculación de personas colaboradoras externas, tanto nacionales como
+internacionales, bajo las siguientes condiciones obligatorias:
+a. Adjuntar la documentación formal (carta de compromiso) en la que conste su
+aceptación expresa de participar y las actividades específicas que realizará.
+b. El rol técnico y las tareas asignadas deben quedar detallados explícitamente
+dentro del plan de acción y cronograma de la propuesta.
+2.6.6 Cuando se requiera contratar a una persona profesional externa, se deberá adjuntar
+el perfil de la persona investigadora por contratar, así como la debida justificación.
+Además, sus funciones deberán quedar claramente reflejadas dentro del plan de
+acción. Para la contratación de esta persona deberán atenderse la normativa y los
+procedimientos institucionales establecidos para tal efecto. Esta disposición aplica
+para todas las modalidades de investigación, excepto para las actividades de
+fortalecimiento de investigación.
+2.6.7 La contratación de servicios profesionales externos quedará supeditada a aquellos
+casos en que la Institución no cuente con las personas profesionales que puedan
+llevar a cabo la función o que la Institución no cuente con las condiciones para
+hacerlo, y se realizará de acuerdo con la “Ley General de Contratación Pública 9986”.
+Esta contratación solo se podrá utilizar en actividades puntuales, es decir, no podrá
+corresponder al desarrollo de actividades sustantivas ni permanentes en el proyecto.
+Además, la contratación de servicios profesionales deberá ser debidamente
+justificada en la formulación y ejecución del proyecto, la cual no debe ser superior a
+un 30% del presupuesto operativo. Esta disposición aplica para todas las
+modalidades de investigación, excepto para las actividades de fortalecimiento de
+investigación.
+2.7 . Avales de las instancias académicas y administrativas
+2.7.1 Toda propuesta deberá estar respaldada por el aval formal del consejo de las
+dependencias involucradas. Los acuerdos emitidos por los consejos de las
+instancias académicas, coordinadora y participantes, deberán cumplir con los
+lineamientos y requisitos establecidos por el CIE para dicho fin. La presentación de
+los acuerdos constituye un requisito obligatorio para la admisibilidad y eventual
+aprobación de la propuesta, por lo que deberán consignar explícitamente los
+siguientes aspectos:
+a. El aval para presentar la propuesta ante la VIE, indicando el nombre de la iniciativa
+y su periodo de ejecución.
+
+14
+b. El aval para la participación de cada persona investigadora, especificando para
+cada una: la cantidad de horas semanales; el tipo de carga académica (VIE, VIE-
+Centros, CONS, REC, DOC o VIESA) y su periodo de nombramiento. Además, en
+aquellos casos en que la propuesta incluya un aporte económico por parte de la
+instancia académica, deberá aprobarse el presupuesto y su respectiva
+distribución.
+c. Cuando alguna persona del equipo investigador haga uso de horas CONS, se
+debe indicar, explícitamente, a cuál persona investigadora CONS titular
+pertenecen dichas horas.
+d. El aval de la calificación técnica y el dictamen emitido por el Comité Técnico,
+certificando que la evaluación cuenta como mínimo con los criterios definidos en
+la rúbrica aprobada por el CIE.
+2.7.2 El consejo de cada instancia académica participante deberá avalar exclusivamente
+la participación de su propio personal. Este acuerdo debe detallar la cantidad de
+horas, el tipo de horas (VIE, VIE-Centros, CONS, REC, DOC o VIESA) y el periodo
+de nombramiento para cada una. Cuando se incluyan horas CONS, debe quedar
+establecido en el acuerdo a quién corresponden las horas CONS que ejecutará
+cada persona.
+2.7.3 Para efectos de la valoración técnica de la propuesta y el posterior nombramiento
+de las personas investigadoras, el CIE y la Dirección de Investigación tomarán
+como base oficial y vinculante la información comunicada en los acuerdos de
+consejo de las instancias involucradas.
+2.8 . Financiamiento
+2.8.1 El financiamiento externo será gestionado conforme a la normativa institucional
+vigente. Los recursos podrán ser administrados por el ente financiador, FUNDATEC
+u otra organización externa al Instituto Tecnológico de Costa Rica. Para su
+validación, deberá presentarse un oficio emitido por el ente financiador que
+especifique el monto otorgado, la finalidad o uso de los fondos y la firma del
+responsable autorizado.
+2.8.2 El aporte por contrapartida deberá ser cuantificado y claramente definido en cuanto
+a su uso por parte de la entidad asociada. Este deberá presentarse junto con la
+propuesta, mediante un oficio que especifique el monto, la finalidad o el uso previsto,
+y que cuente con la firma del responsable respectivo de la contraparte.
+2.8.3 El aporte por cofinanciamiento deberá ser debidamente respaldado mediante un
+oficio formal que especifique el monto otorgado, la finalidad o uso de los fondos y la
+firma de la persona responsable de la fuente de cofinanciamiento.
+
+15
+2.9 . Distribución de remanentes
+2.9.1 En caso de existir un remanente de recursos en alguna de las modalidades
+establecidas por estas disposiciones, la Vicerrectoría de Investigación y Extensión
+dispondrá de estos recursos.
+2.10. Autorizaciones, permisos y propiedad intelectual
+2.9.2 Toda iniciativa que involucre seres humanos, elementos de la biodiversidad
+(incluyendo material genético, material bioquímico y conocimientos tradicionales
+asociados) o animales, deberá contar con las autorizaciones, permisos o
+aprobaciones formales emitidas por los comités éticos o entes regulatorios
+competentes, previo al inicio de la fase experimental. El plan de acción y la gestión
+de riesgos de la propuesta deben contemplar explícitamente las medidas de
+mitigación y el tiempo estimado para la obtención de dichos permisos. El
+cumplimiento de estos requisitos se rige por el siguiente marco legal:
+a. Investigaciones con seres humanos
+Se rige por la “Ley de Investigación Biomédica (Ley 9234, 2014)”, que garantiza
+la protección de la población participante, incluidas comunidades autóctonas y
+poblaciones vulnerabilizadas. Esta investigación requiere la evaluación y
+aprobación de un Comité Ético Científico (CEC) activo ante el Consejo Nacional
+de Investigación en Salud (CONIS) (lista disponible en su sitio web).
+b. Investigaciones con plantas y biodiversidad
+Se rige por la “Ley de Biodiversidad (Ley 7788, 1998)”, que regula la exploración,
+investigación y uso de los elementos de la biodiversidad. La entidad encargada
+de gestionar los permisos es la Comisión Nacional para la Gestión de la
+Biodiversidad (CONAGEBIO).
+c. Investigaciones con animales
+Se rige por la “Ley de Bienestar Animal (Ley 7451, 2017)”. Las propuestas deben
+contar con la aprobación de un comité institucional autorizado, como el Comité
+Institucional para el Cuidado y Uso de los Animales (CICUA UCR) o el Comité de
+Bienestar Animal y Bioética (COBAB UNA).
+2.10.2 La ejecución técnica de las actividades que requieran estos permisos no podrá
+iniciar hasta que se cuente con la autorización respectiva. El Comité Técnico de la
+instancia académica coordinadora es el responsable de verificar que estos
+requisitos estén debidamente planteados en la formulación del proyecto.
+
+16
+2.10.3 Propiedad intelectual:
+2.10.3.1 Toda iniciativa deberá identificar, desde la fase de formulación, el potencial
+de generación de resultados susceptibles de protección mediante derechos de
+propiedad intelectual. La propuesta deberá incluir una descripción preliminar de los
+posibles activos de propiedad intelectual que podrían derivarse del proyecto.
+2.10.3.2 Los proyectos aprobados deberán acatar las “Orientaciones Institucionales
+para la Propiedad Intelectual” y el “Reglamento para la Gestión de la Propiedad
+Intelectual del ITCR”. El Centro de Vinculación es la instancia técnica institucional
+responsable de asesorar, evaluar y canalizar los procesos relacionados con la
+identificación, protección, gestión y transferencia de los activos de propiedad
+intelectual derivados de las iniciativas de investigación.
+2.10.3.3 Cuando en la formulación de la propuesta se identifique la posibilidad de
+generar resultados susceptibles de protección mediante propiedad intelectual,
+deberá contarse con un dictamen técnico emitido por el Centro de Vinculación.
+Dicho dictamen deberá contemplar, según corresponda, el análisis del potencial de
+innovación, del potencial de protección mediante las distintas modalidades de
+propiedad intelectual y la identificación preliminar de los productos de esta
+naturaleza que podrían derivarse del proyecto.
+2.10.3.4 Toda propuesta deberá identificar en el formulario el Nivel de Madurez
+Tecnológica (Technology Readiness Level, TRL) correspondiente al estado de
+desarrollo de la tecnología, metodología, proceso, producto, sistema o solución
+objeto del proyecto, así como el TRL esperado al finalizar su ejecución. Esta
+información deberá ser consistente con los objetivos, actividades, resultados
+esperados y la naturaleza de la propuesta.
+2.10.3.5 Para la clasificación de las propuestas, según el Nivel de Madurez
+Tecnológica se establecen los siguientes rangos de referencia:
+a. Investigación básica: TRL 1 al TRL 3.
+b. Investigación aplicada: TRL 3 al TRL 5.
+c. Desarrollo tecnológico: TRL 4 a TRL 7.
+2.10.3.6 Cuando la propuesta contemple la participación de actores del sector socio-
+productivo (empresas, organizaciones o entidades públicas), esta deberá
+evidenciarse mediante instrumentos formales que respalden dicha vinculación,
+tales como cartas de compromiso u otros documentos equivalentes. Estos
+instrumentos deberán describir, al menos, el alcance de la colaboración y las
+actividades a desarrollar por las partes.
+2.11. Evaluación, dictamen y valoración de propuestas
+2.11.1 Las propuestas de investigación serán evaluadas por el Comité Técnico de la
+dependencia académica coordinadora y avalada por los consejos de las
+dependencias participantes. Las rúbricas de evaluación serán diseñadas y aprobadas
+
+17
+por el CIE. Las propuestas serán dictaminadas por la Dirección de Investigación y
+resueltas por el CIE, considerando lo siguiente:
+a. Por parte de los Comités Técnicos de la instancia académica:
+• Grupo investigador: se tomará en cuenta la composición disciplinaria del equipo, la
+experiencia, articulación entre dependencias académicas, la vinculación externa y
+participación estudiantil.
+• Fundamentación: definición y justificación del problema, estado del arte, coherencia
+entre problema y objetivos.
+• Metodología: rigor metodológico (enfoque, alcance, diseño de la investigación),
+población de estudio o definición de usuarios.
+• Plan de Acción y cronograma: claridad y detalle de las actividades, planificación de
+actividades, trazabilidad de los resultados.
+• Presupuesto: proporcionalidad y coherencia presupuestaria, inversión y
+equipamiento, otros financiamientos.
+• Gestión de riesgos: se considerará la identificación de riesgos por actividad, así
+como la viabilidad de las acciones de mitigación propuestas.
+• Aspectos éticos: se tomará en cuenta la evaluación de la necesidad de CEC y
+justificación de exenciones.
+• Pertinencia e impacto: se contempla el nivel de innovación e impacto de la
+propuesta.
+b. Por parte de la Dirección de Investigación:
+• Morosidad de las personas investigadoras: se verificará que las personas
+investigadoras participantes se encuentren al día con sus responsabilidades ante la
+Vicerrectoría de Investigación y Extensión. Cada funcionario debe haber cumplido
+con la entrega de informes finales o productos comprometidos, según las condiciones
+de la convocatoria de origen.
+• Plan de riesgo: se verificará que no haya riesgos que comprometan la ejecución total
+del proyecto. Asimismo, se verificará la identificación de un riesgo por cada actividad,
+según objetivo, así como acciones de mitigación coherentes.
+• Participación estudiantil: se verificará que haya participación estudiantil ya sea
+como estudiantes asistentes o en el desarrollo de TFG.
+• Aspectos éticos: se verificará que se requiere de permisos para el desarrollo del
+proyecto, incluyendo acceso a recursos de la biodiversidad, estudios biomédicos,
+comité Bienestar Animal, territorios y pueblos indígenas. Todos los casos anteriores
+deben estar identificados en el plan de riegos con las respectivas medidas de
+mitigación.
+• Documentación general.
+c. Por parte del Consejo de Investigación y Extensión:
+• Análisis del proceso de evaluación y dictamen, en cumplimiento con las disposiciones
+y reglamentos del ITCR, y normativa nacional.
+• Morosidad de las personas investigadoras ante las Direcciones de Investigación;
+Extensión; y Cooperación y Asuntos Internacionales.
+
+18
+• Interés estratégico institucional y disponibilidad de recursos.
+2.12. Seguimiento, informes y cierre
+2.12.1 La persona coordinadora de cada una de las propuestas aprobadas por el CIE
+deberá:
+• Atender, al menos, una actividad de seguimiento por año (presencial o
+virtual) por parte de la persona gestora de proyectos asignada por la
+Dirección de Investigación.
+• Atender el seguimiento semestral por parte de la persona gestora.
+• Entregar el informe final en el formato vigente, según el tipo de proyecto,
+junto con la documentación correspondiente con los productos
+comprometidos, en un plazo máximo de seis meses calendario, posterior a
+la fecha de finalización del proyecto. Ver el Procedimiento PG-DINV-02.
+2.12.2 Si los resultados o productos finales requieren un periodo de reserva, la
+coordinación deberá gestionar la declaración de confidencialidad ante el Centro de
+Vinculación. Dicha instancia determinará las condiciones de tratamiento y
+divulgación, tras realizar el estudio del potencial de propiedad intelectual de la
+iniciativa.
+2.12.3 El equipo investigador contará con el respaldo y la asesoría del Centro de
+Vinculación para la identificación, protección y gestión de los derechos de
+propiedad intelectual derivados de la iniciativa, incluyendo, entre otros, patente de
+invención, software y secretos, lo que no es excluyente con la divulgación de
+resultados mediante su presentación en congresos científicos o su publicación en
+medios de alto impacto. No obstante, dichas actividades de divulgación deberán
+realizarse bajo una adecuada gestión de la información, a fin de evitar la divulgación
+anticipada que pueda comprometer la novedad y, en consecuencia, las
+posibilidades de protección de los resultados generados.
+2.12.4 En el informe final de los proyectos de desarrollo tecnológico, deberá adjuntarse un
+oficio emitido por el Centro de Vinculación que contenga el análisis técnico sobre
+el estado final de los activos con respecto a su potencial de protección mediante
+derechos de propiedad intelectual. Dicho análisis considerará, entre otros aspectos,
+la evolución del estado de la técnica, el cumplimiento de los requisitos de protección
+y la correspondencia con los resultados efectivamente obtenidos en la ejecución
+del proyecto.
+En aquellos casos en que, como resultado del análisis técnico, se determine que
+los activos generados no cumplen con los requisitos para su protección, esta
+condición no impedirá el cierre del proyecto, siempre que el equipo investigador
+haya cumplido con los productos y resultados comprometidos en la propuesta
+aprobada.
+
+19
+La Dirección de Investigación tomará en consideración este dictamen técnico para
+efectos del cierre del proyecto, sin que la ausencia de potencial de protección
+constituya, por sí misma, una causal de incumplimiento.
+2.12.5 Tras la culminación satisfactoria de la actividad de investigación, la Dirección de
+Investigación emitirá la respectiva certificación.
+
+20
+3 Disposiciones específicas para actividades de
+fortalecimiento
+3.1. Las actividades de fortalecimiento tienen como finalidad primordial la generación
+de nuevas propuestas, la identificación de necesidades de investigación o la
+apertura de nuevas áreas de conocimiento. Por su carácter preparatorio, estas
+actividades no constituyen proyectos de investigación por sí mismas.
+3.2. El plazo máximo para el desarrollo de una actividad de fortalecimiento será de un
+año calendario, sin posibilidad de prórrogas o ampliaciones de tiempo. Debe de
+contemplarse dentro del periodo de ejecución aquellos casos que requieran
+trámites y permisos asociados a la gestión ética de la iniciativa.
+3.3. Una misma persona solo podrá participar y optar por un máximo de una actividad
+de fortalecimiento de investigación.
+3.4. Toda persona investigadora que integre el equipo de una actividad de
+fortalecimiento deberá contar con una asignación mínima de cuatro horas
+semanales dentro de su carga laboral regular, bajo cualquiera de las modalidades
+permitidas y en cualquier combinación de tipo de horas (VIE, VIE-Centros, CONS,
+REC, DOC o VIESA). Es importante considerar que los compromisos asociados a
+productos al uso de horas CONS ser rigen por la normativa específicas de este tipo
+de categoría.
+3.5. Se podrá asignar por actividad de fortalecimiento un máximo de dos millones de
+colones (para todo el período de ejecución) y un máximo de ocho horas, donde al
+menos cuatro horas deben ser VIE, VIE-Centros o CONS y, además, podría
+complementar con DOC, REC, VIESA por semana.
+3.6. Toda actividad de fortalecimiento aprobada deberá generar y entregar
+un documento de sistematización que incluya, como compromiso mínimo, al menos
+una de las siguientes opciones de producto académico:
+Opción Producto académico
+1 Diagnóstico de situación.
+2 Estudio de mercado.
+3 Estudio de factibilidad.
+4 Ensayo de laboratorio (según la naturaleza de la
+actividad).
+5 Propuesta de creación de una línea de
+investigación.
+6 Formulación de una propuesta de proyecto de
+investigación básica, aplicada o proyectos de
+desarrollo tecnológico.
+
+21
+Opción Producto académico
+7 Artículo científico sometido en una revista
+indexada (WoS, Scopus, Redalyc, SciELO, ESCI o
+DOAJ).
+Nota: La opción elegida debe quedar expresamente declarada en la formulación de la
+propuesta y constituirá la evidencia obligatoria para la recepción del informe final por
+parte de la Dirección de Investigación.
+3.7. Cada actividad de fortalecimiento deberá presentar un informe final y los productos
+comprometidos de acuerdo con los procedimientos establecidos por la normativa
+de la VIE.
+
+22
+4. Disposiciones específicas para proyectos de
+investigación básica o aplicada
+4.1. Toda persona investigadora que integre el equipo de un proyecto de investigación
+básica o aplicada deberá contar con una asignación mínima de cuatro horas
+semanales dentro de su carga laboral regular, bajo cualquiera de las modalidades
+permitidas y en cualquier combinación de tipo de horas (VIE, VIE-Centros, CONS,
+DOC o VIESA). En el caso de las horas REC, la asignación mínima será de dos horas
+por semana.
+4.2. Se podrá asignar por proyecto de investigación básica o aplicada un máximo de
+cuatro millones de colones por año y mínimo ocho horas VIE, VIE-Centros o CONS
+por semana.
+4.3. Los proyectos de investigación básica o aplicada tendrán una vigencia máxima de
+dos años calendario y solamente podrán solicitar ampliación de un año, sin que esto
+implique compromiso de recursos adicionales (entiéndase horas VIE, VIE-Centros y
+presupuesto operativo).
+4.4. Todo proyecto de investigación básica o aplicada deberá generar y entregar, como
+requisito indispensable para su cierre, al menos una de las siguientes opciones de
+productos académicos por cada 10 horas, independientemente del tipo de horas.
+Esta selección debe ser declarada explícitamente desde la formulación de la
+propuesta:
+Opción Producto académico
+1 Un artículo científico sometido en una revista o memoria
+de conferencia indexada en Web of Science (WoS) o
+Scopus.
+2 Dos artículos científicos sometidos en revistas indexadas
+en SciELO, Redalyc, ESCI o DOAJ, o memorias de
+conferencia con Consejo Editorial permanente.
+3 Un libro o capítulo de libro técnico especializado,
+sometido ante el Comité Editorial permanente respectivo,
+cuyo contenido esté directamente vinculado a la temática
+de la investigación.
+Nota: El compromiso final de productos se ajustará proporcionalmente a la carga total
+de horas asignada al equipo de trabajo, según la escala definida en estas disposiciones
+(un producto adicional por cada 10 horas semanales).
+4.5. La Dirección de Investigación mantendrá el seguimiento de la publicación de los
+artículos científicos comprometidos por un periodo de hasta dos años posteriores a
+la fecha de cierre administrativo del proyecto.
+
+23
+4.6. La propuesta de proyecto de investigación básica o aplicada deberá considerar en
+su planificación la ejecución de actividades de divulgación o socialización de
+resultados, según corresponda.
+4.7. Cada proyecto de investigación básica o aplicada deberá presentar un informe final
+y los productos comprometidos de acuerdo con los procedimientos establecidos por
+la normativa de la VIE.
+5. Disposiciones específicas para proyectos de
+desarrollo tecnológico
+5.1. Toda persona investigadora que integre el equipo de un proyecto de investigación de
+desarrollo tecnológico deberá contar con una asignación mínima de cuatro horas
+semanales dentro de su carga laboral regular, bajo cualquiera de las modalidades
+permitidas y en cualquier combinación de tipo de horas (VIE, VIE-Centros, CONS,
+DOC o VIESA). En el caso de las horas REC, la asignación mínima será de dos horas
+por semana.
+5.2. Se podrá asignar por proyecto de investigación de desarrollo tecnológico un máximo
+de cinco millones de colones por año y mínimo ocho horas VIE, VIE-Centros o CONS
+por semana.
+5.3. Las iniciativas bajo la modalidad de desarrollo tecnológico deberán contar, de forma
+obligatoria, con el dictamen técnico emitido por el Centro de Vinculación, en el cual
+se establezca el potencial de innovación y de protección mediante propiedad
+intelectual, así como la definición de los productos de esta naturaleza. Este dictamen
+será considerado como un insumo técnico especializado para la toma de decisiones
+por parte del CIE.
+5.4. Los proyectos de desarrollo tecnológico tendrán una vigencia máxima de tres años
+calendario y solamente podrán solicitar ampliación de un año, sin que esto implique
+compromiso de recursos adicionales (entiéndase horas VIE, VIE-Centros y
+presupuesto).
+5.5. Todo proyecto de desarrollo tecnológico deberá generar y entregar, como requisito
+indispensable para su cierre un producto de propiedad industrial y la cantidad de
+productos académicos proporcional a la cantidad de horas totales asignadas al
+proyecto. Esta selección debe ser declarada explícitamente desde la formulación de
+la propuesta.
+A continuación, se citan las opciones de productos de propiedad industrial y de
+productos académicos que pueden seleccionar.
+a. Producto de propiedad industrial: se deberá desarrollar al menos un producto
+de propiedad industrial de la siguiente lista:
+
+24
+Opción Activo académico mínimo
+1 Patente de invención o modelo de utilidad (documento técnico preliminar de
+solicitud)
+2 Diseño industrial-Dibujo o modelo industrial- (solicitud completa)
+3 Desarrollo de Software (código fuente, manual técnico, manual de usuario y
+definición del ciclo de vida del software)
+4 Secreto (documento técnico de secreto conformado y depositado en el Centro de
+Vinculación)
+5 Obtención Vegetal (documento técnico con la caracterización de la nueva
+variedad)
+6 Denominación de origen o indicación geográfica (documento de pliego de
+condiciones)
+7 Sistema de trazado de circuitos integrados (solicitud completa)
+8 Otros (Todo aquello no descrito anteriormente quedará a criterio del Centro de
+Vinculación)
+b. Productos académicos: además del producto de propiedad industrial, se deberá
+generar y entregar al menos una de las siguientes opciones de productos académicos por
+cada 10 horas asignadas al proyecto, independientemente del tipo de horas.
+Opción Producto académico
+1 Un artículo científico sometido en una revista o memoria de conferencia
+indexada en Web of Science (WoS) o Scopus.
+2 Dos artículos científicos sometidos en revistas indexadas en SciELO, Redalyc,
+ESCI o DOAJ, o memorias de conferencia con Consejo Editorial permanente.
+3 Un libro o capítulo de libro técnico especializado, sometido al Comité Editorial
+permanente respectivo, cuyo contenido esté directamente vinculado a la
+temática de la investigación.
+4 Norma técnica sometida ante entes competentes de reconocida trayectoria a
+nivel nacional o internacional, o manuales técnicos de alta especialidad.
+Nota: El compromiso final de productos académicos se ajustará proporcionalmente a la
+carga total de horas asignada al equipo de trabajo, independientemente del tipo de horas
+según la escala definida en esta convocatoria (un producto adicional por cada 10 horas
+semanales).
+5.6. La Dirección de Investigación mantendrá el seguimiento de la publicación de los
+artículos científicos comprometidos por un periodo de hasta dos años posteriores a
+la finalización del proyecto.
+
+ 25
+
+6. Cronograma de actividades para esta
+convocatoria
+
+| Actividad  | Responsable  | Fecha  |
+| ---------- | ------------ | ------ |
+Comunicación de la convocatoria
+Vicerrectoría de Investigación y
+| por parte de  | 20 al 27 de julio  |     |
+| ------------- | ------------------ | --- |
+Extensión
+la VIE
+Período de formulación de
+Grupo investigador  28 de julio al 21 de agosto
+propuestas
+El equipo investigador gestiona
+24 de agosto al 28 de
+la revisión por parte del Centro  Dictamen Centro de Vinculación
+agosto
+de Vinculación
+Evaluación por parte del Comité  31 de agosto al 11 de
+Comité Técnico
+| Técnico  |     | setiembre  |
+| -------- | --- | ---------- |
+Aval de propuestas y emisión de
+14 de setiembre al 25 de
+| acuerdos por la instancia  | Instancia académica  |     |
+| -------------------------- | -------------------- | --- |
+setiembre
+académica
+| Período de recepción de  Persona coordinadora de la  |     |     |
+| ---------------------------------------------------- | --- | --- |
+28 de setiembre
+| propuestas en Orión  | actividad o proyecto  |     |
+| -------------------- | --------------------- | --- |
+29 de setiembre al 12 de
+| Elaboración de dictamen  Dirección de Investigación  |     |     |
+| ---------------------------------------------------- | --- | --- |
+octubre
+Análisis y resolución de nuevas  Consejo de Investigación y
+13 al 23 de octubre
+| propuestas  | Extensión  |     |
+| ----------- | ---------- | --- |
+Consejo de Investigación y
+Comunicación de acuerdos  26 al 30 de octubre
+Extensión
+Remisión de carta de aceptación  Persona coordinadora de la
+2 al 6 de noviembre
+| de condiciones  | actividad o proyecto  |     |
+| --------------- | --------------------- | --- |
+Inicio de actividades y proyectos
+|     | Persona investigadora  El 1 de enero de 2027  |     |
+| --- | --------------------------------------------- | --- |
+de Investigación

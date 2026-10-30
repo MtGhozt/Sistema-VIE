@@ -13,12 +13,15 @@ import {
   IconShield,
   NavIcon,
 } from "../icons";
+import { useContrast } from "../../a11y/ContrastContext";
+import { ContrastToggle } from "../a11y/ContrastToggle";
 import { TecLogo } from "../TecLogo";
 import { NotificationBell } from "./NotificationBell";
 
 export function AppShell() {
   const { session, logout, setViewRole, isAdminSession } = useAuth();
   const { unreadCount } = useNotifications();
+  const { highContrast } = useContrast();
   const navigate = useNavigate();
 
   if (!session) return null;
@@ -121,6 +124,7 @@ export function AppShell() {
                 </select>
               </label>
             )}
+            <ContrastToggle compact />
             <div className="current-role-chip">
               <span>Rol</span>
               <strong>{roleDef.short}</strong>
@@ -137,6 +141,16 @@ export function AppShell() {
             </div>
           </div>
         </header>
+        <div
+          className="contrast-announce"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {highContrast
+            ? "Alto contraste activado"
+            : "Alto contraste desactivado"}
+        </div>
         <main className="content" id="contenido" tabIndex={-1}>
           <Outlet />
         </main>

@@ -223,3 +223,169 @@ button.btn-observation {
     border-color: CanvasText !important;
   }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * 5. Control de alto contraste del prototipo (rúbrica del curso)
+ *
+ * Además del contraste AA por defecto y de `forced-colors`, la rúbrica pide
+ * un *control* en la UI. Se activa con `data-contrast="high"` en <html>
+ * (ver ContrastContext) y refuerza tinta, fondos y bordes.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+html[data-contrast="high"] {
+  --ink: #000000;
+  --ink-70: #000000;
+  --ink-55: #1a1a1a;
+  --ink-35: #000000;
+  --ink-15: #000000;
+  --surface: #ffffff;
+  --surface-2: #ffffff;
+  --blue: #0000aa;
+  --focus-ring: #000000;
+  --tec-red-strong: #8b0000;
+  --warning-strong: #5c3d00;
+  color-scheme: light;
+}
+
+html[data-contrast="high"] body,
+html[data-contrast="high"] .app-shell,
+html[data-contrast="high"] .app-main,
+html[data-contrast="high"] .content,
+html[data-contrast="high"] .card,
+html[data-contrast="high"] .login-page,
+html[data-contrast="high"] .login-form-panel {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+html[data-contrast="high"] .sidebar {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-right: 3px solid #ffffff;
+}
+
+html[data-contrast="high"] .sidebar .nav-item,
+html[data-contrast="high"] .sidebar .brand-copy,
+html[data-contrast="high"] .sidebar .security-note,
+html[data-contrast="high"] .sidebar .copyright-note {
+  color: #ffffff !important;
+}
+
+html[data-contrast="high"] .sidebar .nav-item.active,
+html[data-contrast="high"] .sidebar .nav-item:hover {
+  background: #ffff00 !important;
+  color: #000000 !important;
+}
+
+html[data-contrast="high"] .topbar {
+  background: #ffffff !important;
+  border-bottom: 3px solid #000000 !important;
+  color: #000000 !important;
+}
+
+html[data-contrast="high"] .input,
+html[data-contrast="high"] .btn-secondary,
+html[data-contrast="high"] .btn-ghost,
+html[data-contrast="high"] select,
+html[data-contrast="high"] textarea {
+  border: 2px solid #000000 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+html[data-contrast="high"] .btn-primary {
+  background: #000000 !important;
+  color: #ffff00 !important;
+  border: 2px solid #000000 !important;
+}
+
+html[data-contrast="high"] .badge,
+html[data-contrast="high"] .badge-primary {
+  background: #000000 !important;
+  color: #ffff00 !important;
+  border: 1px solid #000000 !important;
+}
+
+html[data-contrast="high"] a {
+  color: #0000ee !important;
+  text-decoration: underline !important;
+}
+
+html[data-contrast="high"] :focus-visible {
+  outline: 3px solid #000000 !important;
+  outline-offset: 2px !important;
+}
+
+html[data-contrast="high"] .sidebar :focus-visible {
+  outline-color: #ffff00 !important;
+}
+
+.contrast-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.contrast-toggle-compact {
+  min-width: 40px;
+  justify-content: center;
+  padding-inline: 10px;
+}
+
+.contrast-announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+/* Recursos gráficos + texto alternativo (wizard · paso Documentación) */
+.resource-alt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resource-alt-card {
+  border: 1px solid var(--ink-35);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface, #fff);
+}
+
+.resource-alt-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.resource-alt-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.resource-alt-hint {
+  font-size: 13px;
+  color: var(--ink-70);
+}
+
+.resource-alt-hint.warn {
+  color: var(--tec-red-strong);
+  font-weight: 600;
+}
+
+.resource-alt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}

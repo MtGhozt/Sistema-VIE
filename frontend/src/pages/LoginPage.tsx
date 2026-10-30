@@ -9,6 +9,7 @@ import {
   IconLock,
   IconMail,
 } from "../components/icons";
+import { ContrastToggle } from "../components/a11y/ContrastToggle";
 import { TecLogo } from "../components/TecLogo";
 import { useToast } from "../components/toast/ToastContext";
 import { isRoleId, type RoleId } from "../data/roles";
@@ -126,6 +127,9 @@ export function LoginPage() {
           </div>
         </div>
         <div className="login-footer">
+          <div style={{ marginBottom: 10 }}>
+            <ContrastToggle />
+          </div>
           Vicerrectoría de Investigación y Extensión · Prototipo académico
         </div>
       </div>

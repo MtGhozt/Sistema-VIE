@@ -106,8 +106,10 @@ Paridad visual/flujo del prototipo HTML recuperada en:
 - Documento 4 (formulario oficial) sin mapeo campo-a-campo completo
 - Impresión / generación de oficios PDF (números de oficio sí se registran en BD)
 - Rúbricas = subset por modalidad; puntajes criterio-a-criterio aún no en `evaluacion_puntaje`
-- a11y pendiente de rúbrica de curso: toggle alto contraste, alt text editable en uploads,
-  verificación con lector de pantalla real
+- Subida real de binarios imagen/video al servidor (el alt text en UI sí está)
+
+**a11y rúbrica (2026-10-29):** toggle alto contraste · alt text editable en
+recursos del wizard · checklist NVDA en `docs/a11y/INFORME-WCAG.md`.
 
 **Fuentes oficiales en Markdown:** `docs/oficiales-vie/markdown/` (markitdown).
 
@@ -118,6 +120,8 @@ Paridad visual/flujo del prototipo HTML recuperada en:
 | 2026-10-29 | **CU3/CU4 API + UI**: bandeja y acciones persistidas; flujo investigador→evaluador→histórico demostrable | `evaluacion_puntaje` fino; oficios PDF |
 | 2026-10-29 | **CU2 ampliación**: problema / objetivo general / metodología en create+patch | equipo, plan, presupuesto en tablas hijas |
 | 2026-10-29 | **CU2 enviar desde UI**: wizard «Enviar a revisión» + detalle de borrador llaman `POST /propuestas/:id/enviar` | — |
+| 2026-10-29 | **a11y**: control alto contraste, alt text en Documentación, checklist lector de pantalla | axe/Playwright |
+| 2026-10-29 | **fix evaluaciones**: modo demo ya no finge persistencia; actualiza UI y avisa; Confirmar aval exige justificación visible | — |
 | 2026-10-29 | Oficiales VIE convertidos a Markdown (`docs/oficiales-vie/markdown/`) | — |
 | 2026-10-21 | **Sprint 3 — a11y WCAG AA**: contraste, foco visible, modales accesibles, live regions, roles ARIA, skip-link, jerarquía de encabezados | Toggle alto contraste; alt text uploads; NVDA/JAWS |
 | 2026-10-21 | **Sprint 1 — CU5 histórico**: endpoint con filtros combinables en Postgres, frontend conectado, seed realista (6 escuelas · 12 investigadoras · 16 propuestas · 8 líneas) | — |
@@ -139,8 +143,9 @@ Paridad visual/flujo del prototipo HTML recuperada en:
 1. ~~Definir 5 CUs~~ / ~~Q1–Q4~~ / ~~Fase 0 cimientos~~ / ~~frontend multiarchivo sin API~~
 2. ~~Login demo ↔ API~~ · ~~**CU1 convocatoria**~~ · ~~**CU2** formular/enviar (bloque inicial)~~ · ~~parity UI HTML~~ · ~~**a11y WCAG AA**~~ · ~~**CU5 histórico con datos reales**~~
 3. ~~**CU3/CU4** persistencia (dictamen, aval, resolución) + avance de estado~~
-4. a11y rúbrica restante: toggle alto contraste, alt text en recursos, lector de pantalla.
+4. ~~a11y rúbrica: toggle alto contraste, alt text, checklist lector~~
 5. Persistir resto del wizard CU2 (equipo/horas, plan, presupuesto) + oficios/PDF + rúbrica xlsx → `evaluacion_puntaje`.
+6. Verificación presencial con NVDA en la demo de clase.
 
 ## Referencias rápidas
 

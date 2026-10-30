@@ -26,6 +26,24 @@
 
 ## 2. Uso de alto contraste (WCAG 1.4.3 / 1.4.11)
 
+### 2.0 Control de alto contraste en la UI (rúbrica del curso)
+
+Además del contraste AA por defecto y de `forced-colors`, la rúbrica exige un
+**control** en el prototipo. Implementación (2026-10-29):
+
+| Pieza | Ubicación |
+|---|---|
+| Estado + `localStorage` (`vie.a11y.highContrast`) | `frontend/src/a11y/ContrastContext.tsx` |
+| Atributo `data-contrast="high"` en `<html>` | mismo contexto |
+| Estilos reforzados (negro / blanco / amarillo) | `a11y.css` §5 |
+| Botón en topbar (sesión) y login | `ContrastToggle.tsx` |
+| Anuncio a lector de pantalla | `role="status"` + `aria-live="polite"` en `AppShell` |
+| Estado del botón | `aria-pressed` |
+
+Cómo probar: en login o en la barra superior, pulsar «Alto contraste» y
+verificar que fondos, texto y foco cambian; con NVDA/Narrator debe anunciarse
+la activación.
+
 ### 2.1 Tokens de tinta
 
 El prototipo tenía **tres bloques `:root`** (dos dentro de la línea minificada
@@ -173,20 +191,23 @@ navegación con `←` `→` `Home` `End`.
 
 ## 4. Descripción de imágenes y videos (WCAG 1.1.1)
 
-Este criterio era el más sólido del proyecto y se mantiene:
+### 4.1 UI estática
 
 - La app tiene **un solo `<img>`** (`TecLogo.tsx`) con `alt="TEC · Tecnológico
   de Costa Rica"`, `width` y `height`.
-- **No hay** `<video>`, `<audio>`, `<iframe>` ni `<canvas>`: no aplica
-  subtítulos, transcripción ni descripción sonora.
-- Los 16 iconos SVG de `icons.tsx` se renderizan por un componente `Svg`
-  compartido que ya lleva `aria-hidden="true"`.
-- El check del checklist (`CheckIcon`) ahora lleva `aria-hidden="true"`: el
-  estado ya lo anuncia el texto «Verificado» / «Falta verificar», así que el
-  glifo solo duplicaba información.
-- Las barras de progreso de_propuestas y del wizard, y el anillo de puntaje,
-  exponen `role="progressbar"` con `aria-valuenow` / `aria-valuetext`; el
-  anillo de puntaje ya tenía alternativa textual (`87 / 100` + recomendación).
+- Los 16 iconos SVG de `icons.tsx` usan `aria-hidden="true"`.
+- El check del checklist (`CheckIcon`) lleva `aria-hidden="true"`.
+- Barras de progreso: `role="progressbar"` con `aria-valuenow` / `aria-valuetext`.
+
+### 4.2 Recursos gráficos del wizard (rúbrica: alt text editable)
+
+Paso **Documentación** del formulario (`FormWizardStepContent`, step 15):
+
+- Se pueden **agregar imágenes y videos** (`accept="image/*"` / `video/*`).
+- Cada recurso exige un **texto alternativo editable** (y modificable después).
+- Aviso si la descripción tiene menos de 40 caracteres (`ALT_TEXT_MIN_CHARS`).
+- Estado en `FormWizardState.recursosGraficos` (prototipo; no sube binarios al
+  servidor — sí demuestra el control de descripción alternativa).
 
 ---
 
@@ -266,10 +287,21 @@ El contenedor ahora **nunca se desmonta**; solo se vacía. Igual se aplicó en:
 
 | Ítem | Decisión |
 |---|---|
-| `htmlFor` en **todos** los labels del wizard (17 pasos) | Se hizo en login, histórico y rúbrica. Los labels del wizard restantes usan label implícito, que **ya es HTML válido** y da nombre accesible correcto al control. |
+| `htmlFor` en **todos** los labels del wizard (17 pasos) | Se hizo en login, histórico, rúbrica y alt text de recursos. El resto usa label implícito (válido). |
 | `h1` visible en el wizard | Se optó por `sr-only` para no romper el layout validado contra el prototipo HTML. |
-| Auditoría con lector de pantalla real (NVDA / VoiceOver) | Pendiente: la verificación fue estática (código + cascada CSS compilada). |
-| Pruebas automatizadas de accesibilidad (axe-core / Playwright) | No hay infraestructura de tests en el repo. Candidato natural: Playwright + axe-core sobre el dev server. |
+| Subir binarios de imagen/video al backend | Fuera de alcance del prototipo; el control de alt text sí está en la UI. |
+| Pruebas automatizadas (axe-core / Playwright) | Candidato natural; aún no hay harness de e2e en el repo. |
+
+### 6.1 Checklist manual con lector de pantalla (NVDA / Narrator)
+
+1. Login: anuncia «Iniciar sesión», campos Correo / Contraseña / Rol.
+2. Activar **Alto contraste** → debe oírse el anuncio de estado.
+3. Skip-link con Tab → «Saltar al contenido principal».
+4. Wizard · Documentación: agregar imagen, oír el label «Texto alternativo»,
+   editar y oír el `role="status"` de longitud.
+5. Evaluaciones · modal de aval: justificación obligatoria anunciada; Confirmar
+   deshabilitado hasta escribir.
+6. Toast de éxito/error anunciado (live region permanente).
 
 ---
 

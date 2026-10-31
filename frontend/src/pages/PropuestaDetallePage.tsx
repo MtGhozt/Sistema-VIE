@@ -34,7 +34,7 @@ function apiToDetailModel(d: PropuestaDetalle): ProposalDetailModel {
     id: d.codigo, titulo: d.titulo, convocatoria: d.convocatoriaNombre,
     investigadora: d.coordinadorNombre, escuela: d.escuelaNombre, modalidad: d.modalidadLabel,
     estado: labelEstado(d.estadoActual), etapa: stepFromPropuestaEstado(d.estadoActual, d.etapaFlujo),
-    piRequired: false, presupuesto: "—", resumen: d.resumen ?? "", abstract: d.abstractEn ?? "",
+    piRequired: d.requiereDictamenPi, presupuesto: "—", resumen: d.resumen ?? "", abstract: d.abstractEn ?? "",
     palabras: d.keywordsEs, keywords: d.keywordsEn,
     teamTec: d.teamTec ?? [], teamExternal: d.teamExternal ?? [], presupuestoAnual: d.presupuestoAnual ?? [],
     productos: d.productos ?? [], observaciones: d.observaciones ?? [], documentos: d.documentos ?? [],

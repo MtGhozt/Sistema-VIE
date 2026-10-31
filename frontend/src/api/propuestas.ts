@@ -31,6 +31,9 @@ export type Propuesta = {
   fechaInicio: string | null;
   fechaFin: string | null;
   requiereDictamenPi: boolean;
+  declaracion: boolean;
+  resguardoRepositorio: boolean;
+  resguardoTecnico: boolean;
   estadoActual: string;
   etapaFlujo: number;
   fechaEnvio: string | null;
@@ -54,6 +57,9 @@ export type PropuestaInput = {
   fechaInicio?: string;
   fechaFin?: string;
   requiereDictamenPi?: boolean;
+  declaracion?: boolean;
+  resguardoRepositorio?: boolean;
+  resguardoTecnico?: boolean;
   equipo?: ParticipanteInput[];
   preguntasGenerales?: { numero: number; respuesta: string; detalle: string | null }[];
   resumen?: string;

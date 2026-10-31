@@ -65,6 +65,8 @@ export type FormWizardState = {
   metodologia: string;
   referencias: string;
   declaracion: boolean;
+  resguardoRepositorio: boolean;
+  resguardoTecnico: boolean;
   /** Imágenes y videos con texto alternativo editable. */
   recursosGraficos: GraphicResource[];
 };
@@ -106,7 +108,9 @@ export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
     "Diseño experimental, prototipado iterativo, validación con datos de campo y analítica en la nube.",
   referencias:
     "[1] WHO, 2023. Guidelines for drinking-water quality.\n[2] Sensors, 2024. Edge analytics for environmental monitoring.",
-  declaracion: true,
+  declaracion: false,
+  resguardoRepositorio: false,
+  resguardoTecnico: false,
   recursosGraficos: [
     {
       id: "demo-img-1",

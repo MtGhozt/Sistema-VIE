@@ -473,14 +473,11 @@ export function FormWizardStepContent({
   }
 
   if (step === 9) {
-    return (
-      <p className="body-copy">
-        Resguardo de productos y activos de propiedad intelectual:{" "}
-        {rich.activoPI ?? "—"}
-      </p>
-    );
+    return <div className="stack-lg">
+      <label className="field"><span><input type="checkbox" checked={form.resguardoRepositorio} onChange={e=>patch({resguardoRepositorio:e.target.checked})} /> Acepto depositar los productos y resultados en el Repositorio Institucional, salvo prohibición por propiedad intelectual o arbitraje de publicaciones.</span></label>
+      <label className="field"><span><input type="checkbox" checked={form.resguardoTecnico} onChange={e=>patch({resguardoTecnico:e.target.checked})} /> Si se desarrolla software o bases de datos, acepto entregar el respaldo técnico completo a la Dirección de Investigación para su resguardo.</span></label>
+    </div>;
   }
-
 
   if (step === 11) {
     return <p className="body-copy">{rich.etica}</p>;

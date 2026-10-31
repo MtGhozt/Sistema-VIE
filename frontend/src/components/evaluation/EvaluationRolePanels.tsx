@@ -590,7 +590,7 @@ function RubricPanel({
                   onAction("cie-reject", {
                     average,
                     scores,
-                    motivo: rejectText.trim(),
+                    texto: rejectText.trim(),
                   });
                   setRejectOpen(false);
                 }}
@@ -637,7 +637,7 @@ function RubricPanel({
                     average,
                     scores,
                     recommendation,
-                    motivo: approveText.trim(),
+                    texto: approveText.trim(),
                   });
                   setApproveOpen(false);
                 }}

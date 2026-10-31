@@ -110,6 +110,7 @@ try {
     const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);
     await action(id,'comite_asistente','return',{texto:'Primera devolución'});await action(id,'comite_asistente','return',{texto:'Segunda devolución'});
     const cycles=await env.pool.query("SELECT ciclo FROM revision_expediente WHERE id_propuesta=$1 AND etapa='comite' ORDER BY ciclo",[id]);assert.deepEqual(cycles.rows.map(r=>r.ciclo),[1,2]);
+    await action(id,'comite_asistente','committee-ready');const history=await env.pool.query("SELECT ciclo,resultado FROM revision_expediente WHERE id_propuesta=$1 AND etapa='comite' ORDER BY ciclo",[id]);assert.deepEqual(history.rows.map(r=>r.resultado),['devuelto','devuelto','completo']);
   });
   await check('Vista admin filtra sin cambiar identidad ni ampliar permisos',async()=>{
     const normal=await call('/evaluaciones/bandeja','vinculacion');const admin=await call('/evaluaciones/bandeja?vista=vinculacion','admin');assert.equal(admin.role,'vinculacion');assert.deepEqual(admin.items.map(p=>p.id),normal.items.map(p=>p.id));
@@ -122,6 +123,12 @@ try {
     const updated=await call(`/convocatorias/${c.id}`,'vie_publicacion');assert.equal(updated.hitos.length,2);assert.equal(updated.hitos[0].nombre,'Hito editado');
     await call(`/convocatorias/${c.id}`,'vie_publicacion','PATCH',{nombre:'No debe persistir',hitos:[{id:2147483647,nombre:'Ajeno',fechaInicio:'2027-03-01',fechaFin:'2027-03-02'}]},400);assert.equal((await call(`/convocatorias/${c.id}`,'vie_publicacion')).nombre,'Cronograma actualizado');
     await call(`/convocatorias/${c.id}`,'vie_publicacion','PATCH',{nombre:'Cronograma final',hitos:[updated.hitos[1]]});assert.equal((await call(`/convocatorias/${c.id}`,'vie_publicacion')).hitos.length,1);
+  });
+  await check('Comunicar exige aval y una decisión emitida no se sobrescribe',async()=>{
+    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='dictaminada',etapa_flujo=3 WHERE id_propuesta=$1",[id]);
+    await action(id,'direccion_escuela','communicate-aval',{},409);
+    await action(id,'consejo','council-approve',{texto:'Fundamento del Consejo',oficio:`AV-RG-${id}`});await action(id,'consejo','council-reject',{texto:'No sobrescribir'},409);await action(id,'direccion_escuela','communicate-aval');
+    const rows=await env.pool.query('SELECT articulo FROM aval_consejo WHERE id_propuesta=$1',[id]);assert.equal(rows.rows[0].articulo,null);
   });
   await check('CIE conserva fundamento y decisión cerrada rechaza sobrescritura',async()=>{
     const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=5 WHERE id_propuesta=$1",[id]);

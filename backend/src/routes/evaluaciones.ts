@@ -60,6 +60,8 @@ type BandejaRow = {
   calificacion_comite: string | null;
   notificada: boolean;
   justificacion_aval: string | null;
+  coordinador_correo: string;
+  fecha_resolucion: string | null;
   vie_checks: Record<string,boolean>;
 };
 
@@ -77,6 +79,8 @@ const BANDEJA_SQL = `
     p.requiere_dictamen_pi,
     e.nombre AS escuela_nombre,
     u.nombre_completo AS coordinador_nombre,
+    u.correo_institucional AS coordinador_correo,
+    r.fecha_resolucion,
     c.nombre AS convocatoria_nombre,
     dpi.numero_oficio AS oficio_pi,
     rc.numero_oficio AS oficio_comite,
@@ -114,6 +118,8 @@ function mapBandeja(row: BandejaRow) {
     piRequired: row.requiere_dictamen_pi,
     escuela: row.escuela_nombre,
     investigadora: row.coordinador_nombre,
+    coordinadorCorreo: row.coordinador_correo,
+    fechaResolucion: row.fecha_resolucion,
     convocatoria: row.convocatoria_nombre,
     oficioPI: row.oficio_pi,
     oficioComite: row.oficio_comite,
@@ -456,7 +462,7 @@ evaluacionesRouter.post(
             `
             INSERT INTO revision_expediente (
               id_propuesta, etapa, ciclo, id_revisor, resultado, fecha_inicio, fecha_fin
-            ) VALUES ($1, 'comite', 1, $2, 'completo', NOW(), NOW())
+            ) SELECT $1, 'comite', COALESCE(MAX(ciclo),0)+1, $2, 'completo', NOW(), NOW() FROM revision_expediente WHERE id_propuesta=$1 AND etapa='comite'
             ON CONFLICT (id_propuesta, etapa, ciclo) DO UPDATE SET
               id_revisor = EXCLUDED.id_revisor,
               resultado = 'completo',
@@ -586,6 +592,8 @@ evaluacionesRouter.post(
 
         case "council-approve":
         case "council-reject": {
+          const previous=await client.query("SELECT 1 FROM aval_consejo WHERE id_propuesta=$1",[id]);
+          if(previous.rowCount)throw new HttpError(409,"El aval ya fue emitido. No se ha definido una reapertura de decisiones.");
           const texto = str(payload.texto);
           if (!texto) {
             await client.query("ROLLBACK");
@@ -614,7 +622,7 @@ evaluacionesRouter.post(
               id,
               userId,
               aprueba ? "aprueba" : "rechaza",
-              "Art. 12 del Reglamento",
+              str(payload.articulo) || null,
               oficio.slice(0, 40),
               texto,
             ],
@@ -636,6 +644,8 @@ evaluacionesRouter.post(
         }
 
         case "communicate-aval": {
+          const aval=await client.query("SELECT resultado FROM aval_consejo WHERE id_propuesta=$1",[id]);
+          if(!["aprueba","aprobado"].includes(aval.rows[0]?.resultado))throw new HttpError(409,"Se requiere un aval aprobado antes de comunicarlo a VIE");
           await client.query(
             `
             INSERT INTO comunicacion_institucional (
@@ -658,7 +668,7 @@ evaluacionesRouter.post(
             observacion: "Aval comunicado a VIE",
           });
           message =
-            "Memorando generado · Envío simulado a Dirección de Investigación / VIE.";
+            "Comunicación del aval registrada para VIE; la generación del archivo de oficio está pendiente.";
           break;
         }
 
@@ -792,7 +802,7 @@ evaluacionesRouter.post(
             ],
           );
           message =
-            "CIE-453 generado · notificación simulada · expediente en Histórico.";
+            "Resolución notificada a la persona coordinadora y comunicación registrada.";
           break;
         }
 

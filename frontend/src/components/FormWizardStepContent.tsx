@@ -175,8 +175,8 @@ export function FormWizardStepContent({
             </span>
             <input
               className="input"
-              value={form.escuela}
-              onChange={(e) => patch({ escuela: e.target.value })}
+              readOnly
+              value={form.escuela || "Asignada según su cuenta institucional"}
             />
           </label>
         </section>
@@ -411,14 +411,14 @@ export function FormWizardStepContent({
       <strong>Total solicitado: {formatCRC(form.presupuesto.reduce((sum,r)=>sum+r.operativo+r.duraderos,0))}</strong>
       <EditableRows title="Fuentes de financiamiento" rows={form.fuentes} onChange={fuentes=>patch({fuentes})}
         blank={()=>({tipo:'externo',anio:Number(form.inicio.slice(0,4))||2027,monto:0,oficio:''})}
-        fields={[{key:'tipo',label:'Tipo',options:['externo','contrapartida','cofinanciamiento']},{key:'anio',label:'Año',type:'number'},{key:'monto',label:'Monto (₡)',type:'number'},{key:'oficio',label:'Número de oficio de respaldo'}]}/>
+        fields={[{key:'tipo',label:'Tipo',options:['externo','contrapartida','cofinanciamiento'],optionLabels:{externo:'Financiamiento externo',contrapartida:'Contrapartida',cofinanciamiento:'Cofinanciamiento'}},{key:'anio',label:'Año',type:'number'},{key:'monto',label:'Monto (₡)',type:'number'},{key:'oficio',label:'Número de oficio de respaldo'}]}/>
     </div>;
   }
 
   if (step === 8) {
     return <EditableRows title="Compromisos de productos" rows={form.compromisos} onChange={compromisos=>patch({compromisos})}
       blank={()=>({ambito:form.modalidad==='Desarrollo tecnológico'?'desarrollo_tecnologico':'basica_aplicada',codigo:'',descripcion:'',cantidad:1,dictamen:''})}
-      fields={[{key:'ambito',label:'Ámbito',options:['basica_aplicada','desarrollo_tecnologico','adicional','activo_pi']},{key:'codigo',label:'Opción del formulario oficial'},{key:'descripcion',label:'Descripción del producto'},{key:'cantidad',label:'Cantidad comprometida',type:'number'},{key:'dictamen',label:'Consecutivo del dictamen PI (si corresponde)'}]}/>;
+      fields={[{key:'ambito',label:'Ámbito',options:['basica_aplicada','desarrollo_tecnologico','adicional','activo_pi'],optionLabels:{basica_aplicada:'Investigación básica / aplicada',desarrollo_tecnologico:'Desarrollo tecnológico',adicional:'Producto adicional',activo_pi:'Activo de propiedad intelectual'}},{key:'codigo',label:'Opción del formulario oficial'},{key:'descripcion',label:'Descripción del producto'},{key:'cantidad',label:'Cantidad comprometida',type:'number'},{key:'dictamen',label:'Consecutivo del dictamen PI (si corresponde)'}]}/>;
   }
 
   if (step === 9) {
@@ -616,10 +616,16 @@ export function FormWizardStepContent({
         Modalidad: {form.modalidad}. Escuela: {form.escuela}. Palabras clave:{" "}
         {form.palabras}.
       </p>
+      {([
+        ["Resumen",form.resumen],["Abstract",form.abstract],["Problema",form.problema],["Objetivos",form.objetivos],
+        ["Estado del arte",form.estadoArte],["Metodología",form.metodologia],["Divulgación",form.divulgacion],["Hoja de ruta",form.hojaRuta],["Referencias",form.referencias],
+      ] as const).map(([label,value])=><section key={label}><h3>{label}</h3><p style={{whiteSpace:"pre-wrap"}}>{value||"Sin completar"}</p></section>)}
+      <p>Equipo: {form.equipo.map(p=>p.nombre).join(", ")||"Sin participantes"}. Actividades: {form.actividades.length}. Productos: {form.compromisos.length}.</p>
+      <p>Total solicitado: {formatCRC(form.presupuesto.reduce((sum,r)=>sum+r.operativo+r.duraderos,0))}. Fuentes adicionales: {form.fuentes.length}.</p>
+      <p>Declaración jurada: {form.declaracion?"Aceptada":"Pendiente de aceptación"}.</p>
       <p>
         «Guardar y salir» deja el expediente en borrador. «Enviar a revisión»
-        persiste el bloque núcleo (identificación, resumen, problema, objetivos,
-        metodología) y pasa la propuesta a la bandeja de evaluación.
+        guarda los campos del formulario y sus registros asociados y pasa la propuesta a la bandeja de evaluación.
       </p>
     </div>
   );

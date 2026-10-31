@@ -1,3 +1,4 @@
+import { labelEstado } from "../data/proposalStates";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
@@ -21,13 +22,6 @@ import {
   getDemoProposal,
 } from "../data/demo";
 
-function labelEstado(estado: string) {
-  const map: Record<string, string> = {
-    borrador: "Borrador",
-    enviada: "Enviada",
-  };
-  return map[estado] ?? estado;
-}
 
 function apiToDetailModel(d: PropuestaDetalle): ProposalDetailModel {
   return {
@@ -35,6 +29,7 @@ function apiToDetailModel(d: PropuestaDetalle): ProposalDetailModel {
     investigadora: d.coordinadorNombre, escuela: d.escuelaNombre, modalidad: d.modalidadLabel,
     estado: labelEstado(d.estadoActual), etapa: stepFromPropuestaEstado(d.estadoActual, d.etapaFlujo),
     piRequired: d.requiereDictamenPi, presupuesto: "—", resumen: d.resumen ?? "", abstract: d.abstractEn ?? "",
+    general: d, actividades:d.actividades??[], fuentes:d.fuentes??[], permisos:d.permisos??[], compromisos:d.compromisos??[], equipoCompleto:d.equipo??[],
     palabras: d.keywordsEs, keywords: d.keywordsEn,
     teamTec: d.teamTec ?? [], teamExternal: d.teamExternal ?? [], presupuestoAnual: d.presupuestoAnual ?? [],
     etica: d.aspectosEticos ? `Aspectos declarados: ${[d.aspectosEticos.humanos && "seres humanos", d.aspectosEticos.biodiversidad && "biodiversidad", d.aspectosEticos.animales && "animales", d.aspectosEticos.indigenas && "pueblos indígenas"].filter(Boolean).join(", ") || "ninguno"}. ${d.aspectosEticos.exencion}` : undefined,

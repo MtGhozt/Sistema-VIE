@@ -164,7 +164,7 @@ export function EvaluacionesPage() {
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, role]);
 
   useEffect(() => {
     void loadBandeja();

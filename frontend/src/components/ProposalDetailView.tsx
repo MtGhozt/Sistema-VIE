@@ -1,9 +1,13 @@
+import type { PropuestaDetalle, ActividadInput, FuenteInput, PermisoInput, CompromisoInput, ParticipanteInput } from "../api/propuestas";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { DemoProposal } from "../data/demo";
 import { ProcessTimeline } from "./ProcessTimeline";
 
-export type ProposalDetailModel = DemoProposal;
+export type ProposalDetailModel = DemoProposal & {
+  general?: Pick<PropuestaDetalle,"problema"|"objetivoGeneral"|"metodologia"|"estadoArte"|"referencias"|"hojaRuta"|"divulgacion"|"fechaInicio"|"fechaFin">;
+  actividades?: ActividadInput[]; fuentes?:FuenteInput[]; permisos?:PermisoInput[]; compromisos?:CompromisoInput[]; equipoCompleto?:ParticipanteInput[];
+};
 
 type TabId =
   | "resumen"
@@ -167,6 +171,20 @@ export function ProposalDetailView({
                   <p className="body-copy">{proposal.abstract}</p>
                 </div>
               )}
+              {proposal.general && <div className="stack-lg">
+                {([
+                  ["Planteamiento del problema",proposal.general.problema],["Objetivo general",proposal.general.objetivoGeneral],
+                  ["Estado del arte",proposal.general.estadoArte],["Metodología",proposal.general.metodologia],
+                  ["Divulgación y socialización",proposal.general.divulgacion],["Hoja de ruta",proposal.general.hojaRuta],["Referencias",proposal.general.referencias],
+                ] as const).map(([label,value])=><section key={label}><h2>{label}</h2><p style={{whiteSpace:"pre-wrap"}}>{value||"Sin información registrada"}</p></section>)}
+                <section><h2>Plan de acción y gestión de riesgos</h2>
+                  {(proposal.actividades??[]).map((a,i)=><article className="card stack-md" key={a.id??i}><h3>{a.objetivo}</h3><p>{a.actividad}</p><p>Resultado: {a.resultado||"Sin resultado registrado"}</p><p>Inicio: mes {a.inicio}. Duración: {a.duracion} meses. {a.responsabilidad}</p>
+                    <p>Participantes: {a.participantes.map(id=>proposal.equipoCompleto?.find(p=>p.id===id)?.nombre??"Participante registrado").join(", ")||"Sin asignaciones"}</p>
+                    <ul>{a.riesgos.map((r,j)=><li key={j}>{r.riesgo} · Mitigación: {r.mitigacion} · Responsable: {r.responsable}</li>)}</ul>
+                  </article>)}
+                  {!proposal.actividades?.length&&<p>Sin actividades registradas.</p>}
+                </section>
+              </div>}
               <div className="detail-grid">
                 <div>
                   <span>Convocatoria</span>
@@ -298,6 +316,7 @@ export function ProposalDetailView({
                   </div>
                 )}
               </div>
+              {!!proposal.fuentes?.length && <div><h2>Fuentes de financiamiento</h2><div className="table-wrap"><table className="data-table"><thead><tr><th>Fuente</th><th>Año</th><th>Monto</th><th>Oficio</th></tr></thead><tbody>{proposal.fuentes.map((f,i)=><tr key={i}><td>{({externo:"Externo",contrapartida:"Contrapartida",cofinanciamiento:"Cofinanciamiento"} as Record<string,string>)[f.tipo]??f.tipo}</td><td>{f.anio}</td><td>{formatColones(f.monto)}</td><td>{f.oficio||"Sin oficio registrado"}</td></tr>)}</tbody></table></div></div>}
               {(proposal.financiamiento?.length ?? 0) > 0 && (
                 <div>
                   <h2>Financiamiento y contrapartida</h2>
@@ -335,7 +354,7 @@ export function ProposalDetailView({
               <div>
                 <h2>Compromisos de productos</h2>
                 <ul>
-                  {(proposal.productos ?? []).map((p) => (
+                  {(proposal.compromisos?.length ? proposal.compromisos.map(p=>`${p.cantidad} × ${p.descripcion}${p.dictamen?` · Dictamen ${p.dictamen}`:""}`) : proposal.productos ?? []).map((p) => (
                     <li key={p}>{p}</li>
                   ))}
                 </ul>
@@ -355,8 +374,10 @@ export function ProposalDetailView({
             </div>
           )}
 
+          {tab === "productos" && !!proposal.permisos?.length && <section><h2>Permisos y autorizaciones</h2><ul>{proposal.permisos.map((p,i)=><li key={i}>{p.ente}: {p.estado} · {p.detalle}</li>)}</ul></section>}
           {tab === "documentos" && (
             <div className="task-list">
+              {!proposal.documentos.length&&<p>Sin documentos registrados.</p>}
               {proposal.documentos.map((d) => (
                 <div
                   key={d.nombre}

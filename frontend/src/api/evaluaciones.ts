@@ -15,6 +15,8 @@ export type EvaluacionBandejaItem = {
   piRequired: boolean;
   escuela: string;
   investigadora: string;
+  coordinadorCorreo: string;
+  fechaResolucion: string | null;
   convocatoria: string;
   oficioPI: string | null;
   oficioComite: string | null;

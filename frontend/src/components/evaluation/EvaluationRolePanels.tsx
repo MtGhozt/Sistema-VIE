@@ -699,7 +699,7 @@ export function ConsejoAsistentePanel({
   proposal: DemoProposal;
   onAction: ActionHandler;
 }) {
-  const avg = proposal.evaluacionComite?.average ?? 87;
+  const avg = proposal.evaluacionComite?.average;
   return (
     <div className="split-review">
       <CaseFile proposal={proposal} />
@@ -713,7 +713,7 @@ export function ConsejoAsistentePanel({
             <IconClipboard size={18} />
             <div>
               <strong>Calificación del Comité Técnico</strong>
-              <span>{avg}% · consolidada</span>
+              <span>{avg == null ? "Sin nota registrada" : `${avg}% · consolidada`}</span>
             </div>
             <span className="badge badge-primary">Recibida</span>
           </div>
@@ -721,7 +721,7 @@ export function ConsejoAsistentePanel({
             <IconFile size={18} />
             <div>
               <strong>Oficio del Comité</strong>
-              <span>{proposal.oficioComite || "CT-041-2026"}</span>
+              <span>{proposal.oficioComite || "Sin oficio registrado"}</span>
             </div>
             <span className="badge badge-primary">Adjunto</span>
           </div>
@@ -731,7 +731,7 @@ export function ConsejoAsistentePanel({
               <strong>Dictamen de PI</strong>
               <span>
                 {proposal.piRequired
-                  ? proposal.oficioPI || "CV-023-2026"
+                  ? proposal.oficioPI || "Sin dictamen registrado"
                   : "No requerido"}
               </span>
             </div>
@@ -764,7 +764,7 @@ export function ConsejoPanel({
   proposal: DemoProposal;
   onAction: ActionHandler;
 }) {
-  const avg = proposal.evaluacionComite?.average ?? 87;
+  const avg = proposal.evaluacionComite?.average;
   const [rejectOpen, setRejectOpen] = useState(false);
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectText, setRejectText] = useState("");
@@ -780,14 +780,14 @@ export function ConsejoPanel({
         />
         <div className="decision-score">
           <span>Calificación consolidada del Comité</span>
-          <strong>{avg}%</strong>
+          <strong>{avg == null ? "Sin nota registrada" : `${avg}%`}</strong>
         </div>
         <div className="document-list compact">
           <div className="document-row">
             <IconFile size={18} />
             <div>
               <strong>Oficio del Comité Técnico</strong>
-              <span>{proposal.oficioComite || "CT-041-2026"}</span>
+              <span>{proposal.oficioComite || "Sin oficio registrado"}</span>
             </div>
             <span className="badge">Disponible</span>
           </div>
@@ -797,7 +797,7 @@ export function ConsejoPanel({
               <strong>Dictamen de Propiedad Intelectual</strong>
               <span>
                 {proposal.piRequired
-                  ? proposal.oficioPI || "CV-023-2026"
+                  ? proposal.oficioPI || "Sin dictamen registrado"
                   : "No requerido"}
               </span>
             </div>
@@ -959,7 +959,7 @@ export function DireccionEscuelaPanel({
           <IconFile size={24} />
           <div>
             <span>Oficio de aval</span>
-            <strong>{proposal.oficioAval || "ESC-COMP-117-2026"}</strong>
+            <strong>{proposal.oficioAval || "Sin aval registrado"}</strong>
             <small>Consejo de la Escuela de Ingeniería en Computación</small>
           </div>
         </div>
@@ -974,7 +974,7 @@ export function DireccionEscuelaPanel({
           </div>
         </div>
         <div className="action-stack">
-          <button type="button" className="btn btn-secondary">
+          <button type="button" className="btn btn-secondary" disabled title="Generación de archivo pendiente en este prototipo">
             Vista previa del memorando (IC-467)
           </button>
           <button
@@ -982,7 +982,7 @@ export function DireccionEscuelaPanel({
             className="btn btn-primary"
             onClick={() => onAction("communicate-aval")}
           >
-            Generar documento y comunicar a VIE
+            Registrar comunicación del aval a VIE
           </button>
         </div>
       </article>
@@ -1074,7 +1074,7 @@ export function DireccionInvestigacionPanel({
           <IconFile size={24} />
           <div>
             <span>Resolución CIE</span>
-            <strong>{proposal.resolucion || "CIE-RES-084-2026"}</strong>
+            <strong>{proposal.resolucion || "Sin resolución registrada"}</strong>
             <small>Resultado: {rejected ? "Rechazo" : "Aprobación"}</small>
           </div>
         </div>
@@ -1085,11 +1085,11 @@ export function DireccionInvestigacionPanel({
           </div>
           <div>
             <span>Fecha de resolución</span>
-            <strong>22 Sep 2026</strong>
+            <strong>{proposal.fechaResolucion ? new Date(proposal.fechaResolucion).toLocaleDateString("es-CR",{timeZone:"America/Costa_Rica"}) : "Sin fecha registrada"}</strong>
           </div>
           <div>
             <span>Correo</span>
-            <strong>mrodriguez@tec.ac.cr</strong>
+            <strong>{proposal.coordinadorCorreo || "Sin correo registrado"}</strong>
           </div>
           <div>
             <span>Estado de notificación</span>
@@ -1097,7 +1097,7 @@ export function DireccionInvestigacionPanel({
           </div>
         </div>
         <div className="action-stack">
-          <button type="button" className="btn btn-secondary">
+          <button type="button" className="btn btn-secondary" disabled title="Generación de archivo pendiente en este prototipo">
             Vista previa / imprimir CIE-453
           </button>
           <button

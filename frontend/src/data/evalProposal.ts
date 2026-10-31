@@ -11,6 +11,8 @@ export function bandejaToDemoProposal(
   return {
     id: item.codigo,
     numericId: item.id,
+    coordinadorCorreo: item.coordinadorCorreo,
+    fechaResolucion: item.fechaResolucion,
     titulo: item.titulo,
     convocatoria: item.convocatoria,
     investigadora: item.investigadora,

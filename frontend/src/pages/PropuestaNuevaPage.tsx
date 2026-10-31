@@ -81,6 +81,7 @@ export function PropuestaNuevaPage() {
         setForm((prev) => ({
           ...prev,
           titulo: d.titulo,
+          escuela: d.escuelaNombre,
           modalidad: d.modalidadLabel || prev.modalidad,
           aspectosEticos: d.aspectosEticos ?? { humanos:false, biodiversidad:false, animales:false, indigenas:false, exencion:"" }, permisos: d.permisos ?? [],
           compromisos: d.compromisos ?? [],
@@ -97,9 +98,9 @@ export function PropuestaNuevaPage() {
           q3Detalle: d.preguntasGenerales?.find(q => q.numero === 3)?.detalle ?? "",
           abstract: d.abstractEn ?? "",
           palabras: d.keywordsEs.join(", "),
-          problema: d.problema ?? prev.problema,
-          objetivos: d.objetivoGeneral ?? prev.objetivos,
-          metodologia: d.metodologia ?? prev.metodologia,
+          problema: d.problema ?? "",
+          objetivos: d.objetivoGeneral ?? "",
+          metodologia: d.metodologia ?? "",
         }));
         setSaveStatus("Borrador cargado");
       } catch (err) {

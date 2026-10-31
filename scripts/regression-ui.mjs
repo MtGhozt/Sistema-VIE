@@ -29,7 +29,13 @@ try{
         await page.locator('.wizard-steps button').nth(step).click();await page.getByLabel(label,{exact:true}).fill(value);
       }
       await page.getByRole('button',{name:'Guardar borrador',exact:true}).click();await expect(page).toHaveURL(new RegExp(`/propuestas/${p.id_propuesta}$`));
+      await expect(page.getByText('Antecedentes UI propios',{exact:true})).toBeVisible();
       await page.goto(`${env.uiOrigin}/propuestas/nueva?edit=${p.id_propuesta}`);await expect(page.locator('.wizard-steps button').first()).toBeVisible();await page.locator('.wizard-steps button').nth(4).click();await expect(page.getByLabel('Estado del arte',{exact:true})).toHaveValue('Antecedentes UI propios');return await shot(page,'arte-reabierto');
+    }finally{await context.close();}
+  });
+  await check('Nuevo formulario no atribuye texto ni recursos demo',async()=>{
+    const{page,context}=await login('investigador');try{
+      await page.goto(env.uiOrigin+'/propuestas/nueva');await expect(page.getByLabel('Nombre del proyecto',{exact:true})).toHaveValue('');await page.locator('.wizard-steps button').nth(1).click();await expect(page.getByLabel('Resumen (español · máximo 500 palabras)',{exact:true})).toHaveValue('');await page.locator('.wizard-steps button').nth(15).click();await expect(page.getByText('diagrama-arquitectura-iot.png',{exact:true})).toHaveCount(0);return await shot(page,'formulario-sin-recursos-demo');
     }finally{await context.close();}
   });
   await check('Equipo permite alta y guarda la persona externa',async()=>{

@@ -30,11 +30,13 @@ const NotificationsContext = createContext<NotificationsContextValue | null>(
   null,
 );
 
+const EMPTY_ITEMS: NotificationItem[] = [];
+
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   const userId = session?.userId ?? 0;
   const [data, setData] = useState<{ userId: number; items: NotificationItem[]; error: string | null }>({ userId: 0, items: [], error: null });
-  const items = data.userId === userId ? data.items : [];
+  const items = data.userId === userId ? data.items : EMPTY_ITEMS;
   const error = data.userId === userId ? data.error : null;
 
   useEffect(() => {

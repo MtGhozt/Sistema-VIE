@@ -390,7 +390,7 @@ export function EvaluacionesPage() {
   }
 
   const proposal = selected.demo;
-  const panelProps = { proposal, onAction };
+  const panelProps = { key: selected.key, proposal, onAction };
 
   return (
     <>

@@ -1,5 +1,6 @@
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
+import { loadPropuestaDisplay } from "../propuestaDetalle.js";
 import { query, transaction } from "../db.js";
 import { requireDemoAuth } from "../middleware/demoAuth.js";
 
@@ -185,7 +186,7 @@ propuestasRouter.get("/propuestas/:id", requireDemoAuth, asyncHandler(async (req
     return;
   }
   const keywords = await loadKeywords(id);
-  res.json({ ...mapPropuesta(row), ...keywords });
+  res.json({ ...mapPropuesta(row), ...keywords, ...await loadPropuestaDisplay(id) });
 }));
 
 /** Crear borrador. */

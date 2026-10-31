@@ -1,3 +1,4 @@
+import type { DemoProposal } from "../data/demo";
 import { apiJson } from "./client";
 
 export type Propuesta = {
@@ -22,7 +23,7 @@ export type Propuesta = {
   fechaEnvio: string | null;
 };
 
-export type PropuestaDetalle = Propuesta & {
+export type PropuestaDetalle = Propuesta & Partial<Pick<DemoProposal, "teamTec" | "teamExternal" | "presupuestoAnual" | "productos" | "observaciones" | "timeline" | "documentos">> & {
   keywordsEs: string[];
   keywordsEn: string[];
 };

@@ -29,73 +29,16 @@ function labelEstado(estado: string) {
   return map[estado] ?? estado;
 }
 
-function apiToDetailModel(
-  d: PropuestaDetalle,
-  template?: ReturnType<typeof getDemoProposal>,
-): ProposalDetailModel {
-  const t = template;
+function apiToDetailModel(d: PropuestaDetalle): ProposalDetailModel {
   return {
-    id: d.codigo,
-    titulo: d.titulo,
-    convocatoria: d.convocatoriaNombre,
-    investigadora: d.coordinadorNombre,
-    escuela: d.escuelaNombre,
-    modalidad: d.modalidadLabel,
-    estado: labelEstado(d.estadoActual),
-    etapa: stepFromPropuestaEstado(d.estadoActual, d.etapaFlujo),
-    piRequired: t?.piRequired ?? false,
-    presupuesto: t?.presupuesto ?? "—",
-    resumen: d.resumen ?? t?.resumen ?? "",
-    abstract: d.abstractEn ?? t?.abstract ?? "",
-    palabras:
-      d.keywordsEs.length > 0 ? d.keywordsEs : (t?.palabras ?? []),
-    keywords:
-      d.keywordsEn.length > 0 ? d.keywordsEn : (t?.keywords ?? []),
-    teamTec: t?.teamTec ?? [
-      {
-        nombre: d.coordinadorNombre,
-        instancia: d.escuelaNombre,
-        rol: "Coordinadora",
-        horas: "—",
-      },
-    ],
-    teamExternal: t?.teamExternal,
-    presupuestoAnual: t?.presupuestoAnual,
-    financiamiento: t?.financiamiento,
-    productos: t?.productos,
-    activoPI: t?.activoPI,
-    etica: t?.etica,
-    observaciones: t?.observaciones ?? [],
-    timeline:
-      d.estadoActual === "borrador"
-        ? [
-            {
-              titulo: "Borrador creado",
-              detalle: "Expediente en formulación.",
-              fecha: new Date().toLocaleDateString("es-CR", {
-                day: "numeric",
-                month: "short",
-              }),
-            },
-          ]
-        : (t?.timeline ?? [
-            {
-              titulo: "Propuesta enviada",
-              detalle:
-                "La propuesta fue enviada para continuar el flujo institucional.",
-              fecha: d.fechaEnvio
-                ? new Date(d.fechaEnvio).toLocaleDateString("es-CR", {
-                    day: "numeric",
-                    month: "short",
-                  })
-                : "—",
-            },
-          ]),
-    documentos: t?.documentos ?? [
-      { nombre: "Formulario de propuesta", estado: "Completo" },
-      { nombre: "Plan de acción y riesgos", estado: "Pendiente" },
-      { nombre: "Presupuesto", estado: "Pendiente" },
-    ],
+    id: d.codigo, titulo: d.titulo, convocatoria: d.convocatoriaNombre,
+    investigadora: d.coordinadorNombre, escuela: d.escuelaNombre, modalidad: d.modalidadLabel,
+    estado: labelEstado(d.estadoActual), etapa: stepFromPropuestaEstado(d.estadoActual, d.etapaFlujo),
+    piRequired: false, presupuesto: "—", resumen: d.resumen ?? "", abstract: d.abstractEn ?? "",
+    palabras: d.keywordsEs, keywords: d.keywordsEn,
+    teamTec: d.teamTec ?? [], teamExternal: d.teamExternal ?? [], presupuestoAnual: d.presupuestoAnual ?? [],
+    productos: d.productos ?? [], observaciones: d.observaciones ?? [], documentos: d.documentos ?? [],
+    timeline: (d.timeline ?? []).map(e => ({ ...e, fecha: new Date(e.fecha).toLocaleString("es-CR", { timeZone: "America/Costa_Rica" }) })),
   };
 }
 
@@ -205,7 +148,7 @@ export function PropuestaDetallePage() {
     );
   }
 
-  const model = apiToDetailModel(detail, getDemoProposal("PROP-2027-014"));
+  const model = apiToDetailModel(detail);
   const isDraft = detail.estadoActual === "borrador";
 
   return (

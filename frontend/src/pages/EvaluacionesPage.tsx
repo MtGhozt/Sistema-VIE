@@ -20,7 +20,7 @@ import {
 } from "../components/evaluation/EvaluationRolePanels";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../components/toast/ToastContext";
-import { getEvaluationProposals, type DemoProposal } from "../data/demo";
+import { type DemoProposal } from "../data/demo";
 import { bandejaToDemoProposal } from "../data/evalProposal";
 import type { RoleId } from "../data/roles";
 
@@ -149,55 +149,18 @@ export function EvaluacionesPage() {
     setBandejaNote(null);
     try {
       const res = await fetchEvaluacionBandeja();
-      if (res.items.length > 0) {
-        const entries: BandejaEntry[] = res.items.map((item) => ({
-          key: item.codigo,
-          numericId: item.id,
-          demo: bandejaToDemoProposal(item),
-          api: item,
-        }));
-        setBandeja(entries);
-        setSource("api");
-        setSelectedKey((prev) =>
-          entries.some((e) => e.key === prev) ? prev : (entries[0]?.key ?? ""),
-        );
-      } else {
-        const demo = getEvaluationProposals().map((p) => ({
-          key: p.id,
-          numericId: null as number | null,
-          demo: { ...p },
-          api: null,
-        }));
-        setBandeja(demo);
-        setSource("demo");
-        setBandejaNote(
-          "No hay expedientes en esta etapa en PostgreSQL. Se muestra la bandeja demo; las decisiones no se guardan en la base hasta que exista una propuesta enviada en flujo.",
-        );
-        setSelectedKey((prev) =>
-          demo.some((e) => e.key === prev) ? prev : (demo[0]?.key ?? ""),
-        );
-      }
-    } catch (err) {
-      const demo = getEvaluationProposals().map((p) => ({
-        key: p.id,
-        numericId: null as number | null,
-        demo: { ...p },
-        api: null,
+      const entries: BandejaEntry[] = res.items.map((item) => ({
+        key: item.codigo, numericId: item.id, demo: bandejaToDemoProposal(item), api: item,
       }));
-      setBandeja(demo);
-      setSource("demo");
-      const detail =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : "error de red";
-      setBandejaNote(
-        `No se pudo cargar la bandeja API (${detail}). Modo demo local: las acciones no persisten.`,
-      );
-      setSelectedKey((prev) =>
-        demo.some((e) => e.key === prev) ? prev : (demo[0]?.key ?? ""),
-      );
+      setBandeja(entries);
+      setSource("api");
+      setSelectedKey((prev) => entries.some((e) => e.key === prev) ? prev : (entries[0]?.key ?? ""));
+    } catch (err) {
+      setBandeja([]);
+      setSource("api");
+      setSelectedKey("");
+      const detail = err instanceof Error ? err.message : "Error de red";
+      setBandejaNote(`No se pudo cargar la bandeja: ${detail}. Reintente la consulta.`);
     } finally {
       setLoading(false);
     }
@@ -415,7 +378,9 @@ export function EvaluacionesPage() {
   if (!selected) {
     return (
       <section className="card empty-state">
-        <strong>No hay propuestas disponibles</strong>
+        <strong>{bandejaNote ? "No se pudo consultar la bandeja" : "No hay propuestas disponibles"}</strong>
+        {bandejaNote && <p role="alert">{bandejaNote}</p>}
+        <button type="button" className="btn btn-secondary" onClick={() => void loadBandeja()}>Actualizar bandeja</button>
         <p className="muted">
           Cuando una investigadora envíe una propuesta, aparecerá aquí según la
           etapa del flujo.

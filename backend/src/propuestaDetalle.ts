@@ -1,3 +1,4 @@
+import { loadProductos } from "./propuestaProductos.js";
 import { loadPlan } from "./propuestaPlan.js";
 import { loadEtica } from "./propuestaEtica.js";
 import { loadPresupuesto } from "./propuestaPresupuesto.js";
@@ -23,6 +24,7 @@ export async function loadPropuestaDisplay(id: number, execute: typeof query = q
   return {
     ...await loadEtica(id, execute),
     ...await loadPresupuesto(id, execute),
+    compromisos: await loadProductos(id, execute),
     actividades: await loadPlan(id, execute),
     equipo: await loadEquipo(id, execute),
     preguntasGenerales: questions.rows,

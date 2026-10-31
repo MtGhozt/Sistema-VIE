@@ -1,3 +1,4 @@
+import { saveProductos } from "./propuestaProductos.js";
 import { savePlan } from "./propuestaPlan.js";
 import { saveEtica } from "./propuestaEtica.js";
 import { savePresupuesto } from "./propuestaPresupuesto.js";
@@ -10,6 +11,7 @@ export const CAMPOS_TEXTO = {
   estadoArte: "estado_arte", hojaRuta: "hoja_ruta", referencias: "referencias", divulgacion: "divulgacion",
 } as const;
 export async function savePropuestaCampos(id: number, body: Record<string, unknown>, execute: typeof query) {
+  await saveProductos(id, body.compromisos, execute);
   await saveEtica(id, body, execute);
   await savePresupuesto(id, body, execute);
   await saveEquipo(id, body.equipo, execute);

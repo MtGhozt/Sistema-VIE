@@ -330,6 +330,9 @@ export function FormWizardStepContent({
             onChange={(e) => patch({ abstract: e.target.value })}
           />
         </label>
+        <label className="field"><span className="field-label">Keywords (English)</span>
+          <input className="input" value={form.keywordsEn} onChange={e => patch({ keywordsEn: e.target.value })} />
+        </label>
         <label className="field">
           <span className="field-label">Palabras clave</span>
           <input
@@ -396,13 +399,12 @@ export function FormWizardStepContent({
     );
   }
 
-  if (step === 4) {
-    return (
-      <p className="body-copy">
-        Revisión bibliográfica y antecedentes técnicos alineados al formulario
-        oficial VIE 2027 (sección Estado del arte).
-      </p>
-    );
+  if (step === 4 || step === 10 || step === 12) {
+    const key = step === 4 ? "estadoArte" : step === 10 ? "divulgacion" : "hojaRuta";
+    const label = step === 4 ? "Estado del arte" : step === 10 ? "Divulgación y socialización" : "Hoja de ruta";
+    return <label className="field"><span className="field-label">{label}</span>
+      <textarea className="input textarea" rows={10} value={form[key]} onChange={e => patch({ [key]: e.target.value })} />
+    </label>;
   }
 
   if (step === 5) {
@@ -502,27 +504,11 @@ export function FormWizardStepContent({
     );
   }
 
-  if (step === 10) {
-    return (
-      <p className="body-copy">
-        Plan de divulgación y socialización de resultados (conferencias, talleres
-        y transferencia a comunidades beneficiarias).
-      </p>
-    );
-  }
 
   if (step === 11) {
     return <p className="body-copy">{rich.etica}</p>;
   }
 
-  if (step === 12) {
-    return (
-      <p className="body-copy">
-        Vinculación con hoja de ruta institucional y continuidad de líneas de
-        investigación priorizadas por la VIE.
-      </p>
-    );
-  }
 
   if (step === 13) {
     return (

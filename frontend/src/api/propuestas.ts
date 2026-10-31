@@ -18,12 +18,20 @@ export type Propuesta = {
   problema: string | null;
   objetivoGeneral: string | null;
   metodologia: string | null;
+  estadoArte: string | null;
+  referencias: string | null;
+  hojaRuta: string | null;
+  divulgacion: string | null;
+  fechaInicio: string | null;
+  fechaFin: string | null;
+  requiereDictamenPi: boolean;
   estadoActual: string;
   etapaFlujo: number;
   fechaEnvio: string | null;
 };
 
 export type PropuestaDetalle = Propuesta & Partial<Pick<DemoProposal, "teamTec" | "teamExternal" | "presupuestoAnual" | "productos" | "observaciones" | "timeline" | "documentos">> & {
+  preguntasGenerales?: { numero: number; respuesta: string; detalle: string | null }[];
   keywordsEs: string[];
   keywordsEn: string[];
 };
@@ -32,6 +40,14 @@ export type PropuestaInput = {
   titulo: string;
   idConvocatoria: number;
   modalidad: string;
+  estadoArte?: string;
+  referencias?: string;
+  hojaRuta?: string;
+  divulgacion?: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+  requiereDictamenPi?: boolean;
+  preguntasGenerales?: { numero: number; respuesta: string; detalle: string | null }[];
   resumen?: string;
   abstractEn?: string;
   problema?: string;

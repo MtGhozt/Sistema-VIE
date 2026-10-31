@@ -83,6 +83,13 @@ export function PropuestaNuevaPage() {
           titulo: d.titulo,
           modalidad: d.modalidadLabel || prev.modalidad,
           resumen: d.resumen ?? "",
+          estadoArte: d.estadoArte ?? "", referencias: d.referencias ?? "", hojaRuta: d.hojaRuta ?? "", divulgacion: d.divulgacion ?? "",
+          inicio: d.fechaInicio?.slice(0,10) ?? "", fin: d.fechaFin?.slice(0,10) ?? "",
+          keywordsEn: d.keywordsEn.join(", "),
+          ...Object.fromEntries((d.preguntasGenerales ?? []).map(q => [`q${q.numero}`, q.respuesta])),
+          q2Proyecto: (d.preguntasGenerales?.find(q => q.numero === 2)?.detalle ?? "").split("\n")[0] ?? "",
+          q2Relacion: (d.preguntasGenerales?.find(q => q.numero === 2)?.detalle ?? "").split("\n").slice(1).join("\n"),
+          q3Detalle: d.preguntasGenerales?.find(q => q.numero === 3)?.detalle ?? "",
           abstract: d.abstractEn ?? "",
           palabras: d.keywordsEs.join(", "),
           problema: d.problema ?? prev.problema,
@@ -117,7 +124,12 @@ export function PropuestaNuevaPage() {
       objetivoGeneral: form.objetivos.trim(),
       metodologia: form.metodologia.trim(),
       keywordsEs: form.palabras,
-      keywordsEn: "",
+      keywordsEn: form.keywordsEn,
+      estadoArte: form.estadoArte, referencias: form.referencias, hojaRuta: form.hojaRuta, divulgacion: form.divulgacion,
+      fechaInicio: form.inicio, fechaFin: form.fin, requiereDictamenPi: form.q8 === "Sí",
+      preguntasGenerales: Array.from({ length: 8 }, (_, i) => ({ numero: i + 1,
+        respuesta: String(form[`q${i + 1}` as keyof FormWizardState]),
+        detalle: i === 1 ? `${form.q2Proyecto}\n${form.q2Relacion}` : i === 2 ? form.q3Detalle : null })),
     };
   }
 

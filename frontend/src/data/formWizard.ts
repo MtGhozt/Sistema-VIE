@@ -40,6 +40,10 @@ export type FormWizardState = {
   inicio: string;
   fin: string;
   escuela: string;
+  estadoArte: string;
+  hojaRuta: string;
+  divulgacion: string;
+  keywordsEn: string;
   resumen: string;
   palabras: string;
   abstract: string;
@@ -70,6 +74,10 @@ export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
   inicio: "2027-01-15",
   fin: "2028-06-30",
   escuela: "Escuela de Ingeniería en Computación",
+  estadoArte: "",
+  hojaRuta: "",
+  divulgacion: "",
+  keywordsEn: "",
   resumen:
     "Diseño y validación de una plataforma de monitoreo de calidad del agua basada en sensores IoT, analítica de datos y visualización web para apoyar la toma de decisiones en comunidades rurales.",
   palabras: "IoT, calidad del agua, sensores, analítica, monitoreo ambiental",

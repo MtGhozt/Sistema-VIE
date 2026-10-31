@@ -1,3 +1,4 @@
+import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { query } from "../db.js";
 import { requireDemoAuth } from "../middleware/demoAuth.js";
@@ -143,7 +144,7 @@ function parseKeywordInput(value: unknown): string[] | undefined {
 }
 
 /** Listado: investigador ve las suyas; admin ve todas. */
-propuestasRouter.get("/propuestas", requireDemoAuth, async (req, res) => {
+propuestasRouter.get("/propuestas", requireDemoAuth, asyncHandler(async (req, res) => {
   const role = req.demoAuth!.role;
   const userId = req.demoAuth!.userId!;
   const result =
@@ -156,9 +157,9 @@ propuestasRouter.get("/propuestas", requireDemoAuth, async (req, res) => {
           [userId],
         );
   res.json(result.rows.map(mapPropuesta));
-});
+}));
 
-propuestasRouter.get("/propuestas/:id", requireDemoAuth, async (req, res) => {
+propuestasRouter.get("/propuestas/:id", requireDemoAuth, asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: "id inválido" });
@@ -182,10 +183,10 @@ propuestasRouter.get("/propuestas/:id", requireDemoAuth, async (req, res) => {
   }
   const keywords = await loadKeywords(id);
   res.json({ ...mapPropuesta(row), ...keywords });
-});
+}));
 
 /** Crear borrador. */
-propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
+propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, res) => {
   if (!canWriteProposals(req.demoAuth!.role)) {
     res.status(403).json({ error: "Solo la persona investigadora puede crear propuestas" });
     return;
@@ -282,10 +283,10 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
   );
   const keywords = await loadKeywords(id);
   res.status(201).json({ ...mapPropuesta(detail.rows[0]), ...keywords });
-});
+}));
 
 /** Actualizar borrador. */
-propuestasRouter.patch("/propuestas/:id", requireDemoAuth, async (req, res) => {
+propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (req, res) => {
   if (!canWriteProposals(req.demoAuth!.role)) {
     res.status(403).json({ error: "Sin permiso para editar propuestas" });
     return;
@@ -396,13 +397,13 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, async (req, res) => {
   );
   const keywords = await loadKeywords(id);
   res.json({ ...mapPropuesta(detail.rows[0]), ...keywords });
-});
+}));
 
 /** Enviar a revisión (sale de borrador). */
 propuestasRouter.post(
   "/propuestas/:id/enviar",
   requireDemoAuth,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     if (!canWriteProposals(req.demoAuth!.role)) {
       res.status(403).json({ error: "Sin permiso para enviar propuestas" });
       return;
@@ -462,5 +463,5 @@ propuestasRouter.post(
     );
     const keywords = await loadKeywords(id);
     res.json({ ...mapPropuesta(detail.rows[0]), ...keywords });
-  },
+  }),
 );

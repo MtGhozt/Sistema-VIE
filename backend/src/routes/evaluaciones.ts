@@ -1,3 +1,4 @@
+import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { pool, query } from "../db.js";
 import { requireDemoAuth } from "../middleware/demoAuth.js";
@@ -251,7 +252,7 @@ function yes(v: unknown): boolean {
 evaluacionesRouter.get(
   "/evaluaciones/bandeja",
   requireDemoAuth,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const role = req.demoAuth!.role;
     const clause = bandejaClause(role);
     const result = await query<BandejaRow>(
@@ -265,14 +266,14 @@ evaluacionesRouter.get(
       items: result.rows.map(mapBandeja),
       total: result.rows.length,
     });
-  },
+  }),
 );
 
 /** Detalle de un expediente en bandeja (por id numérico). */
 evaluacionesRouter.get(
   "/evaluaciones/propuestas/:id",
   requireDemoAuth,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
       res.status(400).json({ error: "id inválido" });
@@ -288,7 +289,7 @@ evaluacionesRouter.get(
       return;
     }
     res.json(mapBandeja(row));
-  },
+  }),
 );
 
 /**
@@ -298,7 +299,7 @@ evaluacionesRouter.get(
 evaluacionesRouter.post(
   "/evaluaciones/propuestas/:id/acciones",
   requireDemoAuth,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     const action = str(req.body?.action);
     const payload = asRecord(req.body?.payload);
@@ -738,5 +739,5 @@ evaluacionesRouter.post(
     } finally {
       client.release();
     }
-  },
+  }),
 );

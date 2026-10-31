@@ -1,3 +1,4 @@
+import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { query } from "../db.js";
 import { requireDemoAuth } from "../middleware/demoAuth.js";
@@ -187,7 +188,7 @@ function mapRow(row: HistoricoRow) {
 historicoRouter.get(
   "/historico/propuestas",
   requireDemoAuth,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const q = req.query;
     const filtros = {
       escuela: String(q.escuela ?? "").trim(),
@@ -248,5 +249,5 @@ historicoRouter.get(
         anios: anios.rows.map((a) => a.anio),
       },
     });
-  },
+  }),
 );

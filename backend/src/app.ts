@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type ErrorRequestHandler } from "express";
 import cors from "cors";
 import { healthRouter } from "./routes/health.js";
 import { demoRouter } from "./routes/demoAuth.js";
@@ -29,5 +29,16 @@ export function createApp() {
   app.use("/api", historicoRouter);
   app.use("/api", evaluacionesRouter);
 
+  const handleError: ErrorRequestHandler = (error, _req, res, next) => {
+    if (res.headersSent) { next(error); return; }
+    const code = error && typeof error === "object" ? error.code : undefined;
+    console.error("[api]", error instanceof Error ? error.message : "Error inesperado");
+    if (code === "23505") {
+      res.status(409).json({ error: "El registro entra en conflicto con un dato existente. No se completó la operación." });
+      return;
+    }
+    res.status(500).json({ error: "No se pudo completar la operación" });
+  };
+  app.use(handleError);
   return app;
 }

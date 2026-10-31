@@ -1,3 +1,4 @@
+import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router, type Response } from "express";
 import { query } from "../db.js";
 import { requireDemoAuth, requirePublisher } from "../middleware/demoAuth.js";
@@ -105,17 +106,17 @@ const LIST_SQL = `
 convocatoriasRouter.get(
   "/convocatorias",
   requireDemoAuth,
-  async (_req, res) => {
+  asyncHandler(async (_req, res) => {
     const result = await query<ConvocatoriaRow>(LIST_SQL);
     res.json(result.rows.map(mapConvocatoria));
-  },
+  }),
 );
 
 /** Detalle + hitos. */
 convocatoriasRouter.get(
   "/convocatorias/:id",
   requireDemoAuth,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
       res.status(400).json({ error: "id inválido" });
@@ -147,7 +148,7 @@ convocatoriasRouter.get(
       ...mapConvocatoria(row),
       hitos: hitos.rows.map(mapHito),
     });
-  },
+  }),
 );
 
 /** Crear borrador o publicar. */
@@ -155,7 +156,7 @@ convocatoriasRouter.post(
   "/convocatorias",
   requireDemoAuth,
   requirePublisher,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const nombre = String(req.body?.nombre ?? "").trim();
     const descripcion = req.body?.descripcion
       ? String(req.body.descripcion).trim()
@@ -233,7 +234,7 @@ convocatoriasRouter.post(
       [created.id_convocatoria],
     );
     res.status(201).json(mapConvocatoria(detail.rows[0]));
-  },
+  }),
 );
 
 /** Actualizar datos / estado (publicar, cerrar). */
@@ -241,7 +242,7 @@ convocatoriasRouter.patch(
   "/convocatorias/:id",
   requireDemoAuth,
   requirePublisher,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
       res.status(400).json({ error: "id inválido" });
@@ -329,7 +330,7 @@ convocatoriasRouter.patch(
       [id],
     );
     res.json(mapConvocatoria(result.rows[0]));
-  },
+  }),
 );
 
 /** Agregar hito. */
@@ -337,7 +338,7 @@ convocatoriasRouter.post(
   "/convocatorias/:id/hitos",
   requireDemoAuth,
   requirePublisher,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     const nombre = String(req.body?.nombre ?? "").trim();
     const responsable = String(req.body?.responsable ?? "VIE").trim() || "VIE";
@@ -369,7 +370,7 @@ convocatoriasRouter.post(
       [id, nombre, responsable, fechaInicio, fechaFin, orden],
     );
     res.status(201).json(mapHito(result.rows[0]));
-  },
+  }),
 );
 
 /** Eliminar hito. */
@@ -377,7 +378,7 @@ convocatoriasRouter.delete(
   "/convocatorias/:id/hitos/:hitoId",
   requireDemoAuth,
   requirePublisher,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     const hitoId = Number(req.params.hitoId);
     const result = await query(
@@ -392,5 +393,5 @@ convocatoriasRouter.delete(
       return;
     }
     res.status(204).send();
-  },
+  }),
 );

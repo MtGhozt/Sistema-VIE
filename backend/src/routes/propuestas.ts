@@ -110,9 +110,11 @@ async function replaceKeywords(
   execute: typeof query = query,
 ) {
   if (keywordsEs === undefined && keywordsEn === undefined) return;
-  await execute(`DELETE FROM propuesta_palabra_clave WHERE id_propuesta = $1`, [
-    idPropuesta,
-  ]);
+  for (const [idioma, words] of [["es", keywordsEs], ["en", keywordsEn]] as const) {
+    if (words !== undefined) {
+      await execute(`DELETE FROM propuesta_palabra_clave WHERE id_propuesta = $1 AND idioma = $2`, [idPropuesta, idioma]);
+    }
+  }
   const pairs: [string, string][] = [];
   for (const p of keywordsEs ?? []) {
     const word = p.trim();
@@ -381,9 +383,10 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (r
     );
   }
 
+  const saved = await transaction(async (execute) => {
   if (fields.length > 0) {
     values.push(id);
-    await query(
+    await execute(
       `UPDATE propuesta SET ${fields.join(", ")} WHERE id_propuesta = $${i}`,
       values,
     );
@@ -393,14 +396,17 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (r
     id,
     parseKeywordInput(req.body?.keywordsEs),
     parseKeywordInput(req.body?.keywordsEn),
+    execute,
   );
 
-  const detail = await query<PropuestaRow>(
+  const detail = await execute<PropuestaRow>(
     `${BASE_SELECT} WHERE p.id_propuesta = $1`,
     [id],
   );
-  const keywords = await loadKeywords(id);
-  res.json({ ...mapPropuesta(detail.rows[0]), ...keywords });
+  const keywords = await loadKeywords(id, execute);
+  return { ...mapPropuesta(detail.rows[0]), ...keywords };
+  });
+  res.json(saved);
 }));
 
 /** Enviar a revisión (sale de borrador). */

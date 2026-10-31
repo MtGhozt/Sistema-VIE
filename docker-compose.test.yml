@@ -1,0 +1,21 @@
+# Entorno aislado para la línea base. No comparte volumen ni puerto con desarrollo.
+services:
+  db-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: vie
+      POSTGRES_PASSWORD: vie
+      POSTGRES_DB: fondos_vie_test
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - vie_test_pgdata:/var/lib/postgresql/data
+      - ./database/DisennoDB.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vie -d fondos_vie_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  vie_test_pgdata:

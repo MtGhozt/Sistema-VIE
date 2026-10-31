@@ -302,8 +302,8 @@ Completar durante la implementación; estos renglones no crean commits. Si cambi
 
 | Plan | SHA real | Pruebas / evidencia | Hallazgos cerrados | Validación del usuario |
 | --- | --- | --- | --- | --- |
-| C01 | Ver historial: `fix(frontend): completar contrato del expediente de evaluacion` | [Compilación antes/después](evidencias/C01-compilacion.md) | Bloqueo TS2741 resuelto; ADI-01 continúa pendiente | V0 pendiente |
-| C02 | | | | |
+| C01 | `6ab3371` | [Compilación antes/después](evidencias/C01-compilacion.md) | Bloqueo TS2741 resuelto; ADI-01 continúa pendiente | V0 pendiente |
+| C02 | Ver historial: `test(flujo): preparar linea base API aislada` | [Preparación y límites](evidencias/C02-preparacion.md) | Infraestructura preparada parcialmente; flujo y navegador bloqueados | V0 pendiente |
 | C03 | | | | |
 | C04 | | | | |
 | C05 | | | | |

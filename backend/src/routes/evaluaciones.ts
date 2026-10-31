@@ -1,3 +1,4 @@
+import { HttpError } from "../middleware/HttpError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { pool, query } from "../db.js";
@@ -330,6 +331,13 @@ evaluacionesRouter.post(
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
+      const locked = await client.query("SELECT * FROM propuesta WHERE id_propuesta=$1 FOR UPDATE", [id]);
+      if (!locked.rows[0]) throw new HttpError(404, "Propuesta no encontrada");
+      Object.assign(propuesta, locked.rows[0]);
+      if (propuesta.estado_actual === "borrador") throw new HttpError(409, "La propuesta aún está en borrador");
+      if (["aprobada", "rechazada"].includes(propuesta.estado_actual) && action !== "notify-resolution") {
+        throw new HttpError(409, "El expediente está cerrado; no se puede modificar su decisión");
+      }
 
       let message = "Acción registrada";
       const prev = propuesta.estado_actual;
@@ -682,6 +690,12 @@ evaluacionesRouter.post(
         }
 
         case "notify-resolution": {
+          const resolution = await client.query("SELECT resultado FROM resolucion_cie WHERE id_propuesta=$1", [id]);
+          if (!resolution.rowCount || !["aprobada", "rechazada"].includes(propuesta.estado_actual)) {
+            throw new HttpError(409, "Se requiere una resolución CIE antes de notificarla");
+          }
+          const sent = await client.query("SELECT 1 FROM comunicacion_institucional WHERE id_propuesta=$1 AND tipo='resolucion_cie' AND confirmada=true", [id]);
+          if (sent.rowCount) { message = "La resolución ya fue notificada."; break; }
           await client.query(
             `
             INSERT INTO notificacion (
@@ -733,9 +747,10 @@ evaluacionesRouter.post(
       });
     } catch (err) {
       await client.query("ROLLBACK");
+      if (err instanceof HttpError) { res.status(err.status).json({ error: err.message }); return; }
       const detail = err instanceof Error ? err.message : String(err);
       console.error("[evaluaciones]", action, detail);
-      res.status(500).json({ error: "No se pudo persistir la acción", detail });
+      res.status(500).json({ error: "No se pudo persistir la acción" });
     } finally {
       client.release();
     }

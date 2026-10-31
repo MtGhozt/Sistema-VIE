@@ -1,3 +1,4 @@
+import { saveEtica } from "./propuestaEtica.js";
 import { savePresupuesto } from "./propuestaPresupuesto.js";
 import { saveEquipo } from "./propuestaEquipo.js";
 import { HttpError } from "./middleware/HttpError.js";
@@ -8,6 +9,7 @@ export const CAMPOS_TEXTO = {
   estadoArte: "estado_arte", hojaRuta: "hoja_ruta", referencias: "referencias", divulgacion: "divulgacion",
 } as const;
 export async function savePropuestaCampos(id: number, body: Record<string, unknown>, execute: typeof query) {
+  await saveEtica(id, body, execute);
   await savePresupuesto(id, body, execute);
   await saveEquipo(id, body.equipo, execute);
   const fields: string[] = [], values: unknown[] = [];

@@ -410,6 +410,7 @@ export type DemoProposal = {
   oficioAval?: string;
   resolucion?: string;
   notificada?: boolean;
+  vieChecks?: Record<string,boolean>;
   justificacionAval?: string;
   confidencialidad?: string;
 };

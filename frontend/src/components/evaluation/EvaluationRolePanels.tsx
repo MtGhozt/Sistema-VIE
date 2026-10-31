@@ -1,3 +1,4 @@
+import vieItems from "../../../../shared/checklist-vie.json";
 import { apiJson } from "../../api/client";
 import { fetchSavedRubric } from "../../api/evaluaciones";
 import { useEffect, useMemo, useState } from "react";
@@ -995,14 +996,11 @@ export function GestoraViePanel({
   proposal: DemoProposal;
   onAction: ActionHandler;
 }) {
-  const items = [
-    "Propuesta completa",
-    "Dictamen PI o constancia de no requerido",
-    "Evaluación del Comité",
-    "Oficio del Comité",
-    "Aval del Consejo",
-    "Documentos de respaldo",
-  ];
+  const initial=Object.fromEntries(vieItems.map(item=>[item.codigo,proposal.vieChecks?.[item.codigo]??false]));
+  const [checks,setChecks]=useState(initial);
+  const [saved,setSaved]=useState(initial);
+  const allOk=vieItems.every(item=>checks[item.codigo]);
+  const dirty=vieItems.some(item=>checks[item.codigo]!==saved[item.codigo]);
   const [obs, setObs] = useState("");
 
   return (
@@ -1013,17 +1011,15 @@ export function GestoraViePanel({
           title="Verificación VIE"
           description="Confirme que el expediente contiene la ruta previa y la documentación necesaria."
         />
-        <div className="checklist simple">
-          {items.map((label) => (
-            <div key={label} className="check-row static">
-              <CheckIcon />
-              <div>
-                <strong>{label}</strong>
-                <span>Verificado</span>
-              </div>
-            </div>
-          ))}
+        <div className="checklist" role="group" aria-label="Verificación VIE">
+          {vieItems.map(item=><label key={item.codigo} className="check-row">
+            <input type="checkbox" checked={checks[item.codigo]} onChange={e=>setChecks(prev=>({...prev,[item.codigo]:e.target.checked}))}/>
+            {checks[item.codigo]?<CheckIcon/>:<span className="custom-check"/>}
+            <div><strong>{item.etiqueta}</strong><span>{checks[item.codigo]?"Verificado":"Falta verificar"}</span></div>
+          </label>)}
         </div>
+        <button type="button" className="btn btn-secondary" onClick={async()=>{if(await onAction("vie-checklist",{checks}))setSaved({...checks});}}>Guardar verificación</button>
+        <p className="field-hint" role="status">{dirty?"Verificación con cambios sin guardar.":"La remisión requiere guardar todos los requisitos verificados."}</p>
         <label className="field">
           <span className="field-label">Observación al equipo investigador</span>
           <textarea
@@ -1046,6 +1042,7 @@ export function GestoraViePanel({
           <button
             type="button"
             className="btn btn-primary"
+            disabled={dirty||!allOk}
             onClick={() => onAction("send-cie")}
           >
             Enviar al CIE

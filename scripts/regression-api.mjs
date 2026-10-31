@@ -97,6 +97,24 @@ try {
     await action(id,'vinculacion','pi',form);const saved=await call(`/evaluaciones/propuestas/${id}/pi`,'vinculacion');assert.deepEqual(saved.form,form);assert.equal((await call(`/evaluaciones/propuestas/${other}/pi`,'vinculacion')).form,null);
     await call(`/evaluaciones/propuestas/${id}/pi`,'investigador','GET',undefined,403);
   });
+  await check('Checklist VIE persiste y bloquea remisión incompleta',async()=>{
+    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=4 WHERE id_propuesta=$1",[id]);
+    await action(id,'gestora_vie','send-cie',{},409);
+    const keys=['propuesta','pi','evaluacion_comite','oficio_comite','aval','respaldos'];
+    const checks=Object.fromEntries(keys.map(k=>[k,true]));await action(id,'gestora_vie','vie-checklist',{checks:{...checks,pi:false}});await action(id,'gestora_vie','send-cie',{},409);
+    await action(id,'gestora_vie','vie-checklist',{checks});const b=await call('/evaluaciones/bandeja','gestora_vie');assert.deepEqual(b.items.find(p=>p.id===id).vieChecks,checks);
+    await action(id,'gestora_vie','vie-observation',{texto:'Comentario propio VIE'});const d=await detail(id);assert.ok(d.observaciones.includes('Comentario propio VIE'));const n=await env.pool.query('SELECT 1 FROM notificacion WHERE id_propuesta=$1 AND id_usuario_destino=$2',[id,sessions.get('investigador').id]);assert.equal(n.rowCount,1);
+    await action(id,'gestora_vie','send-cie');
+  });
+  await check('Dos devoluciones conservan ciclos independientes',async()=>{
+    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);
+    await action(id,'comite_asistente','return',{texto:'Primera devolución'});await action(id,'comite_asistente','return',{texto:'Segunda devolución'});
+    const cycles=await env.pool.query("SELECT ciclo FROM revision_expediente WHERE id_propuesta=$1 AND etapa='comite' ORDER BY ciclo",[id]);assert.deepEqual(cycles.rows.map(r=>r.ciclo),[1,2]);
+  });
+  await check('Vista admin filtra sin cambiar identidad ni ampliar permisos',async()=>{
+    const normal=await call('/evaluaciones/bandeja','vinculacion');const admin=await call('/evaluaciones/bandeja?vista=vinculacion','admin');assert.equal(admin.role,'vinculacion');assert.deepEqual(admin.items.map(p=>p.id),normal.items.map(p=>p.id));
+    await call('/evaluaciones/bandeja?vista=admin','vinculacion','GET',undefined,403);await call('/evaluaciones/bandeja?vista=inventada','admin','GET',undefined,403);await call('/evaluaciones/bandeja','investigador','GET',undefined,403);
+  });
   await check('CIE conserva fundamento y decisión cerrada rechaza sobrescritura',async()=>{
     const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=5 WHERE id_propuesta=$1",[id]);
     await action(id,'cie','cie-reject',{texto:'Fundamento humano propio'});const r=await env.pool.query('SELECT fundamento,resultado FROM resolucion_cie WHERE id_propuesta=$1',[id]);assert.equal(r.rows[0].fundamento,'Fundamento humano propio');assert.equal(r.rows[0].resultado,'rechazada');await action(id,'cie','cie-approve',{texto:'No sobrescribir'},409);

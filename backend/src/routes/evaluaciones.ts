@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { saveRubric, loadRubric } from "../rubricas.js";
 import { HttpError } from "../middleware/HttpError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
@@ -17,6 +18,8 @@ import { requireDemoAuth } from "../middleware/demoAuth.js";
  */
 
 export const evaluacionesRouter = Router();
+
+const VIE_ITEMS = JSON.parse(readFileSync(new URL("../../../shared/checklist-vie.json",import.meta.url),"utf8")) as {codigo:string;etiqueta:string}[];
 
 const ESTADO_LABEL: Record<string, string> = {
   borrador: "Borrador",
@@ -57,6 +60,7 @@ type BandejaRow = {
   calificacion_comite: string | null;
   notificada: boolean;
   justificacion_aval: string | null;
+  vie_checks: Record<string,boolean>;
 };
 
 const BANDEJA_SQL = `
@@ -78,6 +82,8 @@ const BANDEJA_SQL = `
     rc.numero_oficio AS oficio_comite,
     av.numero_oficio AS oficio_aval,
     r.numero_resolucion AS resolucion,
+    COALESCE((SELECT json_object_agg(ch.codigo_item,ch.verificado) FROM revision_checklist ch
+      WHERE ch.id_revision=(SELECT rv.id_revision FROM revision_expediente rv WHERE rv.id_propuesta=p.id_propuesta AND rv.etapa='vie' ORDER BY rv.ciclo DESC LIMIT 1)), '{}'::json) AS vie_checks,
     av.observaciones AS justificacion_aval,
     EXISTS (SELECT 1 FROM comunicacion_institucional ci WHERE ci.id_propuesta=p.id_propuesta AND ci.tipo='resolucion_cie' AND ci.confirmada=true) AS notificada,
     rc.calificacion_promedio::text AS calificacion_comite
@@ -114,6 +120,7 @@ function mapBandeja(row: BandejaRow) {
     oficioAval: row.oficio_aval,
     resolucion: row.resolucion,
     notificada: row.notificada,
+    vieChecks: row.vie_checks,
     justificacionAval: row.justificacion_aval,
     evaluacionComite: row.calificacion_comite
       ? { average: Number(row.calificacion_comite) }
@@ -132,6 +139,7 @@ const ACTION_ROLES: Record<string, Set<string>> = {
   "council-approve": new Set(["consejo", "admin"]),
   "council-reject": new Set(["consejo", "admin"]),
   "communicate-aval": new Set(["direccion_escuela", "admin"]),
+  "vie-checklist": new Set(["gestora_vie", "admin"]),
   "vie-observation": new Set(["gestora_vie", "admin"]),
   "send-cie": new Set(["gestora_vie", "admin"]),
   "cie-approve": new Set(["cie", "admin"]),
@@ -144,6 +152,8 @@ function roleOk(role: string | null | undefined, action: string) {
   if (!allowed) return false;
   return !!role && allowed.has(role);
 }
+
+const EVALUATION_VIEWS = new Set(["vinculacion","comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion","admin"]);
 
 /** Filtro de bandeja por rol (etapa / estado). */
 function bandejaClause(role: string | null | undefined): {
@@ -261,7 +271,11 @@ evaluacionesRouter.get(
   "/evaluaciones/bandeja",
   requireDemoAuth,
   asyncHandler(async (req, res) => {
-    const role = req.demoAuth!.role;
+    const authenticatedRole = req.demoAuth!.role;
+    if(!authenticatedRole || !EVALUATION_VIEWS.has(authenticatedRole)){res.status(403).json({error:"El rol no posee bandeja de evaluación"});return;}
+    const requestedView = String(req.query.vista??"");
+    if(requestedView && (authenticatedRole!=="admin" || !EVALUATION_VIEWS.has(requestedView))){res.status(403).json({error:"Vista de evaluación no permitida"});return;}
+    const role = requestedView || authenticatedRole;
     const clause = bandejaClause(role);
     const result = await query<BandejaRow>(
       `${BANDEJA_SQL}${clause.sql}
@@ -473,7 +487,7 @@ evaluacionesRouter.post(
             `
             INSERT INTO revision_expediente (
               id_propuesta, etapa, ciclo, id_revisor, resultado, fecha_inicio, fecha_fin
-            ) VALUES ($1, 'comite', 1, $2, 'devuelto', NOW(), NOW())
+            ) SELECT $1, 'comite', COALESCE(MAX(ciclo),0)+1, $2, 'devuelto', NOW(), NOW() FROM revision_expediente WHERE id_propuesta=$1 AND etapa='comite'
             ON CONFLICT (id_propuesta, etapa, ciclo) DO UPDATE SET
               id_revisor = EXCLUDED.id_revisor,
               resultado = 'devuelto',
@@ -648,6 +662,18 @@ evaluacionesRouter.post(
           break;
         }
 
+        case "vie-checklist": {
+          const checks=asRecord(payload.checks);
+          if(VIE_ITEMS.some(item=>typeof checks[item.codigo]!=="boolean"))throw new HttpError(400,"Complete los estados de verificación");
+          const allOk=VIE_ITEMS.every(item=>checks[item.codigo]===true);
+          const revision=await client.query<{id_revision:number}>(`INSERT INTO revision_expediente(id_propuesta,etapa,ciclo,id_revisor,resultado,fecha_inicio,fecha_fin)
+            VALUES($1,'vie',1,$2,$3,NOW(),NOW()) ON CONFLICT(id_propuesta,etapa,ciclo) DO UPDATE SET id_revisor=EXCLUDED.id_revisor,resultado=EXCLUDED.resultado,fecha_fin=NOW() RETURNING id_revision`,[id,userId,allOk?'completo':'en_revision']);
+          for(const item of VIE_ITEMS)await client.query(`INSERT INTO revision_checklist(id_revision,codigo_item,etiqueta,obligatorio,verificado) VALUES($1,$2,$3,true,$4)
+            ON CONFLICT(id_revision,codigo_item) DO UPDATE SET verificado=EXCLUDED.verificado`,[revision.rows[0].id_revision,item.codigo,item.etiqueta,checks[item.codigo]]);
+          message="Verificación VIE guardada.";
+          break;
+        }
+
         case "vie-observation": {
           const texto = str(payload.texto);
           if (!texto) {
@@ -664,11 +690,14 @@ evaluacionesRouter.post(
             `,
             [id, userId, texto],
           );
+          await client.query("INSERT INTO notificacion(id_usuario_destino,id_propuesta,titulo,mensaje,leida,fecha_hora) VALUES($1,$2,$3,$4,false,NOW())",[propuesta.id_coordinador,id,`Observación VIE · ${propuesta.codigo}`,texto.slice(0,500)]);
           message = "Observación enviada correctamente al equipo investigador.";
           break;
         }
 
         case "send-cie": {
+          const reviewed=await client.query("SELECT resultado FROM revision_expediente WHERE id_propuesta=$1 AND etapa='vie' ORDER BY ciclo DESC LIMIT 1",[id]);
+          if(reviewed.rows[0]?.resultado!=="completo")throw new HttpError(409,"Guarde la verificación VIE completa antes de remitir al CIE");
           await advanceEstado(client, {
             idPropuesta: id,
             estadoAnterior: prev,

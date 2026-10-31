@@ -21,6 +21,7 @@ export type EvaluacionBandejaItem = {
   oficioAval: string | null;
   resolucion: string | null;
   notificada: boolean;
+  vieChecks: Record<string,boolean>;
   justificacionAval: string | null;
   evaluacionComite: { average: number } | null;
 };
@@ -37,8 +38,8 @@ export type EvaluacionAccionResponse = {
   propuesta: EvaluacionBandejaItem | null;
 };
 
-export function fetchEvaluacionBandeja() {
-  return apiJson<EvaluacionBandejaResponse>("/api/evaluaciones/bandeja");
+export function fetchEvaluacionBandeja(view?: string) {
+  return apiJson<EvaluacionBandejaResponse>(`/api/evaluaciones/bandeja${view ? `?vista=${encodeURIComponent(view)}` : ""}`);
 }
 
 export function postEvaluacionAccion(

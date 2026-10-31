@@ -57,6 +57,7 @@ const routes = [
   ['council-approve', 'consejo', { texto: 'Fundamento de aval de prueba' }],
   ['communicate-aval', 'direccion_escuela', {}],
   ['vie-observation', 'gestora_vie', { texto: 'Observación de prueba recuperable' }],
+  ['vie-checklist','gestora_vie',{checks:Object.fromEntries(['propuesta','pi','evaluacion_comite','oficio_comite','aval','respaldos'].map(k=>[k,true]))}],
   ['send-cie', 'gestora_vie', {}],
   ['cie-approve', 'cie', { texto: 'Fundamento de resolución de prueba' }],
   ['notify-resolution', 'direccion_investigacion', {}],

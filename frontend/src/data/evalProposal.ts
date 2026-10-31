@@ -23,6 +23,8 @@ export function bandejaToDemoProposal(
     abstract: item.abstractEn ?? "",
     palabras: [],
     keywords: [],
+    // La bandeja API todavía no entrega integrantes; no atribuir equipo demo.
+    teamTec: [],
     documentos: [
       ...(item.oficioPI
         ? [{ nombre: `Dictamen PI ${item.oficioPI}`, estado: "Registrado" }]

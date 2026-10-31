@@ -76,6 +76,8 @@ La compilación y el lint necesitaron ejecutarse fuera del sandbox por el bloque
 
 ## Reglas de ejecución
 
+**Regla del usuario (30 de octubre de 2026):** cada cambio funcional debe identificar el hallazgo y la fuente documental o decisión explícita que lo justifica. Si falta sustento, existe ambigüedad o contradice lo establecido, abrir discusión y esperar respuesta antes de implementar esa parte. No modificar campos, límites, permisos ni transiciones basándose solo en una preferencia técnica. Registrar la justificación y su validación en la bitácora de implementación.
+
 1. Ejecutar primero la **validación de línea base** de [VALIDACION-DEL-FLUJO.md](VALIDACION-DEL-FLUJO.md). Intentar todas las ramas; registrar fallos, bloqueos y pantallas no alcanzables. No marcar como aprobada una pantalla que solo se revisó en código.
 2. Antes de cada commit, revisar si otra persona ya implementó la corrección: comparar código, ejecutar la prueba de aceptación y registrar el SHA que la resolvió. Una implementación parcial no permite cerrar el hallazgo.
 3. Mantener **al menos 20 commits sustantivos**, con objetivo verificable. Este plan propone 32. No crear commits vacíos ni dividir cambios artificialmente; si algo ya está resuelto, reasignar el trabajo pendiente y actualizar el plan sin volver a introducirlo.

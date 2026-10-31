@@ -54,6 +54,8 @@ type BandejaRow = {
   oficio_aval: string | null;
   resolucion: string | null;
   calificacion_comite: string | null;
+  notificada: boolean;
+  justificacion_aval: string | null;
 };
 
 const BANDEJA_SQL = `
@@ -75,6 +77,8 @@ const BANDEJA_SQL = `
     rc.numero_oficio AS oficio_comite,
     av.numero_oficio AS oficio_aval,
     r.numero_resolucion AS resolucion,
+    av.observaciones AS justificacion_aval,
+    EXISTS (SELECT 1 FROM comunicacion_institucional ci WHERE ci.id_propuesta=p.id_propuesta AND ci.tipo='resolucion_cie' AND ci.confirmada=true) AS notificada,
     rc.calificacion_promedio::text AS calificacion_comite
   FROM propuesta p
   JOIN escuela e ON e.id_escuela = p.id_escuela
@@ -108,6 +112,8 @@ function mapBandeja(row: BandejaRow) {
     oficioComite: row.oficio_comite,
     oficioAval: row.oficio_aval,
     resolucion: row.resolucion,
+    notificada: row.notificada,
+    justificacionAval: row.justificacion_aval,
     evaluacionComite: row.calificacion_comite
       ? { average: Number(row.calificacion_comite) }
       : null,

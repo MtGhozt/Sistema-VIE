@@ -20,6 +20,8 @@ export type EvaluacionBandejaItem = {
   oficioComite: string | null;
   oficioAval: string | null;
   resolucion: string | null;
+  notificada: boolean;
+  justificacionAval: string | null;
   evaluacionComite: { average: number } | null;
 };
 

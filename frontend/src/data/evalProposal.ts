@@ -54,5 +54,7 @@ export function bandejaToDemoProposal(
     oficioPI: item.oficioPI ?? undefined,
     oficioAval: item.oficioAval ?? undefined,
     resolucion: item.resolucion ?? undefined,
+    notificada: item.notificada,
+    justificacionAval: item.justificacionAval ?? undefined,
   };
 }

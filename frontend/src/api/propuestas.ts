@@ -1,6 +1,8 @@
 import type { DemoProposal } from "../data/demo";
 import { apiJson } from "./client";
 
+export type AspectosEticos = { humanos: boolean; biodiversidad: boolean; animales: boolean; indigenas: boolean; exencion: string };
+export type PermisoInput = { ente: string; detalle: string; estado: string };
 export type PresupuestoInput = { anio: number; operativo: number; duraderos: number };
 export type FuenteInput = { tipo: string; anio: number; monto: number; oficio: string | null };
 export type ParticipanteInput = {
@@ -42,6 +44,8 @@ export type Propuesta = {
 };
 
 export type PropuestaDetalle = Propuesta & Partial<Pick<DemoProposal, "teamTec" | "teamExternal" | "presupuestoAnual" | "productos" | "observaciones" | "timeline" | "documentos">> & {
+  aspectosEticos?: AspectosEticos | null;
+  permisos?: PermisoInput[];
   equipo?: ParticipanteInput[];
   presupuesto?: PresupuestoInput[];
   fuentes?: FuenteInput[];
@@ -64,6 +68,8 @@ export type PropuestaInput = {
   declaracion?: boolean;
   resguardoRepositorio?: boolean;
   resguardoTecnico?: boolean;
+  aspectosEticos?: AspectosEticos | null;
+  permisos?: PermisoInput[];
   equipo?: ParticipanteInput[];
   presupuesto?: PresupuestoInput[];
   fuentes?: FuenteInput[];

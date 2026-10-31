@@ -37,6 +37,7 @@ function apiToDetailModel(d: PropuestaDetalle): ProposalDetailModel {
     piRequired: d.requiereDictamenPi, presupuesto: "—", resumen: d.resumen ?? "", abstract: d.abstractEn ?? "",
     palabras: d.keywordsEs, keywords: d.keywordsEn,
     teamTec: d.teamTec ?? [], teamExternal: d.teamExternal ?? [], presupuestoAnual: d.presupuestoAnual ?? [],
+    etica: d.aspectosEticos ? `Aspectos declarados: ${[d.aspectosEticos.humanos && "seres humanos", d.aspectosEticos.biodiversidad && "biodiversidad", d.aspectosEticos.animales && "animales", d.aspectosEticos.indigenas && "pueblos indígenas"].filter(Boolean).join(", ") || "ninguno"}. ${d.aspectosEticos.exencion}` : undefined,
     productos: d.productos ?? [], observaciones: d.observaciones ?? [], documentos: d.documentos ?? [],
     timeline: (d.timeline ?? []).map(e => ({ ...e, fecha: new Date(e.fecha).toLocaleString("es-CR", { timeZone: "America/Costa_Rica" }) })),
   };

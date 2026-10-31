@@ -459,7 +459,12 @@ export function FormWizardStepContent({
   }
 
   if (step === 11) {
-    return <p className="body-copy">{rich.etica}</p>;
+    return <div className="stack-lg">
+      {([['humanos','Seres humanos'],['biodiversidad','Biodiversidad'],['animales','Animales'],['indigenas','Pueblos y territorios indígenas']] as const).map(([key,label])=><label className="field" key={key}><span><input type="checkbox" checked={form.aspectosEticos[key]} onChange={e=>patch({aspectosEticos:{...form.aspectosEticos,[key]:e.target.checked}})}/> La propuesta involucra: {label}</span></label>)}
+      <label className="field"><span className="field-label">Justificación de exención, cuando corresponda</span><textarea className="input textarea" rows={5} value={form.aspectosEticos.exencion} onChange={e=>patch({aspectosEticos:{...form.aspectosEticos,exencion:e.target.value}})}/></label>
+      <EditableRows title="Permisos y autorizaciones" rows={form.permisos} onChange={permisos=>patch({permisos})} blank={()=>({ente:'',detalle:'',estado:'pendiente'})} fields={[{key:'ente',label:'Comité o ente regulatorio'},{key:'detalle',label:'Detalle del trámite'},{key:'estado',label:'Estado del trámite'}]}/>
+      <p className="field-hint">Registrar un trámite no sustituye el aval formal del ente competente. La fase experimental requiere los permisos que correspondan.</p>
+    </div>;
   }
 
 

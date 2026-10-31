@@ -157,6 +157,11 @@ function parseKeywordInput(value: unknown): string[] | undefined {
     .filter(Boolean);
 }
 
+propuestasRouter.get("/personas", requireDemoAuth, asyncHandler(async (_req, res) => {
+  const result = await query("SELECT u.id_usuario AS id, u.nombre_completo AS nombre, e.nombre AS instancia FROM usuario u LEFT JOIN escuela e ON e.id_escuela=u.id_escuela WHERE u.activo=true ORDER BY u.nombre_completo");
+  res.json(result.rows);
+}));
+
 /** Listado: investigador ve las suyas; admin ve todas. */
 propuestasRouter.get("/propuestas", requireDemoAuth, asyncHandler(async (req, res) => {
   const role = req.demoAuth!.role;

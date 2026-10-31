@@ -1,3 +1,4 @@
+import { savePresupuesto } from "./propuestaPresupuesto.js";
 import { saveEquipo } from "./propuestaEquipo.js";
 import { HttpError } from "./middleware/HttpError.js";
 import type { query } from "./db.js";
@@ -7,6 +8,7 @@ export const CAMPOS_TEXTO = {
   estadoArte: "estado_arte", hojaRuta: "hoja_ruta", referencias: "referencias", divulgacion: "divulgacion",
 } as const;
 export async function savePropuestaCampos(id: number, body: Record<string, unknown>, execute: typeof query) {
+  await savePresupuesto(id, body, execute);
   await saveEquipo(id, body.equipo, execute);
   const fields: string[] = [], values: unknown[] = [];
   for (const [api, column] of Object.entries(CAMPOS_TEXTO)) {

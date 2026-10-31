@@ -1,3 +1,4 @@
+import { loadPresupuesto } from "./propuestaPresupuesto.js";
 import { loadEquipo } from "./propuestaEquipo.js";
 import { query } from "./db.js";
 
@@ -18,6 +19,7 @@ export async function loadPropuestaDisplay(id: number, execute: typeof query = q
     execute<{ numero: number; respuesta: string; detalle: string | null }>("SELECT numero_pregunta AS numero,respuesta,detalle FROM propuesta_pregunta_general WHERE id_propuesta=$1 ORDER BY numero_pregunta", [id]),
   ]);
   return {
+    ...await loadPresupuesto(id, execute),
     equipo: await loadEquipo(id, execute),
     preguntasGenerales: questions.rows,
     teamTec: team.rows.filter(p => p.tipo === "funcionario_tec").map(p => ({ ...p, orcid: p.orcid ?? undefined })),

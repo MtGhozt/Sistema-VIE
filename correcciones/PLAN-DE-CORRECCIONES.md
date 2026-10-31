@@ -259,3 +259,8 @@ C02 dispone ahora de [evidencia en Chromium](evidencias/C02-validacion-visual.md
 ## Ajuste de ejecución solicitado por el usuario
 
 Corregir todos los defectos comprobados y sustentados; trasladar ambigüedades a [COSAS-A-DISCUTIR.md](COSAS-A-DISCUTIR.md). La ejecución de esas correcciones ya está autorizada y no queda retenida por V0. Las decisiones ambiguas y las casillas de aceptación del usuario permanecen pendientes; no se consideran aprobadas por continuar la implementación. Se mantiene separación de commits, justificación y pruebas.
+
+
+## Pausa y punto de reanudación
+
+El usuario solicitó detener la implementación y continuar más adelante. Estado, estimación, verificaciones reales y pendientes en [CHECKPOINT.md](CHECKPOINT.md). No continuar automáticamente ni marcar aceptación final.

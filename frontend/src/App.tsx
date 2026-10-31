@@ -22,6 +22,12 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return children;
 }
 
+function RequireAdmin({ children }: { children: ReactNode }) {
+  const { session } = useAuth();
+  if (session?.role !== "admin") return <section className="card"><h1>Acceso restringido</h1><p role="alert">La administración requiere el rol Super Administrador.</p></section>;
+  return children;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -42,7 +48,7 @@ export default function App() {
         <Route path="/historico" element={<HistoricoPage />} />
         <Route path="/historico/:codigo" element={<HistoricoDetallePage />} />
         <Route path="/notificaciones" element={<NotificacionesPage />} />
-        <Route path="/administracion" element={<AdministracionPage />} />
+        <Route path="/administracion" element={<RequireAdmin><AdministracionPage /></RequireAdmin>} />
       </Route>
       <Route path="/" element={<Navigate to="/inicio" replace />} />
       <Route path="*" element={<Navigate to="/inicio" replace />} />

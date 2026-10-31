@@ -1,6 +1,6 @@
 # Bitácora de implementación
 
-Cada entrada indica cambio, sustento y verificación. Las decisiones abiertas están en [COSAS-A-DISCUTIR.md](COSAS-A-DISCUTIR.md). No se marca aceptación del usuario automáticamente.
+Cada entrada indica cambio, sustento y comprobación prevista. Los typechecks se ejecutaron por bloque; las pruebas de integración y navegador citadas como regresión permanecen pendientes salvo evidencia enlazada. No interpretar esta tabla como reporte de pruebas aprobadas. Las decisiones abiertas están en [COSAS-A-DISCUTIR.md](COSAS-A-DISCUTIR.md). No se marca aceptación del usuario automáticamente.
 
 | Cambio / mensaje de commit | Sustento | Comprobación |
 | --- | --- | --- |
@@ -35,3 +35,7 @@ Cada entrada indica cambio, sustento y verificación. Las decisiones abiertas es
 | `feat(formulario): editar actividades y riesgos del plan` | INV-03 y plantilla de plan/riesgos: objetivo, resultado, responsables, inicio, duración y mitigación. | Typecheck; integración de actividad, riesgo y asignación a integrante ya guardado. No se exige un permiso ético inexistente ni una nueva etapa. |
 | `feat(productos): persistir compromisos y activos sin listas ficticias` | INV-03, formulario y propuesta_producto: ámbito, opción, cantidad y dictamen. | Typecheck; integración CRUD y rechazo de ID ajeno. La tabla de mínimos por modalidad/carga debe validarse completa antes de automatizarla (D10). |
 | `feat(formulario): editar compromisos e identificar adjuntos locales` | INV-03/GEN-04: no usar productos/documentos demo como datos reales. | Typecheck; CRUD de compromisos y aviso explícito de que los archivos locales no se suben. D06 reserva almacenamiento/PDF para el acuerdo de alcance. |
+| `fix(acceso): proteger la ruta de administracion por rol autenticado` | ADI-03, análisis de personas y menú existente: Administración es del Super Administrador. | Typecheck; navegador abre URL directa como investigador y recibe acceso restringido. D02 mantiene la matriz histórica sin inventar nuevos ámbitos. |
+
+
+**Pausa solicitada por el usuario:** consultar [CHECKPOINT.md](CHECKPOINT.md) antes de retomar. La guardia de Administración quedó en curso dentro del commit de checkpoint, sin prueba posterior a la interrupción.

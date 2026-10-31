@@ -1,3 +1,4 @@
+import { PlanEditor } from "./PlanEditor";
 import { EditableRows } from "./EditableRows";
 import { EquipoEditor } from "./EquipoEditor";
 import { useId, type ReactNode } from "react";
@@ -399,33 +400,8 @@ export function FormWizardStepContent({
     );
   }
 
-  if (step === 6 && rich.plan) {
-    return (
-      <div className="table-wrap">
-        <table className="data-table wide-form-table">
-          <thead>
-            <tr>
-              <th>Objetivo</th>
-              <th>Actividad</th>
-              <th>Resultado</th>
-              <th>Riesgo</th>
-              <th>Mitigación</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rich.plan.map((row) => (
-              <tr key={row.objetivo + row.actividad}>
-                <td>{row.objetivo}</td>
-                <td>{row.actividad}</td>
-                <td>{row.resultado}</td>
-                <td>{row.riesgo}</td>
-                <td>{row.mitigacion}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
+  if (step === 6) {
+    return <PlanEditor rows={form.actividades} equipo={form.equipo} onChange={actividades=>patch({actividades})}/>;
   }
 
   if (step === 7) {

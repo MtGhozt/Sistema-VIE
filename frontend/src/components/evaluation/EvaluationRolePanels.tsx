@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { fetchSavedRubric } from "../../api/evaluaciones";
+import { useEffect, useMemo, useState } from "react";
 import type { DemoProposal } from "../../data/demo";
 import {
   COMMITTEE_EVALUATOR_SUMMARY,
@@ -329,14 +330,24 @@ function RubricPanel({
         c.id,
         {
           score: c.aiScore,
-          reason:
-            c.aiScore >= 8
-              ? "La evidencia del expediente satisface el criterio; se conserva la valoración sugerida después de revisión humana."
-              : "",
+          reason: "",
         },
       ]),
     ),
   );
+
+  const [loadingSaved, setLoadingSaved] = useState(Boolean(proposal.numericId));
+  const [loadError, setLoadError] = useState("");
+  useEffect(() => {
+    if (!proposal.numericId) return;
+    let active = true;
+    void fetchSavedRubric(proposal.numericId,cie?"cie":"comite").then(data=>{
+      if(active) setScores(prev=>({...prev,...data.scores}));
+    }).catch(err=>{ if(active) setLoadError(err instanceof Error?err.message:"No se pudo recuperar la evaluación"); })
+      .finally(()=>{ if(active) setLoadingSaved(false); });
+    return ()=>{active=false;};
+  },[proposal.numericId,cie]);
+  const availablePoints = criteria.reduce((sum,c)=>sum+c.weight,0);
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [approveOpen, setApproveOpen] = useState(false);
@@ -361,10 +372,12 @@ function RubricPanel({
 
   return (
     <div className="rubric-layout">
+      {loadError && <p role="alert">{loadError}. Recargue antes de editar para no sobrescribir una evaluación que no se pudo recuperar.</p>}
       <article className="card rubric-case">
         <CaseFile proposal={proposal} />
       </article>
-      <div className="rubric-main">
+      <fieldset className="rubric-main" disabled={loadingSaved || Boolean(loadError)} style={{border:0,padding:0,margin:0,minWidth:0}}>
+        {loadingSaved && <p role="status">Recuperando evaluación guardada…</p>}
         <div className="rubric-summary">
           <div>
             <p className="eyebrow">
@@ -373,16 +386,16 @@ function RubricPanel({
             <h2>
               {cie
                 ? "Evaluación y resolución del CIE"
-                : `Rúbrica oficial · ${proposal.modalidad}`}
+                : `Rúbrica de demostración · ${proposal.modalidad}`}
             </h2>
             <p>
-              Escala institucional simulada: 0, 6, 8 o 10. La sugerencia de IA
+              Subconjunto de demostración, pendiente de incorporar la rúbrica oficial completa. Escala simulada: 0, 6, 8 o 10. La sugerencia de IA
               es apoyo; la decisión, nota y justificación final son humanas.
             </p>
           </div>
           <div className="score-ring">
             <strong>{average}</strong>
-            <span>/ 100</span>
+            <span>/ {availablePoints} puntos incluidos</span>
             <small>{recommendation}</small>
           </div>
         </div>
@@ -390,8 +403,8 @@ function RubricPanel({
         {!cie && (
           <article className="card evaluator-summary">
             <PanelIntro
-              title="Evaluaciones independientes del Comité"
-              description="Cinco integrantes registran su evaluación por separado antes de consolidar el oficio."
+              title="Ejemplo de composición del Comité (datos simulados)"
+              description="La evaluación guardada corresponde únicamente a la cuenta actual; estas cifras de ejemplo no son notas registradas de otras personas."
             />
             <div className="evaluator-grid">
               {COMMITTEE_EVALUATOR_SUMMARY.map(([name, score, status]) => (
@@ -506,7 +519,7 @@ function RubricPanel({
         <article className="card rubric-result-card">
           <div>
             <span>Calificación ponderada</span>
-            <strong>{average}%</strong>
+            <strong>{average} / {availablePoints} puntos incluidos</strong>
           </div>
           <div>
             <span>Resultado de referencia</span>
@@ -526,6 +539,7 @@ function RubricPanel({
               onAction("save-rubric", {
                 average,
                 scores,
+                instancia: cie ? "cie" : "comite",
                 recommendation,
               })
             }
@@ -545,6 +559,7 @@ function RubricPanel({
                 type="button"
                 className="btn btn-primary"
                 disabled={!allJustified || recommendation === "NO RECOMIENDA"}
+                title={availablePoints < 100 ? "Pendiente de incorporar y validar la rúbrica oficial completa; este subconjunto no permite una recomendación definitiva." : undefined}
                 onClick={() => setApproveOpen(true)}
               >
                 Aprobar y emitir resolución
@@ -660,7 +675,7 @@ function RubricPanel({
             />
           </label>
         </SimpleModal>
-      </div>
+      </fieldset>
     </div>
   );
 }

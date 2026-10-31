@@ -54,3 +54,7 @@ export function postEvaluacionAccion(
     },
   );
 }
+
+export function fetchSavedRubric(id: number, instancia: "cie" | "comite") {
+  return apiJson<{ scores: Record<string, { score:number; reason:string }> }>(`/api/evaluaciones/propuestas/${id}/rubrica?instancia=${instancia}`);
+}

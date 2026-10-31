@@ -1,3 +1,4 @@
+import { saveRubric, loadRubric } from "../rubricas.js";
 import { HttpError } from "../middleware/HttpError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
@@ -299,6 +300,17 @@ evaluacionesRouter.get(
   }),
 );
 
+evaluacionesRouter.get("/evaluaciones/propuestas/:id/rubrica", requireDemoAuth, asyncHandler(async(req,res)=>{
+  const role=req.demoAuth!.role;
+  if(!roleOk(role,"save-rubric")){res.status(403).json({error:"Sin permiso para consultar evaluaciones individuales"});return;}
+  const id=Number(req.params.id);
+  if(!Number.isSafeInteger(id)||id<1){res.status(400).json({error:"ID inválido"});return;}
+  const p=await query<{modalidad:string}>("SELECT modalidad FROM propuesta WHERE id_propuesta=$1",[id]);
+  if(!p.rows[0]){res.status(404).json({error:"Propuesta no encontrada"});return;}
+  const instance=role==='cie'?'cie':role==='admin'&&req.query.instancia==='cie'?'cie':'comite';
+  res.json({scores:await loadRubric(pool,id,req.demoAuth!.userId!,instance,p.rows[0].modalidad)});
+}));
+
 /**
  * Ejecuta una acción de evaluación del prototipo.
  * Body: { action: string, payload?: object }
@@ -477,12 +489,16 @@ evaluacionesRouter.post(
         }
 
         case "save-rubric": {
+          const modality = locked.rows[0].modalidad as string;
+          const instance = role === "cie" || role === "admin" && payload.instancia === "cie" ? "cie" : "comite";
+          await saveRubric(client,id,userId,instance,modality,payload);
           message = "Los cambios de la evaluación se guardaron correctamente.";
           break;
         }
 
         case "committee-score": {
-          const promedio = Number(payload.average ?? payload.promedio ?? 80);
+          const evaluation = await saveRubric(client,id,userId,"comite",locked.rows[0].modalidad as string,payload,true);
+          const promedio = evaluation.total;
           const oficio =
             str(payload.oficio) ||
             `CT-${new Date().getFullYear()}-${String(id).padStart(3, "0")}`;
@@ -495,9 +511,9 @@ evaluacionesRouter.post(
             INSERT INTO resultado_comite (
               id_propuesta, recomendacion, calificacion_promedio, numero_oficio,
               fundamento, fecha_dictamen, id_coordinador_comite
-            ) VALUES ($1, 'recomienda', $2, $3, $4, CURRENT_DATE, $5)
+            ) VALUES ($1, $6, $2, $3, $4, CURRENT_DATE, $5)
             ON CONFLICT (id_propuesta) DO UPDATE SET
-              recomendacion = 'recomienda',
+              recomendacion = EXCLUDED.recomendacion,
               calificacion_promedio = EXCLUDED.calificacion_promedio,
               numero_oficio = EXCLUDED.numero_oficio,
               fundamento = EXCLUDED.fundamento,
@@ -506,10 +522,11 @@ evaluacionesRouter.post(
             `,
             [
               id,
-              Number.isFinite(promedio) ? promedio : 80,
+              promedio,
               oficio.slice(0, 40),
               fundamento,
               userId,
+              evaluation.recommendation,
             ],
           );
           await advanceEstado(client, {

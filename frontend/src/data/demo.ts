@@ -349,6 +349,7 @@ export const ADMIN_STAGE_ROLES = [
 ] as const;
 
 export type DemoProposal = {
+  numericId?: number;
   id: string;
   titulo: string;
   convocatoria: string;

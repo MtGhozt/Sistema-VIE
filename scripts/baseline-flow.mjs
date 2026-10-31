@@ -46,11 +46,13 @@ async function request(route, role, method = 'GET', body) {
 const roles = ['vie_publicacion', 'investigador', 'vinculacion', 'comite_asistente',
   'comite_evaluador', 'consejo_asistente', 'consejo', 'direccion_escuela',
   'gestora_vie', 'cie', 'direccion_investigacion', 'admin'];
+const { rubricCriteria } = await import('../backend/dist/rubricas.js');
+const demoScores = Object.fromEntries(rubricCriteria('aplicada').map(c => [c.key, { score: 8, reason: 'Justificación de prueba API' }]));
 const routes = [
   ['pi', 'vinculacion', { oficio: `CV-${Date.now()}`, potencial: 'Sí', analisis: 'Dictamen de prueba' }],
   ['committee-ready', 'comite_asistente', {}],
-  ['save-rubric', 'comite_evaluador', { average: 80, scores: {} }],
-  ['committee-score', 'comite_evaluador', { average: 80, recommendation: 'RECOMIENDA' }],
+  ['save-rubric', 'comite_evaluador', { scores: demoScores }],
+  ['committee-score', 'comite_evaluador', { scores: demoScores }],
   ['send-council', 'consejo_asistente', {}],
   ['council-approve', 'consejo', { texto: 'Fundamento de aval de prueba' }],
   ['communicate-aval', 'direccion_escuela', {}],
@@ -115,7 +117,7 @@ try {
       let avalRejected = false;
       await check('F03', `Crear expediente ${scenario}`, async () => {
         if (!conv?.id) blocked('Sin convocatoria de prueba');
-        proposal = await request('/propuestas', 'investigador', 'POST', { titulo: `Baseline ${run} ${scenario}`, idConvocatoria: conv.id, modalidad: 'aplicada', resumen: 'Resumen de prueba', problema: 'Problema', objetivoGeneral: 'Objetivo', metodologia: 'Metodología' });
+        proposal = await request('/propuestas', 'investigador', 'POST', { titulo: `Baseline ${run} ${scenario}`, idConvocatoria: conv.id, modalidad: 'aplicada', resumen: 'Resumen de prueba', problema: 'Problema', objetivoGeneral: 'Objetivo', metodologia: 'Metodología', declaracion:true, keywordsEs:'agua,clima,suelo,riesgo' });
         fixtures.push({ type: 'propuesta', scenario, id: proposal.id });
       });
       await check('F12', `Enviar expediente ${scenario}`, async () => {

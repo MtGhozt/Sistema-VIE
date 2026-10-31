@@ -70,6 +70,19 @@ try {
     for (const n of [3,7]) {await patch(id,{resumen:'Resumen',keywordsEs:Array.from({length:n},(_,i)=>`termino${i}`).join(',')});await call(`/propuestas/${id}/enviar`,'investigador','POST',undefined,400);}
     await patch(id,{resumen:Array(500).fill('palabra').join(' '),keywordsEs:'uno,dos,tres,cuatro'});const sent=await call(`/propuestas/${id}/enviar`,'investigador','POST');assert.equal(sent.estadoActual,'enviada');
   });
+  await check('Guardar rúbrica conserva criterios y separa instancias y usuarios',async()=>{
+    const {rubricCriteria}=await import('../backend/dist/rubricas.js');
+    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='en_evaluacion',etapa_flujo=2 WHERE id_propuesta=$1",[id]);
+    const scores=Object.fromEntries(rubricCriteria('aplicada').map(c=>[c.key,{score:8,reason:'Justificación humana '+c.key}]));
+    await action(id,'comite_evaluador','save-rubric',{scores});
+    const saved=await call(`/evaluaciones/propuestas/${id}/rubrica?instancia=comite`,'comite_evaluador');assert.deepEqual(saved.scores,scores);
+    assert.deepEqual((await call(`/evaluaciones/propuestas/${id}/rubrica?instancia=cie`,'cie')).scores,{});
+    assert.deepEqual((await call(`/evaluaciones/propuestas/${id}/rubrica?instancia=comite`,'admin')).scores,{});
+    await action(id,'comite_evaluador','save-rubric',{scores:{}} ,400);
+    const count=await env.pool.query('SELECT count(*) FROM evaluacion_puntaje p JOIN evaluacion e ON e.id_evaluacion=p.id_evaluacion WHERE e.id_propuesta=$1',[id]);assert.equal(Number(count.rows[0].count),Object.keys(scores).length);
+    await action(id,'comite_evaluador','committee-score',{scores,average:99,recommendation:'RECOMIENDA'});
+    const result=await env.pool.query('SELECT calificacion_promedio,recomendacion FROM resultado_comite WHERE id_propuesta=$1',[id]);assert.notEqual(Number(result.rows[0].calificacion_promedio),99);assert.equal(result.rows[0].recomendacion,'no_recomienda');
+  });
   await check('CIE conserva fundamento y decisión cerrada rechaza sobrescritura',async()=>{
     const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=5 WHERE id_propuesta=$1",[id]);
     await action(id,'cie','cie-reject',{texto:'Fundamento humano propio'});const r=await env.pool.query('SELECT fundamento,resultado FROM resolucion_cie WHERE id_propuesta=$1',[id]);assert.equal(r.rows[0].fundamento,'Fundamento humano propio');assert.equal(r.rows[0].resultado,'rechazada');await action(id,'cie','cie-approve',{texto:'No sobrescribir'},409);

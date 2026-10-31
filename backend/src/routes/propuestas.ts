@@ -1,3 +1,4 @@
+import { HttpError } from "../middleware/HttpError.js";
 import { savePropuestaCampos } from "../propuestaCampos.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
@@ -405,6 +406,9 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (r
   }
 
   const saved = await transaction(async (execute) => {
+  const locked = await execute<{estado_actual:string}>("SELECT estado_actual FROM propuesta WHERE id_propuesta=$1 FOR UPDATE",[id]);
+  if (!locked.rows[0] || locked.rows[0].estado_actual !== "borrador") throw new HttpError(409,"El expediente ya no está en borrador; no se guardaron cambios");
+
   if (fields.length > 0) {
     values.push(id);
     await execute(
@@ -470,16 +474,17 @@ propuestasRouter.post(
       return;
     }
 
-    const content = await query<{ resumen: string | null; declaracion_aceptada: boolean }>("SELECT resumen, declaracion_aceptada FROM propuesta WHERE id_propuesta=$1", [id]);
-    if (!content.rows[0]?.declaracion_aceptada) { res.status(400).json({ error: "Debe aceptar la declaración jurada antes de enviar" }); return; }
+    const saved = await transaction(async (execute) => {
+    const content = await execute<{ resumen: string | null; declaracion_aceptada: boolean; estado_actual:string }>("SELECT resumen, declaracion_aceptada, estado_actual FROM propuesta WHERE id_propuesta=$1 FOR UPDATE", [id]);
+    if (!content.rows[0] || content.rows[0].estado_actual !== "borrador") throw new HttpError(409,"La propuesta ya fue enviada");
+    if (!content.rows[0]?.declaracion_aceptada) throw new HttpError(400,"Debe aceptar la declaración jurada antes de enviar");
     const wordCount = (content.rows[0]?.resumen ?? "").trim().split(/\s+/u).filter(Boolean).length;
-    const terms = await loadKeywords(id);
+    const terms = await loadKeywords(id,execute);
     if (wordCount > 500 || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {
-      res.status(400).json({ error: "El resumen admite máximo 500 palabras y se requieren entre 4 y 6 términos clave en español." });
-      return;
+      throw new HttpError(400,"El resumen admite máximo 500 palabras y se requieren entre 4 y 6 términos clave en español.");
     }
 
-    await query(
+    await execute(
       `
       UPDATE propuesta
       SET estado_actual = 'enviada',
@@ -489,7 +494,7 @@ propuestasRouter.post(
       `,
       [id],
     );
-    await query(
+    await execute(
       `
       INSERT INTO propuesta_historial_estado (
         id_propuesta, estado_anterior, estado_nuevo, id_usuario, fecha_hora, observacion
@@ -498,11 +503,13 @@ propuestasRouter.post(
       [id, req.demoAuth!.userId],
     );
 
-    const detail = await query<PropuestaRow>(
+    const detail = await execute<PropuestaRow>(
       `${BASE_SELECT} WHERE p.id_propuesta = $1`,
       [id],
     );
-    const keywords = await loadKeywords(id);
-    res.json({ ...mapPropuesta(detail.rows[0]), ...keywords });
+    const keywords = await loadKeywords(id,execute);
+    return { ...mapPropuesta(detail.rows[0]), ...keywords };
+    });
+    res.json(saved);
   }),
 );

@@ -83,6 +83,20 @@ try {
     await action(id,'comite_evaluador','committee-score',{scores,average:99,recommendation:'RECOMIENDA'});
     const result=await env.pool.query('SELECT calificacion_promedio,recomendacion FROM resultado_comite WHERE id_propuesta=$1',[id]);assert.notEqual(Number(result.rows[0].calificacion_promedio),99);assert.equal(result.rows[0].recomendacion,'no_recomienda');
   });
+  await check('Envío concurrente produce un solo evento de historial',async()=>{
+    const id=await draft();await patch(id,{declaracion:true,keywordsEs:'uno,dos,tres,cuatro'});
+    const u=sessions.get('investigador');
+    const responses=await Promise.all([1,2].map(()=>fetch(`${env.api}/propuestas/${id}/enviar`,{method:'POST',headers:{'X-Demo-User-Id':String(u.id),'X-Demo-Role':u.roleCode}})));
+    assert.equal(responses.filter(r=>r.status===200).length,1);assert.ok(responses.every(r=>[200,400,409].includes(r.status)));
+    const rows=await env.pool.query("SELECT count(*) FROM propuesta_historial_estado WHERE id_propuesta=$1 AND estado_nuevo='enviada'",[id]);assert.equal(Number(rows.rows[0].count),1);
+    await patch(id,{titulo:'Edición después de envío'},400);
+  });
+  await check('Vinculación recupera el dictamen emitido y no mezcla propuestas',async()=>{
+    const id=await draft(),other=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);
+    const form={potencial:'Sí',innovacion:'No',tipoActivo:'Activo propio',tipoPI:'Autoría',novedad:'Novedad propia',titularidad:'Titularidad propia',divulgacion:'Recomendación propia',confidencialidad:'Análisis propio',analisis:'Dictamen humano propio',recomendaciones:'Recomendación humana',oficio:`CV-RG-${id}`,fecha:'2026-10-31'};
+    await action(id,'vinculacion','pi',form);const saved=await call(`/evaluaciones/propuestas/${id}/pi`,'vinculacion');assert.deepEqual(saved.form,form);assert.equal((await call(`/evaluaciones/propuestas/${other}/pi`,'vinculacion')).form,null);
+    await call(`/evaluaciones/propuestas/${id}/pi`,'investigador','GET',undefined,403);
+  });
   await check('CIE conserva fundamento y decisión cerrada rechaza sobrescritura',async()=>{
     const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=5 WHERE id_propuesta=$1",[id]);
     await action(id,'cie','cie-reject',{texto:'Fundamento humano propio'});const r=await env.pool.query('SELECT fundamento,resultado FROM resolucion_cie WHERE id_propuesta=$1',[id]);assert.equal(r.rows[0].fundamento,'Fundamento humano propio');assert.equal(r.rows[0].resultado,'rechazada');await action(id,'cie','cie-approve',{texto:'No sobrescribir'},409);

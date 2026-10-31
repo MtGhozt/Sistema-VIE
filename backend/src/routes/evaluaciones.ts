@@ -300,6 +300,21 @@ evaluacionesRouter.get(
   }),
 );
 
+evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, asyncHandler(async(req,res)=>{
+  if(!roleOk(req.demoAuth!.role,"pi")){res.status(403).json({error:"Sin permiso para editar el dictamen"});return;}
+  const id=Number(req.params.id);
+  if(!Number.isSafeInteger(id)||id<1){res.status(400).json({error:"ID inválido"});return;}
+  const proposal=await loadPropuesta(id);
+  if(!proposal){res.status(404).json({error:"Propuesta no encontrada"});return;}
+  const row=await query("SELECT * FROM dictamen_pi WHERE id_propuesta=$1",[id]);
+  const d=row.rows[0];
+  res.json({form:d?{
+    potencial:d.potencial_proteccion?"Sí":"No",innovacion:d.es_innovador?"Sí":"No",tipoActivo:d.activo_identificable??"",tipoPI:d.mecanismo_pi??"",
+    novedad:d.novedad??"",titularidad:d.titularidad??"",divulgacion:d.recomendaciones_divulgacion??"",confidencialidad:d.confidencialidad??"",
+    analisis:d.analisis_tecnico??"",recomendaciones:d.recomendaciones_vinculacion??"",oficio:d.numero_oficio??"",fecha:d.fecha_dictamen instanceof Date?d.fecha_dictamen.toISOString().slice(0,10):String(d.fecha_dictamen??'').slice(0,10),
+  }:null});
+}));
+
 evaluacionesRouter.get("/evaluaciones/propuestas/:id/rubrica", requireDemoAuth, asyncHandler(async(req,res)=>{
   const role=req.demoAuth!.role;
   if(!roleOk(role,"save-rubric")){res.status(403).json({error:"Sin permiso para consultar evaluaciones individuales"});return;}
@@ -362,6 +377,7 @@ evaluacionesRouter.post(
 
       switch (action) {
         case "pi": {
+          if (!["Sí","No"].includes(str(payload.potencial)) || !["Sí","No"].includes(str(payload.innovacion))) throw new HttpError(400,"Indique potencial de protección e innovación del dictamen");
           const oficio =
             str(payload.oficio) ||
             `CV-${new Date().getFullYear()}-${String(id).padStart(3, "0")}`;

@@ -1,3 +1,4 @@
+import { apiJson } from "../../api/client";
 import { fetchSavedRubric } from "../../api/evaluaciones";
 import { useEffect, useMemo, useState } from "react";
 import type { DemoProposal } from "../../data/demo";
@@ -51,27 +52,18 @@ export function VinculacionPanel({
   onAction: ActionHandler;
 }) {
   const [form, setForm] = useState({
-    potencial: "Sí",
-    tipoActivo: proposal.activoPI || "Desarrollo de Software",
-    tipoPI: "Derecho de autor sobre software / posible secreto empresarial",
-    innovacion: "Sí",
-    novedad:
-      "La integración propuesta combina sensórica, comunicaciones y analítica en una solución orientada al contexto de monitoreo rural.",
-    titularidad:
-      "Resultados desarrollados en el marco institucional del TEC, sujetos a la normativa institucional de propiedad intelectual.",
-    divulgacion:
-      "No divulgar código fuente, arquitectura detallada ni resultados potencialmente protegibles antes de definir la estrategia de protección.",
-    confidencialidad:
-      proposal.confidencialidad === "Sí"
-        ? "La propuesta declara información sensible; mantener controles de acceso y acuerdos de confidencialidad."
-        : "No se reporta información sensible de terceros.",
-    analisis:
-      "La propuesta presenta resultados con potencial de protección asociados al software, documentación técnica y conocimiento generado durante la integración del prototipo.",
-    recomendaciones:
-      "Registrar autoría, conservar evidencias de desarrollo y coordinar con Vinculación cualquier divulgación previa a la definición de la estrategia de protección.",
-    oficio: proposal.oficioPI || "CV-023-2026",
-    fecha: "2026-08-23",
+    potencial:"",tipoActivo:"",tipoPI:"",innovacion:"",novedad:"",titularidad:"",divulgacion:"",confidencialidad:"",analisis:"",recomendaciones:"",oficio:"",fecha:"",
   });
+  const [loading, setLoading] = useState(Boolean(proposal.numericId));
+  const [loadError, setLoadError] = useState("");
+  useEffect(()=>{
+    if(!proposal.numericId)return;
+    let active=true;
+    void apiJson<{form:typeof form|null}>(`/api/evaluaciones/propuestas/${proposal.numericId}/pi`).then(data=>{if(active&&data.form)setForm(data.form);})
+      .catch(err=>{if(active)setLoadError(err instanceof Error?err.message:"No se pudo recuperar el dictamen");})
+      .finally(()=>{if(active)setLoading(false);});
+    return ()=>{active=false;};
+  },[proposal.numericId]);
 
   const set = (key: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -94,7 +86,9 @@ export function VinculacionPanel({
             </strong>
           </span>
         </div>
-        <div className="stack-md">
+        {loadError && <p role="alert">{loadError}</p>}
+        {loading && <p role="status">Recuperando dictamen…</p>}
+        <fieldset className="stack-md" disabled={loading||Boolean(loadError)} style={{border:0,padding:0,margin:0,minWidth:0}}>
           <div className="form-grid two-col">
             <label className="field">
               <span className="field-label">¿Existe potencial de protección?</span>
@@ -103,6 +97,7 @@ export function VinculacionPanel({
                 value={form.potencial}
                 onChange={(e) => set("potencial", e.target.value)}
               >
+                <option value="" disabled>Seleccionar…</option>
                 <option>Sí</option>
                 <option>No</option>
               </select>
@@ -116,6 +111,7 @@ export function VinculacionPanel({
                 value={form.innovacion}
                 onChange={(e) => set("innovacion", e.target.value)}
               >
+                <option value="" disabled>Seleccionar…</option>
                 <option>Sí</option>
                 <option>No</option>
               </select>
@@ -195,7 +191,7 @@ export function VinculacionPanel({
           >
             Emitir y registrar dictamen
           </button>
-        </div>
+        </fieldset>
       </article>
     </div>
   );

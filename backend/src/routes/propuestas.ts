@@ -1,6 +1,6 @@
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
-import { query } from "../db.js";
+import { query, transaction } from "../db.js";
 import { requireDemoAuth } from "../middleware/demoAuth.js";
 
 export const propuestasRouter = Router();
@@ -85,8 +85,8 @@ function canWriteProposals(role: string | null | undefined) {
   return role === "investigador" || role === "admin";
 }
 
-async function loadKeywords(idPropuesta: number) {
-  const result = await query<{ idioma: string; palabra: string }>(
+async function loadKeywords(idPropuesta: number, execute: typeof query = query) {
+  const result = await execute<{ idioma: string; palabra: string }>(
     `
     SELECT idioma, palabra FROM propuesta_palabra_clave
     WHERE id_propuesta = $1
@@ -107,9 +107,10 @@ async function replaceKeywords(
   idPropuesta: number,
   keywordsEs: string[] | undefined,
   keywordsEn: string[] | undefined,
+  execute: typeof query = query,
 ) {
   if (keywordsEs === undefined && keywordsEn === undefined) return;
-  await query(`DELETE FROM propuesta_palabra_clave WHERE id_propuesta = $1`, [
+  await execute(`DELETE FROM propuesta_palabra_clave WHERE id_propuesta = $1`, [
     idPropuesta,
   ]);
   const pairs: [string, string][] = [];
@@ -122,7 +123,7 @@ async function replaceKeywords(
     if (word) pairs.push(["en", word]);
   }
   for (const [idioma, palabra] of pairs) {
-    await query(
+    await execute(
       `
       INSERT INTO propuesta_palabra_clave (id_propuesta, idioma, palabra)
       VALUES ($1, $2, $3)
@@ -241,10 +242,11 @@ propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, r
     return;
   }
 
+  const saved = await transaction(async (execute) => {
   const year = new Date().getFullYear();
   const codigoTmp = `TMP-${userId}-${Date.now()}`;
 
-  const insert = await query<{ id_propuesta: number }>(
+  const insert = await execute<{ id_propuesta: number }>(
     `
     INSERT INTO propuesta (
       codigo, id_convocatoria, id_coordinador, id_escuela,
@@ -271,18 +273,20 @@ propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, r
 
   const id = insert.rows[0].id_propuesta;
   const codigo = `PROP-${year}-${String(id).padStart(3, "0")}`;
-  await query(`UPDATE propuesta SET codigo = $1 WHERE id_propuesta = $2`, [
+  await execute(`UPDATE propuesta SET codigo = $1 WHERE id_propuesta = $2`, [
     codigo,
     id,
   ]);
-  await replaceKeywords(id, keywordsEs, keywordsEn);
+  await replaceKeywords(id, keywordsEs, keywordsEn, execute);
 
-  const detail = await query<PropuestaRow>(
+  const detail = await execute<PropuestaRow>(
     `${BASE_SELECT} WHERE p.id_propuesta = $1`,
     [id],
   );
-  const keywords = await loadKeywords(id);
-  res.status(201).json({ ...mapPropuesta(detail.rows[0]), ...keywords });
+  const keywords = await loadKeywords(id, execute);
+  return { ...mapPropuesta(detail.rows[0]), ...keywords };
+  });
+  res.status(201).json(saved);
 }));
 
 /** Actualizar borrador. */

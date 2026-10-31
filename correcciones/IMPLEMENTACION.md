@@ -6,3 +6,4 @@ Cada entrada indica cambio, sustento y verificación. Las decisiones abiertas es
 | --- | --- | --- |
 | `docs(correcciones): separar decisiones abiertas de fallos confirmados` | Instrucción explícita del usuario; no modificar reglas ambiguas. | Revisión de los 33 hallazgos y separación de D01–D11. |
 | `fix(api): controlar rechazos asincronos sin terminar el servidor` | INC-01 reproducido; CU2 exige errores controlados. Express 4 no captura rechazos de handlers async. | Compilación backend; regresión de colisión y health en prueba final. No cambia numeración. |
+| `fix(propuestas): revertir creaciones parciales ante conflictos` | INC-01, restricción UNIQUE y CU2. Creación, código y términos deben ser una operación atómica. | Typecheck; la regresión final fuerza colisión y verifica que no quede TMP ni se caiga API. La decisión anual/global queda en D01. |

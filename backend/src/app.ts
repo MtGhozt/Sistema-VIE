@@ -1,3 +1,4 @@
+import { HttpError } from "./middleware/HttpError.js";
 import express, { type ErrorRequestHandler } from "express";
 import cors from "cors";
 import { healthRouter } from "./routes/health.js";
@@ -33,6 +34,7 @@ export function createApp() {
 
   const handleError: ErrorRequestHandler = (error, _req, res, next) => {
     if (res.headersSent) { next(error); return; }
+    if (error instanceof HttpError) { res.status(error.status).json({ error: error.message }); return; }
     const code = error && typeof error === "object" ? error.code : undefined;
     console.error("[api]", error instanceof Error ? error.message : "Error inesperado");
     if (code === "23505") {

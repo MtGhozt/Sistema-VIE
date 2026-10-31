@@ -178,6 +178,12 @@ export function PropuestaNuevaPage() {
       showToast("Completá título y convocatoria antes de enviar", "error");
       return;
     }
+    const count = form.resumen.trim().split(/\s+/u).filter(Boolean).length;
+    const terms = form.palabras.split(",").map(w => w.trim()).filter(Boolean);
+    if (count > 500 || terms.length < 4 || terms.length > 6) {
+      showToast("El resumen admite máximo 500 palabras y se requieren entre 4 y 6 términos clave en español.", "error");
+      return;
+    }
     if (!form.declaracion) {
       showToast("Debés aceptar la declaración jurada antes de enviar", "error");
       return;

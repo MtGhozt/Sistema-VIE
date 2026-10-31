@@ -461,6 +461,14 @@ propuestasRouter.post(
       return;
     }
 
+    const content = await query<{ resumen: string | null }>("SELECT resumen FROM propuesta WHERE id_propuesta=$1", [id]);
+    const wordCount = (content.rows[0]?.resumen ?? "").trim().split(/\s+/u).filter(Boolean).length;
+    const terms = await loadKeywords(id);
+    if (wordCount > 500 || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {
+      res.status(400).json({ error: "El resumen admite máximo 500 palabras y se requieren entre 4 y 6 términos clave en español." });
+      return;
+    }
+
     await query(
       `
       UPDATE propuesta

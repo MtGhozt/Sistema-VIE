@@ -313,7 +313,8 @@ export function FormWizardStepContent({
     return (
       <div className="stack-lg">
         <label className="field">
-          <span className="field-label">Resumen (español)</span>
+          <span className="field-label">Resumen (español · máximo 500 palabras)</span>
+          <span className="field-hint" role="status">{form.resumen.trim().split(/\s+/u).filter(Boolean).length} / 500 palabras. El borrador puede guardarse incompleto.</span>
           <textarea
             className="input textarea"
             rows={6}
@@ -334,7 +335,7 @@ export function FormWizardStepContent({
           <input className="input" value={form.keywordsEn} onChange={e => patch({ keywordsEn: e.target.value })} />
         </label>
         <label className="field">
-          <span className="field-label">Palabras clave</span>
+          <span className="field-label">Palabras clave en español (entre 4 y 6, separadas por comas)</span>
           <input
             className="input"
             value={form.palabras}

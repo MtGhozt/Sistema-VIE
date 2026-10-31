@@ -2,7 +2,7 @@ import { query } from "./db.js";
 
 /** Datos reales del agregado; ninguna sección se rellena desde una plantilla demo. */
 export async function loadPropuestaDisplay(id: number, execute: typeof query = query) {
-  const [team, years, products, observations, history, documents] = await Promise.all([
+  const [team, years, products, observations, history, documents, questions] = await Promise.all([
     execute<{ nombre: string; orcid: string | null; instancia: string; rol: string; periodo: string; tipo: string; horas: string }>(
       `SELECT p.nombre_completo AS nombre, p.orcid, COALESCE(p.instancia_o_institucion,'') AS instancia,
       p.rol_en_proyecto AS rol, p.periodo_nombramiento AS periodo, p.tipo,
@@ -14,8 +14,10 @@ export async function loadPropuestaDisplay(id: number, execute: typeof query = q
     execute<{ mensaje: string }>("SELECT mensaje FROM observacion WHERE id_propuesta=$1 ORDER BY fecha_creacion,id_observacion", [id]),
     execute<{ titulo: string; detalle: string; fecha: Date }>("SELECT estado_nuevo AS titulo, observacion AS detalle, fecha_hora AS fecha FROM propuesta_historial_estado WHERE id_propuesta=$1 ORDER BY fecha_hora,id_historial", [id]),
     execute<{ nombre: string; estado: string }>("SELECT nombre, estado FROM propuesta_documento WHERE id_propuesta=$1 ORDER BY id_documento", [id]),
+    execute<{ numero: number; respuesta: string; detalle: string | null }>("SELECT numero_pregunta AS numero,respuesta,detalle FROM propuesta_pregunta_general WHERE id_propuesta=$1 ORDER BY numero_pregunta", [id]),
   ]);
   return {
+    preguntasGenerales: questions.rows,
     teamTec: team.rows.filter(p => p.tipo === "funcionario_tec").map(p => ({ ...p, orcid: p.orcid ?? undefined })),
     teamExternal: team.rows.filter(p => p.tipo === "externo").map(p => ({ nombre: p.nombre, orcid: p.orcid ?? undefined, institucion: p.instancia })),
     presupuestoAnual: years.rows.map(p => ({ anio: p.anio, operativo: Number(p.operativo), duraderos: Number(p.duraderos) })),

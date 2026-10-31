@@ -1,3 +1,4 @@
+import { savePropuestaCampos } from "../propuestaCampos.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { loadPropuestaDisplay } from "../propuestaDetalle.js";
@@ -39,6 +40,13 @@ type PropuestaRow = {
   problema: string | null;
   objetivo_general: string | null;
   metodologia: string | null;
+  estado_arte: string | null;
+  referencias: string | null;
+  hoja_ruta: string | null;
+  divulgacion: string | null;
+  fecha_inicio: string | null;
+  fecha_finalizacion: string | null;
+  requiere_dictamen_pi: boolean;
   estado_actual: string;
   etapa_flujo: number;
   fecha_envio: string | null;
@@ -65,6 +73,8 @@ function mapPropuesta(row: PropuestaRow) {
     problema: row.problema,
     objetivoGeneral: row.objetivo_general,
     metodologia: row.metodologia,
+    estadoArte: row.estado_arte, referencias: row.referencias, hojaRuta: row.hoja_ruta, divulgacion: row.divulgacion,
+    fechaInicio: row.fecha_inicio, fechaFin: row.fecha_finalizacion, requiereDictamenPi: row.requiere_dictamen_pi,
     estadoActual: row.estado_actual,
     etapaFlujo: row.etapa_flujo,
     fechaEnvio: row.fecha_envio,
@@ -281,6 +291,7 @@ propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, r
     id,
   ]);
   await replaceKeywords(id, keywordsEs, keywordsEn, execute);
+  await savePropuestaCampos(id, req.body, execute);
 
   const detail = await execute<PropuestaRow>(
     `${BASE_SELECT} WHERE p.id_propuesta = $1`,
@@ -400,6 +411,7 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (r
     execute,
   );
 
+  await savePropuestaCampos(id, req.body, execute);
   const detail = await execute<PropuestaRow>(
     `${BASE_SELECT} WHERE p.id_propuesta = $1`,
     [id],

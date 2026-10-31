@@ -391,7 +391,7 @@ export function EvaluacionesPage() {
   }
 
   const proposal = selected.demo;
-  const panelProps = { key: selected.key, proposal, onAction };
+  const panelProps = { proposal, onAction };
 
   return (
     <>
@@ -434,24 +434,24 @@ export function EvaluacionesPage() {
             </div>
           )}
 
-          {role === "vinculacion" && <VinculacionPanel {...panelProps} />}
+          {role === "vinculacion" && <VinculacionPanel key={selected.key} {...panelProps} />}
           {role === "comite_asistente" && (
-            <ComiteAsistentePanel {...panelProps} />
+            <ComiteAsistentePanel key={selected.key} {...panelProps} />
           )}
           {role === "comite_evaluador" && (
-            <ComiteEvaluadorPanel {...panelProps} />
+            <ComiteEvaluadorPanel key={selected.key} {...panelProps} />
           )}
           {role === "consejo_asistente" && (
-            <ConsejoAsistentePanel {...panelProps} />
+            <ConsejoAsistentePanel key={selected.key} {...panelProps} />
           )}
-          {role === "consejo" && <ConsejoPanel {...panelProps} />}
+          {role === "consejo" && <ConsejoPanel key={selected.key} {...panelProps} />}
           {role === "direccion_escuela" && (
-            <DireccionEscuelaPanel {...panelProps} />
+            <DireccionEscuelaPanel key={selected.key} {...panelProps} />
           )}
-          {role === "gestora_vie" && <GestoraViePanel {...panelProps} />}
-          {role === "cie" && <CiePanel {...panelProps} />}
+          {role === "gestora_vie" && <GestoraViePanel key={selected.key} {...panelProps} />}
+          {role === "cie" && <CiePanel key={selected.key} {...panelProps} />}
           {role === "direccion_investigacion" && (
-            <DireccionInvestigacionPanel {...panelProps} />
+            <DireccionInvestigacionPanel key={selected.key} {...panelProps} />
           )}
           {role === "admin" && (
             <>

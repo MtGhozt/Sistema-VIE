@@ -319,7 +319,7 @@ export function FormWizardStepContent({
           <textarea
             className="input textarea"
             rows={6}
-            value={form.resumen}
+            aria-label="Resumen (español · máximo 500 palabras)" value={form.resumen}
             onChange={(e) => patch({ resumen: e.target.value })}
           />
         </label>
@@ -328,7 +328,7 @@ export function FormWizardStepContent({
           <textarea
             className="input textarea"
             rows={6}
-            value={form.abstract}
+            aria-label="Abstract (English)" value={form.abstract}
             onChange={(e) => patch({ abstract: e.target.value })}
           />
         </label>
@@ -359,7 +359,7 @@ export function FormWizardStepContent({
           <textarea
             className="input textarea"
             rows={5}
-            value={form.problema}
+            aria-label="Planteamiento del problema" value={form.problema}
             onChange={(e) => patch({ problema: e.target.value })}
           />
         </label>
@@ -368,7 +368,7 @@ export function FormWizardStepContent({
           <textarea
             className="input textarea"
             rows={4}
-            value={form.objetivos}
+            aria-label="Objetivos" value={form.objetivos}
             onChange={(e) => patch({ objetivos: e.target.value })}
           />
         </label>
@@ -380,7 +380,7 @@ export function FormWizardStepContent({
     const key = step === 4 ? "estadoArte" : step === 10 ? "divulgacion" : "hojaRuta";
     const label = step === 4 ? "Estado del arte" : step === 10 ? "Divulgación y socialización" : "Hoja de ruta";
     return <label className="field"><span className="field-label">{label}</span>
-      <textarea className="input textarea" rows={10} value={form[key]} onChange={e => patch({ [key]: e.target.value })} />
+      <textarea aria-label={label} className="input textarea" rows={10} value={form[key]} onChange={e => patch({ [key]: e.target.value })} />
     </label>;
   }
 
@@ -391,7 +391,7 @@ export function FormWizardStepContent({
         <textarea
           className="input textarea"
           rows={8}
-          value={form.metodologia}
+          aria-label="Metodología" value={form.metodologia}
           onChange={(e) => patch({ metodologia: e.target.value })}
         />
       </label>
@@ -445,7 +445,7 @@ export function FormWizardStepContent({
         <textarea
           className="input textarea"
           rows={10}
-          value={form.referencias}
+          aria-label="Referencias" value={form.referencias}
           onChange={(e) => patch({ referencias: e.target.value })}
         />
       </label>

@@ -494,6 +494,7 @@ function RubricPanel({
                       </span>
                       <textarea
                         id={`justificacion-${id}`}
+                        aria-label="Justificación humana obligatoria"
                         className="input textarea"
                         rows={3}
                         value={row?.reason ?? ""}

@@ -1,4 +1,4 @@
-import type { ParticipanteInput, PresupuestoInput, FuenteInput, AspectosEticos, PermisoInput, ActividadInput } from "../api/propuestas";
+import type { ParticipanteInput, PresupuestoInput, FuenteInput, AspectosEticos, PermisoInput, ActividadInput, CompromisoInput } from "../api/propuestas";
 /** 17 pasos del formulario VIE (HTML prototipo, `const At`). */
 export const FORM_WIZARD_STEPS = [
   "Datos y preguntas generales",
@@ -38,6 +38,7 @@ export const ALT_TEXT_MIN_CHARS = 40;
 export type FormWizardState = {
   aspectosEticos: AspectosEticos;
   permisos: PermisoInput[];
+  compromisos: CompromisoInput[];
   actividades: ActividadInput[];
   equipo: ParticipanteInput[];
   presupuesto: PresupuestoInput[];
@@ -79,6 +80,7 @@ export type FormWizardState = {
 export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
   aspectosEticos: { humanos:false, biodiversidad:false, animales:false, indigenas:false, exencion:"" },
   permisos: [],
+  compromisos: [],
   actividades: [],
   equipo: [],
   presupuesto: [],

@@ -4,7 +4,6 @@ import { EquipoEditor } from "./EquipoEditor";
 import { useId, type ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
 import { MODALIDADES } from "../data/demo";
-import { DEMO_PROPOSALS } from "../data/demo";
 import {
   ALT_TEXT_MIN_CHARS,
   type FormWizardState,
@@ -90,7 +89,6 @@ export function FormWizardStepContent({
   idConvocatoria,
   setIdConvocatoria,
 }: Props) {
-  const rich = DEMO_PROPOSALS[0]!;
 
   if (step === 0) {
     return (
@@ -418,13 +416,9 @@ export function FormWizardStepContent({
   }
 
   if (step === 8) {
-    return (
-      <ul>
-        {(rich.productos ?? []).map((p) => (
-          <li key={p}>{p}</li>
-        ))}
-      </ul>
-    );
+    return <EditableRows title="Compromisos de productos" rows={form.compromisos} onChange={compromisos=>patch({compromisos})}
+      blank={()=>({ambito:form.modalidad==='Desarrollo tecnológico'?'desarrollo_tecnologico':'basica_aplicada',codigo:'',descripcion:'',cantidad:1,dictamen:''})}
+      fields={[{key:'ambito',label:'Ámbito',options:['basica_aplicada','desarrollo_tecnologico','adicional','activo_pi']},{key:'codigo',label:'Opción del formulario oficial'},{key:'descripcion',label:'Descripción del producto'},{key:'cantidad',label:'Cantidad comprometida',type:'number'},{key:'dictamen',label:'Consecutivo del dictamen PI (si corresponde)'}]}/>;
   }
 
   if (step === 9) {
@@ -513,30 +507,19 @@ export function FormWizardStepContent({
             Formulario, plan de acción, presupuesto y acuerdos (referencia del
             prototipo).
           </p>
-          <div className="task-list" style={{ marginTop: 12 }}>
-            {rich.documentos.map((d) => (
-              <div
-                key={d.nombre}
-                className="task-row"
-                style={{ cursor: "default" }}
-              >
-                <strong>{d.nombre}</strong>
-                <span className="badge badge-primary">{d.estado}</span>
-              </div>
-            ))}
-          </div>
+          <p className="field-hint">La carga y consulta de archivos del expediente está pendiente de implementación. No se han adjuntado los documentos de ejemplo.</p>
         </div>
 
         <div>
           <h3>Recursos gráficos (imágenes y videos)</h3>
           <p className="field-hint">
-            Cada recurso debe incluir un texto alternativo editable y
+            Esta vista local no sube ni guarda archivos en el servidor. Cada recurso debe incluir un texto alternativo editable y
             suficientemente descriptivo (rúbrica de accesibilidad · WCAG 1.1.1).
           </p>
 
           <div className="resource-alt-actions" style={{ marginTop: 12 }}>
             <label className="btn btn-secondary">
-              Agregar imagen
+              Seleccionar imagen (vista local)
               <input
                 type="file"
                 accept="image/*"
@@ -548,7 +531,7 @@ export function FormWizardStepContent({
               />
             </label>
             <label className="btn btn-secondary">
-              Agregar video
+              Seleccionar video (vista local)
               <input
                 type="file"
                 accept="video/*"

@@ -33,7 +33,7 @@ export function PropuestaNuevaPage() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormWizardState>(DEFAULT_FORM_WIZARD_STATE);
   const [saveStatus, setSaveStatus] = useState(
-    "Guardado automáticamente hace 30 segundos",
+    "Sin guardar",
   );
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [idConvocatoria, setIdConvocatoria] = useState<number | "">("");
@@ -104,18 +104,18 @@ export function PropuestaNuevaPage() {
 
   function patch(partial: Partial<FormWizardState>) {
     setForm((prev) => ({ ...prev, ...partial }));
-    setSaveStatus("Guardado automáticamente hace unos segundos");
+    setSaveStatus("Cambios sin guardar");
   }
 
   function draftPayload() {
     return {
       titulo: form.titulo.trim(),
       modalidad: form.modalidad,
-      resumen: form.resumen.trim() || undefined,
-      abstractEn: form.abstract.trim() || undefined,
-      problema: form.problema.trim() || undefined,
-      objetivoGeneral: form.objetivos.trim() || undefined,
-      metodologia: form.metodologia.trim() || undefined,
+      resumen: form.resumen.trim(),
+      abstractEn: form.abstract.trim(),
+      problema: form.problema.trim(),
+      objetivoGeneral: form.objetivos.trim(),
+      metodologia: form.metodologia.trim(),
       keywordsEs: form.palabras,
       keywordsEn: "",
     };
@@ -143,6 +143,7 @@ export function PropuestaNuevaPage() {
     setSaving(true);
     try {
       const saved = await persistDraft();
+      setSaveStatus("Borrador guardado en el servidor");
       showToast("Borrador guardado", "success");
       navigate(`/propuestas/${saved.id}`, { replace: true });
     } catch (err) {
@@ -248,7 +249,7 @@ export function PropuestaNuevaPage() {
                   <strong>
                     {i + 1}. {label}
                   </strong>
-                  <small>Completa</small>
+                  <small>{i === step ? "Paso actual" : "Sección del formulario"}</small>
                 </div>
               </button>
             ))}

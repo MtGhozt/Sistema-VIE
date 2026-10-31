@@ -12,6 +12,9 @@
     "db:down": "docker compose down",
     "smoke": "node scripts/smoke-e2e.mjs",
     "baseline:api": "node scripts/baseline-flow.mjs",
+    "regression:api": "node scripts/regression-api.mjs",
+    "regression:ui": "node scripts/regression-ui.mjs",
+    "test:lifecycle": "node scripts/test-lifecycle.mjs",
     "baseline:ui": "node scripts/baseline-ui.mjs",
     "brand": "node scripts/build-brand-assets.mjs",
     "brand:preview": "node scripts/extract-logotec.mjs"

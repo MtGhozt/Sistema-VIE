@@ -1,3 +1,4 @@
+import { savePlan } from "./propuestaPlan.js";
 import { saveEtica } from "./propuestaEtica.js";
 import { savePresupuesto } from "./propuestaPresupuesto.js";
 import { saveEquipo } from "./propuestaEquipo.js";
@@ -12,6 +13,7 @@ export async function savePropuestaCampos(id: number, body: Record<string, unkno
   await saveEtica(id, body, execute);
   await savePresupuesto(id, body, execute);
   await saveEquipo(id, body.equipo, execute);
+  await savePlan(id, body.actividades, execute);
   const fields: string[] = [], values: unknown[] = [];
   for (const [api, column] of Object.entries(CAMPOS_TEXTO)) {
     if (body[api] !== undefined) { values.push(body[api] == null ? null : String(body[api]).trim()); fields.push(`${column}=$${values.length}`); }

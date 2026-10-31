@@ -214,7 +214,7 @@ CREATE TABLE "actividad_plan" (
   "resultado_esperado" text,
   "responsabilidad" varchar(40),
   "mes_inicio" smallint,
-  "duracion_meses" numeric(4,1)
+  "duracion_meses" numeric(8,2)
 );
 
 CREATE TABLE "actividad_participante" (

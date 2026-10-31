@@ -1,3 +1,4 @@
+import { loadPlan } from "./propuestaPlan.js";
 import { loadEtica } from "./propuestaEtica.js";
 import { loadPresupuesto } from "./propuestaPresupuesto.js";
 import { loadEquipo } from "./propuestaEquipo.js";
@@ -22,6 +23,7 @@ export async function loadPropuestaDisplay(id: number, execute: typeof query = q
   return {
     ...await loadEtica(id, execute),
     ...await loadPresupuesto(id, execute),
+    actividades: await loadPlan(id, execute),
     equipo: await loadEquipo(id, execute),
     preguntasGenerales: questions.rows,
     teamTec: team.rows.filter(p => p.tipo === "funcionario_tec").map(p => ({ ...p, orcid: p.orcid ?? undefined })),

@@ -251,3 +251,7 @@ Criterio de cierre:
 - C02: preparación `1c86c33`; [ejecución con PostgreSQL](evidencias/C02-ejecucion-postgres.md) completó tres ramas API, con las limitaciones descritas. Navegador y aceptación V0 pendientes.
 - Nuevo **INC-01**: consecutivos derivados del ID chocan con códigos semilla; error no controlado termina la API y deja una creación parcial. Se incorpora como dependencia adicional antes de pruebas de múltiples propuestas; no se considera resuelto por repetir con otros IDs. Confirmar política de consecutivo antes de cambiar la estrategia, preservando formato y unicidad.
 - No se comenzaron C03 ni cambios funcionales sujetos a discusión. La regla de justificación documental continúa vigente.
+
+## Avance visual · 30 de octubre de 2026
+
+C02 dispone ahora de [evidencia en Chromium](evidencias/C02-validacion-visual.md): 12 logins por rol, 17 pasos, vistas principales y reproducción de superposición en devolución y rechazo CIE. Se mantiene V0 pendiente; no se modificaron reglas de formularios, numeración, permisos ni transiciones. Las condiciones originalmente no reproducidas ya tienen evidencia parcial concreta, sin certificar toda la matriz visual/accesible.

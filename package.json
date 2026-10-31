@@ -11,11 +11,13 @@
     "db:down": "docker compose down",
     "smoke": "node scripts/smoke-e2e.mjs",
     "baseline:api": "node scripts/baseline-flow.mjs",
+    "baseline:ui": "node scripts/baseline-ui.mjs",
     "brand": "node scripts/build-brand-assets.mjs",
     "brand:preview": "node scripts/extract-logotec.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.10",
+    "@playwright/test": "^1.64.1",
     "pdfjs-dist": "^6.3.289"
   }
 }

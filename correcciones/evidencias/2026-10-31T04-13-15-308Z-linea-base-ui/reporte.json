@@ -1,0 +1,92 @@
+{
+  "run": "2026-10-31T04-13-15-308Z",
+  "timezone": "America/Costa_Rica",
+  "scope": "Línea base visual sin decisiones ni guardados; OBSERVADO no equivale a aceptado ni corregido.",
+  "results": [
+    {
+      "name": "comite_asistente: login e inicio",
+      "status": "OBSERVADO",
+      "detail": {
+        "screenshot": "comite_asistente-inicio.png",
+        "title": [
+          "Revisión de completitud"
+        ]
+      }
+    },
+    {
+      "name": "comite_asistente: vista principal",
+      "status": "OBSERVADO",
+      "detail": {
+        "route": "/evaluaciones",
+        "screenshot": "comite_asistente-principal.png",
+        "title": [
+          "Revisión de completitud"
+        ],
+        "demo": 0
+      }
+    },
+    {
+      "name": "Modal devolución: geometría y foco",
+      "status": "OBSERVADO",
+      "detail": {
+        "occlusions": [
+          {
+            "x": 75,
+            "y": 500.90625,
+            "tag": "DIV",
+            "className": "timeline-marker"
+          }
+        ],
+        "top": 215.90625,
+        "bottom": 628.09375,
+        "left": 30,
+        "right": 360,
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "focusInside": true,
+        "centerHitInside": true
+      }
+    },
+    {
+      "name": "cie: login e inicio",
+      "status": "OBSERVADO",
+      "detail": {
+        "screenshot": "cie-inicio.png",
+        "title": [
+          "Evaluación y resolución"
+        ]
+      }
+    },
+    {
+      "name": "cie: vista principal",
+      "status": "OBSERVADO",
+      "detail": {
+        "route": "/evaluaciones",
+        "screenshot": "cie-principal.png",
+        "title": [
+          "Evaluación y resolución"
+        ],
+        "demo": 0
+      }
+    },
+    {
+      "name": "CIE: rechazo con fundamento no vacío (sin escribir en BD)",
+      "status": "OBSERVADO",
+      "detail": {
+        "defectReproduced": true,
+        "actionRequests": 0,
+        "modalClosed": true,
+        "bounds": {
+          "x": 30,
+          "y": 192.40625,
+          "width": 330,
+          "height": 459.1875
+        },
+        "screenshot": "cie-rechazo-error.png"
+      }
+    }
+  ],
+  "errors": []
+}

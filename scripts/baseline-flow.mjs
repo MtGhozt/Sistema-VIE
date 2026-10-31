@@ -112,6 +112,7 @@ try {
     for (const scenario of ['aprobacion', 'rechazo-cie', 'rechazo-consejo']) {
       let proposal;
       let canContinue = true;
+      let avalRejected = false;
       await check('F03', `Crear expediente ${scenario}`, async () => {
         if (!conv?.id) blocked('Sin convocatoria de prueba');
         proposal = await request('/propuestas', 'investigador', 'POST', { titulo: `Baseline ${run} ${scenario}`, idConvocatoria: conv.id, modalidad: 'aplicada', resumen: 'Resumen de prueba', problema: 'Problema', objetivoGeneral: 'Objetivo', metodologia: 'Metodología' });
@@ -123,6 +124,10 @@ try {
         catch (error) { canContinue = false; throw error; }
       });
       for (let [action, role, payload] of routes) {
+        if (avalRejected) {
+          rows.push({ id: 'FLUJO', name: `${scenario}: ${action}`, status: 'NO APLICA', detail: 'La rama termina al rechazar el aval; no se fuerza una resolución CIE.' });
+          continue;
+        }
         if (scenario === 'rechazo-cie' && action === 'cie-approve') action = 'cie-reject';
         if (scenario === 'rechazo-consejo' && action === 'council-approve') action = 'council-reject';
         await check('FLUJO', `${scenario}: ${action}`, async () => {
@@ -132,7 +137,9 @@ try {
             const stored = await pool.query('SELECT estado_actual, etapa_flujo FROM propuesta WHERE id_propuesta=$1', [proposal.id]);
             return JSON.stringify(stored.rows[0]);
           } catch (error) { canContinue = false; throw error; }
-          finally { if (action === 'council-reject') canContinue = false; }
+          finally {
+            if (action === 'council-reject' && canContinue) avalRejected = true;
+          }
         });
       }
       await check('F28', `Localizar ${scenario} en histórico`, async () => {
@@ -155,5 +162,5 @@ try {
   await writeFile(path.join(output, 'api.txt'), serverLog);
   for (const row of rows) console.log(`${row.status} | ${row.name} | ${row.detail}`);
   console.log(`Evidencia: ${path.relative(root, output)}`);
-  process.exitCode = rows.some(row => row.status !== 'PASA') ? 1 : 0;
+  process.exitCode = rows.some(row => row.status === 'FALLA' || row.status === 'BLOQUEADO') ? 1 : 0;
 }

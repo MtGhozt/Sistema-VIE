@@ -303,7 +303,7 @@ Completar durante la implementación; estos renglones no crean commits. Si cambi
 | Plan | SHA real | Pruebas / evidencia | Hallazgos cerrados | Validación del usuario |
 | --- | --- | --- | --- | --- |
 | C01 | `6ab3371` | [Compilación antes/después](evidencias/C01-compilacion.md) | Bloqueo TS2741 resuelto; ADI-01 continúa pendiente | V0 pendiente |
-| C02 | Ver historial: `test(flujo): preparar linea base API aislada` | [Preparación y límites](evidencias/C02-preparacion.md) | Infraestructura preparada parcialmente; flujo y navegador bloqueados | V0 pendiente |
+| C02 | `1c86c33` + seguimiento de ejecución | [Preparación](evidencias/C02-preparacion.md) · [Línea base PostgreSQL](evidencias/C02-ejecucion-postgres.md) | Tres ramas API ejecutadas; INC-01 y guardado de rúbrica abiertos; navegador pendiente | V0 pendiente |
 | C03 | | | | |
 | C04 | | | | |
 | C05 | | | | |
@@ -334,3 +334,7 @@ Completar durante la implementación; estos renglones no crean commits. Si cambi
 | C30 | | | | |
 | C31 | | | | |
 | C32 | | | | |
+
+## Actualización de línea base · 30 de octubre de 2026
+
+Se ejecutaron los tres recorridos API con PostgreSQL aislado: [reporte e interpretación](evidencias/C02-ejecucion-postgres.md). Primera ejecución: 52 PASA, 1 FALLA y 13 BLOQUEADO. Segunda: 61 PASA y 5 NO APLICA. CTE-01 confirmado en BD; nuevo INC-01 por códigos duplicados y creación parcial. Los estados PENDIENTE de los casos completos y las aprobaciones del usuario permanecen sin completar.

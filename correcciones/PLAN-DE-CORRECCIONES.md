@@ -244,3 +244,10 @@ Criterio de cierre:
 - [ ] No quedan P0/P1 abiertos en el alcance aceptado; incidencias restantes documentadas y aceptadas.
 - [ ] V0–V6 registrados por el usuario; ningún campo de aprobación se autocompleta.
 - [ ] Documentación final refleja el código comprobado y diferencia datos reales de simulación.
+
+## Avance registrado · 30 de octubre de 2026
+
+- C01: `6ab3371`, bloqueo de compilación corregido y comprobado.
+- C02: preparación `1c86c33`; [ejecución con PostgreSQL](evidencias/C02-ejecucion-postgres.md) completó tres ramas API, con las limitaciones descritas. Navegador y aceptación V0 pendientes.
+- Nuevo **INC-01**: consecutivos derivados del ID chocan con códigos semilla; error no controlado termina la API y deja una creación parcial. Se incorpora como dependencia adicional antes de pruebas de múltiples propuestas; no se considera resuelto por repetir con otros IDs. Confirmar política de consecutivo antes de cambiar la estrategia, preservando formato y unicidad.
+- No se comenzaron C03 ni cambios funcionales sujetos a discusión. La regla de justificación documental continúa vigente.

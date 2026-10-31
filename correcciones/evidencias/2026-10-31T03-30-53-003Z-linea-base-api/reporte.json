@@ -1,0 +1,425 @@
+{
+  "run": "2026-10-31T03-30-53-003Z",
+  "timezone": "America/Costa_Rica",
+  "fixtures": [
+    {
+      "type": "convocatoria",
+      "id": 6
+    },
+    {
+      "type": "propuesta",
+      "scenario": "aprobacion",
+      "id": 20
+    },
+    {
+      "type": "propuesta",
+      "scenario": "rechazo-cie",
+      "id": 21
+    },
+    {
+      "type": "propuesta",
+      "scenario": "rechazo-consejo",
+      "id": 22
+    }
+  ],
+  "results": [
+    {
+      "id": "ENTORNO",
+      "name": "Conectar únicamente a BD de prueba y arrancar API propia",
+      "status": "PASA",
+      "detail": "API nueva conectada a fondos_vie_test; puerto dinámico."
+    },
+    {
+      "id": "F01",
+      "name": "Login vie_publicacion",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login investigador",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login vinculacion",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login comite_asistente",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login comite_evaluador",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login consejo_asistente",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login consejo",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login direccion_escuela",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login gestora_vie",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login cie",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login direccion_investigacion",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F01",
+      "name": "Login admin",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja vinculacion",
+      "status": "PASA",
+      "detail": "3 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja comite_asistente",
+      "status": "PASA",
+      "detail": "5 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja comite_evaluador",
+      "status": "PASA",
+      "detail": "5 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja consejo_asistente",
+      "status": "PASA",
+      "detail": "4 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja consejo",
+      "status": "PASA",
+      "detail": "4 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja direccion_escuela",
+      "status": "PASA",
+      "detail": "4 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja gestora_vie",
+      "status": "PASA",
+      "detail": "2 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja cie",
+      "status": "PASA",
+      "detail": "1 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja direccion_investigacion",
+      "status": "PASA",
+      "detail": "9 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "BANDEJA",
+      "name": "Consultar bandeja admin",
+      "status": "PASA",
+      "detail": "16 expedientes; no implica permisos correctos"
+    },
+    {
+      "id": "F02",
+      "name": "Crear y publicar convocatoria exclusiva de ejecución",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F03",
+      "name": "Crear expediente aprobacion",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F12",
+      "name": "Enviar expediente aprobacion",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: pi",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"en_evaluacion\",\"etapa_flujo\":2}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: committee-ready",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"en_evaluacion\",\"etapa_flujo\":2}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: save-rubric",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"en_evaluacion\",\"etapa_flujo\":2}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: committee-score",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"dictaminada\",\"etapa_flujo\":3}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: send-council",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"dictaminada\",\"etapa_flujo\":3}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: council-approve",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"avalada\",\"etapa_flujo\":4}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: communicate-aval",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"avalada\",\"etapa_flujo\":4}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: vie-observation",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"avalada\",\"etapa_flujo\":4}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: send-cie",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"avalada\",\"etapa_flujo\":5}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: cie-approve",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"aprobada\",\"etapa_flujo\":6}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "aprobacion: notify-resolution",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"aprobada\",\"etapa_flujo\":6}"
+    },
+    {
+      "id": "F28",
+      "name": "Localizar aprobacion en histórico",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F03",
+      "name": "Crear expediente rechazo-cie",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F12",
+      "name": "Enviar expediente rechazo-cie",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: pi",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"en_evaluacion\",\"etapa_flujo\":2}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: committee-ready",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"en_evaluacion\",\"etapa_flujo\":2}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: save-rubric",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"en_evaluacion\",\"etapa_flujo\":2}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: committee-score",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"dictaminada\",\"etapa_flujo\":3}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: send-council",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"dictaminada\",\"etapa_flujo\":3}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: council-approve",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"avalada\",\"etapa_flujo\":4}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: communicate-aval",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"avalada\",\"etapa_flujo\":4}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: vie-observation",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"avalada\",\"etapa_flujo\":4}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: send-cie",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"avalada\",\"etapa_flujo\":5}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: cie-reject",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"rechazada\",\"etapa_flujo\":6}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-cie: notify-resolution",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"rechazada\",\"etapa_flujo\":6}"
+    },
+    {
+      "id": "F28",
+      "name": "Localizar rechazo-cie en histórico",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F03",
+      "name": "Crear expediente rechazo-consejo",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "F12",
+      "name": "Enviar expediente rechazo-consejo",
+      "status": "PASA",
+      "detail": ""
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: pi",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"en_evaluacion\",\"etapa_flujo\":2}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: committee-ready",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"en_evaluacion\",\"etapa_flujo\":2}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: save-rubric",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"en_evaluacion\",\"etapa_flujo\":2}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: committee-score",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"dictaminada\",\"etapa_flujo\":3}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: send-council",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"dictaminada\",\"etapa_flujo\":3}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: council-reject",
+      "status": "PASA",
+      "detail": "{\"estado_actual\":\"rechazada\",\"etapa_flujo\":6}"
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: communicate-aval",
+      "status": "NO APLICA",
+      "detail": "La rama termina al rechazar el aval; no se fuerza una resolución CIE."
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: vie-observation",
+      "status": "NO APLICA",
+      "detail": "La rama termina al rechazar el aval; no se fuerza una resolución CIE."
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: send-cie",
+      "status": "NO APLICA",
+      "detail": "La rama termina al rechazar el aval; no se fuerza una resolución CIE."
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: cie-approve",
+      "status": "NO APLICA",
+      "detail": "La rama termina al rechazar el aval; no se fuerza una resolución CIE."
+    },
+    {
+      "id": "FLUJO",
+      "name": "rechazo-consejo: notify-resolution",
+      "status": "NO APLICA",
+      "detail": "La rama termina al rechazar el aval; no se fuerza una resolución CIE."
+    },
+    {
+      "id": "F28",
+      "name": "Localizar rechazo-consejo en histórico",
+      "status": "PASA",
+      "detail": ""
+    }
+  ],
+  "scope": "API actual: contratos y transiciones. No certifica rúbrica, permisos, completitud ni interfaz. No usa motivo del frontend: el defecto UI CIE requiere navegador.",
+  "remaining": "F04–F11, F13–F27 en sus verificaciones detalladas, F29–F37 y cobertura visual siguen pendientes del registro manual."
+}

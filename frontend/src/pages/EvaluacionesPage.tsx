@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
 import {
@@ -139,6 +139,7 @@ export function EvaluacionesPage() {
   const [source, setSource] = useState<"api" | "demo">("demo");
   const [bandejaNote, setBandejaNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const actionPending = useRef(false);
 
   const role = session?.viewRole ?? "investigador";
 
@@ -293,7 +294,7 @@ export function EvaluacionesPage() {
   }
 
   const onAction = async (action: string, payload?: unknown) => {
-    if (busy) return;
+    if (actionPending.current) return false;
 
     // Justificaciones obligatorias también en modo demo (evita “Confirmar” vacío).
     if (
@@ -310,7 +311,7 @@ export function EvaluacionesPage() {
       )
     ) {
       showToast("La justificación u observación es obligatoria.", "error");
-      return;
+      return false;
     }
 
     if (source !== "api" || selected?.numericId == null) {
@@ -319,9 +320,10 @@ export function EvaluacionesPage() {
         `${ACTION_TOAST[action] ?? "Acción registrada."} (demo local · no se guardó en PostgreSQL)`,
         "success",
       );
-      return;
+      return true;
     }
 
+    actionPending.current = true;
     setBusy(true);
     try {
       const res = await postEvaluacionAccion(
@@ -348,6 +350,7 @@ export function EvaluacionesPage() {
       } else {
         await loadBandeja();
       }
+      return true;
     } catch (err) {
       const msg =
         err instanceof ApiError
@@ -356,7 +359,9 @@ export function EvaluacionesPage() {
             ? err.message
             : "No se pudo persistir la acción";
       showToast(msg, "error");
+      return false;
     } finally {
+      actionPending.current = false;
       setBusy(false);
     }
   };

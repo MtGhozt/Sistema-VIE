@@ -31,7 +31,7 @@ function PanelIntro({
 type ActionHandler = (
   action: string,
   payload?: unknown,
-) => void | Promise<void>;
+) => Promise<boolean>;
 
 function CheckIcon() {
   // Decorativo: el estado ya lo anuncia el texto "Verificado" / "Falta verificar".
@@ -280,8 +280,8 @@ export function ComiteAsistentePanel({
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => {
-                  onAction("return", { texto: motivo });
+                onClick={async () => {
+                  if (!await onAction("return", { texto: motivo })) return;
                   setReturnOpen(false);
                 }}
               >
@@ -586,12 +586,12 @@ function RubricPanel({
                 type="button"
                 className="btn btn-primary"
                 disabled={!rejectText.trim()}
-                onClick={() => {
-                  onAction("cie-reject", {
+                onClick={async () => {
+                  if (!await onAction("cie-reject", {
                     average,
                     scores,
                     texto: rejectText.trim(),
-                  });
+                  })) return;
                   setRejectOpen(false);
                 }}
               >
@@ -632,13 +632,13 @@ function RubricPanel({
                 type="button"
                 className="btn btn-primary"
                 disabled={!approveText.trim()}
-                onClick={() => {
-                  onAction("cie-approve", {
+                onClick={async () => {
+                  if (!await onAction("cie-approve", {
                     average,
                     scores,
                     recommendation,
                     texto: approveText.trim(),
-                  });
+                  })) return;
                   setApproveOpen(false);
                 }}
               >
@@ -836,10 +836,10 @@ export function ConsejoPanel({
                     ? "Registrar rechazo de aval"
                     : "Escriba la justificación para habilitar Confirmar"
                 }
-                onClick={() => {
-                  void onAction("council-reject", {
+                onClick={async () => {
+                  if (!await onAction("council-reject", {
                     texto: rejectText.trim(),
-                  });
+                  })) return;
                   setRejectOpen(false);
                   setRejectText("");
                 }}
@@ -890,10 +890,10 @@ export function ConsejoPanel({
                     ? "Registrar aval aprobatorio"
                     : "Escriba la justificación para habilitar Confirmar"
                 }
-                onClick={() => {
-                  void onAction("council-approve", {
+                onClick={async () => {
+                  if (!await onAction("council-approve", {
                     texto: approveText.trim(),
-                  });
+                  })) return;
                   setApproveOpen(false);
                   setApproveText("");
                 }}

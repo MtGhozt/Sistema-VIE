@@ -1,3 +1,4 @@
+import { EquipoEditor } from "./EquipoEditor";
 import { useId, type ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
 import { MODALIDADES } from "../data/demo";
@@ -347,32 +348,7 @@ export function FormWizardStepContent({
   }
 
   if (step === 2) {
-    return (
-      <div className="table-wrap">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>ORCID</th>
-              <th>Instancia</th>
-              <th>Rol</th>
-              <th>Horas</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rich.teamTec.map((m) => (
-              <tr key={m.nombre}>
-                <td>{m.nombre}</td>
-                <td>{m.orcid ?? "—"}</td>
-                <td>{m.instancia}</td>
-                <td>{m.rol}</td>
-                <td>{m.horas}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
+    return <EquipoEditor equipo={form.equipo} onChange={equipo => patch({ equipo })} />;
   }
 
   if (step === 3) {

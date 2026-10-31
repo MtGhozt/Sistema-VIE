@@ -1,6 +1,12 @@
 import type { DemoProposal } from "../data/demo";
 import { apiJson } from "./client";
 
+export type ParticipanteInput = {
+  id?: number; idUsuario?: number | null; tipo: "funcionario_tec" | "externo";
+  nombre: string; orcid: string | null; instancia: string | null; rol: string | null; periodo: string | null;
+  horas: { tipo: string; cantidad: number }[];
+};
+
 export type Propuesta = {
   id: number;
   codigo: string;
@@ -31,6 +37,7 @@ export type Propuesta = {
 };
 
 export type PropuestaDetalle = Propuesta & Partial<Pick<DemoProposal, "teamTec" | "teamExternal" | "presupuestoAnual" | "productos" | "observaciones" | "timeline" | "documentos">> & {
+  equipo?: ParticipanteInput[];
   preguntasGenerales?: { numero: number; respuesta: string; detalle: string | null }[];
   keywordsEs: string[];
   keywordsEn: string[];
@@ -47,6 +54,7 @@ export type PropuestaInput = {
   fechaInicio?: string;
   fechaFin?: string;
   requiereDictamenPi?: boolean;
+  equipo?: ParticipanteInput[];
   preguntasGenerales?: { numero: number; respuesta: string; detalle: string | null }[];
   resumen?: string;
   abstractEn?: string;

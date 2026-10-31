@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "../auth/AuthContext";
-import { NOTIFICACIONES } from "../data/demo";
+import { apiJson } from "../api/client";
 
 export type NotificationItem = {
   id: string;
@@ -20,6 +20,7 @@ export type NotificationItem = {
 
 type NotificationsContextValue = {
   items: NotificationItem[];
+  error: string | null;
   unreadCount: number;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
@@ -29,87 +30,46 @@ const NotificationsContext = createContext<NotificationsContextValue | null>(
   null,
 );
 
-const STORAGE_PREFIX = "vie-notifications-read:";
-
-function storageKey(userId: number) {
-  return `${STORAGE_PREFIX}${userId}`;
-}
-
-function readMarkedIds(userId: number): Set<string> {
-  try {
-    const raw = localStorage.getItem(storageKey(userId));
-    if (!raw) return new Set();
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return new Set();
-    return new Set(parsed.filter((x): x is string => typeof x === "string"));
-  } catch {
-    return new Set();
-  }
-}
-
-function persistMarkedIds(userId: number, ids: Set<string>) {
-  localStorage.setItem(storageKey(userId), JSON.stringify([...ids]));
-}
-
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   const userId = session?.userId ?? 0;
-  const [readIds, setReadIds] = useState<Set<string>>(() =>
-    userId ? readMarkedIds(userId) : new Set(),
-  );
+  const [data, setData] = useState<{ userId: number; items: NotificationItem[]; error: string | null }>({ userId: 0, items: [], error: null });
+  const items = data.userId === userId ? data.items : [];
+  const error = data.userId === userId ? data.error : null;
 
   useEffect(() => {
-    setReadIds(userId ? readMarkedIds(userId) : new Set());
-  }, [userId]);
-
-  const items = useMemo<NotificationItem[]>(
-    () =>
-      NOTIFICACIONES.map((n) => ({
-        ...n,
-        unread: n.unread && !readIds.has(n.id),
-      })),
-    [readIds],
-  );
-
-  const unreadCount = useMemo(
-    () => items.filter((n) => n.unread).length,
-    [items],
-  );
-
-  const markAsRead = useCallback(
-    (id: string) => {
-      if (!userId) return;
-      setReadIds((prev) => {
-        if (prev.has(id)) return prev;
-        const next = new Set(prev);
-        next.add(id);
-        persistMarkedIds(userId, next);
-        return next;
-      });
-    },
-    [userId],
-  );
-
-  const markAllAsRead = useCallback(() => {
     if (!userId) return;
-    setReadIds(() => {
-      const next = new Set<string>();
-      for (const n of NOTIFICACIONES) next.add(n.id);
-      persistMarkedIds(userId, next);
-      return next;
-    });
+    let active = true;
+    let pending = false;
+    async function refresh() {
+      if (pending) return;
+      pending = true;
+      try {
+        const rows = await apiJson<NotificationItem[]>("/api/notificaciones");
+        if (active) setData({ userId, items: rows.map(n => ({ ...n, when: new Date(n.when).toLocaleString("es-CR", { timeZone: "America/Costa_Rica" }) })), error: null });
+      } catch (err) {
+        if (active) setData(prev => ({ userId, items: prev.userId === userId ? prev.items : [], error: err instanceof Error ? err.message : "No se pudieron consultar avisos" }));
+      } finally { pending = false; }
+    }
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 15000);
+    window.addEventListener("focus", refresh);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [userId]);
 
-  const value = useMemo(
-    () => ({ items, unreadCount, markAsRead, markAllAsRead }),
-    [items, unreadCount, markAsRead, markAllAsRead],
-  );
-
-  return (
-    <NotificationsContext.Provider value={value}>
-      {children}
-    </NotificationsContext.Provider>
-  );
+  const mark = useCallback(async (id?: string) => {
+    if (!userId) return;
+    try {
+      await apiJson(id ? `/api/notificaciones/${encodeURIComponent(id)}/leida` : "/api/notificaciones/leidas", { method: "PATCH" });
+      setData(prev => prev.userId !== userId ? prev : ({ ...prev, error: null, items: prev.items.map(n => !id || n.id === id ? { ...n, unread: false } : n) }));
+    } catch (err) {
+      setData(prev => prev.userId !== userId ? prev : ({ ...prev, error: err instanceof Error ? err.message : "No se pudo guardar la lectura" }));
+    }
+  }, [userId]);
+  const markAsRead = useCallback((id: string) => { void mark(id); }, [mark]);
+  const markAllAsRead = useCallback(() => { void mark(); }, [mark]);
+  const value = useMemo(() => ({ items, error, unreadCount: items.filter(n => n.unread).length, markAsRead, markAllAsRead }), [items, error, markAsRead, markAllAsRead]);
+  return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;
 }
 
 export function useNotifications() {

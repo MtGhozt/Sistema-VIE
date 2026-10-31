@@ -255,3 +255,7 @@ Criterio de cierre:
 ## Avance visual · 30 de octubre de 2026
 
 C02 dispone ahora de [evidencia en Chromium](evidencias/C02-validacion-visual.md): 12 logins por rol, 17 pasos, vistas principales y reproducción de superposición en devolución y rechazo CIE. Se mantiene V0 pendiente; no se modificaron reglas de formularios, numeración, permisos ni transiciones. Las condiciones originalmente no reproducidas ya tienen evidencia parcial concreta, sin certificar toda la matriz visual/accesible.
+
+## Ajuste de ejecución solicitado por el usuario
+
+Corregir todos los defectos comprobados y sustentados; trasladar ambigüedades a [COSAS-A-DISCUTIR.md](COSAS-A-DISCUTIR.md). La ejecución de esas correcciones ya está autorizada y no queda retenida por V0. Las decisiones ambiguas y las casillas de aceptación del usuario permanecen pendientes; no se consideran aprobadas por continuar la implementación. Se mantiene separación de commits, justificación y pruebas.

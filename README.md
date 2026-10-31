@@ -141,6 +141,8 @@ Para actualizar, use `pnpm db:migrate` con `DATABASE_URL` explícita. Las migrac
 - Evaluaciones individuales persistidas por criterio del **subconjunto de rúbrica existente**. Sigue pendiente incorporar y validar la rúbrica oficial completa y acordar la consolidación del Comité; no se presenta el subconjunto como evaluación oficial definitiva.
 - Los archivos elegidos en el formulario siguen siendo una vista local: **no se suben binarios**. La carga real y los PDF de oficios requieren cerrar el alcance pendiente.
 
+Una colisión de códigos ahora se revierte sin terminar la API; la estrategia definitiva del consecutivo sigue pendiente y una creación aún puede ser rechazada si coincide con un código semilla.
+
 Las decisiones sobre numeración anual/global, ámbitos de consulta, subsanación/reapertura y otros puntos abiertos están en [COSAS-A-DISCUTIR.md](correcciones/COSAS-A-DISCUTIR.md). Las casillas de aceptación del usuario se conservan en [VALIDACION-DEL-FLUJO.md](correcciones/VALIDACION-DEL-FLUJO.md).
 
 ## Estructura y referencias

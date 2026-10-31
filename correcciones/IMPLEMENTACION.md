@@ -53,3 +53,8 @@ Cada entrada indica cambio, sustento y comprobación prevista. Los typechecks se
 | `fix(expediente): mostrar el contenido guardado y una revision final completa` | INV-03/ADI-01: editar y persistir no basta si el detalle omite plan, fuentes, permisos o textos. | Typecheck y prueba Chromium consulta textos de detalle guardados sin plantilla y cantidades de compromisos. |
 | `style(interfaz): mejorar lectura estados y adaptacion de las vistas` | GEN-02/ADI-06: estados traducidos, etapa real en vez de porcentaje arbitrario, cifras simuladas identificadas y escala legible. | Typecheck y regresión visual escritorio/móvil; no se certifica WCAG completa ni se cambian permisos o reglas por estilo. |
 | `feat(entorno): instalar desinstalar y documentar los perfiles con Bash` | Solicitud explícita del usuario: scripts al final y README principal actualizado. Instalación del proyecto sin modificar herramientas compartidas; borrado de datos solo mediante flag. | bash -n, 12 comprobaciones en sandbox temporal con dobles de Docker/pnpm y ejecución real del instalador en perfil de pruebas. |
+
+
+## Verificación posterior al checkpoint
+
+El usuario reanudó la implementación el 31 de octubre. La guardia de Administración y los bloques anteriores se incluyeron en las regresiones descritas en [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md). Ese informe distingue las verificaciones realmente ejecutadas de las pendientes; no se completaron las casillas del usuario. Los scripts y README están registrados en `ac656c2`.

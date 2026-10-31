@@ -1,5 +1,8 @@
 # Continuidad — Sistema VIE
 
+> **Actualización de correcciones · 2026-10-31:** [estado técnico, evidencias y decisiones pendientes](correcciones/ESTADO-DE-REVISION.md). Instalación y limpieza por `instalar.sh` / `desinstalar.sh`; uso actualizado en README. El resto de este documento conserva contexto anterior y no sustituye ese seguimiento.
+
+
 Última actualización: 2026-10-29 (CU3/CU4 persistidos + CU2 campos núcleo)
 
 ## Lectura para el equipo

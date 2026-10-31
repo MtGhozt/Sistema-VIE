@@ -264,3 +264,8 @@ Corregir todos los defectos comprobados y sustentados; trasladar ambigüedades a
 ## Pausa y punto de reanudación
 
 El usuario solicitó detener la implementación y continuar más adelante. Estado, estimación, verificaciones reales y pendientes en [CHECKPOINT.md](CHECKPOINT.md). No continuar automáticamente ni marcar aceptación final.
+
+
+## Reanudación y revisión · 31 de octubre de 2026
+
+Ver [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md) para trazabilidad actual de los 33 hallazgos. Se ejecutaron regresiones sobre las correcciones y los scripts de instalación/desinstalación solicitados al final; README principal actualizado. Las casillas de validación humana y decisiones del equipo permanecen abiertas.

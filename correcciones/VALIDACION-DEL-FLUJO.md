@@ -342,3 +342,8 @@ Se ejecutaron los tres recorridos API con PostgreSQL aislado: [reporte e interpr
 ## Actualización de línea base visual · 30 de octubre de 2026
 
 [Chromium: 12 roles, 17 pasos y dos modales](evidencias/C02-validacion-visual.md). CTA-01 y CIE-01 reproducidos en escritorio y móvil. No se aprueban automáticamente las pruebas funcionales completas ni V0. La corrección sigue pendiente.
+
+
+## Regresión del 31 de octubre de 2026
+
+[Estado y evidencia actual](ESTADO-DE-REVISION.md): 33 comprobaciones API, 9 de navegador y 12 de los scripts correctas. Se conservaron reportes fallidos anteriores y se corrigieron los defectos que detectaron. Son pruebas del alcance especificado, no una aprobación automática de las 37 filas completas ni de V0–V6. El equipo puede revisar con `./instalar.sh --pruebas --verificar` y registrar aquí sus observaciones.

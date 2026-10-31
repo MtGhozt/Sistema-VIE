@@ -1,5 +1,7 @@
-# Checkpoint · Implementación pausada por el usuario
+# Checkpoint histórico · Pausa del 30 de octubre de 2026
 
+> **Actualización:** el usuario reanudó el trabajo el 31 de octubre. Ver [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md) para el estado actual; este archivo conserva la pausa histórica.
+>
 > **Fecha de referencia:** 30 de octubre de 2026, Costa Rica.  
 > **Motivo:** solicitud explícita del usuario de detenerse y continuar más adelante.  
 > **Rama:** `correcciones/implementacion`.  

@@ -4,8 +4,8 @@ export async function savePresupuesto(id: number, body: Record<string, unknown>,
   if (body.presupuesto !== undefined) {
     if (!Array.isArray(body.presupuesto)) throw new HttpError(400,"Presupuesto inválido");
     const years = new Set<number>();
-    const start = await execute<{ fecha_inicio: string | null }>("SELECT fecha_inicio FROM propuesta WHERE id_propuesta=$1",[id]);
-    const first = Number(String(body.fechaInicio || start.rows[0]?.fecha_inicio || '').slice(0,4)) || Math.min(...body.presupuesto.map(r=>Number(r.anio)));
+    const start = await execute<{ anio: number | null }>("SELECT EXTRACT(YEAR FROM fecha_inicio)::int AS anio FROM propuesta WHERE id_propuesta=$1",[id]);
+    const first = (body.fechaInicio ? Number(String(body.fechaInicio).slice(0,4)) : start.rows[0]?.anio) || Math.min(...body.presupuesto.map(r=>Number(r.anio)));
     await execute("DELETE FROM propuesta_presupuesto_anual WHERE id_propuesta=$1",[id]);
     for (const r of body.presupuesto) {
       const year=Number(r.anio), op=Number(r.operativo), dur=Number(r.duraderos);

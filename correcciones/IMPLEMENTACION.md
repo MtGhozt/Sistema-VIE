@@ -39,3 +39,4 @@ Cada entrada indica cambio, sustento y comprobación prevista. Los typechecks se
 
 
 **Pausa solicitada por el usuario:** consultar [CHECKPOINT.md](CHECKPOINT.md) antes de retomar. La guardia de Administración quedó en curso dentro del commit de checkpoint, sin prueba posterior a la interrupción.
+| `fix(presupuesto): usar el anio calendario guardado al validar duraderos` | La regresión de relectura detectó que PostgreSQL entrega Date y String(Date).slice no recupera el año; rige la restricción oficial de primer año. | Prueba API fuerza una compra de duraderos en 2028 con inicio 2027 y exige HTTP 400. |

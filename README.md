@@ -149,3 +149,13 @@ máquina: cualquier compañero puede correrlos.
 - Hay **dos** `node_modules` (frontend y backend) porque son dos apps distintas en un monorepo. Eso es normal.  
 - `frontend/index.html` lo exige Vite (entrada de la SPA). El backend **no** necesita HTML.  
 - No versionar: `node_modules/`, `.env`, `*.db`.
+
+## Migraciones incrementales
+
+Después de actualizar el código, aplicar las migraciones sobre el volumen existente (sin borrarlo):
+
+```bash
+DATABASE_URL=postgresql://vie:vie@localhost:5432/fondos_vie pnpm db:migrate
+```
+
+Para pruebas, usar el puerto 55432 y la base `fondos_vie_test`. La migración de compromisos inicia las aceptaciones en falso y no cambia códigos ni decisiones de expedientes históricos.

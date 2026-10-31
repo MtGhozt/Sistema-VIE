@@ -76,6 +76,9 @@ CREATE TABLE "propuesta" (
   "trl_actual" smallint,
   "trl_esperado" smallint,
   "requiere_dictamen_pi" boolean NOT NULL DEFAULT false,
+  "declaracion_aceptada" boolean NOT NULL DEFAULT false,
+  "resguardo_repositorio" boolean NOT NULL DEFAULT false,
+  "resguardo_tecnico" boolean NOT NULL DEFAULT false,
   "estado_actual" varchar(40) NOT NULL,
   "etapa_flujo" smallint NOT NULL DEFAULT 0
 );

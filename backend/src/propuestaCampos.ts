@@ -15,6 +15,12 @@ export async function savePropuestaCampos(id: number, body: Record<string, unkno
   for (const [api, column] of [["fechaInicio", "fecha_inicio"], ["fechaFin", "fecha_finalizacion"]]) {
     if (body[api] !== undefined) { values.push(body[api] || null); fields.push(`${column}=$${values.length}`); }
   }
+  for (const [api,column] of [["declaracion", "declaracion_aceptada"], ["resguardoRepositorio", "resguardo_repositorio"], ["resguardoTecnico", "resguardo_tecnico"]]) {
+    if (body[api] !== undefined) {
+      if (typeof body[api] !== "boolean") throw new HttpError(400, "La aceptación debe ser explícita");
+      values.push(body[api]); fields.push(`${column}=$${values.length}`);
+    }
+  }
   if (body.requiereDictamenPi !== undefined) {
     if (typeof body.requiereDictamenPi !== "boolean") throw new HttpError(400, "requiereDictamenPi debe ser booleano");
     values.push(body.requiereDictamenPi); fields.push(`requiere_dictamen_pi=$${values.length}`);

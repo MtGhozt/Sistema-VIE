@@ -47,6 +47,9 @@ type PropuestaRow = {
   fecha_inicio: string | null;
   fecha_finalizacion: string | null;
   requiere_dictamen_pi: boolean;
+  declaracion_aceptada: boolean;
+  resguardo_repositorio: boolean;
+  resguardo_tecnico: boolean;
   estado_actual: string;
   etapa_flujo: number;
   fecha_envio: string | null;
@@ -73,6 +76,7 @@ function mapPropuesta(row: PropuestaRow) {
     problema: row.problema,
     objetivoGeneral: row.objetivo_general,
     metodologia: row.metodologia,
+    declaracion: row.declaracion_aceptada, resguardoRepositorio: row.resguardo_repositorio, resguardoTecnico: row.resguardo_tecnico,
     estadoArte: row.estado_arte, referencias: row.referencias, hojaRuta: row.hoja_ruta, divulgacion: row.divulgacion,
     fechaInicio: row.fecha_inicio, fechaFin: row.fecha_finalizacion, requiereDictamenPi: row.requiere_dictamen_pi,
     estadoActual: row.estado_actual,
@@ -466,7 +470,8 @@ propuestasRouter.post(
       return;
     }
 
-    const content = await query<{ resumen: string | null }>("SELECT resumen FROM propuesta WHERE id_propuesta=$1", [id]);
+    const content = await query<{ resumen: string | null; declaracion_aceptada: boolean }>("SELECT resumen, declaracion_aceptada FROM propuesta WHERE id_propuesta=$1", [id]);
+    if (!content.rows[0]?.declaracion_aceptada) { res.status(400).json({ error: "Debe aceptar la declaración jurada antes de enviar" }); return; }
     const wordCount = (content.rows[0]?.resumen ?? "").trim().split(/\s+/u).filter(Boolean).length;
     const terms = await loadKeywords(id);
     if (wordCount > 500 || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {

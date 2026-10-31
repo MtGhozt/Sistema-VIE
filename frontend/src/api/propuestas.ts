@@ -1,6 +1,8 @@
 import type { DemoProposal } from "../data/demo";
 import { apiJson } from "./client";
 
+export type PresupuestoInput = { anio: number; operativo: number; duraderos: number };
+export type FuenteInput = { tipo: string; anio: number; monto: number; oficio: string | null };
 export type ParticipanteInput = {
   id?: number; idUsuario?: number | null; tipo: "funcionario_tec" | "externo";
   nombre: string; orcid: string | null; instancia: string | null; rol: string | null; periodo: string | null;
@@ -41,6 +43,8 @@ export type Propuesta = {
 
 export type PropuestaDetalle = Propuesta & Partial<Pick<DemoProposal, "teamTec" | "teamExternal" | "presupuestoAnual" | "productos" | "observaciones" | "timeline" | "documentos">> & {
   equipo?: ParticipanteInput[];
+  presupuesto?: PresupuestoInput[];
+  fuentes?: FuenteInput[];
   preguntasGenerales?: { numero: number; respuesta: string; detalle: string | null }[];
   keywordsEs: string[];
   keywordsEn: string[];
@@ -61,6 +65,8 @@ export type PropuestaInput = {
   resguardoRepositorio?: boolean;
   resguardoTecnico?: boolean;
   equipo?: ParticipanteInput[];
+  presupuesto?: PresupuestoInput[];
+  fuentes?: FuenteInput[];
   preguntasGenerales?: { numero: number; respuesta: string; detalle: string | null }[];
   resumen?: string;
   abstractEn?: string;

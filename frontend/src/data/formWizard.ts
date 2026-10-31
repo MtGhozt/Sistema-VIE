@@ -1,4 +1,4 @@
-import type { ParticipanteInput } from "../api/propuestas";
+import type { ParticipanteInput, PresupuestoInput, FuenteInput } from "../api/propuestas";
 /** 17 pasos del formulario VIE (HTML prototipo, `const At`). */
 export const FORM_WIZARD_STEPS = [
   "Datos y preguntas generales",
@@ -37,6 +37,8 @@ export const ALT_TEXT_MIN_CHARS = 40;
 
 export type FormWizardState = {
   equipo: ParticipanteInput[];
+  presupuesto: PresupuestoInput[];
+  fuentes: FuenteInput[];
   titulo: string;
   modalidad: string;
   inicio: string;
@@ -73,6 +75,8 @@ export type FormWizardState = {
 
 export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
   equipo: [],
+  presupuesto: [],
+  fuentes: [],
   titulo:
     "Sistema inteligente para monitoreo de calidad del agua mediante sensores IoT",
   modalidad: "Desarrollo tecnológico",

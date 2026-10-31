@@ -1,3 +1,4 @@
+import { EditableRows } from "./EditableRows";
 import { EquipoEditor } from "./EquipoEditor";
 import { useId, type ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
@@ -427,39 +428,17 @@ export function FormWizardStepContent({
     );
   }
 
-  if (step === 7 && rich.presupuestoAnual) {
-    const total = rich.presupuestoAnual.reduce(
-      (s, r) => s + r.operativo + r.duraderos,
-      0,
-    );
-    return (
-      <div className="stack-lg">
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Año</th>
-                <th>Operativo</th>
-                <th>Duraderos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rich.presupuestoAnual.map((r) => (
-                <tr key={r.anio}>
-                  <td>{r.anio}</td>
-                  <td>{formatCRC(r.operativo)}</td>
-                  <td>{formatCRC(r.duraderos)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="budget-total-banner">
-          <strong>Total</strong>
-          <span>{formatCRC(total)}</span>
-        </div>
-      </div>
-    );
+  if (step === 7) {
+    return <div className="stack-lg">
+      <p className="field-hint">Montos en colones. Los bienes duraderos se formulan para el primer año de ejecución.</p>
+      <EditableRows title="Presupuesto anual" rows={form.presupuesto} onChange={presupuesto=>patch({presupuesto})}
+        blank={()=>({anio:Number(form.inicio.slice(0,4))||2027,operativo:0,duraderos:0})}
+        fields={[{key:'anio',label:'Año',type:'number'},{key:'operativo',label:'Presupuesto operativo (₡)',type:'number'},{key:'duraderos',label:'Bienes duraderos (₡)',type:'number'}]}/>
+      <strong>Total solicitado: {formatCRC(form.presupuesto.reduce((sum,r)=>sum+r.operativo+r.duraderos,0))}</strong>
+      <EditableRows title="Fuentes de financiamiento" rows={form.fuentes} onChange={fuentes=>patch({fuentes})}
+        blank={()=>({tipo:'externo',anio:Number(form.inicio.slice(0,4))||2027,monto:0,oficio:''})}
+        fields={[{key:'tipo',label:'Tipo',options:['externo','contrapartida','cofinanciamiento']},{key:'anio',label:'Año',type:'number'},{key:'monto',label:'Monto (₡)',type:'number'},{key:'oficio',label:'Número de oficio de respaldo'}]}/>
+    </div>;
   }
 
   if (step === 8) {

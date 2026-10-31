@@ -1,6 +1,7 @@
+import { saveHitos } from "../convocatoriaHitos.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router, type Response } from "express";
-import { query } from "../db.js";
+import { query, transaction } from "../db.js";
 import { requireDemoAuth, requirePublisher } from "../middleware/demoAuth.js";
 
 export const convocatoriasRouter = Router();
@@ -315,13 +316,16 @@ convocatoriasRouter.patch(
       return;
     }
 
+    const saved = await transaction(async(execute)=>{
+    await execute("SELECT id_convocatoria FROM convocatoria WHERE id_convocatoria=$1 FOR UPDATE",[id]);
     values.push(id);
-    await query(
+    await execute(
       `UPDATE convocatoria SET ${fields.join(", ")} WHERE id_convocatoria = $${i}`,
       values,
     );
 
-    const result = await query<ConvocatoriaRow>(
+    await saveHitos(id,req.body?.hitos,execute);
+    const result = await execute<ConvocatoriaRow>(
       `
       SELECT c.*,
         (SELECT COUNT(*)::int FROM propuesta p WHERE p.id_convocatoria = c.id_convocatoria) AS propuestas_count
@@ -329,7 +333,9 @@ convocatoriasRouter.patch(
       `,
       [id],
     );
-    res.json(mapConvocatoria(result.rows[0]));
+    return mapConvocatoria(result.rows[0]);
+    });
+    res.json(saved);
   }),
 );
 

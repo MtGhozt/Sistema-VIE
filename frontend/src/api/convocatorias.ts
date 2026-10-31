@@ -41,6 +41,7 @@ export type CreateConvocatoriaInput = {
   presupuestoEstimado?: number | null;
   estado?: ConvocatoriaEstado;
   hitos?: {
+    id?: number;
     nombre: string;
     responsable?: string;
     fechaInicio: string;

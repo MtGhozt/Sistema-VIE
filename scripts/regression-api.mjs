@@ -115,6 +115,14 @@ try {
     const normal=await call('/evaluaciones/bandeja','vinculacion');const admin=await call('/evaluaciones/bandeja?vista=vinculacion','admin');assert.equal(admin.role,'vinculacion');assert.deepEqual(admin.items.map(p=>p.id),normal.items.map(p=>p.id));
     await call('/evaluaciones/bandeja?vista=admin','vinculacion','GET',undefined,403);await call('/evaluaciones/bandeja?vista=inventada','admin','GET',undefined,403);await call('/evaluaciones/bandeja','investigador','GET',undefined,403);
   });
+  await check('Convocatoria y cronograma se editan atomicamente',async()=>{
+    const c=await call('/convocatorias','vie_publicacion','POST',{nombre:'Cronograma regresión',fechaApertura:'2027-01-01',fechaCierre:'2027-12-31',estado:'borrador',hitos:[{nombre:'Hito inicial',responsable:'VIE',fechaInicio:'2027-02-01',fechaFin:'2027-02-15'}]},201);
+    const before=await call(`/convocatorias/${c.id}`,'vie_publicacion');
+    await call(`/convocatorias/${c.id}`,'vie_publicacion','PATCH',{nombre:'Cronograma actualizado',hitos:[{...before.hitos[0],nombre:'Hito editado'},{nombre:'Hito nuevo',responsable:'Comité',fechaInicio:'2027-03-01',fechaFin:'2027-03-15'}]});
+    const updated=await call(`/convocatorias/${c.id}`,'vie_publicacion');assert.equal(updated.hitos.length,2);assert.equal(updated.hitos[0].nombre,'Hito editado');
+    await call(`/convocatorias/${c.id}`,'vie_publicacion','PATCH',{nombre:'No debe persistir',hitos:[{id:2147483647,nombre:'Ajeno',fechaInicio:'2027-03-01',fechaFin:'2027-03-02'}]},400);assert.equal((await call(`/convocatorias/${c.id}`,'vie_publicacion')).nombre,'Cronograma actualizado');
+    await call(`/convocatorias/${c.id}`,'vie_publicacion','PATCH',{nombre:'Cronograma final',hitos:[updated.hitos[1]]});assert.equal((await call(`/convocatorias/${c.id}`,'vie_publicacion')).hitos.length,1);
+  });
   await check('CIE conserva fundamento y decisión cerrada rechaza sobrescritura',async()=>{
     const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=5 WHERE id_propuesta=$1",[id]);
     await action(id,'cie','cie-reject',{texto:'Fundamento humano propio'});const r=await env.pool.query('SELECT fundamento,resultado FROM resolucion_cie WHERE id_propuesta=$1',[id]);assert.equal(r.rows[0].fundamento,'Fundamento humano propio');assert.equal(r.rows[0].resultado,'rechazada');await action(id,'cie','cie-approve',{texto:'No sobrescribir'},409);

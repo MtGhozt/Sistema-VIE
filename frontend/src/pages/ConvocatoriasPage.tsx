@@ -1,3 +1,4 @@
+import { ConvocatoriaEditor } from "../components/ConvocatoriaEditor";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ApiError } from "../api/client";
 import {
@@ -43,6 +44,7 @@ export function ConvocatoriasPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingId,setEditingId] = useState<number|null>(null);
   const [detail, setDetail] = useState<ConvocatoriaDetalle | null>(null);
 
   const [nombre, setNombre] = useState("");
@@ -77,6 +79,7 @@ export function ConvocatoriasPage() {
 
   async function openDetail(id: number) {
     setDetail(null);
+    setEditingId(null);
     try {
       setDetail(await fetchConvocatoria(id));
     } catch (err) {
@@ -340,6 +343,8 @@ export function ConvocatoriasPage() {
             </button>
           </div>
 
+          {canPublish && <button type="button" className="btn btn-secondary" onClick={()=>setEditingId(detail.id)}>Editar convocatoria</button>}
+          {canPublish && editingId===detail.id && <ConvocatoriaEditor key={detail.id} value={detail} onCancel={()=>setEditingId(null)} onSaved={()=>{setEditingId(null);showToast("Convocatoria y cronograma guardados","success");void loadList();void openDetail(detail.id);}}/>}
           <div className="detail-grid">
             <div>
               <span>Estado</span>

@@ -21,6 +21,7 @@ export function bandejaToDemoProposal(
     estado: item.estadoLabel,
     etapa: Math.min(Math.max(item.etapaFlujo, 0), 6),
     piRequired: item.piRequired,
+    piAcreditada:item.piRequired?item.piEstado==="emitido":item.piEstado==="no_requerido",
     presupuesto: "—",
     resumen: item.resumen ?? "",
     abstract: item.abstractEn ?? "",
@@ -29,6 +30,7 @@ export function bandejaToDemoProposal(
     // La bandeja API todavía no entrega integrantes; no atribuir equipo demo.
     teamTec: [],
     documentos: [
+      ...(!item.piRequired?[{nombre:"Certificación PI no requerido",estado:item.piEstado==="no_requerido"?"No requerido":"Pendiente"}]:[]),
       ...(item.oficioPI
         ? [{ nombre: `Dictamen PI ${item.oficioPI}`, estado: "Registrado" }]
         : []),

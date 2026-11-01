@@ -1,3 +1,4 @@
+import seccionesSubsanacion from "../../../shared/subsanacion-secciones.json";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
@@ -30,6 +31,8 @@ export function PropuestaNuevaPage() {
   const canCreate =
     session?.role === "investigador" || session?.role === "admin";
 
+  const [subsanacion,setSubsanacion]=useState<PropuestaDetalle["subsanacion"]>(null);
+  const [respuesta,setRespuesta]=useState("");
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormWizardState>(DEFAULT_FORM_WIZARD_STATE);
   const [saveStatus, setSaveStatus] = useState(
@@ -69,7 +72,7 @@ export function PropuestaNuevaPage() {
       setLoadingEdit(true);
       try {
         const d = await fetchPropuesta(editId);
-        if (d.estadoActual !== "borrador") {
+        if (!["borrador","en_subsanacion"].includes(d.estadoActual)) {
           showToast(
             "Solo se pueden editar propuestas en borrador",
             "error",
@@ -77,6 +80,7 @@ export function PropuestaNuevaPage() {
           navigate(`/propuestas/${d.id}`, { replace: true });
           return;
         }
+        setSubsanacion(d.subsanacion);
         setIdConvocatoria(d.idConvocatoria);
         setForm((prev) => ({
           ...prev,
@@ -96,6 +100,7 @@ export function PropuestaNuevaPage() {
           q2Proyecto: (d.preguntasGenerales?.find(q => q.numero === 2)?.detalle ?? "").split("\n")[0] ?? "",
           q2Relacion: (d.preguntasGenerales?.find(q => q.numero === 2)?.detalle ?? "").split("\n").slice(1).join("\n"),
           q3Detalle: d.preguntasGenerales?.find(q => q.numero === 3)?.detalle ?? "",
+          q8: d.requiereDictamenPi?"Sí":"No",
           abstract: d.abstractEn ?? "",
           palabras: d.keywordsEs.join(", "),
           problema: d.problema ?? "",
@@ -116,7 +121,7 @@ export function PropuestaNuevaPage() {
   }, [isEditing, editId, navigate, showToast]);
 
   function patch(partial: Partial<FormWizardState>) {
-    setForm((prev) => ({ ...prev, ...partial }));
+    setForm((prev) => ({ ...prev, ...partial, ...(subsanacion?{q8:prev.q8}:{}) }));
     setSaveStatus("Cambios sin guardar");
   }
 
@@ -146,7 +151,12 @@ export function PropuestaNuevaPage() {
 
   async function persistDraft(): Promise<PropuestaDetalle> {
     if (isEditing) {
-      return patchPropuesta(editId, draftPayload());
+      const payload=draftPayload();
+      if(subsanacion) {
+        const allowed=seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).flatMap(s=>s.campos);
+        return patchPropuesta(editId,Object.fromEntries(Object.entries(payload).filter(([key])=>allowed.includes(key))));
+      }
+      return patchPropuesta(editId,payload);
     }
     return createPropuesta({
       ...draftPayload(),
@@ -202,7 +212,7 @@ export function PropuestaNuevaPage() {
     setSaving(true);
     try {
       const saved = await persistDraft();
-      const sent = await enviarPropuesta(saved.id);
+      const sent = await enviarPropuesta(saved.id,subsanacion?respuesta:undefined);
       showToast(
         `Propuesta ${sent.codigo} enviada a revisión`,
         "success",
@@ -293,7 +303,7 @@ export function PropuestaNuevaPage() {
                 {FORM_WIZARD_STEPS.length}
               </span>
               <h1 className="sr-only">
-                {isEditing ? "Editar borrador de propuesta" : "Nueva propuesta de investigación"}
+                {subsanacion ? "Subsanar propuesta" : isEditing ? "Editar borrador de propuesta" : "Nueva propuesta de investigación"}
               </h1>
               <h2>{FORM_WIZARD_STEPS[step]}</h2>
             </div>
@@ -305,6 +315,9 @@ export function PropuestaNuevaPage() {
             </div>
           </div>
 
+          {subsanacion && <div className="stack-md" role="note"><p><strong>Subsanación para {subsanacion.instancia}:</strong> {subsanacion.motivo}</p><p>Edite únicamente: {seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=>s.etiqueta).join(", ")}.</p>
+            <label className="field"><span className="field-label">Respuesta a las observaciones</span><textarea aria-label="Respuesta a las observaciones" className="input textarea" value={respuesta} onChange={e=>setRespuesta(e.target.value)} required /></label></div>}
+          <fieldset disabled={Boolean(subsanacion)&&!seccionesSubsanacion.some(s=>s.paso===step&&subsanacion?.secciones.includes(s.codigo))} style={{border:0,padding:0,margin:0,minWidth:0}}>
           <div className="wizard-body">
             <FormWizardStepContent
               step={step}
@@ -312,10 +325,11 @@ export function PropuestaNuevaPage() {
               patch={patch}
               convocatorias={convocatorias}
               idConvocatoria={idConvocatoria}
-              setIdConvocatoria={setIdConvocatoria}
+              setIdConvocatoria={subsanacion?()=>{}:setIdConvocatoria}
             />
           </div>
 
+          </fieldset>
           <div className="wizard-footer">
             <button
               type="button"
@@ -332,7 +346,7 @@ export function PropuestaNuevaPage() {
                 disabled={saving}
                 onClick={() => void onSave()}
               >
-                Guardar borrador
+                {subsanacion?"Guardar correcciones":"Guardar borrador"}
               </button>
               {step < FORM_WIZARD_STEPS.length - 1 ? (
                 <button
@@ -362,7 +376,7 @@ export function PropuestaNuevaPage() {
                     disabled={saving}
                     onClick={() => void onEnviar()}
                   >
-                    Enviar a revisión
+                    {subsanacion?`Reenviar a ${subsanacion.instancia}`:"Enviar a revisión"}
                   </button>
                 </>
               )}

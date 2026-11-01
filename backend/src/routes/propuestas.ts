@@ -1,3 +1,6 @@
+import { alcancePropuestas, exigirAlcance, etapaRol } from "../alcancePropuestas.js";
+import { siguienteCodigo } from "../numeracionPropuestas.js";
+import { cargarSubsanacion, validarEdicionSubsanacion, seccionesSubsanacion } from "../subsanacion.js";
 import { HttpError } from "../middleware/HttpError.js";
 import { savePropuestaCampos } from "../propuestaCampos.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
@@ -48,6 +51,7 @@ type PropuestaRow = {
   fecha_inicio: string | null;
   fecha_finalizacion: string | null;
   requiere_dictamen_pi: boolean;
+  pi_acreditada: boolean;
   declaracion_aceptada: boolean;
   resguardo_repositorio: boolean;
   resguardo_tecnico: boolean;
@@ -79,7 +83,7 @@ function mapPropuesta(row: PropuestaRow) {
     metodologia: row.metodologia,
     declaracion: row.declaracion_aceptada, resguardoRepositorio: row.resguardo_repositorio, resguardoTecnico: row.resguardo_tecnico,
     estadoArte: row.estado_arte, referencias: row.referencias, hojaRuta: row.hoja_ruta, divulgacion: row.divulgacion,
-    fechaInicio: row.fecha_inicio, fechaFin: row.fecha_finalizacion, requiereDictamenPi: row.requiere_dictamen_pi,
+    fechaInicio: row.fecha_inicio, fechaFin: row.fecha_finalizacion, requiereDictamenPi: row.requiere_dictamen_pi, piAcreditada: row.pi_acreditada,
     estadoActual: row.estado_actual,
     etapaFlujo: row.etapa_flujo,
     fechaEnvio: row.fecha_envio,
@@ -88,6 +92,8 @@ function mapPropuesta(row: PropuestaRow) {
 
 const BASE_SELECT = `
   SELECT p.*,
+    CASE WHEN p.requiere_dictamen_pi THEN EXISTS(SELECT 1 FROM dictamen_pi d WHERE d.id_propuesta=p.id_propuesta AND d.estado='emitido' AND d.fecha_dictamen IS NOT NULL)
+      ELSE EXISTS(SELECT 1 FROM pi_certificacion_no_requerido pc WHERE pc.id_propuesta=p.id_propuesta) END AS pi_acreditada,
     c.nombre AS convocatoria_nombre,
     u.nombre_completo AS coordinador_nombre,
     e.nombre AS escuela_nombre
@@ -171,15 +177,8 @@ propuestasRouter.get("/personas", requireDemoAuth, asyncHandler(async (_req, res
 propuestasRouter.get("/propuestas", requireDemoAuth, asyncHandler(async (req, res) => {
   const role = req.demoAuth!.role;
   const userId = req.demoAuth!.userId!;
-  const result =
-    role === "admin"
-      ? await query<PropuestaRow>(
-          `${BASE_SELECT} ORDER BY p.id_propuesta DESC`,
-        )
-      : await query<PropuestaRow>(
-          `${BASE_SELECT} WHERE p.id_coordinador = $1 ORDER BY p.id_propuesta DESC`,
-          [userId],
-        );
+  const scope = alcancePropuestas({role,userId});
+  const result = await query<PropuestaRow>(`${BASE_SELECT} WHERE ${scope.sql} ORDER BY p.id_propuesta DESC`,scope.params);
   res.json(result.rows.map(mapPropuesta));
 }));
 
@@ -198,15 +197,20 @@ propuestasRouter.get("/propuestas/:id", requireDemoAuth, asyncHandler(async (req
     res.status(404).json({ error: "Propuesta no encontrada" });
     return;
   }
-  if (
-    req.demoAuth!.role !== "admin" &&
-    row.id_coordinador !== req.demoAuth!.userId
-  ) {
-    res.status(403).json({ error: "No tenés acceso a esta propuesta" });
-    return;
-  }
+  await exigirAlcance(id, req.demoAuth!);
   const keywords = await loadKeywords(id);
-  res.json({ ...mapPropuesta(row), ...keywords, ...await loadPropuestaDisplay(id) });
+  const display = await loadPropuestaDisplay(id);
+  if (!["admin", "investigador"].includes(req.demoAuth!.role!)) {
+    const stage = etapaRol(req.demoAuth!.role);
+    const own = await query<{mensaje:string}>("SELECT mensaje FROM observacion WHERE id_propuesta=$1 AND etapa=$2 ORDER BY fecha_creacion",[id,stage===2?"comite":stage===4?"vie":req.demoAuth!.role]);
+    display.observaciones = own.rows.map(r=>r.mensaje);
+    const history = await query<{titulo:string;detalle:string;fecha:Date;etapa:number;instancia_conocida:boolean}>(`SELECT h.estado_nuevo AS titulo,h.observacion AS detalle,h.fecha_hora AS fecha,
+      COALESCE(h.etapa_evento,CASE h.estado_nuevo WHEN 'enviada' THEN 1 WHEN 'en_evaluacion' THEN 2 WHEN 'dictaminada' THEN 2 WHEN 'avalada' THEN 3 WHEN 'aprobada' THEN 6 WHEN 'rechazada' THEN 6 ELSE 0 END) AS etapa,h.etapa_evento IS NOT NULL AS instancia_conocida FROM propuesta_historial_estado h WHERE h.id_propuesta=$1 ORDER BY h.fecha_hora`,[id]);
+    display.timeline = history.rows.filter(h=>h.etapa>0&&h.etapa<=stage).map(h=>({titulo:h.titulo,detalle:h.etapa===stage&&h.instancia_conocida?h.detalle:"Etapa previa completada: "+h.titulo,fecha:h.fecha.toISOString()}));
+  }
+  const correction=await cargarSubsanacion(id);
+  const ownCorrection=["admin","investigador"].includes(req.demoAuth!.role!) || correction?.rol_destino===req.demoAuth!.role;
+  res.json({ ...mapPropuesta(row), ...keywords, ...display, subsanacion: ownCorrection?correction:null, seccionesSubsanacion });
 }));
 
 /** Crear borrador. */
@@ -216,6 +220,7 @@ propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, r
     return;
   }
 
+  if (req.body?.codigo !== undefined) throw new HttpError(400,"El código es automático y no editable");
   const titulo = String(req.body?.titulo ?? "").trim();
   const idConvocatoria = Number(req.body?.idConvocatoria);
   const modalidadRaw = String(req.body?.modalidad ?? "").trim();
@@ -266,8 +271,8 @@ propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, r
   }
 
   const saved = await transaction(async (execute) => {
-  const year = new Date().getFullYear();
-  const codigoTmp = `TMP-${userId}-${Date.now()}`;
+  const year = Number(new Intl.DateTimeFormat("en", {timeZone:"America/Costa_Rica",year:"numeric"}).format(new Date()));
+  const codigo = await siguienteCodigo(execute, year);
 
   const insert = await execute<{ id_propuesta: number }>(
     `
@@ -280,7 +285,7 @@ propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, r
     RETURNING id_propuesta
     `,
     [
-      codigoTmp,
+      codigo,
       idConvocatoria,
       userId,
       idEscuela,
@@ -295,11 +300,6 @@ propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, r
   );
 
   const id = insert.rows[0].id_propuesta;
-  const codigo = `PROP-${year}-${String(id).padStart(3, "0")}`;
-  await execute(`UPDATE propuesta SET codigo = $1 WHERE id_propuesta = $2`, [
-    codigo,
-    id,
-  ]);
   await replaceKeywords(id, keywordsEs, keywordsEn, execute);
   await savePropuestaCampos(id, req.body, execute);
 
@@ -338,11 +338,12 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (r
     res.status(403).json({ error: "No tenés acceso a esta propuesta" });
     return;
   }
-  if (row.estado_actual !== "borrador") {
+  if (!["borrador", "en_subsanacion"].includes(row.estado_actual)) {
     res.status(400).json({ error: "Solo se editan propuestas en borrador" });
     return;
   }
 
+  await exigirAlcance(id,req.demoAuth!);
   const fields: string[] = [];
   const values: unknown[] = [];
   let i = 1;
@@ -407,7 +408,9 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (r
 
   const saved = await transaction(async (execute) => {
   const locked = await execute<{estado_actual:string}>("SELECT estado_actual FROM propuesta WHERE id_propuesta=$1 FOR UPDATE",[id]);
-  if (!locked.rows[0] || locked.rows[0].estado_actual !== "borrador") throw new HttpError(409,"El expediente ya no está en borrador; no se guardaron cambios");
+  if (!locked.rows[0] || !["borrador","en_subsanacion"].includes(locked.rows[0].estado_actual)) throw new HttpError(409,"El expediente ya no está disponible para edición");
+  if (req.body?.codigo !== undefined) throw new HttpError(400,"El código es automático y no editable");
+  if (locked.rows[0].estado_actual === "en_subsanacion") await validarEdicionSubsanacion(id, req.body, execute);
 
   if (fields.length > 0) {
     values.push(id);
@@ -465,7 +468,7 @@ propuestasRouter.post(
       res.status(403).json({ error: "No tenés acceso a esta propuesta" });
       return;
     }
-    if (row.estado_actual !== "borrador") {
+    if (!["borrador", "en_subsanacion"].includes(row.estado_actual)) {
       res.status(400).json({ error: "La propuesta ya fue enviada" });
       return;
     }
@@ -474,14 +477,30 @@ propuestasRouter.post(
       return;
     }
 
+    await exigirAlcance(id,req.demoAuth!);
     const saved = await transaction(async (execute) => {
     const content = await execute<{ resumen: string | null; declaracion_aceptada: boolean; estado_actual:string }>("SELECT resumen, declaracion_aceptada, estado_actual FROM propuesta WHERE id_propuesta=$1 FOR UPDATE", [id]);
-    if (!content.rows[0] || content.rows[0].estado_actual !== "borrador") throw new HttpError(409,"La propuesta ya fue enviada");
+    if (!content.rows[0] || !["borrador","en_subsanacion"].includes(content.rows[0].estado_actual)) throw new HttpError(409,"La propuesta ya fue enviada");
     if (!content.rows[0]?.declaracion_aceptada) throw new HttpError(400,"Debe aceptar la declaración jurada antes de enviar");
     const wordCount = (content.rows[0]?.resumen ?? "").trim().split(/\s+/u).filter(Boolean).length;
     const terms = await loadKeywords(id,execute);
     if (wordCount > 500 || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {
       throw new HttpError(400,"El resumen admite máximo 500 palabras y se requieren entre 4 y 6 términos clave en español.");
+    }
+
+    if(content.rows[0].estado_actual==="en_subsanacion") {
+      const correction=await cargarSubsanacion(id,execute);
+      if(!correction) throw new HttpError(409,"No existe una devolución activa");
+      if(!String(req.body?.respuesta??"").trim()) throw new HttpError(400,"Explique cómo atendió las observaciones");
+      if(correction.secciones.some(code=>!seccionesSubsanacion.find(s=>s.codigo===code)?.campos.some(field=>correction.campos_atendidos.includes(field)))) throw new HttpError(409,"Debe guardar las correcciones de todas las secciones indicadas");
+      await execute(`INSERT INTO observacion_respuesta(id_observacion,id_usuario,respuesta,fecha_respuesta)
+        SELECT o.id_observacion,$2,$3,NOW() FROM observacion o JOIN propuesta_subsanacion s ON s.id_propuesta=o.id_propuesta AND s.instancia=o.etapa
+        WHERE s.id_subsanacion=$1 AND o.fecha_creacion>=s.fecha_devolucion`,[correction.id_subsanacion,req.demoAuth!.userId,String(req.body.respuesta).trim()]);
+      await execute("UPDATE propuesta_subsanacion SET fecha_reenvio=NOW(),respuesta=$2 WHERE id_subsanacion=$1",[correction.id_subsanacion,String(req.body.respuesta).trim()]);
+      await execute("UPDATE propuesta SET estado_actual=$2,etapa_flujo=$3 WHERE id_propuesta=$1",[id,correction.estado_retorno,correction.etapa_retorno]);
+      await execute("INSERT INTO propuesta_historial_estado(id_propuesta,estado_anterior,estado_nuevo,id_usuario,fecha_hora,observacion) VALUES($1,'en_subsanacion',$2,$3,NOW(),$4)",[id,correction.estado_retorno,req.demoAuth!.userId,`Reenvío a ${correction.instancia}: ${String(req.body.respuesta).trim()}`]);
+      const detail=await execute<PropuestaRow>(`${BASE_SELECT} WHERE p.id_propuesta=$1`,[id]);
+      return {...mapPropuesta(detail.rows[0]),...await loadKeywords(id,execute)};
     }
 
     await execute(

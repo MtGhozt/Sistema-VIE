@@ -362,6 +362,7 @@ export type DemoProposal = {
   /** Índice activo 0–6 (como `etapa` del HTML). */
   etapa: number;
   piRequired: boolean;
+  piAcreditada?: boolean;
   presupuesto: string;
   resumen: string;
   abstract: string;

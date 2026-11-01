@@ -37,6 +37,7 @@ export type Propuesta = {
   fechaInicio: string | null;
   fechaFin: string | null;
   requiereDictamenPi: boolean;
+  piAcreditada: boolean;
   declaracion: boolean;
   resguardoRepositorio: boolean;
   resguardoTecnico: boolean;
@@ -46,6 +47,7 @@ export type Propuesta = {
 };
 
 export type PropuestaDetalle = Propuesta & Partial<Pick<DemoProposal, "teamTec" | "teamExternal" | "presupuestoAnual" | "productos" | "observaciones" | "timeline" | "documentos">> & {
+  subsanacion?: {instancia:string;motivo:string;secciones:string[];campos_atendidos:string[]}|null;
   aspectosEticos?: AspectosEticos | null;
   permisos?: PermisoInput[];
   compromisos?: CompromisoInput[];
@@ -111,8 +113,9 @@ export function patchPropuesta(id: number, body: Partial<PropuestaInput>) {
   });
 }
 
-export function enviarPropuesta(id: number) {
+export function enviarPropuesta(id: number, respuesta?: string) {
   return apiJson<PropuestaDetalle>(`/api/propuestas/${id}/enviar`, {
     method: "POST",
+    body: JSON.stringify({respuesta}),
   });
 }

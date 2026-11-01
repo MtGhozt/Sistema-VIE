@@ -5,6 +5,7 @@ import { ApiError } from "../api/client";
 import {
   enviarPropuesta,
   fetchPropuesta,
+  fetchPropuestas,
   type PropuestaDetalle,
 } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
@@ -13,14 +14,7 @@ import {
   ProposalDetailView,
   type ProposalDetailModel,
 } from "../components/ProposalDetailView";
-import {
-  ProcessTimeline,
-  stepFromPropuestaEstado,
-} from "../components/ProcessTimeline";
-import {
-  ADMIN_STAGE_ROLES,
-  getDemoProposal,
-} from "../data/demo";
+import { stepFromPropuestaEstado } from "../components/ProcessTimeline";
 
 
 function apiToDetailModel(d: PropuestaDetalle): ProposalDetailModel {
@@ -28,7 +22,7 @@ function apiToDetailModel(d: PropuestaDetalle): ProposalDetailModel {
     id: d.codigo, titulo: d.titulo, convocatoria: d.convocatoriaNombre,
     investigadora: d.coordinadorNombre, escuela: d.escuelaNombre, modalidad: d.modalidadLabel,
     estado: labelEstado(d.estadoActual), etapa: stepFromPropuestaEstado(d.estadoActual, d.etapaFlujo),
-    piRequired: d.requiereDictamenPi, presupuesto: "—", resumen: d.resumen ?? "", abstract: d.abstractEn ?? "",
+    piRequired: d.requiereDictamenPi, piAcreditada:d.piAcreditada, presupuesto: "—", resumen: d.resumen ?? "", abstract: d.abstractEn ?? "",
     general: d, actividades:d.actividades??[], fuentes:d.fuentes??[], permisos:d.permisos??[], compromisos:d.compromisos??[], equipoCompleto:d.equipo??[],
     palabras: d.keywordsEs, keywords: d.keywordsEn,
     teamTec: d.teamTec ?? [], teamExternal: d.teamExternal ?? [], presupuestoAnual: d.presupuestoAnual ?? [],
@@ -40,13 +34,12 @@ function apiToDetailModel(d: PropuestaDetalle): ProposalDetailModel {
 
 export function PropuestaDetallePage() {
   const { id } = useParams();
-  const demo = id ? getDemoProposal(id) : undefined;
   const proposalId = Number(id);
   const navigate = useNavigate();
-  const { session, isAdminSession } = useAuth();
+  const { session } = useAuth();
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
-  const [loading, setLoading] = useState(!demo && Number.isFinite(proposalId));
+  const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
   const canEditRole =
@@ -70,14 +63,12 @@ export function PropuestaDetallePage() {
   }
 
   useEffect(() => {
-    if (demo || !Number.isFinite(proposalId)) {
-      setLoading(false);
-      return;
-    }
     void (async () => {
       setLoading(true);
       try {
-        setDetail(await fetchPropuesta(proposalId));
+        const target=Number.isSafeInteger(proposalId)&&proposalId>0?proposalId:(await fetchPropuestas()).find(p=>p.codigo===id)?.id;
+        if(!target) throw new Error("Expediente no disponible en su ámbito");
+        setDetail(await fetchPropuesta(target));
       } catch (err) {
         showToast(
           err instanceof ApiError ? err.message : "No se pudo cargar",
@@ -88,53 +79,7 @@ export function PropuestaDetallePage() {
         setLoading(false);
       }
     })();
-  }, [demo, proposalId, navigate, showToast]);
-
-  if (demo) {
-    const showAdminVista =
-      isAdminSession && session?.viewRole === "admin";
-    // Demo PROP-* están en flujo institucional (ya enviadas) → solo lectura.
-    const demoIsDraft = demo.estado.toLowerCase() === "borrador";
-    return (
-      <>
-        <div className="breadcrumbs">
-          <Link to="/propuestas">Propuestas</Link>
-          <span>/</span>
-          <span>{demo.id}</span>
-        </div>
-        <ProposalDetailView
-          proposal={demo}
-          showEdit={canEditRole && demoIsDraft}
-        />
-        {showAdminVista && (
-          <section className="card stack-md" style={{ marginTop: 18 }}>
-            <div className="section-title">
-              <div>
-                <h2>Vista transversal</h2>
-                <p>
-                  El Super Administrador no simula únicamente al investigador:
-                  use «Vista actual» en la barra superior para ingresar a
-                  cualquiera de las herramientas operativas.
-                </p>
-              </div>
-            </div>
-            <ProcessTimeline
-              currentStep={demo.etapa}
-              piRequired={demo.piRequired}
-            />
-            <div className="admin-stage-grid">
-              {ADMIN_STAGE_ROLES.map((role) => (
-                <div key={role}>
-                  <strong>{role}</strong>
-                  <span>Disponible mediante cambio de vista</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-      </>
-    );
-  }
+  }, [id, proposalId, navigate, showToast]);
 
   if (loading || !detail) {
     return (
@@ -145,7 +90,9 @@ export function PropuestaDetallePage() {
   }
 
   const model = apiToDetailModel(detail);
+  const canEdit=canEditRole&&(session?.role==="admin"||detail.idCoordinador===session?.userId);
   const isDraft = detail.estadoActual === "borrador";
+  const isCorrection = detail.estadoActual === "en_subsanacion";
 
   return (
     <>
@@ -154,11 +101,12 @@ export function PropuestaDetallePage() {
         <span>/</span>
         <span>{detail.codigo}</span>
       </div>
+      {isCorrection && <p role="status">Debe atender las observaciones y reenviar desde el formulario de edición.</p>}
       <ProposalDetailView
         proposal={model}
-        showEdit={canEditRole && isDraft}
+        showEdit={canEdit && (isDraft||isCorrection)}
         editTo={`/propuestas/nueva?edit=${detail.id}`}
-        showSend={canEditRole && isDraft}
+        showSend={canEdit && isDraft}
         sending={sending}
         onSend={() => void onEnviarBorrador()}
       />

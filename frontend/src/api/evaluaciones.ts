@@ -13,6 +13,7 @@ export type EvaluacionBandejaItem = {
   resumen: string | null;
   abstractEn: string | null;
   piRequired: boolean;
+  piEstado: string|null;
   escuela: string;
   investigadora: string;
   coordinadorCorreo: string;

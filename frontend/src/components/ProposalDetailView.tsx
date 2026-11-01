@@ -105,6 +105,7 @@ export function ProposalDetailView({
         <ProcessTimeline
           currentStep={proposal.etapa}
           piRequired={proposal.piRequired}
+          piAcreditada={proposal.piAcreditada}
           completed={
             proposal.estado === "Aprobada" || proposal.estado === "Rechazada"
           }

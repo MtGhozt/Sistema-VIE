@@ -1,3 +1,4 @@
+import seccionesSubsanacion from "../../../../shared/subsanacion-secciones.json";
 import vieItems from "../../../../shared/checklist-vie.json";
 import { apiJson } from "../../api/client";
 import { fetchSavedRubric } from "../../api/evaluaciones";
@@ -13,6 +14,10 @@ import { IconClipboard, IconFile, IconShield } from "../icons";
 import { ProcessTimeline } from "../ProcessTimeline";
 import { CaseFile } from "./CaseFile";
 import { SimpleModal } from "./SimpleModal";
+
+function SeccionesDevueltas({value,onChange}:{value:string[];onChange:(value:string[])=>void}) {
+  return <fieldset className="subsanacion-secciones"><legend>Secciones que debe corregir</legend>{seccionesSubsanacion.map(s=><label className="subsanacion-seccion" key={s.codigo}><input type="checkbox" checked={value.includes(s.codigo)} onChange={e=>onChange(e.target.checked?[...value,s.codigo]:value.filter(v=>v!==s.codigo))}/>{s.etiqueta}</label>)}</fieldset>;
+}
 
 function PanelIntro({
   title,
@@ -55,12 +60,14 @@ export function VinculacionPanel({
   const [form, setForm] = useState({
     potencial:"",tipoActivo:"",tipoPI:"",innovacion:"",novedad:"",titularidad:"",divulgacion:"",confidencialidad:"",analisis:"",recomendaciones:"",oficio:"",fecha:"",
   });
+  const [piEstado,setPiEstado]=useState<string|null>(null);
+  const [fundamento,setFundamento]=useState("");
   const [loading, setLoading] = useState(Boolean(proposal.numericId));
   const [loadError, setLoadError] = useState("");
   useEffect(()=>{
     if(!proposal.numericId)return;
     let active=true;
-    void apiJson<{form:typeof form|null}>(`/api/evaluaciones/propuestas/${proposal.numericId}/pi`).then(data=>{if(active&&data.form)setForm(data.form);})
+    void apiJson<{form:typeof form|null;estado:string|null;fundamentoNoRequerido:string|null}>(`/api/evaluaciones/propuestas/${proposal.numericId}/pi`).then(data=>{if(active){if(data.form)setForm(data.form);setPiEstado(data.estado);setFundamento(data.fundamentoNoRequerido??"");}})
       .catch(err=>{if(active)setLoadError(err instanceof Error?err.message:"No se pudo recuperar el dictamen");})
       .finally(()=>{if(active)setLoading(false);});
     return ()=>{active=false;};
@@ -89,7 +96,9 @@ export function VinculacionPanel({
         </div>
         {loadError && <p role="alert">{loadError}</p>}
         {loading && <p role="status">Recuperando dictamen…</p>}
-        <fieldset className="stack-md" disabled={loading||Boolean(loadError)} style={{border:0,padding:0,margin:0,minWidth:0}}>
+        {piEstado && <p role="status">Registro PI: {piEstado}. Las decisiones emitidas no se sobrescriben.</p>}
+        <fieldset className="stack-md" disabled={loading||Boolean(loadError)||["emitido","no_requerido"].includes(piEstado??"")} style={{border:0,padding:0,margin:0,minWidth:0}}>
+          {!proposal.piRequired ? <div className="stack-md"><p>La propuesta declara que no requiere dictamen. Vinculación debe certificarlo antes de que el expediente avance.</p><label className="field"><span className="field-label">Fundamento de PI no requerido</span><textarea aria-label="Fundamento de PI no requerido" className="input textarea" value={fundamento} onChange={e=>setFundamento(e.target.value)}/></label><button type="button" className="btn btn-primary" disabled={!fundamento.trim()} onClick={async()=>{if(await onAction("pi-not-required",{fundamento}))setPiEstado("no_requerido");}}>Certificar PI no requerido</button></div> : <>
           <div className="form-grid two-col">
             <label className="field">
               <span className="field-label">¿Existe potencial de protección?</span>
@@ -188,10 +197,10 @@ export function VinculacionPanel({
           <button
             type="button"
             className="btn btn-primary"
-            onClick={() => onAction("pi", form)}
+            onClick={async () => {if(await onAction("pi", form))setPiEstado("emitido");}}
           >
             Emitir y registrar dictamen
-          </button>
+          </button></>}
         </fieldset>
       </article>
     </div>
@@ -213,6 +222,7 @@ export function ComiteAsistentePanel({
   );
   const [checks, setChecks] = useState(initial);
   const [returnOpen, setReturnOpen] = useState(false);
+  const [secciones,setSecciones]=useState<string[]>([]);
   const [motivo, setMotivo] = useState(
     "Falta completar documentación requerida por el Comité Técnico.",
   );
@@ -279,7 +289,7 @@ export function ComiteAsistentePanel({
                 type="button"
                 className="btn btn-primary"
                 onClick={async () => {
-                  if (!await onAction("return", { texto: motivo })) return;
+                  if (!await onAction("return", { texto: motivo, secciones })) return;
                   setReturnOpen(false);
                 }}
               >
@@ -288,9 +298,11 @@ export function ComiteAsistentePanel({
             </>
           }
         >
+          <SeccionesDevueltas value={secciones} onChange={setSecciones}/>
           <label className="field">
             <span className="field-label">Motivo</span>
             <textarea
+              aria-label="Motivo"
               className="input textarea"
               rows={5}
               value={motivo}
@@ -1003,6 +1015,7 @@ export function GestoraViePanel({
   const allOk=vieItems.every(item=>checks[item.codigo]);
   const dirty=vieItems.some(item=>checks[item.codigo]!==saved[item.codigo]);
   const [obs, setObs] = useState("");
+  const [secciones,setSecciones]=useState<string[]>([]);
 
   return (
     <div className="split-review">
@@ -1022,15 +1035,16 @@ export function GestoraViePanel({
         <button type="button" className="btn btn-secondary" onClick={async()=>{if(await onAction("vie-checklist",{checks}))setSaved({...checks});}}>Guardar verificación</button>
         <p className="field-hint" role="status">{dirty?"Verificación con cambios sin guardar.":"La remisión requiere guardar todos los requisitos verificados."}</p>
         <label className="field">
-          <span className="field-label">Observación al equipo investigador</span>
+          <span className="field-label">Comentario o motivo de devolución</span>
           <textarea
             className="input textarea"
             rows={5}
             value={obs}
             onChange={(e) => setObs(e.target.value)}
-            placeholder="Escriba una observación únicamente si requiere corrección..."
+            placeholder="Escriba un comentario o el motivo de una devolución..."
           />
         </label>
+        <SeccionesDevueltas value={secciones} onChange={setSecciones}/>
         <div className="action-row">
           <button
             type="button"
@@ -1038,8 +1052,9 @@ export function GestoraViePanel({
             disabled={!obs.trim()}
             onClick={() => onAction("vie-observation", { texto: obs })}
           >
-            Enviar observación al equipo investigador
+            Enviar comentario sin devolución
           </button>
+          <button type="button" className="btn btn-secondary" disabled={!obs.trim()||!secciones.length} onClick={()=>onAction("return",{texto:obs,secciones,instancia:"vie"})}>Devolver para subsanación en VIE</button>
           <button
             type="button"
             className="btn btn-primary"
@@ -1130,6 +1145,7 @@ export function AdminEvalTransversal({
       <ProcessTimeline
         currentStep={proposal.etapa}
         piRequired={proposal.piRequired}
+          piAcreditada={proposal.piAcreditada}
       />
       <div className="admin-stage-grid">
         {[

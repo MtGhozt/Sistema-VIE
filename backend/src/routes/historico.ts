@@ -1,3 +1,4 @@
+import { alcancePropuestas } from "../alcancePropuestas.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { query } from "../db.js";
@@ -21,6 +22,7 @@ export const historicoRouter = Router();
 
 const ESTADO_LABEL: Record<string, string> = {
   borrador: "Borrador",
+  en_subsanacion: "En subsanación",
   enviada: "Enviada",
   en_evaluacion: "En evaluación",
   dictaminada: "Dictaminada",
@@ -199,6 +201,9 @@ historicoRouter.get(
     };
 
     const { where, values } = buildWhere(filtros);
+    const scope = alcancePropuestas(req.demoAuth!,values.length+1);
+    where.push(scope.sql);
+    values.push(...scope.params);
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
     const rows = await query<HistoricoRow>(
@@ -208,32 +213,14 @@ historicoRouter.get(
       values,
     );
 
-    // Opciones de los filtros: catálogo completo (sin filtrar), para que los
-    // select muestren todos los valores disponibles.
-    const [escuelas, lineas, estados, anios] = await Promise.all([
-      query<{ codigo: string; nombre: string }>(
-        `SELECT DISTINCT e.codigo, e.nombre
-         FROM escuela e
-         JOIN propuesta p ON p.id_escuela = e.id_escuela
-         ORDER BY e.nombre`,
-      ),
-      query<{ nombre: string }>(
-        `SELECT DISTINCT l.nombre
-         FROM linea_investigacion l
-         JOIN propuesta_linea pl ON pl.id_linea_investigacion = l.id_linea_investigacion
-         ORDER BY l.nombre`,
-      ),
-      query<{ estado_actual: string }>(
-        `SELECT DISTINCT estado_actual FROM propuesta ORDER BY estado_actual`,
-      ),
-      query<{ anio: number }>(
-        `SELECT DISTINCT EXTRACT(YEAR FROM COALESCE(r.fecha_resolucion, p.fecha_envio, p.fecha_inicio))::int AS anio
-         FROM propuesta p
-         LEFT JOIN resolucion_cie r ON r.id_propuesta = p.id_propuesta
-         WHERE COALESCE(r.fecha_resolucion, p.fecha_envio, p.fecha_inicio) IS NOT NULL
-         ORDER BY anio DESC`,
-      ),
-    ]);
+    const scopeOnly=alcancePropuestas(req.demoAuth!);
+    const accessible=await query<HistoricoRow & {anio:number|null}>(`${SELECT_BASE} WHERE ${scopeOnly.sql}`,scopeOnly.params);
+    const all=accessible.rows;
+    const escuelas={rows:[...new Map(all.map(r=>[r.escuela_codigo,{codigo:r.escuela_codigo,nombre:r.escuela_nombre}])).values()].sort((a,b)=>a.nombre.localeCompare(b.nombre))};
+    const lineas={rows:[...new Set(all.flatMap(r=>r.lineas?.split(" · ")??[]))].sort().map(nombre=>({nombre}))};
+    const estados={rows:[...new Set(all.map(r=>r.estado_actual))].sort().map(estado_actual=>({estado_actual}))};
+    const years=await query<{anio:number}>(`SELECT DISTINCT ${ANIO_EXPR}::int AS anio FROM propuesta p LEFT JOIN resolucion_cie r ON r.id_propuesta=p.id_propuesta WHERE ${scopeOnly.sql} AND COALESCE(r.fecha_resolucion,p.fecha_envio,p.fecha_inicio) IS NOT NULL ORDER BY anio DESC`,scopeOnly.params);
+    const anios={rows:years.rows};
 
     res.json({
       items: rows.rows.map(mapRow),

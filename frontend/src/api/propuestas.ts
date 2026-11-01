@@ -25,6 +25,14 @@ export type Propuesta = {
 export type PropuestaDetalle = Propuesta & {
   keywordsEs: string[];
   keywordsEn: string[];
+  preguntasGenerales: PreguntaGeneral[];
+};
+
+export type PreguntaGeneral = {
+  numero: number;
+  codigo: string;
+  respuesta: string;
+  detalle: string | null;
 };
 
 export type PropuestaInput = {
@@ -38,6 +46,7 @@ export type PropuestaInput = {
   metodologia?: string;
   keywordsEs?: string;
   keywordsEn?: string;
+  preguntasGenerales?: PreguntaGeneral[];
 };
 
 export function fetchPropuestas() {

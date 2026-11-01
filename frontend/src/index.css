@@ -2,3 +2,64 @@
 #root {
   min-height: 100%;
 }
+
+.convocatorias-list .data-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.convocatorias-list .data-table th:nth-child(1),
+.convocatorias-list .data-table td:nth-child(1) {
+  width: 8%;
+}
+
+.convocatorias-list .data-table th:nth-child(2),
+.convocatorias-list .data-table td:nth-child(2) {
+  width: 38%;
+}
+
+.convocatorias-list .data-table th:nth-child(3),
+.convocatorias-list .data-table th:nth-child(4),
+.convocatorias-list .data-table td:nth-child(3),
+.convocatorias-list .data-table td:nth-child(4) {
+  width: 12%;
+}
+
+.convocatorias-list .data-table th:nth-child(5),
+.convocatorias-list .data-table td:nth-child(5) {
+  width: 13%;
+}
+
+.convocatorias-list .data-table th:nth-child(6),
+.convocatorias-list .data-table td:nth-child(6) {
+  width: 9%;
+}
+
+.convocatorias-list .data-table th:nth-child(7),
+.convocatorias-list .data-table td:nth-child(7) {
+  width: 8%;
+}
+
+.convocatorias-list .data-table th,
+.convocatorias-list .data-table td {
+  overflow-wrap: anywhere;
+}
+
+.convocatorias-list .table-primary strong,
+.convocatorias-list .table-primary span {
+  overflow-wrap: anywhere;
+}
+
+.convocatoria-detail .section-inline > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.convocatoria-detail .section-inline h2,
+.convocatoria-detail .section-inline p {
+  overflow-wrap: anywhere;
+}
+
+.convocatoria-detail .section-inline > .btn {
+  flex-shrink: 0;
+}

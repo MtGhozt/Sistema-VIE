@@ -267,7 +267,7 @@ export function ConvocatoriasPage() {
         </form>
       )}
 
-      <section className="card">
+      <section className="card convocatorias-list">
         <div className="table-wrap">
           <table className="data-table">
             <thead>
@@ -324,7 +324,10 @@ export function ConvocatoriasPage() {
       </section>
 
       {detail && (
-        <section className="card stack-md" style={{ marginTop: 18 }}>
+        <section
+          className="card stack-md convocatoria-detail"
+          style={{ marginTop: 18 }}
+        >
           <div className="section-inline">
             <div>
               <p className="eyebrow">Detalle · VIE-{detail.id}</p>

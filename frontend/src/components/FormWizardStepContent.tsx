@@ -4,10 +4,14 @@ import { MODALIDADES } from "../data/demo";
 import { DEMO_PROPOSALS } from "../data/demo";
 import {
   ALT_TEXT_MIN_CHARS,
+  type AmbitoInstrumento,
   type FormWizardState,
   type GradoVinculo,
   type GraphicResource,
+  type NivelTrl,
+  type TipoInnovacion,
   type YesNo,
+  TRL_LEVELS,
 } from "../data/formWizard";
 import { formatCRC } from "../data/proposalView";
 
@@ -19,6 +23,25 @@ type Props = {
   idConvocatoria: number | "";
   setIdConvocatoria: (v: number | "") => void;
 };
+
+function yesNoValue(value: string): YesNo | "" {
+  if (value === "Sí" || value === "No") return value;
+  return "";
+}
+
+function ambitoValue(value: string): AmbitoInstrumento {
+  if (value === "nacional" || value === "internacional") return value;
+  return "";
+}
+
+function tipoInnovacionValue(value: string): TipoInnovacion {
+  if (value === "Proceso" || value === "Producto") return value;
+  return "";
+}
+
+function nivelTrlValue(value: string): NivelTrl {
+  return TRL_LEVELS.find((nivel) => nivel.value === value)?.value ?? "";
+}
 
 function QuestionBlock({
   number,
@@ -88,6 +111,7 @@ export function FormWizardStepContent({
   setIdConvocatoria,
 }: Props) {
   const rich = DEMO_PROPOSALS[0]!;
+  const q6GroupName = useId();
 
   if (step === 0) {
     return (
@@ -142,6 +166,7 @@ export function FormWizardStepContent({
                 value={form.modalidad}
                 onChange={(e) => patch({ modalidad: e.target.value })}
               >
+                <option value="">Seleccionar…</option>
                 {MODALIDADES.map((m) => (
                   <option key={m} value={m}>
                     {m}
@@ -193,6 +218,54 @@ export function FormWizardStepContent({
               <YesNoRow
                 value={form.q1}
                 onChange={(q1) => patch({ q1 })}
+                extra={
+                  form.q1 === "Sí" ? (
+                    <div className="stack-md">
+                      <div className="form-grid two-col">
+                        <label className="field">
+                          <span className="field-label">Entidad</span>
+                          <input
+                            className="input"
+                            value={form.q1Entidad}
+                            onChange={(e) =>
+                              patch({ q1Entidad: e.target.value })
+                            }
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label">
+                            Estado de la gestión
+                          </span>
+                          <input
+                            className="input"
+                            value={form.q1Estado}
+                            onChange={(e) =>
+                              patch({ q1Estado: e.target.value })
+                            }
+                          />
+                        </label>
+                      </div>
+                      <label className="field">
+                        <span className="field-label">
+                          ¿Existe compromiso de contrapartida institucional?
+                        </span>
+                        <select
+                          className="input"
+                          value={form.q1Contrapartida}
+                          onChange={(e) =>
+                            patch({
+                              q1Contrapartida: yesNoValue(e.target.value),
+                            })
+                          }
+                        >
+                          <option value="">Seleccionar…</option>
+                          <option value="Sí">Sí</option>
+                          <option value="No">No</option>
+                        </select>
+                      </label>
+                    </div>
+                  ) : null
+                }
               />
             </QuestionBlock>
             <QuestionBlock
@@ -260,49 +333,219 @@ export function FormWizardStepContent({
               number={4}
               question="¿Se requiere formalizar un instrumento jurídico entre el ITCR y entes externos?"
             >
-              <YesNoRow value={form.q4} onChange={(q4) => patch({ q4 })} />
+              <YesNoRow
+                value={form.q4}
+                onChange={(q4) => patch({ q4 })}
+                extra={
+                  form.q4 === "Sí" ? (
+                    <label className="field">
+                      <span className="field-label">
+                        Ámbito del instrumento a gestionar
+                      </span>
+                      <select
+                        className="input"
+                        value={form.q4Ambito}
+                        onChange={(e) =>
+                          patch({
+                            q4Ambito: ambitoValue(e.target.value),
+                          })
+                        }
+                      >
+                        <option value="">Seleccionar…</option>
+                        <option value="nacional">Convenio Nacional</option>
+                        <option value="internacional">
+                          Convenio Internacional
+                        </option>
+                      </select>
+                    </label>
+                  ) : null
+                }
+              />
             </QuestionBlock>
             <QuestionBlock
               number={5}
               question="¿Se fundamenta esta iniciativa en un convenio marco de cooperación técnica actualmente vigente?"
             >
-              <YesNoRow value={form.q5} onChange={(q5) => patch({ q5 })} />
+              <YesNoRow
+                value={form.q5}
+                onChange={(q5) => patch({ q5 })}
+                extra={
+                  form.q5 === "Sí" ? (
+                    <label className="field">
+                      <span className="field-label">
+                        Nombre completo del convenio
+                      </span>
+                      <input
+                        className="input"
+                        value={form.q5Convenio}
+                        onChange={(e) =>
+                          patch({ q5Convenio: e.target.value })
+                        }
+                      />
+                    </label>
+                  ) : null
+                }
+              />
             </QuestionBlock>
             <QuestionBlock
               number={6}
               question="¿Corresponde esta propuesta, parcial o totalmente, a investigación base para optar por un grado académico superior?"
             >
-              <div className="choice-row" style={{ marginLeft: 0 }}>
-                {(["No", "Sí, parcial", "Sí, totalmente"] as GradoVinculo[]).map(
-                  (opt) => (
-                    <label
-                      key={opt}
-                      className={`radio-choice${form.q6 === opt ? " selected" : ""}`}
-                    >
+              <div className="stack-md">
+                <div className="choice-row" style={{ marginLeft: 0 }}>
+                  {(["No", "Sí, parcial", "Sí, totalmente"] as GradoVinculo[]).map(
+                    (opt) => (
+                      <label
+                        key={opt}
+                        className={`radio-choice${form.q6 === opt ? " selected" : ""}`}
+                      >
+                        <input
+                          type="radio"
+                          name={q6GroupName}
+                          checked={form.q6 === opt}
+                          onChange={() => patch({ q6: opt })}
+                        />
+                        <span className="radio-dot" />
+                        {opt}
+                      </label>
+                    ),
+                  )}
+                </div>
+                {form.q6 !== "No" && form.q6 !== "" ? (
+                  <div className="form-grid two-col">
+                    <label className="field">
+                      <span className="field-label">
+                        Nombre de la persona candidata
+                      </span>
                       <input
-                        type="radio"
-                        checked={form.q6 === opt}
-                        onChange={() => patch({ q6: opt })}
+                        className="input"
+                        value={form.q6Persona}
+                        onChange={(e) => patch({ q6Persona: e.target.value })}
                       />
-                      <span className="radio-dot" />
-                      {opt}
                     </label>
-                  ),
-                )}
+                    <label className="field">
+                      <span className="field-label">
+                        Programa y grado académico a obtener
+                      </span>
+                      <input
+                        className="input"
+                        value={form.q6Programa}
+                        onChange={(e) => patch({ q6Programa: e.target.value })}
+                      />
+                    </label>
+                    <label className="field">
+                      <span className="field-label">
+                        Universidad que acredita el grado
+                      </span>
+                      <input
+                        className="input"
+                        value={form.q6Universidad}
+                        onChange={(e) =>
+                          patch({ q6Universidad: e.target.value })
+                        }
+                      />
+                    </label>
+                  </div>
+                ) : null}
               </div>
             </QuestionBlock>
             <QuestionBlock
               number={7}
               question="¿Contiene la propuesta información sensible de terceros o datos sujetos a confidencialidad?"
             >
-              <YesNoRow value={form.q7} onChange={(q7) => patch({ q7 })} />
+              <YesNoRow
+                value={form.q7}
+                onChange={(q7) => patch({ q7 })}
+                extra={
+                  form.q7 === "Sí" ? (
+                    <label className="field">
+                      <span className="field-label">
+                        Tipo de información y fuente de la restricción
+                      </span>
+                      <textarea
+                        className="input textarea"
+                        rows={3}
+                        value={form.q7Detalle}
+                        onChange={(e) => patch({ q7Detalle: e.target.value })}
+                      />
+                    </label>
+                  ) : null
+                }
+              />
             </QuestionBlock>
             <QuestionBlock
               number={8}
               question="¿La propuesta presenta potencial de generar resultados susceptibles de protección mediante propiedad intelectual?"
             >
-              <YesNoRow value={form.q8} onChange={(q8) => patch({ q8 })} />
+              <YesNoRow
+                value={form.q8}
+                onChange={(q8) => patch({ q8 })}
+                extra={
+                  form.q8 === "Sí" ? (
+                    <label className="field">
+                      <span className="field-label">
+                        Número de oficio del dictamen del Centro de Vinculación
+                      </span>
+                      <input
+                        className="input"
+                        value={form.q8Oficio}
+                        onChange={(e) => patch({ q8Oficio: e.target.value })}
+                      />
+                    </label>
+                  ) : null
+                }
+              />
             </QuestionBlock>
+            <QuestionBlock
+              number={9}
+              question="¿Considera que los resultados del proyecto se traducirán en una innovación conforme a los criterios institucionales, alcanzando aplicación, implementación o adopción real que demuestre generación de valor o impacto?"
+            >
+              <YesNoRow
+                value={form.q9}
+                onChange={(q9) => patch({ q9 })}
+                extra={
+                  form.q9 === "Sí" ? (
+                    <label className="field">
+                      <span className="field-label">
+                        Tipo de innovación predominante
+                      </span>
+                      <select
+                        className="input"
+                        value={form.q9Tipo}
+                        onChange={(e) =>
+                          patch({ q9Tipo: tipoInnovacionValue(e.target.value) })
+                        }
+                      >
+                        <option value="">Seleccionar…</option>
+                        <option value="Proceso">Proceso</option>
+                        <option value="Producto">Producto</option>
+                      </select>
+                    </label>
+                  ) : null
+                }
+              />
+            </QuestionBlock>
+            {form.modalidad === "Desarrollo tecnológico" ? (
+              <label className="field">
+                <span className="field-label">
+                  Nivel de madurez tecnológica (TRL) esperado
+                </span>
+                <select
+                  className="input"
+                  value={form.trlEsperado}
+                  onChange={(e) =>
+                    patch({ trlEsperado: nivelTrlValue(e.target.value) })
+                  }
+                >
+                  <option value="">Seleccionar nivel…</option>
+                  {TRL_LEVELS.map((nivel) => (
+                    <option key={nivel.value} value={nivel.value}>
+                      {nivel.value}: {nivel.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
           </div>
         </section>
       </div>
@@ -336,6 +579,16 @@ export function FormWizardStepContent({
             className="input"
             value={form.palabras}
             onChange={(e) => patch({ palabras: e.target.value })}
+            placeholder="Separadas por comas"
+          />
+        </label>
+        <label className="field">
+          <span className="field-label">Keywords</span>
+          <input
+            className="input"
+            value={form.keywords}
+            onChange={(e) => patch({ keywords: e.target.value })}
+            placeholder="Separate with commas"
           />
         </label>
       </div>

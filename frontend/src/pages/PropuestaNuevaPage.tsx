@@ -7,6 +7,7 @@ import {
   enviarPropuesta,
   fetchPropuesta,
   patchPropuesta,
+  type PreguntaGeneral,
   type PropuestaDetalle,
 } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
@@ -15,8 +16,78 @@ import { useToast } from "../components/toast/ToastContext";
 import {
   DEFAULT_FORM_WIZARD_STATE,
   FORM_WIZARD_STEPS,
+  getFormStepStatus,
   type FormWizardState,
+  type NivelTrl,
+  TRL_LEVELS,
+  type YesNo,
 } from "../data/formWizard";
+
+function yesNoToApi(value: Exclude<YesNo, "">) {
+  return value === "Sí" ? "si" : "no";
+}
+
+function yesNoFromApi(
+  pregunta: PreguntaGeneral | undefined,
+  fallback: YesNo,
+): YesNo {
+  if (!pregunta) return fallback;
+  if (pregunta.respuesta === "si") return "Sí";
+  if (pregunta.respuesta === "no") return "No";
+  throw new Error(`Respuesta inválida para ${pregunta.codigo}`);
+}
+
+function gradeFromApi(
+  pregunta: PreguntaGeneral | undefined,
+  fallback: FormWizardState["q6"],
+): FormWizardState["q6"] {
+  if (!pregunta) return fallback;
+  if (pregunta.respuesta === "no") return "No";
+  if (pregunta.respuesta === "parcial") return "Sí, parcial";
+  if (pregunta.respuesta === "total") return "Sí, totalmente";
+  throw new Error(`Respuesta inválida para ${pregunta.codigo}`);
+}
+
+function isNivelTrl(value: string): value is NivelTrl {
+  return TRL_LEVELS.some((nivel) => nivel.value === value);
+}
+
+function serializeDetails(details: Record<string, string>) {
+  const nonEmpty = Object.fromEntries(
+    Object.entries(details).filter(([, value]) => value.trim()),
+  );
+  return Object.keys(nonEmpty).length > 0 ? JSON.stringify(nonEmpty) : null;
+}
+
+function parseDetails(pregunta: PreguntaGeneral | undefined) {
+  if (!pregunta?.detalle) return {};
+  const value: unknown = JSON.parse(pregunta.detalle);
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(`Detalle inválido para ${pregunta.codigo}`);
+  }
+  const details: Record<string, string> = {};
+  for (const [key, detail] of Object.entries(value)) {
+    if (typeof detail !== "string") {
+      throw new Error(`Detalle inválido para ${pregunta.codigo}`);
+    }
+    details[key] = detail;
+  }
+  return details;
+}
+
+function questionDetails(
+  numero: number,
+  codigo: string,
+  respuesta: string,
+  detalles: Record<string, string> = {},
+): PreguntaGeneral {
+  return {
+    numero,
+    codigo,
+    respuesta,
+    detalle: serializeDetails(detalles),
+  };
+}
 
 export function PropuestaNuevaPage() {
   const { session } = useAuth();
@@ -77,6 +148,19 @@ export function PropuestaNuevaPage() {
           navigate(`/propuestas/${d.id}`, { replace: true });
           return;
         }
+        const preguntas = new Map(
+          d.preguntasGenerales.map((pregunta) => [pregunta.codigo, pregunta]),
+        );
+        const detalle1 = parseDetails(preguntas.get("q1"));
+        const detalle2 = parseDetails(preguntas.get("q2"));
+        const detalle3 = parseDetails(preguntas.get("q3"));
+        const detalle4 = parseDetails(preguntas.get("q4"));
+        const detalle5 = parseDetails(preguntas.get("q5"));
+        const detalle6 = parseDetails(preguntas.get("q6"));
+        const detalle7 = parseDetails(preguntas.get("q7"));
+        const detalle8 = parseDetails(preguntas.get("q8"));
+        const detalle9 = parseDetails(preguntas.get("q9"));
+        const trl = preguntas.get("trl_esperado")?.respuesta;
         setIdConvocatoria(d.idConvocatoria);
         setForm((prev) => ({
           ...prev,
@@ -85,9 +169,48 @@ export function PropuestaNuevaPage() {
           resumen: d.resumen ?? "",
           abstract: d.abstractEn ?? "",
           palabras: d.keywordsEs.join(", "),
+          keywords: d.keywordsEn.join(", "),
           problema: d.problema ?? prev.problema,
           objetivos: d.objetivoGeneral ?? prev.objetivos,
           metodologia: d.metodologia ?? prev.metodologia,
+          q1: yesNoFromApi(preguntas.get("q1"), prev.q1),
+          q1Entidad: detalle1.entidad ?? prev.q1Entidad,
+          q1Estado: detalle1.estado ?? prev.q1Estado,
+          q1Contrapartida:
+            detalle1.contrapartida === "Sí" ||
+            detalle1.contrapartida === "No"
+              ? detalle1.contrapartida
+              : prev.q1Contrapartida,
+          q2: yesNoFromApi(preguntas.get("q2"), prev.q2),
+          q2Proyecto: detalle2.proyecto ?? prev.q2Proyecto,
+          q2Relacion: detalle2.relacion ?? prev.q2Relacion,
+          q3: yesNoFromApi(preguntas.get("q3"), prev.q3),
+          q3Detalle: detalle3.detalle ?? prev.q3Detalle,
+          q4: yesNoFromApi(preguntas.get("q4"), prev.q4),
+          q4Ambito:
+            detalle4.ambito === "nacional" ||
+            detalle4.ambito === "internacional"
+              ? detalle4.ambito
+              : prev.q4Ambito,
+          q5: yesNoFromApi(preguntas.get("q5"), prev.q5),
+          q5Convenio: detalle5.convenio ?? prev.q5Convenio,
+          q6: gradeFromApi(preguntas.get("q6"), prev.q6),
+          q6Persona: detalle6.persona ?? prev.q6Persona,
+          q6Programa: detalle6.programa ?? prev.q6Programa,
+          q6Universidad: detalle6.universidad ?? prev.q6Universidad,
+          q7: yesNoFromApi(preguntas.get("q7"), prev.q7),
+          q7Detalle: detalle7.detalle ?? prev.q7Detalle,
+          q8: yesNoFromApi(preguntas.get("q8"), prev.q8),
+          q8Oficio: detalle8.oficio ?? prev.q8Oficio,
+          q9: yesNoFromApi(preguntas.get("q9"), prev.q9),
+          q9Tipo:
+            detalle9.tipo === "Proceso" || detalle9.tipo === "Producto"
+              ? detalle9.tipo
+              : prev.q9Tipo,
+          trlEsperado:
+            trl && isNivelTrl(trl)
+              ? trl
+              : prev.trlEsperado,
         }));
         setSaveStatus("Borrador cargado");
       } catch (err) {
@@ -117,7 +240,76 @@ export function PropuestaNuevaPage() {
       objetivoGeneral: form.objetivos.trim() || undefined,
       metodologia: form.metodologia.trim() || undefined,
       keywordsEs: form.palabras,
-      keywordsEn: "",
+      keywordsEn: form.keywords,
+      preguntasGenerales: [
+        form.q1
+          ? questionDetails(1, "q1", yesNoToApi(form.q1), {
+              entidad: form.q1Entidad,
+              estado: form.q1Estado,
+              contrapartida: form.q1Contrapartida,
+            })
+          : null,
+        form.q2
+          ? questionDetails(2, "q2", yesNoToApi(form.q2), {
+              proyecto: form.q2Proyecto,
+              relacion: form.q2Relacion,
+            })
+          : null,
+        form.q3
+          ? questionDetails(3, "q3", yesNoToApi(form.q3), {
+              detalle: form.q3Detalle,
+            })
+          : null,
+        form.q4
+          ? questionDetails(4, "q4", yesNoToApi(form.q4), {
+              ambito: form.q4Ambito,
+            })
+          : null,
+        form.q5
+          ? questionDetails(5, "q5", yesNoToApi(form.q5), {
+              convenio: form.q5Convenio,
+            })
+          : null,
+        form.q6
+          ? questionDetails(
+              6,
+              "q6",
+              form.q6 === "Sí, parcial"
+                ? "parcial"
+                : form.q6 === "Sí, totalmente"
+                  ? "total"
+                  : "no",
+              {
+                persona: form.q6Persona,
+                programa: form.q6Programa,
+                universidad: form.q6Universidad,
+              },
+            )
+          : null,
+        form.q7
+          ? questionDetails(7, "q7", yesNoToApi(form.q7), {
+              detalle: form.q7Detalle,
+            })
+          : null,
+        form.q8
+          ? questionDetails(8, "q8", yesNoToApi(form.q8), {
+              oficio: form.q8Oficio,
+            })
+          : null,
+        form.q9
+          ? questionDetails(9, "q9", yesNoToApi(form.q9), {
+              tipo: form.q9Tipo,
+            })
+          : null,
+        form.modalidad === "Desarrollo tecnológico" && form.trlEsperado
+          ? {
+              numero: 10,
+              codigo: "trl_esperado",
+              respuesta: form.trlEsperado,
+              detalle: null,
+            }
+          : null,
+      ].filter((question): question is PreguntaGeneral => question !== null),
     };
   }
 
@@ -233,25 +425,36 @@ export function PropuestaNuevaPage() {
             <div style={{ width: `${progressPct}%` }} />
           </div>
           <nav className="wizard-steps" aria-label="Pasos del formulario">
-            {FORM_WIZARD_STEPS.map((label, i) => (
-              <button
-                key={label}
-                type="button"
-                aria-current={i === step ? "step" : undefined}
-                className={
-                  i === step ? "active" : i < step ? "done" : undefined
-                }
-                onClick={() => setStep(i)}
-              >
-                <span>{i + 1}</span>
-                <div>
-                  <strong>
-                    {i + 1}. {label}
-                  </strong>
-                  <small>Completa</small>
-                </div>
-              </button>
-            ))}
+            {FORM_WIZARD_STEPS.map((label, i) => {
+              const status = getFormStepStatus(
+                i,
+                form,
+                idConvocatoria !== "",
+              );
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  aria-current={i === step ? "step" : undefined}
+                  className={
+                    i === step
+                      ? "active"
+                      : status === "Completa"
+                        ? "done"
+                        : undefined
+                  }
+                  onClick={() => setStep(i)}
+                >
+                  <span>{i + 1}</span>
+                  <div>
+                    <strong>
+                      {i + 1}. {label}
+                    </strong>
+                    <small>{status}</small>
+                  </div>
+                </button>
+              );
+            })}
           </nav>
         </aside>
 

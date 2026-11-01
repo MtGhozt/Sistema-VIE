@@ -45,6 +45,13 @@ type PropuestaRow = {
   escuela_nombre: string;
 };
 
+type PreguntaGeneralInput = {
+  numero: number;
+  codigo: string;
+  respuesta: string;
+  detalle: string | null;
+};
+
 function mapPropuesta(row: PropuestaRow) {
   return {
     id: row.id_propuesta,
@@ -131,6 +138,97 @@ async function replaceKeywords(
   }
 }
 
+async function loadPreguntasGenerales(idPropuesta: number) {
+  const result = await query<{
+    numero_pregunta: number;
+    codigo_pregunta: string;
+    respuesta: string;
+    detalle: string | null;
+  }>(
+    `
+    SELECT numero_pregunta, codigo_pregunta, respuesta, detalle
+    FROM propuesta_pregunta_general
+    WHERE id_propuesta = $1
+    ORDER BY numero_pregunta
+    `,
+    [idPropuesta],
+  );
+  return result.rows.map((row) => ({
+    numero: row.numero_pregunta,
+    codigo: row.codigo_pregunta,
+    respuesta: row.respuesta,
+    detalle: row.detalle,
+  }));
+}
+
+function parsePreguntasGenerales(value: unknown):
+  | PreguntaGeneralInput[]
+  | undefined
+  | null {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) return null;
+
+  const preguntas: PreguntaGeneralInput[] = [];
+  const codigos = new Set<string>();
+  for (const item of value) {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) {
+      return null;
+    }
+    const row = item as Record<string, unknown>;
+    if (
+      typeof row.numero !== "number" ||
+      !Number.isInteger(row.numero) ||
+      row.numero < 1 ||
+      row.numero > 10 ||
+      typeof row.codigo !== "string" ||
+      !/^[a-z0-9_]{1,40}$/.test(row.codigo) ||
+      typeof row.respuesta !== "string" ||
+      row.respuesta.length < 1 ||
+      row.respuesta.length > 20 ||
+      (row.detalle !== null && typeof row.detalle !== "string") ||
+      codigos.has(row.codigo)
+    ) {
+      return null;
+    }
+    codigos.add(row.codigo);
+    preguntas.push({
+      numero: row.numero,
+      codigo: row.codigo,
+      respuesta: row.respuesta,
+      detalle: row.detalle,
+    });
+  }
+  return preguntas;
+}
+
+async function replacePreguntasGenerales(
+  idPropuesta: number,
+  preguntas: PreguntaGeneralInput[] | undefined,
+) {
+  if (preguntas === undefined) return;
+  for (const pregunta of preguntas) {
+    await query(
+      `
+      INSERT INTO propuesta_pregunta_general (
+        id_propuesta, numero_pregunta, codigo_pregunta, respuesta, detalle
+      ) VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (id_propuesta, codigo_pregunta)
+      DO UPDATE SET
+        numero_pregunta = EXCLUDED.numero_pregunta,
+        respuesta = EXCLUDED.respuesta,
+        detalle = EXCLUDED.detalle
+      `,
+      [
+        idPropuesta,
+        pregunta.numero,
+        pregunta.codigo,
+        pregunta.respuesta,
+        pregunta.detalle,
+      ],
+    );
+  }
+}
+
 function parseKeywordInput(value: unknown): string[] | undefined {
   if (value === undefined) return undefined;
   if (Array.isArray(value)) {
@@ -181,7 +279,8 @@ propuestasRouter.get("/propuestas/:id", requireDemoAuth, async (req, res) => {
     return;
   }
   const keywords = await loadKeywords(id);
-  res.json({ ...mapPropuesta(row), ...keywords });
+  const preguntasGenerales = await loadPreguntasGenerales(id);
+  res.json({ ...mapPropuesta(row), ...keywords, preguntasGenerales });
 });
 
 /** Crear borrador. */
@@ -213,6 +312,13 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
     res.status(400).json({
       error: "titulo, idConvocatoria y modalidad son obligatorios",
     });
+    return;
+  }
+  const preguntasGenerales = parsePreguntasGenerales(
+    req.body?.preguntasGenerales,
+  );
+  if (preguntasGenerales === null) {
+    res.status(400).json({ error: "preguntasGenerales inválidas" });
     return;
   }
 
@@ -275,13 +381,19 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
     id,
   ]);
   await replaceKeywords(id, keywordsEs, keywordsEn);
+  await replacePreguntasGenerales(id, preguntasGenerales);
 
   const detail = await query<PropuestaRow>(
     `${BASE_SELECT} WHERE p.id_propuesta = $1`,
     [id],
   );
   const keywords = await loadKeywords(id);
-  res.status(201).json({ ...mapPropuesta(detail.rows[0]), ...keywords });
+  const preguntas = await loadPreguntasGenerales(id);
+  res.status(201).json({
+    ...mapPropuesta(detail.rows[0]),
+    ...keywords,
+    preguntasGenerales: preguntas,
+  });
 });
 
 /** Actualizar borrador. */
@@ -311,6 +423,13 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, async (req, res) => {
   }
   if (row.estado_actual !== "borrador") {
     res.status(400).json({ error: "Solo se editan propuestas en borrador" });
+    return;
+  }
+  const preguntasGenerales = parsePreguntasGenerales(
+    req.body?.preguntasGenerales,
+  );
+  if (preguntasGenerales === null) {
+    res.status(400).json({ error: "preguntasGenerales inválidas" });
     return;
   }
 
@@ -389,13 +508,19 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, async (req, res) => {
     parseKeywordInput(req.body?.keywordsEs),
     parseKeywordInput(req.body?.keywordsEn),
   );
+  await replacePreguntasGenerales(id, preguntasGenerales);
 
   const detail = await query<PropuestaRow>(
     `${BASE_SELECT} WHERE p.id_propuesta = $1`,
     [id],
   );
   const keywords = await loadKeywords(id);
-  res.json({ ...mapPropuesta(detail.rows[0]), ...keywords });
+  const preguntas = await loadPreguntasGenerales(id);
+  res.json({
+    ...mapPropuesta(detail.rows[0]),
+    ...keywords,
+    preguntasGenerales: preguntas,
+  });
 });
 
 /** Enviar a revisión (sale de borrador). */
@@ -461,6 +586,11 @@ propuestasRouter.post(
       [id],
     );
     const keywords = await loadKeywords(id);
-    res.json({ ...mapPropuesta(detail.rows[0]), ...keywords });
+    const preguntasGenerales = await loadPreguntasGenerales(id);
+    res.json({
+      ...mapPropuesta(detail.rows[0]),
+      ...keywords,
+      preguntasGenerales,
+    });
   },
 );

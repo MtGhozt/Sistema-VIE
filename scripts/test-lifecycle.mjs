@@ -27,7 +27,7 @@ try{
   const installed=run('instalar.sh',['--pruebas','--verificar']);assert.equal(installed.status,0,installed.stderr);
   const setup=await commands();check('instalación usa lockfile y compila antes de migrar',setup.includes('pnpm install --frozen-lockfile')&&setup.indexOf('pnpm build')<setup.indexOf('pnpm db:migrate'));
   check('perfil aislado y health antes de migrar',setup.includes('-p vie-baseline')&&setup.indexOf('up -d --wait')<setup.indexOf('pnpm db:migrate'));
-  check('regresiones y navegador después de instalar',setup.includes('pnpm exec playwright install chromium')&&setup.indexOf('pnpm regression:api')>setup.indexOf('pnpm db:migrate')&&setup.indexOf('pnpm regression:ui')>setup.indexOf('pnpm regression:api'));
+  check('regresiones y navegador después de instalar',setup.includes('pnpm exec playwright install chromium')&&setup.indexOf('pnpm regression:api')>setup.indexOf('pnpm db:migrate')&&setup.indexOf('pnpm regression:decisions')>setup.indexOf('pnpm regression:api')&&setup.indexOf('pnpm regression:ui')>setup.indexOf('pnpm regression:decisions'));
   const preDry=await commands();const dryUninstall=run('desinstalar.sh',['--pruebas','--purgar-datos','--simular']);check('desinstalación simulada no toca datos ni dependencias',dryUninstall.status===0&&(await commands())===preDry&&await exists(path.join(temp,'node_modules/sentinel')));
   await writeFile(log,'');const keep=run('desinstalar.sh',['--pruebas','--conservar-dependencias']);check('detener conserva dependencias y volumen por defecto',keep.status===0&&await exists(path.join(temp,'node_modules/sentinel'))&&!(await commands()).includes('--volumes'));
   await writeFile(log,'');const removed=run('desinstalar.sh',['--pruebas']);assert.equal(removed.status,0,removed.stderr);

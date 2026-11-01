@@ -118,7 +118,7 @@ try {
       let avalRejected = false;
       await check('F03', `Crear expediente ${scenario}`, async () => {
         if (!conv?.id) blocked('Sin convocatoria de prueba');
-        proposal = await request('/propuestas', 'investigador', 'POST', { titulo: `Baseline ${run} ${scenario}`, idConvocatoria: conv.id, modalidad: 'aplicada', resumen: 'Resumen de prueba', problema: 'Problema', objetivoGeneral: 'Objetivo', metodologia: 'Metodología', declaracion:true, keywordsEs:'agua,clima,suelo,riesgo' });
+        proposal = await request('/propuestas', 'investigador', 'POST', { titulo: `Baseline ${run} ${scenario}`, idConvocatoria: conv.id, modalidad: 'aplicada', resumen: 'Resumen de prueba', problema: 'Problema', objetivoGeneral: 'Objetivo', metodologia: 'Metodología', declaracion:true, requiereDictamenPi:true, keywordsEs:'agua,clima,suelo,riesgo' });
         fixtures.push({ type: 'propuesta', scenario, id: proposal.id });
       });
       await check('F12', `Enviar expediente ${scenario}`, async () => {

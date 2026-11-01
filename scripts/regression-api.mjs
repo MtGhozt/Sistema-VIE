@@ -24,7 +24,11 @@ async function draft() {
   const u=sessions.get('investigador');
   const result=await env.pool.query(`INSERT INTO propuesta(codigo,id_convocatoria,id_coordinador,id_escuela,titulo,modalidad,estado_actual,etapa_flujo)
     SELECT $1,(SELECT id_convocatoria FROM convocatoria ORDER BY id_convocatoria LIMIT 1),$2,id_escuela,'Regresión aislada','aplicada','borrador',0 FROM usuario WHERE id_usuario=$2 RETURNING id_propuesta`,[`RG-${Date.now()}-${++serial}`,u.id]);
-  return result.rows[0].id_propuesta;
+  const id=result.rows[0].id_propuesta;
+  // Preparación aislada: estas pruebas unitarias de rutas no certifican el recorrido PI.
+  await env.pool.query(`INSERT INTO pi_certificacion_no_requerido(id_propuesta,id_certificador,fundamento)
+    SELECT $1,id_usuario,'Certificación sintética para aislar la ruta bajo prueba' FROM usuario WHERE correo_institucional='vinculacion@tec.ac.cr'`,[id]);
+  return id;
 }
 const patch=(id,data,status=200)=>call(`/propuestas/${id}`,'investigador','PATCH',data,status);
 const detail=id=>call(`/propuestas/${id}`,'investigador');
@@ -92,7 +96,7 @@ try {
     await patch(id,{titulo:'Edición después de envío'},400);
   });
   await check('Vinculación recupera el dictamen emitido y no mezcla propuestas',async()=>{
-    const id=await draft(),other=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);
+    const id=await draft(),other=await draft();await env.pool.query('DELETE FROM pi_certificacion_no_requerido WHERE id_propuesta=ANY($1::int[])',[[id,other]]);await env.pool.query("UPDATE propuesta SET requiere_dictamen_pi=true,estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=ANY($1::int[])",[[id,other]]);
     const form={potencial:'Sí',innovacion:'No',tipoActivo:'Activo propio',tipoPI:'Autoría',novedad:'Novedad propia',titularidad:'Titularidad propia',divulgacion:'Recomendación propia',confidencialidad:'Análisis propio',analisis:'Dictamen humano propio',recomendaciones:'Recomendación humana',oficio:`CV-RG-${id}`,fecha:'2026-10-31'};
     await action(id,'vinculacion','pi',form);const saved=await call(`/evaluaciones/propuestas/${id}/pi`,'vinculacion');assert.deepEqual(saved.form,form);assert.equal((await call(`/evaluaciones/propuestas/${other}/pi`,'vinculacion')).form,null);
     await call(`/evaluaciones/propuestas/${id}/pi`,'investigador','GET',undefined,403);
@@ -107,13 +111,21 @@ try {
     await action(id,'gestora_vie','send-cie');
   });
   await check('Dos devoluciones conservan ciclos independientes',async()=>{
-    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);
-    await action(id,'comite_asistente','return',{texto:'Primera devolución'});await action(id,'comite_asistente','return',{texto:'Segunda devolución'});
+    const id=await draft();await patch(id,{declaracion:true,keywordsEs:'uno,dos,tres,cuatro'});await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);
+    await action(id,'comite_asistente','return',{texto:'Primera devolución',secciones:['resumen']});
+    await patch(id,{resumen:'Corrección uno'});await call(`/propuestas/${id}/enviar`,'investigador','POST',{respuesta:'Atendida primera devolución'});
+    await action(id,'comite_asistente','return',{texto:'Segunda devolución',secciones:['resumen']});
     const cycles=await env.pool.query("SELECT ciclo FROM revision_expediente WHERE id_propuesta=$1 AND etapa='comite' ORDER BY ciclo",[id]);assert.deepEqual(cycles.rows.map(r=>r.ciclo),[1,2]);
-    await action(id,'comite_asistente','committee-ready');const history=await env.pool.query("SELECT ciclo,resultado FROM revision_expediente WHERE id_propuesta=$1 AND etapa='comite' ORDER BY ciclo",[id]);assert.deepEqual(history.rows.map(r=>r.resultado),['devuelto','devuelto','completo']);
+    await patch(id,{resumen:'Corrección dos'});await call(`/propuestas/${id}/enviar`,'investigador','POST',{respuesta:'Atendida segunda devolución'});await action(id,'comite_asistente','committee-ready');const history=await env.pool.query("SELECT ciclo,resultado FROM revision_expediente WHERE id_propuesta=$1 AND etapa='comite' ORDER BY ciclo",[id]);assert.deepEqual(history.rows.map(r=>r.resultado),['devuelto','devuelto','completo']);
   });
   await check('Vista admin filtra sin cambiar identidad ni ampliar permisos',async()=>{
-    const normal=await call('/evaluaciones/bandeja','vinculacion');const admin=await call('/evaluaciones/bandeja?vista=vinculacion','admin');assert.equal(admin.role,'vinculacion');assert.deepEqual(admin.items.map(p=>p.id),normal.items.map(p=>p.id));
+    const own=await draft(),foreign=await draft();
+    await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1,fecha_envio=NOW() WHERE id_propuesta=ANY($1::int[])",[[own,foreign]]);
+    await env.pool.query("UPDATE propuesta SET id_escuela=(SELECT id_escuela FROM escuela WHERE id_escuela<>propuesta.id_escuela ORDER BY id_escuela LIMIT 1) WHERE id_propuesta=$1",[foreign]);
+    const normal=await call('/evaluaciones/bandeja','vinculacion');const admin=await call('/evaluaciones/bandeja?vista=vinculacion','admin');assert.equal(admin.role,'vinculacion');
+    // Cada bandeja tiene LIMIT 100 y ámbitos distintos: comparar fixtures recientes, no conjuntos completos.
+    assert.ok(normal.items.some(p=>p.id===own));assert.ok(!normal.items.some(p=>p.id===foreign));assert.ok(admin.items.some(p=>p.id===own));assert.ok(admin.items.some(p=>p.id===foreign));
+    assert.ok(admin.items.every(p=>['enviada','en_evaluacion','dictaminada','avalada'].includes(p.estadoActual)&&(p.etapaFlujo<=1||(p.piRequired?p.piEstado!=='emitido':p.piEstado!=='no_requerido'))));
     await call('/evaluaciones/bandeja?vista=admin','vinculacion','GET',undefined,403);await call('/evaluaciones/bandeja?vista=inventada','admin','GET',undefined,403);await call('/evaluaciones/bandeja','investigador','GET',undefined,403);
   });
   await check('Convocatoria y cronograma se editan atomicamente',async()=>{
@@ -144,11 +156,13 @@ try {
   await check('No notificar resolución inexistente ni aprobar borrador',async()=>{
     const id=await draft();await action(id,'admin','cie-approve',{texto:'No permitido'},400);await env.pool.query("UPDATE propuesta SET estado_actual='rechazada',etapa_flujo=6 WHERE id_propuesta=$1",[id]);await action(id,'direccion_investigacion','notify-resolution',{},409);
   });
-  await check('Colisión real de código revierte creación y mantiene health',async()=>{
-    const id=await draft();const seq=await env.pool.query('SELECT last_value,is_called FROM propuesta_id_propuesta_seq');const next=Number(seq.rows[0].last_value)+(seq.rows[0].is_called?1:0);const code=`PROP-${new Date().getFullYear()}-${String(next).padStart(3,'0')}`;
-    const old=(await env.pool.query('SELECT codigo FROM propuesta WHERE id_propuesta=$1',[id])).rows[0].codigo;await env.pool.query('UPDATE propuesta SET codigo=$1 WHERE id_propuesta=$2',[code,id]);
-    try {const conv=await env.pool.query("SELECT id_convocatoria FROM convocatoria WHERE estado='activa' LIMIT 1");assert.ok(conv.rows[0]);const before=Number((await env.pool.query('SELECT count(*) FROM propuesta')).rows[0].count);await call('/propuestas','investigador','POST',{titulo:'Debe revertirse',idConvocatoria:conv.rows[0].id_convocatoria,modalidad:'aplicada'},409);assert.equal(Number((await env.pool.query('SELECT count(*) FROM propuesta')).rows[0].count),before);assert.equal((await call('/health')).database,'up');}
-    finally {await env.pool.query('UPDATE propuesta SET codigo=$1 WHERE id_propuesta=$2',[old,id]);}
+  await check('Código anual respeta históricos y no depende del PK',async()=>{
+    const conv=await env.pool.query("SELECT id_convocatoria FROM convocatoria WHERE estado='activa' LIMIT 1");
+    const before=await env.pool.query("SELECT id_propuesta,codigo FROM propuesta ORDER BY id_propuesta");
+    const created=await call('/propuestas','investigador','POST',{titulo:'Consecutivo anual',idConvocatoria:conv.rows[0].id_convocatoria,modalidad:'aplicada'},201);
+    assert.match(created.codigo,/^PROP-[0-9]{4}-[0-9]{3,}$/);
+    const after=await env.pool.query("SELECT id_propuesta,codigo FROM propuesta WHERE id_propuesta<$1 ORDER BY id_propuesta",[created.id]);assert.deepEqual(after.rows,before.rows);
+    await patch(created.id,{codigo:'NO-EDITABLE'},400);assert.equal((await detail(created.id)).codigo,created.codigo);
   });
 } catch(error){results.push({name:'Entorno',status:'BLOQUEADO',detail:error.message});}
 finally {

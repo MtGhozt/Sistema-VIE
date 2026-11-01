@@ -4,4 +4,4 @@ Crear una carpeta por ejecución con fecha y SHA, por ejemplo `2026-10-29-b52688
 
 Conservar reporte de casos, salidas de comandos y capturas con su viewport, zoom, rol, expediente y pasos. Registrar los enlaces en [VALIDACION-DEL-FLUJO.md](../VALIDACION-DEL-FLUJO.md).
 
-No hay capturas ni resultados funcionales adjuntos todavía. No guardar contraseñas, tokens ni datos personales reales; utilizar las cuentas y expedientes de prueba.
+Las carpetas fechadas contienen resultados y capturas de cada ejecución. Los reportes fallidos se conservan como diagnóstico; consultar [ESTADO-DE-REVISION.md](../ESTADO-DE-REVISION.md) para identificar las verificaciones finales. No guardar contraseñas, tokens ni datos personales reales; utilizar las cuentas y expedientes de prueba.

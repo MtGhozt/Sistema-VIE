@@ -58,3 +58,12 @@ Cada entrada indica cambio, sustento y comprobación prevista. Los typechecks se
 ## Verificación posterior al checkpoint
 
 El usuario reanudó la implementación el 31 de octubre. La guardia de Administración y los bloques anteriores se incluyeron en las regresiones descritas en [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md). Ese informe distingue las verificaciones realmente ejecutadas de las pendientes; no se completaron las casillas del usuario. Los scripts y README están registrados en `ac656c2`.
+
+## Acuerdos D01–D04 indicados por el usuario
+
+| Commit | Justificación | Validación |
+| --- | --- | --- |
+| `728b813` · implementación | D01: consecutivo anual inmutable; D02: ámbito de consulta y privacidad de eventos; D03: subsanación por secciones y retorno a la misma instancia; D04: evidencia PI obligatoria y certificación independiente del dictamen histórico. | Build; 33 casos API existentes, 14 específicos y 11 de navegador. Se conservan códigos y decisiones cerradas. |
+| `e6201a9` · regresiones e instalador | Hacer reproducibles las comprobaciones de los cuatro acuerdos e incluirlas en `--pruebas --verificar`. | Instalación real, 12 comprobaciones de scripts y tres ramas completas por API. |
+
+Los acuerdos, sus límites y los espacios de revisión humana están en [DECISIONES-D01-D04.md](DECISIONES-D01-D04.md). La [evidencia final](evidencias/D01-D04-validacion.md) distingue recorridos reales, preparación sintética y reportes de diagnóstico. No se implementaron D05–D11 ni se completaron las casillas del usuario.

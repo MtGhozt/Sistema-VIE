@@ -1,0 +1,12 @@
+{
+  "run": "2026-11-01T02-05-43-323Z",
+  "scope": "Regresión de correcciones en Chromium; error HTTP 500 CIE simulado sin decidir expedientes.",
+  "results": [
+    {
+      "name": "D04 y D03: certificar PI, devolver, editar solo lo indicado y reenviar por interfaz",
+      "status": "PASA",
+      "detail": "d03-subsanacion-reenviada.png"
+    }
+  ],
+  "errors": []
+}

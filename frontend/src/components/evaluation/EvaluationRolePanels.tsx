@@ -1052,7 +1052,25 @@ export function DireccionInvestigacionPanel({
   proposal: DemoProposal;
   onAction: ActionHandler;
 }) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [issueDate, setIssueDate] = useState("");
   const rejected = proposal.estado.includes("Rechazada");
+  const approved = proposal.estado.includes("Aprobada");
+  const result = rejected
+    ? "Rechazo"
+    : approved
+      ? "Aprobación"
+      : "Pendiente de resolución";
+  const resolutionNumber = proposal.resolucion || "CIE-RES-084-2026";
+  const openPreview = () => {
+    setIssueDate(
+      new Intl.DateTimeFormat("es-CR", { dateStyle: "long" }).format(
+        new Date(),
+      ),
+    );
+    setPreviewOpen(true);
+  };
+
   return (
     <div className="split-review">
       <CaseFile proposal={proposal} />
@@ -1066,7 +1084,7 @@ export function DireccionInvestigacionPanel({
           <div>
             <span>Resolución CIE</span>
             <strong>{proposal.resolucion || "CIE-RES-084-2026"}</strong>
-            <small>Resultado: {rejected ? "Rechazo" : "Aprobación"}</small>
+            <small>Resultado: {result}</small>
           </div>
         </div>
         <div className="detail-grid">
@@ -1075,8 +1093,8 @@ export function DireccionInvestigacionPanel({
             <strong>{proposal.investigadora}</strong>
           </div>
           <div>
-            <span>Fecha de resolución</span>
-            <strong>22 Sep 2026</strong>
+            <span>Fecha de emisión</span>
+            <strong>{issueDate || "Pendiente"}</strong>
           </div>
           <div>
             <span>Correo</span>
@@ -1088,7 +1106,11 @@ export function DireccionInvestigacionPanel({
           </div>
         </div>
         <div className="action-stack">
-          <button type="button" className="btn btn-secondary">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={openPreview}
+          >
             Vista previa / imprimir CIE-453
           </button>
           <button
@@ -1102,6 +1124,73 @@ export function DireccionInvestigacionPanel({
               : "Notificar resolución"}
           </button>
         </div>
+        <SimpleModal
+          open={previewOpen}
+          title="Vista previa de resolución CIE-453"
+          description={`${proposal.id} · ${resolutionNumber}`}
+          onClose={() => setPreviewOpen(false)}
+          bodyClassName="cie-print-body"
+          footer={
+            <>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setPreviewOpen(false)}
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => window.print()}
+              >
+                Imprimir / guardar PDF
+              </button>
+            </>
+          }
+        >
+          <article className="cie-document">
+            <header className="cie-document-header">
+              <p>Instituto Tecnológico de Costa Rica</p>
+              <strong>Consejo de Investigación y Extensión</strong>
+              <span>Resolución CIE-453</span>
+            </header>
+            <div className="cie-document-number">
+              <span>Número de resolución</span>
+              <strong>{resolutionNumber}</strong>
+            </div>
+            <p className="cie-document-date">Cartago, {issueDate}</p>
+            <h3>Resolución sobre propuesta de investigación</h3>
+            <dl className="cie-document-details">
+              <div><dt>Propuesta</dt><dd>{proposal.id} · {proposal.titulo}</dd></div>
+              <div><dt>Persona investigadora</dt><dd>{proposal.investigadora}</dd></div>
+              <div><dt>Convocatoria</dt><dd>{proposal.convocatoria}</dd></div>
+              <div><dt>Unidad académica</dt><dd>{proposal.escuela}</dd></div>
+              <div><dt>Modalidad</dt><dd>{proposal.modalidad}</dd></div>
+              <div><dt>Presupuesto solicitado</dt><dd>{proposal.presupuesto}</dd></div>
+            </dl>
+            <section className="cie-document-outcome">
+              <span>Resultado</span>
+              <strong>{result}</strong>
+              <p>
+                {approved
+                  ? `Se resuelve aprobar la propuesta ${proposal.id}.`
+                  : rejected
+                    ? `Se resuelve rechazar la propuesta ${proposal.id}.`
+                    : `La propuesta ${proposal.id} aún no tiene una resolución definitiva registrada.`}
+              </p>
+            </section>
+            {proposal.justificacionResolucion && (
+              <section className="cie-document-reason">
+                <strong>Fundamento de la resolución</strong>
+                <p>{proposal.justificacionResolucion}</p>
+              </section>
+            )}
+            <footer className="cie-document-signature">
+              <span>Consejo de Investigación y Extensión (CIE)</span>
+            </footer>
+          </article>
+        </SimpleModal>
       </article>
     </div>
   );

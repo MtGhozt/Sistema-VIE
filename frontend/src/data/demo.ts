@@ -408,6 +408,7 @@ export type DemoProposal = {
   oficioPI?: string;
   oficioAval?: string;
   resolucion?: string;
+  justificacionResolucion?: string;
   notificada?: boolean;
   justificacionAval?: string;
   confidencialidad?: string;

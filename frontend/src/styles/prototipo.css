@@ -76,6 +76,32 @@ button[class*="danger"],.btn-danger,.variant-danger{background:var(--tec-red)!im
   .sidebar{position:relative;height:auto}
 }
 @media print{
-  .sidebar,.topbar,.action-row,.action-stack,.toast,nav{display:none!important}
-  .app-shell{display:block}
+  body *{visibility:hidden!important}
+  .cie-print-body,.cie-print-body *{visibility:visible!important}
+  .modal-backdrop{position:static!important;display:block!important;background:none!important;padding:0!important}
+  .modal{width:100%!important;max-width:none!important;max-height:none!important;overflow:visible!important;border:0!important;box-shadow:none!important}
+  .modal-header,.modal-footer{display:none!important}
+  .modal-body.cie-print-body{position:static!important;overflow:visible!important;max-height:none!important;padding:0!important}
+  .cie-document{max-width:none!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important}
+  .cie-document-header,.cie-document-number,.cie-document-details,.cie-document-outcome,.cie-document-reason,.cie-document-signature{visibility:visible!important}
+  @page{margin:18mm}
 }
+
+.cie-document{max-width:760px;margin:0 auto;padding:36px 40px;color:#202b33;background:#fff;font-family:Georgia,"Times New Roman",serif;line-height:1.55}
+.cie-document-header{display:flex;flex-direction:column;align-items:center;text-align:center;padding-bottom:22px;border-bottom:2px solid #174b37}
+.cie-document-header p,.cie-document-header strong,.cie-document-header span{margin:0}
+.cie-document-header p{font-size:13px}
+.cie-document-header strong{font-size:17px}
+.cie-document-header span{margin-top:5px;font-size:12px;text-transform:uppercase}
+.cie-document-number{display:flex;justify-content:space-between;gap:16px;margin-top:22px;padding:12px 14px;background:#f2f6f3;font-family:inherit}
+.cie-document-date{text-align:right;margin:20px 0}
+.cie-document h3{margin:24px 0 16px;font-family:inherit;font-size:21px}
+.cie-document-details{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;margin:0}
+.cie-document-details div{min-width:0}
+.cie-document-details dt,.cie-document-outcome>span{font-size:12px;color:#526158}
+.cie-document-details dd{margin:2px 0 0;font-weight:700;overflow-wrap:anywhere}
+.cie-document-outcome,.cie-document-reason{margin-top:22px;padding:16px;border:1px solid #cbd8cf}
+.cie-document-outcome>span,.cie-document-outcome>strong{display:block}
+.cie-document-outcome>strong{margin-top:4px;font-size:18px}
+.cie-document-outcome p,.cie-document-reason p{margin:8px 0 0;white-space:pre-wrap}
+.cie-document-signature{margin-top:62px;padding-top:10px;border-top:1px solid #526158;text-align:center}

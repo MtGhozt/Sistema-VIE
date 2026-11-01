@@ -275,11 +275,17 @@ export function EvaluacionesPage() {
             next.estado = "Aprobada";
             next.etapa = 6;
             next.resolucion = next.resolucion || `CIE-DEMO-${next.id}`;
+            next.justificacionResolucion =
+              (payload as { motivo?: string } | undefined)?.motivo?.trim() ||
+              next.justificacionResolucion;
             break;
           case "cie-reject":
             next.estado = "Rechazada";
             next.etapa = 6;
             next.resolucion = next.resolucion || `CIE-DEMO-${next.id}`;
+            next.justificacionResolucion =
+              (payload as { motivo?: string } | undefined)?.motivo?.trim() ||
+              next.justificacionResolucion;
             break;
           case "notify-resolution":
             next.notificada = true;

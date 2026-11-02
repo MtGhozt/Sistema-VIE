@@ -6,17 +6,27 @@ import {testEnvironment,root} from './test-environment.mjs';
 const run=new Date().toISOString().replace(/[:.]/g,'-');
 const output=path.join(root,'correcciones/evidencias',`${run}-decisiones-d01-d04`);
 const results=[],sessions=new Map();let env,conv,main,required,other,otherDraft;const created=[];
+async function finishCommittee(id,scores){
+ await action(id,'comite_asistente','committee-ready');
+ const status=await call(`/evaluaciones/propuestas/${id}/comite`,'comite_asistente');
+ for(const role of ['comite_evaluador','e2','e3'])if(status.miembros.find(m=>m.id_usuario===sessions.get(role).id)?.estado!=='completada')await action(id,role,'committee-score',{scores});
+ await action(id,'comite_asistente','committee-confirm',{texto:'Confirmación de tres valoraciones independientes'});
+}
 async function check(name,fn){try{await fn();results.push({name,status:'PASA'});}catch(error){results.push({name,status:'FALLA',detail:error.message});}console.log(results.at(-1).status,name,results.at(-1).detail??'');}
 async function call(route,role,method='GET',body,status=200){const user=sessions.get(role);const r=await fetch(env.api+route,{method,headers:{'Content-Type':'application/json',...(user?{'X-Demo-User-Id':String(user.id),'X-Demo-Role':user.roleCode}:{})},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(10000)});const data=await r.json();assert.equal(r.status,status,`${method} ${route}: ${JSON.stringify(data)}`);return data;}
-const action=(id,role,action,payload={},status=200)=>call(`/evaluaciones/propuestas/${id}/acciones`,role,'POST',{action,payload},status);
+async function action(id,role,operation,payload={},status=200){
+ if(['save-rubric','committee-score'].includes(operation)&&payload.ciclo===undefined&&status!==403){const instance=role==='cie'||payload.instancia==='cie'?'cie':'comite';const meta=await call(`/evaluaciones/propuestas/${id}/rubrica?instancia=${instance}`,role);payload={...payload,ciclo:meta.ciclo};}
+ return call(`/evaluaciones/propuestas/${id}/acciones`,role,'POST',{action:operation,payload},status);
+}
 const patch=(id,data,status=200)=>call(`/propuestas/${id}`,'investigador','PATCH',data,status);
 const send=(id,respuesta,status=200)=>call(`/propuestas/${id}/enviar`,'investigador','POST',{respuesta},status);
 const detail=(id,role='investigador',status=200)=>call(`/propuestas/${id}`,role,'GET',undefined,status);
-const create=async(role='investigador',pi=false)=>{const p=await call('/propuestas',role,'POST',{titulo:`D01–D04 ${run}`,idConvocatoria:conv.id,modalidad:'aplicada',declaracion:true,resumen:'Resumen original',keywordsEs:'agua,suelo,clima,riesgo',requiereDictamenPi:pi,preguntasGenerales:[{numero:8,respuesta:pi?'Sí':'No',detalle:null}]},201);created.push(p.id);return p;};
+const create=async(role='investigador',pi=false)=>{const p=await call('/propuestas',role,'POST',{titulo:`D01–D04 ${run}`,idConvocatoria:conv.id,modalidad:'aplicada',declaracion:true,resumen:'Resumen original',abstractEn:'Own abstract',keywordsEs:'agua,suelo,clima,riesgo',requiereDictamenPi:pi,preguntasGenerales:[{numero:8,respuesta:pi?'Sí':'No',detalle:null}]},201);created.push(p.id);return p;};
 const keys=['propuesta','pi','evaluacion_comite','oficio_comite','aval','respaldos'];
 try{
   env=await testEnvironment();
   for(const role of ['investigador','vinculacion','comite_asistente','comite_evaluador','consejo_asistente','consejo','direccion_escuela','gestora_vie','cie','direccion_investigacion','vie_publicacion','admin']){const d=await call('/demo/login',null,'POST',{email:`${role}@tec.ac.cr`,password:'prototipo2026',roleCode:role});sessions.set(role,d.user);}
+  for(const n of [2,3]){const d=await call('/demo/login',null,'POST',{email:`comite_evaluador${n}@tec.ac.cr`,password:'prototipo2026',roleCode:'comite_evaluador'});sessions.set('e'+n,d.user);}
   conv=await call('/convocatorias','vie_publicacion','POST',{nombre:`D01–D04 ${run}`,fechaApertura:'2026-01-01',fechaCierre:'2027-12-31',estado:'activa'},201);
   await check('D01: creación concurrente única y códigos históricos intactos',async()=>{
     const historical=(await env.pool.query('SELECT id_propuesta,codigo FROM propuesta ORDER BY id_propuesta')).rows;
@@ -93,7 +103,7 @@ try{
   await check('D03: segundo ciclo independiente y Comité cierra su decisión sin sobrescritura',async()=>{
     await action(main.id,'comite_asistente','return',{texto:'Precisar método',secciones:['metodologia']});await patch(main.id,{metodologia:'Método final'});await send(main.id,'Método precisado.');await action(main.id,'comite_asistente','committee-ready');
     const {rubricCriteria}=await import('../backend/dist/rubricas.js');const scores=Object.fromEntries(rubricCriteria('aplicada').map(c=>[c.key,{score:8,reason:'Fundamento de prueba '+c.key}]));
-    await action(main.id,'comite_evaluador','committee-score',{scores});
+    await action(main.id,'comite_evaluador','committee-score',{scores});await finishCommittee(main.id,scores);
     await action(main.id,'comite_evaluador','committee-score',{scores},409);await action(main.id,'comite_asistente','return',{texto:'Reabrir',secciones:['resumen']},409);
     await action(main.id,'consejo_asistente','send-council');
     await action(main.id,'consejo','council-approve',{texto:'Aval del Consejo para prueba D03'});
@@ -148,9 +158,9 @@ try{
   });
   await check('D03: rechazo previo no se acepta desde otra instancia ni por admin',async()=>{
     const p=await create();await send(p.id);await action(p.id,'vinculacion','pi-not-required',{fundamento:'No requerido tras revisión'});await action(p.id,'comite_asistente','committee-ready');
-    const {rubricCriteria}=await import('../backend/dist/rubricas.js');const scores=Object.fromEntries(rubricCriteria('aplicada').map(c=>[c.key,{score:8,reason:'Fundamento '+c.key}]));await action(p.id,'comite_evaluador','committee-score',{scores});await action(p.id,'consejo','council-reject',{texto:'Rechazo fundamentado del Consejo'});
+    const {rubricCriteria}=await import('../backend/dist/rubricas.js');const scores=Object.fromEntries(rubricCriteria('aplicada').map(c=>[c.key,{score:8,reason:'Fundamento '+c.key}]));await finishCommittee(p.id,scores);await action(p.id,'consejo','council-reject',{texto:'Rechazo fundamentado del Consejo'});
     await action(p.id,'cie','cie-approve',{texto:'No debe superar rechazo'},409);await action(p.id,'admin','council-approve',{texto:'No reabrir'},409);
-    assert.equal((await detail(p.id)).estadoActual,'rechazada');
+    assert.equal((await detail(p.id)).estadoActual,'rechazo_aval');
   });
 }catch(error){results.push({name:'Entorno/recorrido',status:'BLOQUEADO',detail:error.message});}
-finally{if(env)await env.close();await mkdir(output,{recursive:true});await writeFile(path.join(output,'reporte.json'),JSON.stringify({run,scope:'D01–D04 autorizadas. Recorridos principales por API; SQL solo para escenarios de ámbito, eventos privados y contador anual. Rúbrica parcial existente, sin validar D05–D11.',created,results},null,2)+'\n');console.log(`Evidencia: ${path.relative(root,output)}`);process.exitCode=results.some(r=>r.status!=='PASA')?1:0;}
+finally{if(env)await env.close();await mkdir(output,{recursive:true});await writeFile(path.join(output,'reporte.json'),JSON.stringify({run,scope:'D01–D04 autorizadas. Recorridos principales por API; SQL solo para escenarios de ámbito, eventos privados y contador anual. Usa la rúbrica versionada actual para sus precondiciones; D05–D11 tienen batería específica.',created,results},null,2)+'\n');console.log(`Evidencia: ${path.relative(root,output)}`);process.exitCode=results.some(r=>r.status!=='PASA')?1:0;}

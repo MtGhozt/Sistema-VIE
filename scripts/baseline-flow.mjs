@@ -53,6 +53,9 @@ const routes = [
   ['committee-ready', 'comite_asistente', {}],
   ['save-rubric', 'comite_evaluador', { scores: demoScores }],
   ['committee-score', 'comite_evaluador', { scores: demoScores }],
+  ['committee-score', 'e2', {scores:demoScores}],
+  ['committee-score', 'e3', {scores:demoScores}],
+  ['committee-confirm', 'comite_asistente', {texto:'Confirmación del consolidado de tres evaluadores'}],
   ['send-council', 'consejo_asistente', {}],
   ['council-approve', 'consejo', { texto: 'Fundamento de aval de prueba' }],
   ['communicate-aval', 'direccion_escuela', {}],
@@ -101,6 +104,7 @@ try {
       const data = await request('/demo/login', null, 'POST', { email: `${role}@tec.ac.cr`, password: 'prototipo2026', roleCode: role });
       assert(data.user?.roleCode === role, 'Rol de sesión incorrecto'); sessions.set(role, data.user);
     });
+    for(const n of [2,3]){const d=await request('/demo/login',null,'POST',{email:`comite_evaluador${n}@tec.ac.cr`,password:'prototipo2026',roleCode:'comite_evaluador'});sessions.set('e'+n,d.user);}
     for (const role of roles.slice(2)) await check('BANDEJA', `Consultar bandeja ${role}`, async () => {
       const data = await request('/evaluaciones/bandeja', role);
       assert(Array.isArray(data.items), 'La bandeja no entrega items');
@@ -118,7 +122,7 @@ try {
       let avalRejected = false;
       await check('F03', `Crear expediente ${scenario}`, async () => {
         if (!conv?.id) blocked('Sin convocatoria de prueba');
-        proposal = await request('/propuestas', 'investigador', 'POST', { titulo: `Baseline ${run} ${scenario}`, idConvocatoria: conv.id, modalidad: 'aplicada', resumen: 'Resumen de prueba', problema: 'Problema', objetivoGeneral: 'Objetivo', metodologia: 'Metodología', declaracion:true, requiereDictamenPi:true, keywordsEs:'agua,clima,suelo,riesgo' });
+        proposal = await request('/propuestas', 'investigador', 'POST', { titulo: `Baseline ${run} ${scenario}`, idConvocatoria: conv.id, modalidad: 'aplicada', resumen: 'Resumen de prueba', problema: 'Problema', objetivoGeneral: 'Objetivo', metodologia: 'Metodología', declaracion:true, abstractEn:'Flow test abstract', requiereDictamenPi:true, keywordsEs:'agua,clima,suelo,riesgo' });
         fixtures.push({ type: 'propuesta', scenario, id: proposal.id });
       });
       await check('F12', `Enviar expediente ${scenario}`, async () => {
@@ -136,7 +140,9 @@ try {
         await check('FLUJO', `${scenario}: ${action}`, async () => {
           if (!proposal?.id || !canContinue) blocked('No continuar después de una transición fallida o rechazo de aval');
           try {
-            await request(`/evaluaciones/propuestas/${proposal.id}/acciones`, role, 'POST', { action, payload: action === 'pi' ? { ...payload, oficio: `CV-BASE-${proposal.id}` } : payload });
+            let actual=action==='pi'?{...payload,oficio:`CV-BASE-${proposal.id}`}:payload;
+            if(['save-rubric','committee-score'].includes(action)){const meta=await request(`/evaluaciones/propuestas/${proposal.id}/rubrica`,role);actual={...actual,ciclo:meta.ciclo};}
+            await request(`/evaluaciones/propuestas/${proposal.id}/acciones`, role, 'POST', {action,payload:actual});
             const stored = await pool.query('SELECT estado_actual, etapa_flujo FROM propuesta WHERE id_propuesta=$1', [proposal.id]);
             return JSON.stringify(stored.rows[0]);
           } catch (error) { canContinue = false; throw error; }

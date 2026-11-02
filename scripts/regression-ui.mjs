@@ -18,7 +18,7 @@ async function api(role,route,method='GET',body){
 }
 async function fixture(state='borrador',stage=0){
   const result=await env.pool.query(`INSERT INTO propuesta(codigo,id_convocatoria,id_coordinador,id_escuela,titulo,modalidad,estado_actual,etapa_flujo)
-    SELECT $1,(SELECT id_convocatoria FROM convocatoria ORDER BY id_convocatoria LIMIT 1),u.id_usuario,u.id_escuela,'Borrador UI propio','aplicada',$2,$3 FROM usuario u WHERE u.correo_institucional='investigador@tec.ac.cr' RETURNING id_propuesta,codigo`,[`UI-${Date.now()}-${++serial}`,state,stage]);return result.rows[0];
+    SELECT $1,(SELECT id_convocatoria FROM convocatoria ORDER BY id_convocatoria LIMIT 1),u.id_usuario,u.id_escuela,'Borrador UI propio','aplicada',$2,$3 FROM usuario u WHERE u.correo_institucional='investigador@tec.ac.cr' RETURNING id_propuesta,codigo`,[`UI-${Date.now()}-${++serial}`,state,stage]);const p=result.rows[0];if(stage>0)await env.pool.query("UPDATE propuesta SET fecha_envio=NOW() WHERE id_propuesta=$1",[p.id_propuesta]);if(stage===2){const {assignCommittee}=await import('../backend/dist/rubricas.js');const school=(await env.pool.query('SELECT id_escuela FROM propuesta WHERE id_propuesta=$1',[p.id_propuesta])).rows[0].id_escuela;await assignCommittee(env.pool,p.id_propuesta,school);}return p;
 }
 async function selectProposal(page,proposal){await page.goto(env.uiOrigin+'/evaluaciones');const select=page.getByLabel('Expediente activo',{exact:true});await expect(select).toBeVisible();await select.selectOption(proposal.codigo);}
 async function shot(page,name){await page.screenshot({path:path.join(output,`${name}.png`)});return `${name}.png`;}
@@ -38,7 +38,7 @@ try{
       for(const[step,label,value]of [[4,'Estado del arte','Antecedentes UI propios'],[10,'Divulgación y socialización','Divulgación UI propia'],[12,'Hoja de ruta','Hoja UI propia']]){
         await page.locator('.wizard-steps button').nth(step).click();await page.getByLabel(label,{exact:true}).fill(value);
       }
-      await page.getByRole('button',{name:'Guardar borrador',exact:true}).click();await expect(page).toHaveURL(new RegExp(`/propuestas/${p.id_propuesta}$`));
+      await page.getByRole('button',{name:'Guardar borrador',exact:true}).click();await expect(page).toHaveURL(new RegExp(`edit=${p.id_propuesta}$`));await page.getByRole('link',{name:'Ver expediente guardado',exact:true}).click();await expect(page).toHaveURL(new RegExp(`/propuestas/${p.id_propuesta}$`));
       await expect(page.getByText('Antecedentes UI propios',{exact:true})).toBeVisible();
       await page.goto(`${env.uiOrigin}/propuestas/nueva?edit=${p.id_propuesta}`);await expect(page.locator('.wizard-steps button').first()).toBeVisible();await page.locator('.wizard-steps button').nth(4).click();await expect(page.getByLabel('Estado del arte',{exact:true})).toHaveValue('Antecedentes UI propios');return await shot(page,'arte-reabierto');
     }finally{await context.close();}
@@ -50,7 +50,7 @@ try{
   });
   await check('Equipo permite alta y guarda la persona externa',async()=>{
     const p=await fixture();const{page,context}=await login('investigador');try{
-      await page.goto(`${env.uiOrigin}/propuestas/nueva?edit=${p.id_propuesta}`);await expect(page.locator('.wizard-steps button').first()).toBeVisible();await page.locator('.wizard-steps button').nth(2).click();await page.getByRole('button',{name:'Agregar persona externa',exact:true}).click();await page.getByLabel('Nombre',{exact:true}).fill('Externa UI propia');await page.getByLabel('Institución / empresa',{exact:true}).fill('Entidad UI');await page.getByRole('button',{name:'Guardar borrador',exact:true}).click();await expect(page).toHaveURL(new RegExp(`/propuestas/${p.id_propuesta}$`));await page.getByRole('tab',{name:'Equipo',exact:true}).click();await expect(page.getByText('Externa UI propia',{exact:true})).toBeVisible();return await shot(page,'equipo-propio');
+      await page.goto(`${env.uiOrigin}/propuestas/nueva?edit=${p.id_propuesta}`);await expect(page.locator('.wizard-steps button').first()).toBeVisible();await page.locator('.wizard-steps button').nth(2).click();await page.getByRole('button',{name:'Agregar persona externa',exact:true}).click();await page.getByLabel('Nombre',{exact:true}).fill('Externa UI propia');await page.getByLabel('Institución / empresa',{exact:true}).fill('Entidad UI');await page.getByRole('button',{name:'Guardar borrador',exact:true}).click();await expect(page).toHaveURL(new RegExp(`edit=${p.id_propuesta}$`));await page.getByRole('link',{name:'Ver expediente guardado',exact:true}).click();await expect(page).toHaveURL(new RegExp(`/propuestas/${p.id_propuesta}$`));await page.getByRole('tab',{name:'Equipo',exact:true}).click();await expect(page.getByText('Externa UI propia',{exact:true})).toBeVisible();return await shot(page,'equipo-propio');
     }finally{await context.close();}
   });
   for(const viewport of [{width:1440,height:900},{width:390,height:844}])await check(`Modal devolución sin superposición ${viewport.width}`,async()=>{
@@ -74,7 +74,7 @@ try{
   });
   await check('D04 y D03: certificar PI, devolver, editar solo lo indicado y reenviar por interfaz',async()=>{
     const conv=(await api('investigador','/convocatorias')).find(c=>c.estado==='activa');assert.ok(conv);
-    const p=await api('investigador','/propuestas','POST',{titulo:'Recorrido UI D01–D04',idConvocatoria:conv.id,modalidad:'aplicada',declaracion:true,resumen:'Resumen UI original',keywordsEs:'agua,suelo,clima,riesgo'});
+    const p=await api('investigador','/propuestas','POST',{titulo:'Recorrido UI D01–D04',idConvocatoria:conv.id,modalidad:'aplicada',declaracion:true,abstractEn:'Own UI abstract',resumen:'Resumen UI original',keywordsEs:'agua,suelo,clima,riesgo'});
     await api('investigador',`/propuestas/${p.id}/enviar`,'POST');
     let current=await login('vinculacion');try{
       await selectProposal(current.page,{codigo:p.codigo});await current.page.getByLabel('Fundamento de PI no requerido',{exact:true}).fill('Vinculación certifica la no necesidad de dictamen en esta prueba.');await current.page.getByRole('button',{name:'Certificar PI no requerido',exact:true}).click();await expect(current.page.getByText('PI no requerido certificado con fundamento, fecha y responsable.',{exact:true})).toBeVisible();

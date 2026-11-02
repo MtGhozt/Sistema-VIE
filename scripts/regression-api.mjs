@@ -28,16 +28,30 @@ async function draft() {
   // Preparación aislada: estas pruebas unitarias de rutas no certifican el recorrido PI.
   await env.pool.query(`INSERT INTO pi_certificacion_no_requerido(id_propuesta,id_certificador,fundamento)
     SELECT $1,id_usuario,'Certificación sintética para aislar la ruta bajo prueba' FROM usuario WHERE correo_institucional='vinculacion@tec.ac.cr'`,[id]);
+  await env.pool.query("UPDATE propuesta SET abstract_en='Fixture abstract' WHERE id_propuesta=$1",[id]);await stageFixture(id);
+  const {assignCommittee,proposalRubric}=await import('../backend/dist/rubricas.js');const school=(await env.pool.query('SELECT id_escuela FROM propuesta WHERE id_propuesta=$1',[id])).rows[0].id_escuela;
+  await assignCommittee(env.pool,id,school);await proposalRubric(env.pool,id,'aplicada');
   return id;
 }
+// Precondiciones sintéticas de pruebas aisladas; baseline-flow recorre las transiciones reales.
+async function stageFixture(id){const p=(await env.pool.query('SELECT etapa_flujo FROM propuesta WHERE id_propuesta=$1',[id])).rows[0];if(p.etapa_flujo>0)await env.pool.query('UPDATE propuesta SET fecha_envio=NOW() WHERE id_propuesta=$1',[id]);
+ if(p.etapa_flujo>=3)await env.pool.query("INSERT INTO resultado_comite(id_propuesta,recomendacion,calificacion_promedio,fundamento) VALUES($1,'recomienda',80,'Fixture de ruta') ON CONFLICT DO NOTHING",[id]);
+ if(p.etapa_flujo>=4){await env.pool.query("INSERT INTO aval_consejo(id_propuesta,resultado,observaciones) VALUES($1,'aprueba','Fixture de ruta') ON CONFLICT DO NOTHING",[id]);await env.pool.query("INSERT INTO comunicacion_institucional(id_propuesta,tipo,id_emisor,confirmada,fecha_envio) SELECT $1,'aval_consejo',id_usuario,true,NOW() FROM usuario WHERE correo_institucional='direccion_escuela@tec.ac.cr'",[id]);}
+ if(p.etapa_flujo>=5)await env.pool.query("INSERT INTO propuesta_historial_estado(id_propuesta,estado_nuevo,fecha_hora,observacion) VALUES($1,'avalada',NOW(),'Expediente remitido al CIE')",[id]);
+}
+async function finishCommittee(id,scores){for(const role of ['e2','e3'])await action(id,role,'committee-score',{scores});await action(id,'comite_asistente','committee-confirm',{texto:'Consolidación verificada de tres evaluadores'});}
 const patch=(id,data,status=200)=>call(`/propuestas/${id}`,'investigador','PATCH',data,status);
 const detail=id=>call(`/propuestas/${id}`,'investigador');
-const action=(id,role,action,payload={},status=200)=>call(`/evaluaciones/propuestas/${id}/acciones`,role,'POST',{action,payload},status);
+async function action(id,role,operation,payload={},status=200){
+ if(['save-rubric','committee-score'].includes(operation)&&payload.ciclo===undefined&&status!==403){const instance=role==='cie'||payload.instancia==='cie'?'cie':'comite';const meta=await call(`/evaluaciones/propuestas/${id}/rubrica?instancia=${instance}`,role);payload={...payload,ciclo:meta.ciclo};}
+ return call(`/evaluaciones/propuestas/${id}/acciones`,role,'POST',{action:operation,payload},status);
+}
 try {
   env=await testEnvironment();
   for (const role of ['investigador','vie_publicacion','vinculacion','comite_asistente','comite_evaluador','consejo_asistente','consejo','direccion_escuela','gestora_vie','cie','direccion_investigacion','admin']) {
     await check(`Login ${role}`,async()=>{const data=await call('/demo/login',null,'POST',{email:`${role}@tec.ac.cr`,password:'prototipo2026',roleCode:role});assert.equal(data.user.roleCode,role);sessions.set(role,data.user);});
   }
+  for(const n of [2,3]){const d=await call('/demo/login',null,'POST',{email:`comite_evaluador${n}@tec.ac.cr`,password:'prototipo2026',roleCode:'comite_evaluador'});sessions.set('e'+n,d.user);}
   await check('Migraciones conservan compromisos sin aceptación implícita',async()=>{
     const r=await env.pool.query("SELECT column_name FROM information_schema.columns WHERE table_name='propuesta' AND column_name IN ('declaracion_aceptada','resguardo_repositorio','resguardo_tecnico')");assert.equal(r.rowCount,3);
     const id=await draft();const d=await detail(id);assert.equal(d.declaracion,false);assert.equal(d.resguardoRepositorio,false);
@@ -76,7 +90,7 @@ try {
   });
   await check('Guardar rúbrica conserva criterios y separa instancias y usuarios',async()=>{
     const {rubricCriteria}=await import('../backend/dist/rubricas.js');
-    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='en_evaluacion',etapa_flujo=2 WHERE id_propuesta=$1",[id]);
+    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='en_evaluacion',etapa_flujo=2 WHERE id_propuesta=$1",[id]);await stageFixture(id);
     const scores=Object.fromEntries(rubricCriteria('aplicada').map(c=>[c.key,{score:8,reason:'Justificación humana '+c.key}]));
     await action(id,'comite_evaluador','save-rubric',{scores});
     const saved=await call(`/evaluaciones/propuestas/${id}/rubrica?instancia=comite`,'comite_evaluador');assert.deepEqual(saved.scores,scores);
@@ -85,6 +99,7 @@ try {
     await action(id,'comite_evaluador','save-rubric',{scores:{}} ,400);
     const count=await env.pool.query('SELECT count(*) FROM evaluacion_puntaje p JOIN evaluacion e ON e.id_evaluacion=p.id_evaluacion WHERE e.id_propuesta=$1',[id]);assert.equal(Number(count.rows[0].count),Object.keys(scores).length);
     await action(id,'comite_evaluador','committee-score',{scores,average:99,recommendation:'RECOMIENDA'});
+    await finishCommittee(id,scores);
     const result=await env.pool.query('SELECT calificacion_promedio,recomendacion FROM resultado_comite WHERE id_propuesta=$1',[id]);assert.notEqual(Number(result.rows[0].calificacion_promedio),99);assert.equal(result.rows[0].recomendacion,'no_recomienda');
   });
   await check('Envío concurrente produce un solo evento de historial',async()=>{
@@ -102,7 +117,7 @@ try {
     await call(`/evaluaciones/propuestas/${id}/pi`,'investigador','GET',undefined,403);
   });
   await check('Checklist VIE persiste y bloquea remisión incompleta',async()=>{
-    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=4 WHERE id_propuesta=$1",[id]);
+    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=4 WHERE id_propuesta=$1",[id]);await stageFixture(id);
     await action(id,'gestora_vie','send-cie',{},409);
     const keys=['propuesta','pi','evaluacion_comite','oficio_comite','aval','respaldos'];
     const checks=Object.fromEntries(keys.map(k=>[k,true]));await action(id,'gestora_vie','vie-checklist',{checks:{...checks,pi:false}});await action(id,'gestora_vie','send-cie',{},409);
@@ -111,7 +126,7 @@ try {
     await action(id,'gestora_vie','send-cie');
   });
   await check('Dos devoluciones conservan ciclos independientes',async()=>{
-    const id=await draft();await patch(id,{declaracion:true,keywordsEs:'uno,dos,tres,cuatro'});await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);
+    const id=await draft();await patch(id,{declaracion:true,keywordsEs:'uno,dos,tres,cuatro'});await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);await stageFixture(id);
     await action(id,'comite_asistente','return',{texto:'Primera devolución',secciones:['resumen']});
     await patch(id,{resumen:'Corrección uno'});await call(`/propuestas/${id}/enviar`,'investigador','POST',{respuesta:'Atendida primera devolución'});
     await action(id,'comite_asistente','return',{texto:'Segunda devolución',secciones:['resumen']});
@@ -137,24 +152,24 @@ try {
     await call(`/convocatorias/${c.id}`,'vie_publicacion','PATCH',{nombre:'Cronograma final',hitos:[updated.hitos[1]]});assert.equal((await call(`/convocatorias/${c.id}`,'vie_publicacion')).hitos.length,1);
   });
   await check('Comunicar exige aval y una decisión emitida no se sobrescribe',async()=>{
-    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='dictaminada',etapa_flujo=3 WHERE id_propuesta=$1",[id]);
+    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='dictaminada',etapa_flujo=3 WHERE id_propuesta=$1",[id]);await stageFixture(id);
     await action(id,'direccion_escuela','communicate-aval',{},409);
     await action(id,'consejo','council-approve',{texto:'Fundamento del Consejo',oficio:`AV-RG-${id}`});await action(id,'consejo','council-reject',{texto:'No sobrescribir'},409);await action(id,'direccion_escuela','communicate-aval');
     const rows=await env.pool.query('SELECT articulo FROM aval_consejo WHERE id_propuesta=$1',[id]);assert.equal(rows.rows[0].articulo,null);
   });
   await check('CIE conserva fundamento y decisión cerrada rechaza sobrescritura',async()=>{
-    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=5 WHERE id_propuesta=$1",[id]);
+    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=5 WHERE id_propuesta=$1",[id]);await stageFixture(id);
     await action(id,'cie','cie-reject',{texto:'Fundamento humano propio'});const r=await env.pool.query('SELECT fundamento,resultado FROM resolucion_cie WHERE id_propuesta=$1',[id]);assert.equal(r.rows[0].fundamento,'Fundamento humano propio');assert.equal(r.rows[0].resultado,'rechazada');await action(id,'cie','cie-approve',{texto:'No sobrescribir'},409);
   });
   await check('Notificación concurrente única, por destinatario y lectura persistida',async()=>{
-    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=5 WHERE id_propuesta=$1",[id]);await action(id,'cie','cie-approve',{texto:'Resolución de prueba'});
+    const id=await draft();await env.pool.query("UPDATE propuesta SET estado_actual='avalada',etapa_flujo=5 WHERE id_propuesta=$1",[id]);await stageFixture(id);await action(id,'cie','cie-approve',{texto:'Resolución de prueba'});
     await Promise.all([action(id,'direccion_investigacion','notify-resolution'),action(id,'direccion_investigacion','notify-resolution')]);
     const r=await env.pool.query('SELECT id_notificacion FROM notificacion WHERE id_propuesta=$1',[id]);assert.equal(r.rowCount,1);const nid=String(r.rows[0].id_notificacion);
     assert.ok((await call('/notificaciones','investigador')).some(n=>n.id===nid));assert.ok(!(await call('/notificaciones','cie')).some(n=>n.id===nid));await call(`/notificaciones/${nid}/leida`,'cie','PATCH',undefined,404);await call(`/notificaciones/${nid}/leida`,'investigador','PATCH',undefined,204);assert.equal((await call('/notificaciones','investigador')).find(n=>n.id===nid).unread,false);
     const b=await call('/evaluaciones/bandeja','direccion_investigacion');assert.equal(b.items.find(p=>p.id===id).notificada,true);
   });
   await check('No notificar resolución inexistente ni aprobar borrador',async()=>{
-    const id=await draft();await action(id,'admin','cie-approve',{texto:'No permitido'},400);await env.pool.query("UPDATE propuesta SET estado_actual='rechazada',etapa_flujo=6 WHERE id_propuesta=$1",[id]);await action(id,'direccion_investigacion','notify-resolution',{},409);
+    const id=await draft();await action(id,'admin','cie-approve',{texto:'No permitido'},400);await env.pool.query("UPDATE propuesta SET estado_actual='rechazada',etapa_flujo=6 WHERE id_propuesta=$1",[id]);await stageFixture(id);await action(id,'direccion_investigacion','notify-resolution',{},409);
   });
   await check('Código anual respeta históricos y no depende del PK',async()=>{
     const conv=await env.pool.query("SELECT id_convocatoria FROM convocatoria WHERE estado='activa' LIMIT 1");
@@ -166,5 +181,5 @@ try {
   });
 } catch(error){results.push({name:'Entorno',status:'BLOQUEADO',detail:error.message});}
 finally {
-  if(env)await env.close();await mkdir(output,{recursive:true});await writeFile(path.join(output,'reporte.json'),JSON.stringify({run,scope:'Regresión de correcciones; fixtures aislados, no certifica reglas ambiguas ni rúbrica pendiente.',results},null,2)+'\n');console.log(`Evidencia: ${path.relative(root,output)}`);process.exitCode=results.some(r=>r.status!=='PASA')?1:0;
+  if(env)await env.close();await mkdir(output,{recursive:true});await writeFile(path.join(output,'reporte.json'),JSON.stringify({run,scope:'Regresión de rutas con fixtures aislados. La batería D05–D11 cubre el recorrido real de rúbrica completa y consolidación.',results},null,2)+'\n');console.log(`Evidencia: ${path.relative(root,output)}`);process.exitCode=results.some(r=>r.status!=='PASA')?1:0;
 }

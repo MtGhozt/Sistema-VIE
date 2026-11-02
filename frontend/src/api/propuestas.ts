@@ -30,7 +30,99 @@ export type PropuestaDetalle = Propuesta & {
   participantes: PropuestaParticipante[];
   objetivosEspecificos: ObjetivoEspecifico[];
   planAccion: PlanAccionActividad[];
+  presupuestoAnual: PresupuestoAnual[];
+  financiamiento: Financiamiento[];
+  compromisosProductos: PropuestaProducto[];
+  divulgacion: {
+    divulgacionCientifica: string;
+    canalesInstitucionales: string;
+    eventosSocializacion: string;
+    mediosMasivos: string;
+  } | null;
+  aspectosEticos: {
+    seresHumanos: "Sí" | "No" | "";
+    biodiversidad: "Sí" | "No" | "";
+    animales: "Sí" | "No" | "";
+    territoriosIndigenas: "Sí" | "No" | "";
+    consultaConsentimiento: string;
+    exencionJustificacion: string;
+    entesRegulatorios: string[];
+    otroEnte: string;
+    detalleAval: string;
+  } | null;
+  hojaRuta: {
+    lineaInvestigacion: string;
+    objetivoEstrategico: string;
+    duracionTotal: string;
+    fases: string;
+    productosIntermedios: string;
+  } | null;
+  declaracionJurada: {
+    acepta: boolean;
+    nombreCompleto: string;
+    cedula: string;
+    firma: string;
+  } | null;
+  resguardoProductos: {
+    depositoRepositorio: "Sí" | "No" | "";
+    desarrollaSoftwareBaseDatos: "Sí" | "No" | "";
+    entregaRespaldoSoftware: "Sí" | "No" | "";
+  } | null;
 };
+
+export type PresupuestoAnual = {
+  anio: number;
+  operativo: number;
+  duraderos: number;
+  total: number;
+};
+
+export type Financiamiento = {
+  tipo: "externo" | "contrapartida" | "cofinanciamiento";
+  anio1: number;
+  anio2: number;
+  anio3: number;
+  oficio: string;
+};
+
+export type PresupuestoAnualInput = {
+  anio: number;
+  operativo: number;
+  duraderos: number;
+};
+
+export type FinanciamientoInput = Financiamiento;
+
+export type PropuestaProducto = {
+  id: number;
+  tipo: "academico" | "activo_pi" | "adicional";
+  codigoOpcion: string;
+  descripcion: string;
+  cantidad: number;
+  objetivoId: number | null;
+  objetivoNumero: number | null;
+  dictamenConsecutivo: string;
+};
+
+export type PropuestaProductoInput =
+  | {
+      tipo: "academico";
+      codigoOpcion: string;
+      cantidad: number;
+      objetivoNumero: number;
+    }
+  | {
+      tipo: "activo_pi";
+      codigoOpcion: string;
+      cantidad: number;
+      dictamenConsecutivo: string;
+    }
+  | {
+      tipo: "adicional";
+      codigoOpcion: string;
+      cantidad: 1;
+      descripcion: string;
+    };
 
 export type PlanAccionParticipante = {
   idParticipante: number | null;
@@ -131,6 +223,14 @@ export type PropuestaInput = {
   preguntasGenerales?: PreguntaGeneral[];
   participantes?: PropuestaParticipanteInput[];
   planAccion?: PlanAccionActividadInput[];
+  presupuestoAnual?: PresupuestoAnualInput[];
+  financiamiento?: FinanciamientoInput[];
+  compromisosProductos?: PropuestaProductoInput[];
+  divulgacion?: PropuestaDetalle["divulgacion"];
+  aspectosEticos?: PropuestaDetalle["aspectosEticos"];
+  hojaRuta?: PropuestaDetalle["hojaRuta"];
+  declaracionJurada?: PropuestaDetalle["declaracionJurada"];
+  resguardoProductos?: PropuestaDetalle["resguardoProductos"];
 };
 
 export function fetchPropuestas() {

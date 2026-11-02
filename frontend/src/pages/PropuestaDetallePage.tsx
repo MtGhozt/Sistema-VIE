@@ -20,6 +20,7 @@ import {
   ADMIN_STAGE_ROLES,
   getDemoProposal,
 } from "../data/demo";
+import { formatCRC } from "../data/proposalView";
 
 function labelEstado(estado: string) {
   const map: Record<string, string> = {
@@ -34,6 +35,10 @@ function apiToDetailModel(
   template?: ReturnType<typeof getDemoProposal>,
 ): ProposalDetailModel {
   const t = template;
+  const budgetTotal = d.presupuestoAnual.reduce(
+    (total, row) => total + row.operativo + row.duraderos,
+    0,
+  );
   return {
     id: d.codigo,
     titulo: d.titulo,
@@ -44,7 +49,7 @@ function apiToDetailModel(
     estado: labelEstado(d.estadoActual),
     etapa: stepFromPropuestaEstado(d.estadoActual, d.etapaFlujo),
     piRequired: t?.piRequired ?? false,
-    presupuesto: t?.presupuesto ?? "—",
+    presupuesto: budgetTotal > 0 ? formatCRC(budgetTotal) : "—",
     resumen: d.resumen ?? t?.resumen ?? "",
     abstract: d.abstractEn ?? t?.abstract ?? "",
     palabras:
@@ -60,10 +65,45 @@ function apiToDetailModel(
       },
     ],
     teamExternal: t?.teamExternal,
-    presupuestoAnual: t?.presupuestoAnual,
-    financiamiento: t?.financiamiento,
-    productos: t?.productos,
-    activoPI: t?.activoPI,
+    presupuestoAnual: d.presupuestoAnual,
+    financiamiento: d.financiamiento
+      .map((source) => ({
+        tipo:
+          source.tipo === "externo"
+            ? "Financiamiento externo"
+            : source.tipo === "contrapartida"
+              ? "Contrapartida"
+              : "Cofinanciamiento",
+        anio1: source.anio1,
+        anio2: source.anio2,
+        anio3: source.anio3,
+        oficio: source.oficio,
+      }))
+      .filter(
+        (source) =>
+          source.anio1 > 0 ||
+          source.anio2 > 0 ||
+          source.anio3 > 0 ||
+          source.oficio,
+      ),
+    productos: d.compromisosProductos
+      .filter(
+        (product) =>
+          product.tipo === "academico" || product.tipo === "adicional",
+      )
+      .map((product) =>
+        product.tipo === "academico"
+          ? `${product.cantidad} × ${product.descripcion} (objetivo específico ${product.objetivoNumero ?? "—"})`
+          : product.descripcion,
+      ),
+    activoPI:
+      d.compromisosProductos
+        .filter((product) => product.tipo === "activo_pi")
+        .map(
+          (product) =>
+            `${product.cantidad} × ${product.descripcion} · Dictamen ${product.dictamenConsecutivo}`,
+        )
+        .join("; ") || undefined,
     etica: t?.etica,
     observaciones: t?.observaciones ?? [],
     timeline:

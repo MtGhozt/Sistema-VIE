@@ -1,14 +1,21 @@
 import { useId, type ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
 import { MODALIDADES } from "../data/demo";
-import { DEMO_PROPOSALS } from "../data/demo";
 import {
   ALT_TEXT_MIN_CHARS,
+  BASIC_ACADEMIC_PRODUCTS,
+  BUDGET_YEARS,
   ESTADO_ARTE_MAX_WORDS,
+  FINANCING_TYPES,
+  FORM_WIZARD_STEPS,
   PLAN_RESPONSIBILITIES,
+  TECHNOLOGY_ACADEMIC_PRODUCTS,
+  TECHNOLOGY_IP_ASSETS,
   type ActionPlanActivityDraft,
+  type AcademicProductDraft,
   type ActionPlanParticipantDraft,
   type ActionPlanRiskDraft,
+  type AdditionalProductDraft,
   type AmbitoInstrumento,
   type FormWizardState,
   type GradoVinculo,
@@ -19,8 +26,10 @@ import {
   type TeamHourDraft,
   type TeamTecDraft,
   type TipoInnovacion,
+  type TechnologyAssetDraft,
   type YesNo,
   TRL_LEVELS,
+  getFormStepStatus,
 } from "../data/formWizard";
 import { formatCRC } from "../data/proposalView";
 
@@ -119,7 +128,6 @@ export function FormWizardStepContent({
   idConvocatoria,
   setIdConvocatoria,
 }: Props) {
-  const rich = DEMO_PROPOSALS[0]!;
   const q6GroupName = useId();
 
   function patchTeamTec(id: string, partial: Partial<TeamTecDraft>) {
@@ -199,6 +207,39 @@ export function FormWizardStepContent({
               ),
             }
           : activity,
+      ),
+    });
+  }
+
+  function patchAcademicProduct(
+    id: string,
+    partial: Partial<AcademicProductDraft>,
+  ) {
+    patch({
+      productosAcademicos: form.productosAcademicos.map((product) =>
+        product.id === id ? { ...product, ...partial } : product,
+      ),
+    });
+  }
+
+  function patchTechnologyAsset(
+    id: string,
+    partial: Partial<TechnologyAssetDraft>,
+  ) {
+    patch({
+      activosPI: form.activosPI.map((asset) =>
+        asset.id === id ? { ...asset, ...partial } : asset,
+      ),
+    });
+  }
+
+  function patchAdditionalProduct(
+    id: string,
+    partial: Partial<AdditionalProductDraft>,
+  ) {
+    patch({
+      productosAdicionales: form.productosAdicionales.map((product) =>
+        product.id === id ? { ...product, ...partial } : product,
       ),
     });
   }
@@ -1612,79 +1653,1204 @@ export function FormWizardStepContent({
     );
   }
 
-  if (step === 7 && rich.presupuestoAnual) {
-    const total = rich.presupuestoAnual.reduce(
-      (s, r) => s + r.operativo + r.duraderos,
-      0,
+  if (step === 7) {
+    const annualTotals = BUDGET_YEARS.map((_, index) =>
+      form.financiamiento.reduce(
+        (total, source) =>
+          total + Number([source.anio1, source.anio2, source.anio3][index] || 0),
+        0,
+      ),
+    );
+    const budgetTotals = form.presupuestoAnual.reduce(
+      (totals, row, index) => ({
+        operativo: totals.operativo + Number(row.operativo || 0),
+        duraderos:
+          totals.duraderos +
+          (index === 0 ? Number(row.duraderos || 0) : 0),
+      }),
+      { operativo: 0, duraderos: 0 },
     );
     return (
-      <div className="stack-lg">
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Año</th>
-                <th>Operativo</th>
-                <th>Duraderos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rich.presupuestoAnual.map((r) => (
-                <tr key={r.anio}>
-                  <td>{r.anio}</td>
-                  <td>{formatCRC(r.operativo)}</td>
-                  <td>{formatCRC(r.duraderos)}</td>
+      <div className="stack-xl">
+        <section className="stack-md" aria-labelledby="annual-budget-heading">
+          <div>
+            <h3 id="annual-budget-heading">Presupuesto solicitado por año</h3>
+            <p className="field-hint">
+              El desglose de cada partida se adjunta en el archivo Excel de
+              presupuesto. Los bienes duraderos se formulan únicamente para el
+              primer año.
+            </p>
+          </div>
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Año</th>
+                  <th scope="col">Presupuesto operativo</th>
+                  <th scope="col">Bienes duraderos</th>
+                  <th scope="col">Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="budget-total-banner">
-          <strong>Total</strong>
-          <span>{formatCRC(total)}</span>
-        </div>
+              </thead>
+              <tbody>
+                {form.presupuestoAnual.map((row, index) => (
+                  <tr key={row.anio}>
+                    <th scope="row">{row.anio}</th>
+                    <td>
+                      <label className="sr-only" htmlFor={`budget-operativo-${row.anio}`}>
+                        Presupuesto operativo {row.anio}
+                      </label>
+                      <input
+                        id={`budget-operativo-${row.anio}`}
+                        className="input"
+                        type="number"
+                        min="0"
+                        max="999999999999.99"
+                        step="0.01"
+                        value={row.operativo}
+                        onChange={(event) =>
+                          patch({
+                            presupuestoAnual: form.presupuestoAnual.map(
+                              (budget) =>
+                                budget.anio === row.anio
+                                  ? { ...budget, operativo: event.target.value }
+                                  : budget,
+                            ),
+                          })
+                        }
+                      />
+                    </td>
+                    <td>
+                      <label className="sr-only" htmlFor={`budget-durable-${row.anio}`}>
+                        Presupuesto de bienes duraderos {row.anio}
+                      </label>
+                      <input
+                        id={`budget-durable-${row.anio}`}
+                        className="input"
+                        type="number"
+                        min="0"
+                        max="999999999999.99"
+                        step="0.01"
+                        value={index === 0 ? row.duraderos : "0"}
+                        disabled={index > 0}
+                        onChange={(event) =>
+                          patch({
+                            presupuestoAnual: form.presupuestoAnual.map(
+                              (budget) =>
+                                budget.anio === row.anio
+                                  ? { ...budget, duraderos: event.target.value }
+                                  : budget,
+                            ),
+                          })
+                        }
+                      />
+                    </td>
+                    <td>
+                      {formatCRC(
+                        Number(row.operativo || 0) +
+                          (index === 0 ? Number(row.duraderos || 0) : 0),
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row">Total</th>
+                  <td>{formatCRC(budgetTotals.operativo)}</td>
+                  <td>{formatCRC(budgetTotals.duraderos)}</td>
+                  <td>
+                    {formatCRC(
+                      budgetTotals.operativo + budgetTotals.duraderos,
+                    )}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+
+        <section className="stack-md" aria-labelledby="financing-heading">
+          <div>
+            <h3 id="financing-heading">
+              Financiamiento externo, contrapartida y cofinanciamiento
+            </h3>
+            <p className="field-hint">
+              Completá la fuente, los montos por año y el oficio de respaldo
+              junto con la entidad emisora. El detalle del destino por partida
+              se consigna en el Excel adjunto.
+            </p>
+          </div>
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Desglose</th>
+                  {BUDGET_YEARS.map((year) => (
+                    <th scope="col" key={year}>
+                      Año {year}
+                    </th>
+                  ))}
+                  <th scope="col">Número de oficio / entidad emisora</th>
+                </tr>
+              </thead>
+              <tbody>
+                {form.financiamiento.map((source, sourceIndex) => (
+                  <tr key={source.tipo}>
+                    <th scope="row">
+                      {FINANCING_TYPES[sourceIndex].label}
+                    </th>
+                    {(["anio1", "anio2", "anio3"] as const).map(
+                      (yearKey, index) => (
+                        <td key={yearKey}>
+                          <label
+                            className="sr-only"
+                            htmlFor={`financing-${source.tipo}-${yearKey}`}
+                          >
+                            {FINANCING_TYPES[sourceIndex].label}, año{" "}
+                            {BUDGET_YEARS[index]}
+                          </label>
+                          <input
+                            id={`financing-${source.tipo}-${yearKey}`}
+                            className="input"
+                            type="number"
+                            min="0"
+                            max="999999999999.99"
+                            step="0.01"
+                            value={source[yearKey]}
+                            onChange={(event) =>
+                              patch({
+                                financiamiento: form.financiamiento.map(
+                                  (item) =>
+                                    item.tipo === source.tipo
+                                      ? {
+                                          ...item,
+                                          [yearKey]: event.target.value,
+                                        }
+                                      : item,
+                                ),
+                              })
+                            }
+                          />
+                        </td>
+                      ),
+                    )}
+                    <td>
+                      <label
+                        className="sr-only"
+                        htmlFor={`financing-oficio-${source.tipo}`}
+                      >
+                        Oficio y entidad emisora:{" "}
+                        {FINANCING_TYPES[sourceIndex].label}
+                      </label>
+                      <input
+                        id={`financing-oficio-${source.tipo}`}
+                        className="input"
+                        maxLength={60}
+                        value={source.oficio}
+                        onChange={(event) =>
+                          patch({
+                            financiamiento: form.financiamiento.map((item) =>
+                              item.tipo === source.tipo
+                                ? { ...item, oficio: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row">Total</th>
+                  {annualTotals.map((total, index) => (
+                    <td key={BUDGET_YEARS[index]}>{formatCRC(total)}</td>
+                  ))}
+                  <td>—</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
       </div>
     );
   }
 
   if (step === 8) {
+    const technologyProject = form.modalidad === "Desarrollo tecnológico";
+    const academicOptions = technologyProject
+      ? TECHNOLOGY_ACADEMIC_PRODUCTS
+      : BASIC_ACADEMIC_PRODUCTS;
+    const weeklyHours = form.teamTec.reduce(
+      (total, member) =>
+        total +
+        member.horas.reduce(
+          (memberTotal, hour) =>
+            memberTotal + (Number(hour.cantidad) || 0),
+          0,
+        ),
+      0,
+    );
+    const minimumAcademicProducts = Math.ceil(weeklyHours / 10);
+    const selectedAcademicProducts = form.productosAcademicos.reduce(
+      (total, product) =>
+        total +
+        (product.codigoOpcion ? Number(product.cantidad) || 0 : 0),
+      0,
+    );
+    const selectedAssets = form.activosPI.reduce(
+      (total, asset) =>
+        total + (asset.codigoOpcion ? Number(asset.cantidad) || 0 : 0),
+      0,
+    );
+    const minimumProductCombinations =
+      weeklyHours > 0
+        ? minimumAcademicProducts + (technologyProject ? 1 : 0)
+        : 0;
+    const commitmentRanges = [
+      { min: 1, max: 10, basic: 1, technology: 2 },
+      { min: 11, max: 20, basic: 2, technology: 3 },
+      { min: 21, max: 30, basic: 3, technology: 4 },
+    ];
+    const selectedRange = commitmentRanges.find(
+      (range) => weeklyHours >= range.min && weeklyHours <= range.max,
+    );
+
     return (
-      <ul>
-        {(rich.productos ?? []).map((p) => (
-          <li key={p}>{p}</li>
-        ))}
-      </ul>
+      <div className="stack-xl">
+        <section className="stack-md" aria-labelledby="product-commitment-heading">
+          <div>
+            <h3 id="product-commitment-heading">
+              {technologyProject
+                ? "12.2 Compromiso para proyectos de desarrollo tecnológico"
+                : "12.1 Compromiso para proyectos de investigación"}
+            </h3>
+            <p className="body-copy">
+              Las horas semanales se calculan con las horas asignadas al equipo
+              TEC en la etapa 3 (VIE, VIE-Centros, REC, CONS, DOC y VIESA).
+              {technologyProject
+                ? " El mínimo incluye los productos académicos y al menos un activo de propiedad industrial."
+                : " El mínimo corresponde a opciones de productos académicos."}
+            </p>
+            <p className="field-hint">
+              Total semanal: <strong>{weeklyHours}</strong> horas · mínimo de
+              productos académicos:{" "}
+              <strong>{minimumAcademicProducts || "—"}</strong>
+              {technologyProject
+                ? " · Para desarrollo tecnológico también se requiere al menos un activo de propiedad industrial."
+                : ""}
+            </p>
+            {weeklyHours > 30 && (
+              <p className="field-error" role="alert">
+                El Formulario 4 solo define rangos hasta 30 horas semanales.
+                Revisá las horas del equipo en la etapa 3.
+              </p>
+            )}
+            {weeklyHours === 0 && (
+              <p className="field-error" role="alert">
+                Agregá las horas semanales del equipo TEC en la etapa 3 para
+                determinar el mínimo de productos.
+              </p>
+            )}
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Horas semanales</th>
+                    <th scope="col">
+                      {technologyProject
+                        ? "Combinaciones mínimas"
+                        : "Productos mínimos requeridos"}
+                    </th>
+                    <th scope="col">Selección aplicable</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {commitmentRanges.map((range) => {
+                    const selected = range === selectedRange;
+                    return (
+                      <tr key={range.min}>
+                        <th scope="row">
+                          {range.min} a {range.max} horas
+                        </th>
+                        <td>
+                          {technologyProject
+                            ? `${range.technology} opciones (incluye al menos 1 activo de propiedad industrial)`
+                            : `${range.basic} ${range.basic === 1 ? "opción" : "opciones"}`}
+                        </td>
+                        <td>{selected ? "X" : "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="page-heading">
+            <h4>Productos académicos comprometidos</h4>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() =>
+                patch({
+                  productosAcademicos: [
+                    ...form.productosAcademicos,
+                    {
+                      id: `producto-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                      codigoOpcion: "",
+                      cantidad: "1",
+                      objetivoNumero: "",
+                    },
+                  ],
+                })
+              }
+            >
+              Agregar producto académico
+            </button>
+          </div>
+          <p className="field-hint">
+            Seleccioná una o varias opciones. Cada fila cuenta como una opción;
+            podés repetirla con la cantidad o combinar opciones para alcanzar el
+            mínimo requerido. Cada producto académico debe vincularse con uno
+            de los tres objetivos específicos.
+          </p>
+          {form.productosAcademicos.length === 0 ? (
+            <p className="empty-state">Todavía no agregaste productos académicos.</p>
+          ) : (
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Selección</th>
+                    <th scope="col">Cantidad de opciones</th>
+                    <th scope="col">Opción de producto</th>
+                    <th scope="col">Objetivo específico asociado</th>
+                    <th scope="col">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.productosAcademicos.map((product, index) => (
+                    <tr key={product.id}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <label
+                          className="sr-only"
+                          htmlFor={`academic-quantity-${product.id}`}
+                        >
+                          Cantidad de opciones académicas {index + 1}
+                        </label>
+                        <input
+                          id={`academic-quantity-${product.id}`}
+                          className="input"
+                          type="number"
+                          min="1"
+                          max="99"
+                          step="1"
+                          value={product.cantidad}
+                          onChange={(event) =>
+                            patchAcademicProduct(product.id, {
+                              cantidad: event.target.value,
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <label
+                          className="sr-only"
+                          htmlFor={`academic-option-${product.id}`}
+                        >
+                          Opción de producto académico {index + 1}
+                        </label>
+                        <select
+                          id={`academic-option-${product.id}`}
+                          className="input"
+                          value={product.codigoOpcion}
+                          onChange={(event) =>
+                            patchAcademicProduct(product.id, {
+                              codigoOpcion:
+                                academicOptions.find(
+                                  (option) => option.value === event.target.value,
+                                )?.value ?? "",
+                            })
+                          }
+                        >
+                          <option value="">Seleccioná una opción</option>
+                          {academicOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <label
+                          className="sr-only"
+                          htmlFor={`academic-objective-${product.id}`}
+                        >
+                          Objetivo específico del producto {index + 1}
+                        </label>
+                        <select
+                          id={`academic-objective-${product.id}`}
+                          className="input"
+                          value={product.objetivoNumero}
+                          onChange={(event) =>
+                            patchAcademicProduct(product.id, {
+                              objetivoNumero:
+                                event.target.value === "1" ||
+                                event.target.value === "2" ||
+                                event.target.value === "3"
+                                  ? event.target.value
+                                  : "",
+                            })
+                          }
+                        >
+                          <option value="">Seleccioná un objetivo</option>
+                          {form.objetivosEspecificos
+                            .slice(0, 3)
+                            .map((objective, objectiveIndex) => (
+                              <option
+                                key={objective.id}
+                                value={objectiveIndex + 1}
+                              >
+                                OE{objectiveIndex + 1}
+                                {objective.descripcion.trim()
+                                  ? ` — ${objective.descripcion.trim()}`
+                                  : ""}
+                              </option>
+                            ))}
+                        </select>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          aria-label={`Quitar producto académico ${index + 1}`}
+                          onClick={() =>
+                            patch({
+                              productosAcademicos:
+                                form.productosAcademicos.filter(
+                                  (item) => item.id !== product.id,
+                                ),
+                            })
+                          }
+                        >
+                          Quitar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="field-hint">
+            Opciones seleccionadas: {selectedAcademicProducts} de{" "}
+            {minimumAcademicProducts || "—"} requeridas.
+            {technologyProject
+              ? ` Compromisos mínimos totales (incluido activo industrial): ${minimumProductCombinations || "—"}; seleccionados: ${selectedAcademicProducts + selectedAssets}.`
+              : ""}
+          </p>
+        </section>
+
+        {technologyProject && (
+          <section className="stack-md" aria-labelledby="ip-assets-heading">
+            <div>
+              <h3 id="ip-assets-heading">
+                Activos de propiedad industrial (obligatorio)
+              </h3>
+              <p className="field-hint">
+                Seleccioná al menos un activo y registrá el consecutivo del
+                dictamen técnico del Centro de Vinculación.
+              </p>
+            </div>
+            <div className="page-heading">
+              <h4>Activos comprometidos</h4>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() =>
+                  patch({
+                    activosPI: [
+                      ...form.activosPI,
+                      {
+                        id: `activo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                        codigoOpcion: "",
+                        cantidad: "1",
+                        dictamen: "",
+                      },
+                    ],
+                  })
+                }
+              >
+                Agregar activo
+              </button>
+            </div>
+            {form.activosPI.length === 0 ? (
+              <p className="empty-state">No has agregado activos de propiedad industrial.</p>
+            ) : (
+              <div className="table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Selección</th>
+                      <th scope="col">Cantidad</th>
+                      <th scope="col">Tipo de activo</th>
+                      <th scope="col">Consecutivo del dictamen</th>
+                      <th scope="col">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {form.activosPI.map((asset, index) => (
+                      <tr key={asset.id}>
+                        <td>{index + 1}</td>
+                        <td>
+                          <label
+                            className="sr-only"
+                            htmlFor={`asset-quantity-${asset.id}`}
+                          >
+                            Cantidad del activo {index + 1}
+                          </label>
+                          <input
+                            id={`asset-quantity-${asset.id}`}
+                            className="input"
+                            type="number"
+                            min="1"
+                            max="99"
+                            step="1"
+                            value={asset.cantidad}
+                            onChange={(event) =>
+                              patchTechnologyAsset(asset.id, {
+                                cantidad: event.target.value,
+                              })
+                            }
+                          />
+                        </td>
+                        <td>
+                          <label
+                            className="sr-only"
+                            htmlFor={`asset-option-${asset.id}`}
+                          >
+                            Tipo de activo {index + 1}
+                          </label>
+                          <select
+                            id={`asset-option-${asset.id}`}
+                            className="input"
+                            value={asset.codigoOpcion}
+                            onChange={(event) =>
+                              patchTechnologyAsset(asset.id, {
+                                codigoOpcion:
+                                  TECHNOLOGY_IP_ASSETS.find(
+                                    (option) =>
+                                      option.value === event.target.value,
+                                  )?.value ?? "",
+                              })
+                            }
+                          >
+                            <option value="">Seleccioná un activo</option>
+                            {TECHNOLOGY_IP_ASSETS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <label
+                            className="sr-only"
+                            htmlFor={`asset-dictamen-${asset.id}`}
+                          >
+                            Consecutivo del dictamen técnico {index + 1}
+                          </label>
+                          <input
+                            id={`asset-dictamen-${asset.id}`}
+                            className="input"
+                            maxLength={40}
+                            value={asset.dictamen}
+                            onChange={(event) =>
+                              patchTechnologyAsset(asset.id, {
+                                dictamen: event.target.value,
+                              })
+                            }
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            aria-label={`Quitar activo ${index + 1}`}
+                            onClick={() =>
+                              patch({
+                                activosPI: form.activosPI.filter(
+                                  (item) => item.id !== asset.id,
+                                ),
+                              })
+                            }
+                          >
+                            Quitar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
+
+        {!technologyProject && (
+          <section
+            className="stack-md"
+            aria-labelledby="additional-products-heading"
+          >
+            <div>
+              <h3 id="additional-products-heading">
+                Otros resultados y activos tecnológicos (complementarios)
+              </h3>
+              <p className="field-hint">
+                Agregá hasta dos resultados adicionales, por ejemplo software,
+                prototipos, bases de datos, guías técnicas o manuales. No
+                sustituyen los productos académicos requeridos.
+              </p>
+            </div>
+            {form.productosAdicionales.map((product, index) => (
+              <div
+                className="team-hours-row additional-product-row"
+                key={product.id}
+              >
+                <label className="field">
+                  <span className="field-label">
+                    Producto adicional {index + 1}
+                  </span>
+                  <textarea
+                    className="input textarea"
+                    rows={2}
+                    maxLength={500}
+                    value={product.descripcion}
+                    onChange={(event) =>
+                      patchAdditionalProduct(product.id, {
+                        descripcion: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  aria-label={`Quitar producto adicional ${index + 1}`}
+                  onClick={() =>
+                    patch({
+                      productosAdicionales: form.productosAdicionales.filter(
+                        (item) => item.id !== product.id,
+                      ),
+                    })
+                  }
+                >
+                  Quitar
+                </button>
+              </div>
+            ))}
+            {form.productosAdicionales.length < 2 && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() =>
+                  patch({
+                    productosAdicionales: [
+                      ...form.productosAdicionales,
+                      {
+                        id: `adicional-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                        descripcion: "",
+                      },
+                    ],
+                  })
+                }
+              >
+                Agregar producto adicional
+              </button>
+            )}
+          </section>
+        )}
+      </div>
     );
   }
 
   if (step === 9) {
     return (
-      <p className="body-copy">
-        Resguardo de productos y activos de propiedad intelectual:{" "}
-        {rich.activoPI ?? "—"}
-      </p>
+      <div className="stack-md product-safeguard">
+        <p className="body-copy">
+          Seleccioná una respuesta para cada compromiso indicado en el
+          Formulario 4.
+        </p>
+        <div className="field" role="group">
+          <span className="field-label">
+            Declaro conocer la obligatoriedad de depositar todos los productos,
+            artículos y resultados derivados del proyecto en el Repositorio
+            Institucional, conforme al artículo 44 del Reglamento de
+            Investigación y Extensión. El depósito se realizará salvo que
+            exista una prohibición explícita por protección de propiedad
+            intelectual o procesos de arbitraje de publicaciones
+            internacionales.
+          </span>
+          <div className="radio-group">
+            {(["No", "Sí"] as const).map((answer) => (
+              <label
+                className={`radio-choice${form.resguardoProductos.depositoRepositorio === answer ? " selected" : ""}`}
+                key={answer}
+              >
+                <input
+                  type="radio"
+                  name="safeguard-repository"
+                  value={answer}
+                  checked={
+                    form.resguardoProductos.depositoRepositorio === answer
+                  }
+                  onChange={() =>
+                    patch({
+                      resguardoProductos: {
+                        ...form.resguardoProductos,
+                        depositoRepositorio: answer,
+                      },
+                    })
+                  }
+                />
+                <span className="radio-dot" />
+                {answer === "Sí" ? "Sí, acepto el compromiso" : answer}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="field" role="group">
+          <span className="field-label">
+            ¿La ejecución del proyecto desarrollará software (incluido código
+            fuente y manuales) o bases de datos?
+          </span>
+          <div className="radio-group">
+            {(["No", "Sí"] as const).map((answer) => (
+              <label
+                className={`radio-choice${form.resguardoProductos.desarrollaSoftwareBaseDatos === answer ? " selected" : ""}`}
+                key={answer}
+              >
+                <input
+                  type="radio"
+                  name="safeguard-software-applicability"
+                  value={answer}
+                  checked={
+                    form.resguardoProductos.desarrollaSoftwareBaseDatos ===
+                    answer
+                  }
+                  onChange={() =>
+                    patch({
+                      resguardoProductos: {
+                        ...form.resguardoProductos,
+                        desarrollaSoftwareBaseDatos: answer,
+                        entregaRespaldoSoftware:
+                          answer === "No"
+                            ? ""
+                            : form.resguardoProductos.entregaRespaldoSoftware,
+                      },
+                    })
+                  }
+                />
+                <span className="radio-dot" />
+                {answer}
+              </label>
+            ))}
+          </div>
+        </div>
+        {form.resguardoProductos.desarrollaSoftwareBaseDatos === "Sí" && (
+          <div className="field" role="group">
+            <span className="field-label">
+              En caso de desarrollar software o bases de datos, asumo el
+              compromiso de entregar el respaldo técnico completo a la
+              Dirección de Investigación para su debido resguardo.
+            </span>
+            <div className="radio-group">
+              {(["No", "Sí"] as const).map((answer) => (
+                <label
+                  className={`radio-choice${form.resguardoProductos.entregaRespaldoSoftware === answer ? " selected" : ""}`}
+                  key={answer}
+                >
+                  <input
+                    type="radio"
+                    name="safeguard-software-commitment"
+                    value={answer}
+                    checked={
+                      form.resguardoProductos.entregaRespaldoSoftware ===
+                      answer
+                    }
+                    onChange={() =>
+                      patch({
+                        resguardoProductos: {
+                          ...form.resguardoProductos,
+                          entregaRespaldoSoftware: answer,
+                        },
+                      })
+                    }
+                  />
+                  <span className="radio-dot" />
+                  {answer === "Sí" ? "Sí, acepto el compromiso" : answer}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+        {form.resguardoProductos.depositoRepositorio === "No" && (
+          <p className="field-error" role="alert">
+            El depósito institucional es un compromiso obligatorio para enviar
+            la propuesta.
+          </p>
+        )}
+        {form.resguardoProductos.desarrollaSoftwareBaseDatos === "Sí" &&
+          form.resguardoProductos.entregaRespaldoSoftware === "No" && (
+            <p className="field-error" role="alert">
+              Para proyectos que desarrollan software o bases de datos, el
+              Formulario 4 requiere aceptar el compromiso de entregar el
+              respaldo técnico.
+            </p>
+          )}
+      </div>
     );
   }
 
   if (step === 10) {
     return (
-      <p className="body-copy">
-        Plan de divulgación y socialización de resultados (conferencias, talleres
-        y transferencia a comunidades beneficiarias).
-      </p>
+      <div className="stack-md">
+        <p className="body-copy">
+          Estas actividades proyectan y transfieren los hallazgos a distintas
+          audiencias y no sustituyen los productos académicos comprometidos.
+        </p>
+        <label className="field">
+          <span className="field-label">
+            Divulgación científica o técnica
+          </span>
+          <span className="field-hint">
+            Eventos previstos y población meta: congresos, charlas técnicas,
+            actividades con docentes o estudiantes, entre otros.
+          </span>
+          <textarea
+            className="input textarea"
+            rows={4}
+            maxLength={5000}
+            value={form.divulgacion.divulgacionCientifica}
+            onChange={(event) =>
+              patch({
+                divulgacion: {
+                  ...form.divulgacion,
+                  divulgacionCientifica: event.target.value,
+                },
+              })
+            }
+          />
+        </label>
+        <label className="field">
+          <span className="field-label">Canales institucionales</span>
+          <span className="field-hint">
+            Detallá canales como Investiga.TEC, sitios web, redes TEC u Orión.
+          </span>
+          <textarea
+            className="input textarea"
+            rows={3}
+            maxLength={5000}
+            value={form.divulgacion.canalesInstitucionales}
+            onChange={(event) =>
+              patch({
+                divulgacion: {
+                  ...form.divulgacion,
+                  canalesInstitucionales: event.target.value,
+                },
+              })
+            }
+          />
+        </label>
+        <label className="field">
+          <span className="field-label">Eventos de socialización</span>
+          <span className="field-hint">
+            Charlas a comunidades, talleres con personas beneficiarias o
+            presentaciones a entes externos.
+          </span>
+          <textarea
+            className="input textarea"
+            rows={3}
+            maxLength={5000}
+            value={form.divulgacion.eventosSocializacion}
+            onChange={(event) =>
+              patch({
+                divulgacion: {
+                  ...form.divulgacion,
+                  eventosSocializacion: event.target.value,
+                },
+              })
+            }
+          />
+        </label>
+        <label className="field">
+          <span className="field-label">Medios masivos</span>
+          <span className="field-hint">
+            Medios que se pretende gestionar, por ejemplo radio, televisión o
+            prensa nacional.
+          </span>
+          <textarea
+            className="input textarea"
+            rows={3}
+            maxLength={5000}
+            value={form.divulgacion.mediosMasivos}
+            onChange={(event) =>
+              patch({
+                divulgacion: {
+                  ...form.divulgacion,
+                  mediosMasivos: event.target.value,
+                },
+              })
+            }
+          />
+        </label>
+      </div>
     );
   }
 
   if (step === 11) {
-    return <p className="body-copy">{rich.etica}</p>;
+    const ethics = form.aspectosEticos;
+    const ethicalQuestions = [
+      {
+        key: "seresHumanos" as const,
+        label:
+          "¿Involucra la participación directa o indirecta de seres humanos como sujetos de investigación?",
+        requirement:
+          "Requiere evaluación y aval de un Comité Ético Científico (CEC) inscrito ante CONIS, conforme a la Ley 9234.",
+      },
+      {
+        key: "biodiversidad" as const,
+        label:
+          "¿Involucra el uso, colecta, acceso o estudio de biodiversidad, recursos genéticos o material biológico silvestre?",
+        requirement:
+          "Requiere gestionar permisos ante CONAGEBIO, conforme a la Ley 7788.",
+      },
+      {
+        key: "animales" as const,
+        label:
+          "¿Involucra el uso, manipulación, cría o experimentación con animales vertebrados?",
+        requirement:
+          "Requiere aprobación del CICUA (UCR) o COBAB (UNA), según la Ley 7451.",
+      },
+      {
+        key: "territoriosIndigenas" as const,
+        label:
+          "¿Involucra trabajo en o con territorios, comunidades o pueblos indígenas?",
+        requirement:
+          "Debe detallar consulta previa y consentimiento libre e informado, y contar con aval de la ADI correspondiente.",
+      },
+    ];
+    const allEthicsAnswered = ethicalQuestions.every(
+      ({ key }) => ethics[key] === "Sí" || ethics[key] === "No",
+    );
+    const needsEthicalReview = ethicalQuestions.some(
+      ({ key }) => ethics[key] === "Sí",
+    );
+    return (
+      <div className="stack-md ethical-review">
+        <p className="body-copy">
+          La declaración ética es requisito de admisibilidad. Indicá en todos
+          los casos si se requiere autorización y completá la justificación o
+          los datos del aval según corresponda.
+        </p>
+        {ethicalQuestions.map(({ key, label, requirement }, index) => (
+          <div className="field" role="group" key={key}>
+            <span className="field-label">
+              {index + 1}. {label}
+            </span>
+            <div className="radio-group">
+              {(["No", "Sí"] as const).map((answer) => (
+                <label
+                  className={`radio-choice${ethics[key] === answer ? " selected" : ""}`}
+                  key={answer}
+                >
+                  <input
+                    type="radio"
+                    name={`ethics-${key}`}
+                    value={answer}
+                    checked={ethics[key] === answer}
+                    onChange={() =>
+                      patch({
+                        aspectosEticos: { ...ethics, [key]: answer },
+                      })
+                    }
+                  />
+                  <span className="radio-dot" />
+                  {answer}
+                </label>
+              ))}
+            </div>
+            {ethics[key] === "Sí" && (
+              <span className="field-hint">{requirement}</span>
+            )}
+            {key === "territoriosIndigenas" && ethics[key] === "Sí" && (
+              <label className="field">
+                <span className="field-label">
+                  Consulta previa y consentimiento libre e informado
+                </span>
+                <textarea
+                  className="input textarea"
+                  rows={3}
+                  maxLength={5000}
+                  value={ethics.consultaConsentimiento}
+                  onChange={(event) =>
+                    patch({
+                      aspectosEticos: {
+                        ...ethics,
+                        consultaConsentimiento: event.target.value,
+                      },
+                    })
+                  }
+                />
+              </label>
+            )}
+          </div>
+        ))}
+        {allEthicsAnswered && !needsEthicalReview && (
+          <label className="field">
+            <span className="field-label">
+              Justificación de exención ética
+            </span>
+            <span className="field-hint">
+              Explicá por qué la propuesta no requiere aval de un comité ético
+              ni ente regulatorio.
+            </span>
+            <textarea
+              className="input textarea"
+              rows={4}
+              maxLength={5000}
+              value={ethics.exencionJustificacion}
+              onChange={(event) =>
+                patch({
+                  aspectosEticos: {
+                    ...ethics,
+                    exencionJustificacion: event.target.value,
+                  },
+                })
+              }
+            />
+          </label>
+        )}
+        {allEthicsAnswered && needsEthicalReview && (
+          <>
+            <fieldset className="field">
+              <legend className="field-label">
+                Comité o ente regulatorio ante el cual se tramitará el aval
+              </legend>
+              {[
+                ["cec", "Comité Ético Científico (CEC)"],
+                ["conagebio", "CONAGEBIO"],
+                ["cicua_cobab", "CICUA (UCR) o COBAB (UNA)"],
+                ["adi", "Asociación de Desarrollo Integral (ADI)"],
+                ["otro", "Otro comité o ente regulatorio"],
+              ].map(([value, label]) => (
+                <label
+                  className={`radio-choice${ethics.entesRegulatorios.includes(value) ? " selected" : ""}`}
+                  key={value}
+                >
+                  <input
+                    type="checkbox"
+                    checked={ethics.entesRegulatorios.includes(value)}
+                    onChange={(event) =>
+                      patch({
+                        aspectosEticos: {
+                          ...ethics,
+                          entesRegulatorios: event.target.checked
+                            ? [...ethics.entesRegulatorios, value]
+                            : ethics.entesRegulatorios.filter(
+                                (entity) => entity !== value,
+                              ),
+                        },
+                      })
+                    }
+                  />
+                  <span className="radio-dot" />
+                  {label}
+                </label>
+              ))}
+            </fieldset>
+            {ethics.entesRegulatorios.includes("otro") && (
+              <label className="field">
+                <span className="field-label">Especifique el otro ente</span>
+                <input
+                  className="input"
+                  maxLength={200}
+                  value={ethics.otroEnte}
+                  onChange={(event) =>
+                    patch({
+                      aspectosEticos: {
+                        ...ethics,
+                        otroEnte: event.target.value,
+                      },
+                    })
+                  }
+                />
+              </label>
+            )}
+            <label className="field">
+              <span className="field-label">
+                Nombre o número del comité/ente y estado del trámite del aval
+              </span>
+              <textarea
+                className="input textarea"
+                rows={3}
+                maxLength={5000}
+                value={ethics.detalleAval}
+                onChange={(event) =>
+                  patch({
+                    aspectosEticos: {
+                      ...ethics,
+                      detalleAval: event.target.value,
+                    },
+                  })
+                }
+              />
+            </label>
+          </>
+        )}
+        <p className="field-hint">
+          La fase experimental no podrá iniciar sin el aval formal. Incluí la
+          medida de mitigación correspondiente en el plan de riesgos.
+        </p>
+      </div>
+    );
   }
 
   if (step === 12) {
     return (
-      <p className="body-copy">
-        Vinculación con hoja de ruta institucional y continuidad de líneas de
-        investigación priorizadas por la VIE.
-      </p>
+      <div className="stack-md">
+        <p className="body-copy">
+          Describí cómo se inserta la propuesta en un proceso sistemático de
+          generación de conocimiento o desarrollo tecnológico a largo plazo.
+        </p>
+        {[
+          ["lineaInvestigacion", "Nombre de la línea de investigación"],
+          ["objetivoEstrategico", "Objetivo estratégico de largo plazo"],
+          ["duracionTotal", "Duración total estimada del proceso"],
+          ["fases", "Fases o proyectos (pasados, presente y futuros)"],
+          ["productosIntermedios", "Productos intermedios por fase"],
+        ].map(([key, label]) => (
+          <label className="field" key={key}>
+            <span className="field-label">{label}</span>
+            <textarea
+              className="input textarea"
+              rows={key === "objetivoEstrategico" ? 4 : 3}
+              maxLength={5000}
+              value={form.hojaRuta[key as keyof typeof form.hojaRuta]}
+              onChange={(event) =>
+                patch({
+                  hojaRuta: {
+                    ...form.hojaRuta,
+                    [key]: event.target.value,
+                  },
+                })
+              }
+            />
+          </label>
+        ))}
+      </div>
     );
   }
 
@@ -1703,26 +2869,142 @@ export function FormWizardStepContent({
   }
 
   if (step === 14) {
+    const declaration = form.declaracionJurada;
     return (
-      <div className="field" role="group" aria-labelledby="decl-jurada-label">
-        <span className="field-label" id="decl-jurada-label">
-          Declaración jurada
-        </span>
-        <label className="radio-choice selected">
+      <div className="stack-md">
+        <section className="card stack-sm" aria-labelledby="decl-jurada-label">
+          <h3 id="decl-jurada-label">
+            Declaración jurada de veracidad y compromiso institucional
+          </h3>
+          <p>
+            Por este medio, manifiesto y declaro bajo fe de juramento:
+          </p>
+          <ol>
+            <li>
+              Que la información y los datos consignados en esta propuesta son
+              íntegros, veraces y correctos.
+            </li>
+            <li>
+              Que los documentos adjuntos y las firmas que los respaldan son
+              auténticos y se gestionaron conforme a los requerimientos
+              técnicos y administrativos aprobados por el CIE.
+            </li>
+            <li>
+              Que conozco que la titularidad y protección de la propiedad
+              intelectual de los productos, activos y resultados se rigen por
+              la normativa institucional vigente y las disposiciones del Centro
+              de Vinculación.
+            </li>
+            <li>
+              Que esta declaración se rinde conforme al artículo 96 del
+              Estatuto Orgánico y a los artículos 13, 21 y 34 del Reglamento de
+              Investigación y Extensión del TEC.
+            </li>
+          </ol>
+          <p>
+            Asumo la responsabilidad directa por la gestión, ejecución y
+            rendición de cuentas de las actividades planificadas, así como por
+            la veracidad de los informes de avance y finales.
+          </p>
+        </section>
+        <label className="field">
+          <span className="field-label">Nombre completo de la persona coordinadora</span>
+          <input
+            className="input"
+            maxLength={150}
+            value={declaration.nombreCompleto}
+            onChange={(event) =>
+              patch({
+                declaracionJurada: {
+                  ...declaration,
+                  nombreCompleto: event.target.value,
+                },
+              })
+            }
+          />
+        </label>
+        <label className="field">
+          <span className="field-label">Número de cédula</span>
+          <input
+            className="input"
+            maxLength={20}
+            value={declaration.cedula}
+            onChange={(event) =>
+              patch({
+                declaracionJurada: {
+                  ...declaration,
+                  cedula: event.target.value,
+                },
+              })
+            }
+          />
+        </label>
+        <label className="field">
+          <span className="field-label">
+            Firma de la persona investigadora coordinadora
+          </span>
+          <input
+            className="input"
+            maxLength={150}
+            value={declaration.firma}
+            onChange={(event) =>
+              patch({
+                declaracionJurada: {
+                  ...declaration,
+                  firma: event.target.value,
+                },
+              })
+            }
+          />
+          <span className="field-hint">
+            Escribí el nombre completo como manifestación de firma. Este
+            registro de aceptación no sustituye una firma digital certificada
+            cuando sea requerida.
+          </span>
+        </label>
+        <label
+          className={`radio-choice${declaration.acepta ? " selected" : ""}`}
+        >
           <input
             type="checkbox"
-            checked={form.declaracion}
-            onChange={(e) => patch({ declaracion: e.target.checked })}
+            checked={declaration.acepta}
+            onChange={(event) =>
+              patch({
+                declaracionJurada: {
+                  ...declaration,
+                  acepta: event.target.checked,
+                },
+              })
+            }
           />
           <span className="radio-dot" />
-          Confirmo que la información es veraz y completa según el formulario
-          VIE 2027.
+          Declaro bajo fe de juramento que leí y acepto lo anterior.
         </label>
       </div>
     );
   }
 
   if (step === 15) {
+    const stageStatuses = FORM_WIZARD_STEPS.slice(0, 15).map(
+      (label, stageIndex) => ({
+        label,
+        status: getFormStepStatus(
+          stageIndex,
+          form,
+          idConvocatoria !== "",
+        ),
+      }),
+    );
+    const graphicsStatus =
+      form.recursosGraficos.length === 0
+        ? "Pendiente"
+        : form.recursosGraficos.every(
+              (resource) =>
+                resource.altText.trim().length >= ALT_TEXT_MIN_CHARS,
+            )
+          ? "Completa"
+          : "En progreso";
+
     function addResource(tipo: GraphicResource["tipo"], fileList: FileList | null) {
       const file = fileList?.[0];
       if (!file) return;
@@ -1752,23 +3034,42 @@ export function FormWizardStepContent({
     return (
       <div className="stack-md">
         <div>
-          <h3>Documentos del expediente</h3>
+          <h3>Estado de las etapas del formulario</h3>
           <p className="field-hint">
-            Formulario, plan de acción, presupuesto y acuerdos (referencia del
-            prototipo).
+            Este resumen se calcula con los datos ingresados actualmente en
+            cada sección.
           </p>
           <div className="task-list" style={{ marginTop: 12 }}>
-            {rich.documentos.map((d) => (
+            {[...stageStatuses, {
+              label: "Recursos gráficos y texto alternativo",
+              status: graphicsStatus,
+            }].map((stage, index) => (
               <div
-                key={d.nombre}
+                key={stage.label}
                 className="task-row"
                 style={{ cursor: "default" }}
               >
-                <strong>{d.nombre}</strong>
-                <span className="badge badge-primary">{d.estado}</span>
+                <strong>
+                  {index < stageStatuses.length ? `${index + 1}. ` : ""}
+                  {stage.label}
+                </strong>
+                <span
+                  className={
+                    stage.status === "Completa"
+                      ? "badge badge-primary"
+                      : "badge"
+                  }
+                >
+                  {stage.status}
+                </span>
               </div>
             ))}
           </div>
+          <p className="field-hint">
+            Los recursos gráficos y sus descripciones se mantienen en el
+            formulario mientras está abierto; todavía no se adjuntan ni
+            persisten en el borrador.
+          </p>
         </div>
 
         <div>

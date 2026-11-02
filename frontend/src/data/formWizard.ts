@@ -118,6 +118,131 @@ export type ActionPlanActivityDraft = {
   duracionMeses: string;
 };
 
+export const BUDGET_YEARS = [2027, 2028, 2029] as const;
+export const FINANCING_TYPES = [
+  { value: "externo", label: "Financiamiento externo" },
+  { value: "contrapartida", label: "Contrapartida" },
+  { value: "cofinanciamiento", label: "Cofinanciamiento" },
+] as const;
+
+export type AnnualBudgetDraft = {
+  anio: number;
+  operativo: string;
+  duraderos: string;
+};
+
+export type FinancingDraft = {
+  tipo: (typeof FINANCING_TYPES)[number]["value"];
+  anio1: string;
+  anio2: string;
+  anio3: string;
+  oficio: string;
+};
+
+export const BASIC_ACADEMIC_PRODUCTS = [
+  {
+    value: "opcion_1",
+    label:
+      "Opción 1: Un artículo científico sometido en revista o conferencia indexada en Web of Science (WoS) o Scopus",
+  },
+  {
+    value: "opcion_2",
+    label:
+      "Opción 2: Dos artículos científicos sometidos en revistas SciELO, Redalyc, ESCI o DOAJ, o memorias con Consejo Editorial",
+  },
+  {
+    value: "opcion_3",
+    label:
+      "Opción 3: Un libro o capítulo de libro técnico especializado sometido ante el Comité Editorial permanente",
+  },
+] as const;
+
+export const TECHNOLOGY_ACADEMIC_PRODUCTS = [
+  ...BASIC_ACADEMIC_PRODUCTS,
+  {
+    value: "opcion_4",
+    label:
+      "Opción 4: Norma técnica sometida ante entes competentes, o manual técnico de alta especialidad",
+  },
+] as const;
+
+export const TECHNOLOGY_IP_ASSETS = [
+  { value: "activo_1", label: "Activo 1: Patente de invención o modelo de utilidad" },
+  { value: "activo_2", label: "Activo 2: Diseño industrial (dibujo o modelo industrial)" },
+  {
+    value: "activo_3",
+    label:
+      "Activo 3: Desarrollo de software (código fuente, manuales y ciclo de vida)",
+  },
+  { value: "activo_4", label: "Activo 4: Secreto depositado en el Centro de Vinculación" },
+  { value: "activo_5", label: "Activo 5: Obtención vegetal" },
+  { value: "activo_6", label: "Activo 6: Denominación de origen o indicación geográfica" },
+  { value: "activo_7", label: "Activo 7: Sistema de trazado de circuitos integrados" },
+  { value: "activo_8", label: "Activo 8: Otros, a criterio del Centro de Vinculación" },
+] as const;
+
+export type AcademicProductCode =
+  | (typeof BASIC_ACADEMIC_PRODUCTS)[number]["value"]
+  | "opcion_4";
+export type TechnologyAssetCode =
+  (typeof TECHNOLOGY_IP_ASSETS)[number]["value"];
+export type AcademicProductDraft = {
+  id: string;
+  codigoOpcion: AcademicProductCode | "";
+  cantidad: string;
+  objetivoNumero: "" | "1" | "2" | "3";
+};
+export type TechnologyAssetDraft = {
+  id: string;
+  codigoOpcion: TechnologyAssetCode | "";
+  cantidad: string;
+  dictamen: string;
+};
+export type AdditionalProductDraft = {
+  id: string;
+  descripcion: string;
+};
+
+export type DisseminationDraft = {
+  divulgacionCientifica: string;
+  canalesInstitucionales: string;
+  eventosSocializacion: string;
+  mediosMasivos: string;
+};
+
+export type EthicalReviewDraft = {
+  seresHumanos: YesNo;
+  biodiversidad: YesNo;
+  animales: YesNo;
+  territoriosIndigenas: YesNo;
+  consultaConsentimiento: string;
+  exencionJustificacion: string;
+  entesRegulatorios: string[];
+  otroEnte: string;
+  detalleAval: string;
+};
+
+export type RoadmapDraft = {
+  lineaInvestigacion: string;
+  objetivoEstrategico: string;
+  duracionTotal: string;
+  fases: string;
+  productosIntermedios: string;
+};
+
+export type SwornDeclarationDraft = {
+  acepta: boolean;
+  nombreCompleto: string;
+  cedula: string;
+  firma: string;
+};
+
+export type ProductSafeguardDraft = {
+  depositoRepositorio: YesNo;
+  desarrollaSoftwareBaseDatos: YesNo;
+  entregaRespaldoSoftware: YesNo;
+};
+
 /** Recurso gráfico del paso Documentación (rúbrica: alt text editable). */
 export type GraphicResource = {
   id: string;
@@ -173,8 +298,17 @@ export type FormWizardState = {
   estadoArte: string;
   metodologia: string;
   planAccion: ActionPlanActivityDraft[];
+  presupuestoAnual: AnnualBudgetDraft[];
+  financiamiento: FinancingDraft[];
+  productosAcademicos: AcademicProductDraft[];
+  activosPI: TechnologyAssetDraft[];
+  productosAdicionales: AdditionalProductDraft[];
+  divulgacion: DisseminationDraft;
+  aspectosEticos: EthicalReviewDraft;
+  hojaRuta: RoadmapDraft;
+  resguardoProductos: ProductSafeguardDraft;
   referencias: string;
-  declaracion: boolean;
+  declaracionJurada: SwornDeclarationDraft;
   /** Imágenes y videos con texto alternativo editable. */
   recursosGraficos: GraphicResource[];
 };
@@ -225,8 +359,57 @@ export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
   estadoArte: "",
   metodologia: "",
   planAccion: [],
+  presupuestoAnual: BUDGET_YEARS.map((anio) => ({
+    anio,
+    operativo: "",
+    duraderos: "",
+  })),
+  financiamiento: FINANCING_TYPES.map(({ value }) => ({
+    tipo: value,
+    anio1: "",
+    anio2: "",
+    anio3: "",
+    oficio: "",
+  })),
+  productosAcademicos: [],
+  activosPI: [],
+  productosAdicionales: [],
+  divulgacion: {
+    divulgacionCientifica: "",
+    canalesInstitucionales: "",
+    eventosSocializacion: "",
+    mediosMasivos: "",
+  },
+  aspectosEticos: {
+    seresHumanos: "",
+    biodiversidad: "",
+    animales: "",
+    territoriosIndigenas: "",
+    consultaConsentimiento: "",
+    exencionJustificacion: "",
+    entesRegulatorios: [],
+    otroEnte: "",
+    detalleAval: "",
+  },
+  hojaRuta: {
+    lineaInvestigacion: "",
+    objetivoEstrategico: "",
+    duracionTotal: "",
+    fases: "",
+    productosIntermedios: "",
+  },
+  resguardoProductos: {
+    depositoRepositorio: "",
+    desarrollaSoftwareBaseDatos: "",
+    entregaRespaldoSoftware: "",
+  },
   referencias: "",
-  declaracion: false,
+  declaracionJurada: {
+    acepta: false,
+    nombreCompleto: "",
+    cedula: "",
+    firma: "",
+  },
   recursosGraficos: [],
 };
 
@@ -293,10 +476,48 @@ function stepHasProgress(step: number, form: FormWizardState) {
           ),
         ),
       );
+    case 7:
+      return form.presupuestoAnual.some(
+        (budget) => budget.operativo.trim() || budget.duraderos.trim(),
+      ) || form.financiamiento.some(
+        (source) =>
+          source.anio1.trim() ||
+          source.anio2.trim() ||
+          source.anio3.trim() ||
+          source.oficio.trim(),
+      );
+    case 8:
+      return (
+        form.productosAcademicos.length > 0 ||
+        form.activosPI.length > 0 ||
+        form.productosAdicionales.some((product) => product.descripcion.trim())
+      );
+    case 9:
+      return Object.values(form.resguardoProductos).some(
+        (value) => value !== "",
+      );
+    case 10:
+      return Object.values(form.divulgacion).some((value) => value.trim());
+    case 11:
+      return (
+        form.aspectosEticos.seresHumanos !== "" ||
+        form.aspectosEticos.biodiversidad !== "" ||
+        form.aspectosEticos.animales !== "" ||
+        form.aspectosEticos.territoriosIndigenas !== "" ||
+        form.aspectosEticos.exencionJustificacion.trim() !== "" ||
+        form.aspectosEticos.entesRegulatorios.length > 0
+      );
+    case 12:
+      return Object.values(form.hojaRuta).some((value) => value.trim());
     case 13:
       return Boolean(form.referencias);
     case 14:
-      return form.declaracion;
+      return (
+        form.declaracionJurada.acepta ||
+        form.declaracionJurada.nombreCompleto.trim() !== "" ||
+        form.declaracionJurada.cedula.trim() !== "" ||
+        form.declaracionJurada.firma.trim() !== ""
+      );
     case 15:
       return form.recursosGraficos.length > 0;
     case 16:
@@ -306,6 +527,17 @@ function stepHasProgress(step: number, form: FormWizardState) {
     default:
       return false;
   }
+}
+
+function isValidBudgetAmount(value: string) {
+  if (!value.trim()) return true;
+  const amount = Number(value);
+  return (
+    Number.isFinite(amount) &&
+    amount >= 0 &&
+    amount <= 999999999999.99 &&
+    /^\d{1,12}(\.\d{0,2})?$/.test(value.trim())
+  );
 }
 
 export function getFormStepStatus(
@@ -419,12 +651,164 @@ export function getFormStepStatus(
           );
         });
       break;
+    case 7:
+      complete =
+        form.presupuestoAnual.some(
+          (budget) =>
+            Number(budget.operativo || 0) > 0 ||
+            Number(budget.duraderos || 0) > 0,
+        ) &&
+        form.presupuestoAnual.length === BUDGET_YEARS.length &&
+        form.presupuestoAnual.every(
+          (budget, index) =>
+            budget.anio === BUDGET_YEARS[index] &&
+            [budget.operativo, budget.duraderos].every((amount) =>
+              isValidBudgetAmount(amount),
+            ) &&
+            (index === 0 || Number(budget.duraderos || 0) === 0),
+        ) &&
+        form.financiamiento.length === FINANCING_TYPES.length &&
+        form.financiamiento.every((source, index) => {
+          const amounts = [source.anio1, source.anio2, source.anio3];
+          const hasFunding = amounts.some((amount) => Number(amount || 0) > 0);
+          return (
+            source.tipo === FINANCING_TYPES[index].value &&
+            amounts.every((amount) => isValidBudgetAmount(amount)) &&
+            source.oficio.length <= 60 &&
+            (!hasFunding || Boolean(source.oficio.trim()))
+          );
+        });
+      break;
+    case 8: {
+      const weeklyHours = form.teamTec.reduce(
+        (total, member) =>
+          total +
+          member.horas.reduce(
+            (memberTotal, hour) =>
+              memberTotal + (Number(hour.cantidad) || 0),
+            0,
+          ),
+        0,
+      );
+      const minimum = Math.ceil(weeklyHours / 10);
+      const technologyProject = form.modalidad === "Desarrollo tecnológico";
+      const allowedProducts = technologyProject
+        ? TECHNOLOGY_ACADEMIC_PRODUCTS
+        : BASIC_ACADEMIC_PRODUCTS;
+      complete =
+        weeklyHours > 0 &&
+        weeklyHours <= 30 &&
+        form.productosAcademicos.length > 0 &&
+        form.productosAcademicos.every(
+          (product) =>
+            allowedProducts.some(
+              (option) => option.value === product.codigoOpcion,
+            ) &&
+            Number.isInteger(Number(product.cantidad)) &&
+            Number(product.cantidad) >= 1 &&
+            Number(product.cantidad) <= 99 &&
+            ["1", "2", "3"].includes(product.objetivoNumero),
+        ) &&
+        form.productosAcademicos.reduce(
+          (total, product) => total + Number(product.cantidad || 0),
+          0,
+        ) >= minimum &&
+        (technologyProject
+          ? form.activosPI.length > 0 &&
+            form.activosPI.every(
+              (asset) =>
+                TECHNOLOGY_IP_ASSETS.some(
+                  (option) => option.value === asset.codigoOpcion,
+                ) &&
+                Number.isInteger(Number(asset.cantidad)) &&
+                Number(asset.cantidad) >= 1 &&
+                Number(asset.cantidad) <= 99 &&
+                Boolean(asset.dictamen.trim()) &&
+                asset.dictamen.length <= 40,
+            ) &&
+            form.activosPI.reduce(
+              (total, asset) => total + Number(asset.cantidad || 0),
+              0,
+            ) +
+              form.productosAcademicos.reduce(
+                (total, product) => total + Number(product.cantidad || 0),
+                0,
+              ) >=
+              minimum + 1
+          : form.productosAdicionales.length <= 2 &&
+            form.productosAdicionales.every(
+              (product) =>
+                product.descripcion.trim().length > 0 &&
+                product.descripcion.length <= 500,
+            ));
+      break;
+    }
+    case 9:
+      complete =
+        form.resguardoProductos.depositoRepositorio === "Sí" &&
+        (form.resguardoProductos.desarrollaSoftwareBaseDatos === "No" ||
+          (form.resguardoProductos.desarrollaSoftwareBaseDatos === "Sí" &&
+            form.resguardoProductos.entregaRespaldoSoftware === "Sí"));
+      break;
+    case 10:
+      complete = Object.values(form.divulgacion).every(
+        (value) => value.trim().length > 0 && value.length <= 5000,
+      );
+      break;
+    case 11: {
+      const ethics = form.aspectosEticos;
+      const responses = [
+        ethics.seresHumanos,
+        ethics.biodiversidad,
+        ethics.animales,
+        ethics.territoriosIndigenas,
+      ];
+      const requiresReview = responses.includes("Sí");
+      const allNegative = responses.every((response) => response === "No");
+      const requiredEntities = [
+        ...(ethics.seresHumanos === "Sí" ? ["cec"] : []),
+        ...(ethics.biodiversidad === "Sí" ? ["conagebio"] : []),
+        ...(ethics.animales === "Sí" ? ["cicua_cobab"] : []),
+        ...(ethics.territoriosIndigenas === "Sí" ? ["adi"] : []),
+      ];
+      complete =
+        responses.every((response) => response === "Sí" || response === "No") &&
+        (allNegative
+          ? ethics.exencionJustificacion.trim().length > 0
+          : ethics.entesRegulatorios.length > 0 &&
+            requiredEntities.every((entity) =>
+              ethics.entesRegulatorios.includes(entity),
+            ) &&
+            ethics.detalleAval.trim().length > 0 &&
+            (!ethics.entesRegulatorios.includes("otro") ||
+              ethics.otroEnte.trim().length > 0) &&
+            (ethics.territoriosIndigenas !== "Sí" ||
+              ethics.consultaConsentimiento.trim().length > 0)) &&
+        (!requiresReview || ethics.exencionJustificacion.length <= 5000) &&
+        ethics.detalleAval.length <= 5000 &&
+        ethics.consultaConsentimiento.length <= 5000 &&
+        ethics.otroEnte.length <= 200;
+      break;
+    }
+    case 12:
+      complete = Object.values(form.hojaRuta).every(
+        (value) => value.trim().length > 0 && value.length <= 5000,
+      );
+      break;
     case 13:
       complete = hasText(form.referencias);
       break;
-    case 14:
-      complete = form.declaracion;
+    case 14: {
+      const declaration = form.declaracionJurada;
+      complete =
+        declaration.acepta &&
+        declaration.nombreCompleto.trim().length > 0 &&
+        declaration.cedula.trim().length > 0 &&
+        declaration.firma.trim() === declaration.nombreCompleto.trim() &&
+        declaration.nombreCompleto.length <= 150 &&
+        declaration.cedula.length <= 20;
       break;
+    }
     case 15:
       complete =
         form.recursosGraficos.length > 0 &&

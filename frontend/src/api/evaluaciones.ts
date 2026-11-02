@@ -1,3 +1,4 @@
+import type {RubricSection} from "../data/evaluationRubrics";
 import { apiJson } from "./client";
 
 export type EvaluacionBandejaItem = {
@@ -60,5 +61,5 @@ export function postEvaluacionAccion(
 }
 
 export function fetchSavedRubric(id: number, instancia: "cie" | "comite") {
-  return apiJson<{ scores: Record<string, { score:number; reason:string }> }>(`/api/evaluaciones/propuestas/${id}/rubrica?instancia=${instancia}`);
+  return apiJson<{ scores: Record<string, { score:number; reason:string }>; productosVerificados:boolean;productos:{minAcademicos:number;minPI:number;academicos:number;activosPI:number;cumple:boolean};ciclo:number;asignado:boolean;sections:RubricSection[];version:string;estado:string|null;productosCumplen:boolean }>(`/api/evaluaciones/propuestas/${id}/rubrica?instancia=${instancia}`);
 }

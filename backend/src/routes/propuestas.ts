@@ -38,7 +38,7 @@ type PropuestaRow = {
   id_coordinador: number;
   id_escuela: number;
   titulo: string;
-  modalidad: string;
+  modalidad: string;modalidad_nombre:string|null;
   resumen: string | null;
   abstract_en: string | null;
   problema: string | null;
@@ -50,6 +50,7 @@ type PropuestaRow = {
   divulgacion: string | null;
   fecha_inicio: string | null;
   fecha_finalizacion: string | null;
+  trl_actual:number|null;trl_esperado:number|null;lineas:number[];lineas_nombres:string[];
   requiere_dictamen_pi: boolean;
   pi_acreditada: boolean;
   declaracion_aceptada: boolean;
@@ -75,7 +76,7 @@ function mapPropuesta(row: PropuestaRow) {
     escuelaNombre: row.escuela_nombre,
     titulo: row.titulo,
     modalidad: row.modalidad,
-    modalidadLabel: MODALIDAD_LABEL[row.modalidad] ?? row.modalidad,
+    modalidadLabel: row.modalidad_nombre ?? MODALIDAD_LABEL[row.modalidad] ?? row.modalidad,
     resumen: row.resumen,
     abstractEn: row.abstract_en,
     problema: row.problema,
@@ -83,6 +84,7 @@ function mapPropuesta(row: PropuestaRow) {
     metodologia: row.metodologia,
     declaracion: row.declaracion_aceptada, resguardoRepositorio: row.resguardo_repositorio, resguardoTecnico: row.resguardo_tecnico,
     estadoArte: row.estado_arte, referencias: row.referencias, hojaRuta: row.hoja_ruta, divulgacion: row.divulgacion,
+    trlActual:row.trl_actual,trlEsperado:row.trl_esperado,lineas:row.lineas,lineasNombres:row.lineas_nombres,
     fechaInicio: row.fecha_inicio, fechaFin: row.fecha_finalizacion, requiereDictamenPi: row.requiere_dictamen_pi, piAcreditada: row.pi_acreditada,
     estadoActual: row.estado_actual,
     etapaFlujo: row.etapa_flujo,
@@ -91,13 +93,14 @@ function mapPropuesta(row: PropuestaRow) {
 }
 
 const BASE_SELECT = `
-  SELECT p.*,
+  SELECT p.*, mc.nombre AS modalidad_nombre,ARRAY(SELECT pl.id_linea_investigacion FROM propuesta_linea pl WHERE pl.id_propuesta=p.id_propuesta ORDER BY pl.id_linea_investigacion) AS lineas,ARRAY(SELECT l.nombre FROM propuesta_linea pl JOIN linea_investigacion l ON l.id_linea_investigacion=pl.id_linea_investigacion WHERE pl.id_propuesta=p.id_propuesta ORDER BY l.nombre) AS lineas_nombres,
     CASE WHEN p.requiere_dictamen_pi THEN EXISTS(SELECT 1 FROM dictamen_pi d WHERE d.id_propuesta=p.id_propuesta AND d.estado='emitido' AND d.fecha_dictamen IS NOT NULL)
       ELSE EXISTS(SELECT 1 FROM pi_certificacion_no_requerido pc WHERE pc.id_propuesta=p.id_propuesta) END AS pi_acreditada,
     c.nombre AS convocatoria_nombre,
     u.nombre_completo AS coordinador_nombre,
     e.nombre AS escuela_nombre
   FROM propuesta p
+  LEFT JOIN modalidad_catalogo mc ON mc.codigo=p.modalidad
   JOIN convocatoria c ON c.id_convocatoria = p.id_convocatoria
   JOIN usuario u ON u.id_usuario = p.id_coordinador
   JOIN escuela e ON e.id_escuela = p.id_escuela
@@ -169,7 +172,7 @@ function parseKeywordInput(value: unknown): string[] | undefined {
 }
 
 propuestasRouter.get("/personas", requireDemoAuth, asyncHandler(async (_req, res) => {
-  const result = await query("SELECT u.id_usuario AS id, u.nombre_completo AS nombre, e.nombre AS instancia FROM usuario u LEFT JOIN escuela e ON e.id_escuela=u.id_escuela WHERE u.activo=true ORDER BY u.nombre_completo");
+  const result = await query("SELECT u.id_usuario AS id, u.nombre_completo AS nombre, e.nombre AS instancia, ARRAY(SELECT r.codigo FROM usuario_rol ur JOIN rol r ON r.id_rol=ur.id_rol WHERE ur.id_usuario=u.id_usuario) AS roles FROM usuario u LEFT JOIN escuela e ON e.id_escuela=u.id_escuela WHERE u.activo=true ORDER BY u.nombre_completo");
   res.json(result.rows);
 }));
 
@@ -204,9 +207,9 @@ propuestasRouter.get("/propuestas/:id", requireDemoAuth, asyncHandler(async (req
     const stage = etapaRol(req.demoAuth!.role);
     const own = await query<{mensaje:string}>("SELECT mensaje FROM observacion WHERE id_propuesta=$1 AND etapa=$2 ORDER BY fecha_creacion",[id,stage===2?"comite":stage===4?"vie":req.demoAuth!.role]);
     display.observaciones = own.rows.map(r=>r.mensaje);
-    const history = await query<{titulo:string;detalle:string;fecha:Date;etapa:number;instancia_conocida:boolean}>(`SELECT h.estado_nuevo AS titulo,h.observacion AS detalle,h.fecha_hora AS fecha,
+    const history = await query<{id:number;titulo:string;detalle:string;fecha:Date;etapa:number;instancia_conocida:boolean}>(`SELECT h.id_historial AS id,h.estado_nuevo AS titulo,h.observacion AS detalle,h.fecha_hora AS fecha,
       COALESCE(h.etapa_evento,CASE h.estado_nuevo WHEN 'enviada' THEN 1 WHEN 'en_evaluacion' THEN 2 WHEN 'dictaminada' THEN 2 WHEN 'avalada' THEN 3 WHEN 'aprobada' THEN 6 WHEN 'rechazada' THEN 6 ELSE 0 END) AS etapa,h.etapa_evento IS NOT NULL AS instancia_conocida FROM propuesta_historial_estado h WHERE h.id_propuesta=$1 ORDER BY h.fecha_hora`,[id]);
-    display.timeline = history.rows.filter(h=>h.etapa>0&&h.etapa<=stage).map(h=>({titulo:h.titulo,detalle:h.etapa===stage&&h.instancia_conocida?h.detalle:"Etapa previa completada: "+h.titulo,fecha:h.fecha.toISOString()}));
+    display.timeline = history.rows.filter(h=>h.etapa>0&&h.etapa<=stage).map(h=>({id:h.id,titulo:h.titulo,detalle:h.etapa===stage&&h.instancia_conocida?h.detalle:"Etapa previa completada: "+h.titulo,fecha:h.fecha.toISOString()}));
   }
   const correction=await cargarSubsanacion(id);
   const ownCorrection=["admin","investigador"].includes(req.demoAuth!.role!) || correction?.rol_destino===req.demoAuth!.role;
@@ -224,7 +227,7 @@ propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, r
   const titulo = String(req.body?.titulo ?? "").trim();
   const idConvocatoria = Number(req.body?.idConvocatoria);
   const modalidadRaw = String(req.body?.modalidad ?? "").trim();
-  const modalidad = MODALIDAD_MAP[modalidadRaw];
+  const modalidad=(await query<{codigo:string}>("SELECT codigo FROM modalidad_catalogo WHERE (codigo=$1 OR nombre=$1) AND activo=true",[MODALIDAD_MAP[modalidadRaw]??modalidadRaw])).rows[0]?.codigo;
   const resumen = req.body?.resumen ? String(req.body.resumen).trim() : null;
   const abstractEn = req.body?.abstractEn
     ? String(req.body.abstractEn).trim()
@@ -322,8 +325,8 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (r
   const id = Number(req.params.id);
   const existing = await query<{
     id_coordinador: number;
-    estado_actual: string;
-  }>(`SELECT id_coordinador, estado_actual FROM propuesta WHERE id_propuesta = $1`, [
+    estado_actual: string;modalidad:string;
+  }>(`SELECT id_coordinador, estado_actual, modalidad FROM propuesta WHERE id_propuesta = $1`, [
     id,
   ]);
   const row = existing.rows[0];
@@ -361,7 +364,8 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (r
     set("titulo", titulo.slice(0, 500));
   }
   if (req.body?.modalidad !== undefined) {
-    const modalidad = MODALIDAD_MAP[String(req.body.modalidad).trim()];
+    const raw=String(req.body.modalidad).trim();
+    const modalidad=(await query<{codigo:string}>("SELECT codigo FROM modalidad_catalogo WHERE (codigo=$1 OR nombre=$1) AND (activo=true OR codigo=$2)",[MODALIDAD_MAP[raw]??raw,row.modalidad])).rows[0]?.codigo;
     if (!modalidad) {
       res.status(400).json({ error: "modalidad inválida" });
       return;
@@ -479,9 +483,11 @@ propuestasRouter.post(
 
     await exigirAlcance(id,req.demoAuth!);
     const saved = await transaction(async (execute) => {
-    const content = await execute<{ resumen: string | null; declaracion_aceptada: boolean; estado_actual:string }>("SELECT resumen, declaracion_aceptada, estado_actual FROM propuesta WHERE id_propuesta=$1 FOR UPDATE", [id]);
+    const content = await execute<{ resumen: string | null; abstract_en:string|null; declaracion_aceptada: boolean; estado_actual:string }>("SELECT resumen, abstract_en, declaracion_aceptada, estado_actual FROM propuesta WHERE id_propuesta=$1 FOR UPDATE", [id]);
     if (!content.rows[0] || !["borrador","en_subsanacion"].includes(content.rows[0].estado_actual)) throw new HttpError(409,"La propuesta ya fue enviada");
     if (!content.rows[0]?.declaracion_aceptada) throw new HttpError(400,"Debe aceptar la declaración jurada antes de enviar");
+    if(!content.rows[0].abstract_en?.trim())throw new HttpError(400,"El abstract en inglés es obligatorio al enviar; keywords EN son opcionales");
+    if((await execute("SELECT 1 FROM propuesta_participante pp JOIN propuesta_participante_hora h ON h.id_participante=pp.id_participante WHERE pp.id_propuesta=$1 AND h.tipo_hora='CONS' AND h.cantidad_horas>0 AND COALESCE(trim(pp.titular_cons),'')='' LIMIT 1",[id])).rowCount)throw new HttpError(400,'Identifique la persona titular de las horas CONS');
     const wordCount = (content.rows[0]?.resumen ?? "").trim().split(/\s+/u).filter(Boolean).length;
     const terms = await loadKeywords(id,execute);
     if (wordCount > 500 || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {

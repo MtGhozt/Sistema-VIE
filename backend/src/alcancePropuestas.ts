@@ -13,8 +13,9 @@ export function alcancePropuestas(auth: DemoAuth, inicio = 1) {
     params: [auth.userId] as unknown[],
   };
   if (!institucionales.has(auth.role ?? "")) return { sql: "FALSE", params: [] as unknown[] };
+  const council=["consejo","consejo_asistente","direccion_escuela"].includes(auth.role??"")?" AND EXISTS(SELECT 1 FROM resultado_comite rc WHERE rc.id_propuesta=p.id_propuesta)":"";
   return {
-    sql: `(p.estado_actual<>'borrador' AND (p.id_escuela=(SELECT id_escuela FROM usuario WHERE id_usuario=${usuario} AND activo=true) OR EXISTS (SELECT 1 FROM propuesta_asignacion pa WHERE pa.id_propuesta=p.id_propuesta AND pa.id_usuario=${usuario} AND pa.rol=$${inicio + 1})))`,
+    sql: `(p.estado_actual<>'borrador' AND (p.id_escuela=(SELECT id_escuela FROM usuario WHERE id_usuario=${usuario} AND activo=true) OR EXISTS (SELECT 1 FROM propuesta_asignacion pa WHERE pa.id_propuesta=p.id_propuesta AND pa.id_usuario=${usuario} AND pa.rol=$${inicio + 1})))${council}`,
     params: [auth.userId, auth.role] as unknown[],
   };
 }

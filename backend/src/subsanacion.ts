@@ -14,6 +14,8 @@ export async function validarEdicionSubsanacion(id: number, body: Record<string,
   if (!correction) throw new HttpError(409, "No existe una devolución activa");
   const allowed = seccionesSubsanacion.filter(s => correction.secciones.includes(s.codigo)).flatMap(s => s.campos);
   // La necesidad de PI queda congelada al enviar, incluso si se corrigen preguntas generales.
+  if(body.documentos!==undefined)throw new HttpError(400,"Los documentos se corrigen mediante carga o retiro de archivos, no enviando metadatos vacíos");
+  if(body.modalidad!==undefined){const same=await execute('SELECT 1 FROM propuesta p LEFT JOIN modalidad_catalogo mc ON mc.codigo=p.modalidad WHERE p.id_propuesta=$1 AND (p.modalidad=$2 OR mc.nombre=$2)',[id,String(body.modalidad)]);if(!same.rowCount)throw new HttpError(409,'La modalidad no cambia en subsanación: conserva la rúbrica y las decisiones previas');}
   const keys = Object.keys(body);
   if (!keys.length || keys.some(k => !allowed.includes(k))) throw new HttpError(400, "Solo puede modificar las secciones indicadas en la devolución");
   if (Array.isArray(body.preguntasGenerales)) {

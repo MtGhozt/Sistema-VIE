@@ -5,6 +5,7 @@ import type { DemoProposal } from "../data/demo";
 import { ProcessTimeline } from "./ProcessTimeline";
 
 export type ProposalDetailModel = DemoProposal & {
+  identificacion?:{trlActual:number|null;trlEsperado:number|null;lineas:string[]};
   general?: Pick<PropuestaDetalle,"problema"|"objetivoGeneral"|"metodologia"|"estadoArte"|"referencias"|"hojaRuta"|"divulgacion"|"fechaInicio"|"fechaFin">;
   actividades?: ActividadInput[]; fuentes?:FuenteInput[]; permisos?:PermisoInput[]; compromisos?:CompromisoInput[]; equipoCompleto?:ParticipanteInput[];
 };
@@ -172,6 +173,7 @@ export function ProposalDetailView({
                   <p className="body-copy">{proposal.abstract}</p>
                 </div>
               )}
+              {proposal.identificacion&&<section><h2>Identificación</h2><p>TRL actual: {proposal.identificacion.trlActual??"No declarado"}. TRL esperado: {proposal.identificacion.trlEsperado??"No declarado"}.</p><p>Líneas: {proposal.identificacion.lineas.join(", ")||"Sin líneas seleccionadas"}.</p></section>}
               {proposal.general && <div className="stack-lg">
                 {([
                   ["Planteamiento del problema",proposal.general.problema],["Objetivo general",proposal.general.objetivoGeneral],
@@ -260,6 +262,7 @@ export function ProposalDetailView({
                   </table>
                 </div>
               </div>
+              {proposal.equipoCompleto?.filter(p=>p.titularCons).map(p=><p key={p.id??p.nombre}>Persona titular de horas CONS de {p.nombre}: {p.titularCons}</p>)}
               {(proposal.teamExternal?.length ?? 0) > 0 && (
                 <div>
                   <h2>Colaboradores externos</h2>
@@ -421,8 +424,8 @@ export function ProposalDetailView({
             </div>
           </div>
           <div className="activity-list">
-            {(proposal.timeline ?? []).map((ev) => (
-              <div key={ev.titulo + ev.fecha} className="activity-item">
+            {(proposal.timeline ?? []).map((ev,index) => (
+              <div key={ev.id??`${ev.titulo}-${ev.fecha}-${index}`} className="activity-item">
                 <div className="activity-dot" />
                 <div>
                   <strong>{ev.titulo}</strong>

@@ -405,7 +405,7 @@ export type DemoProposal = {
   activoPI?: string;
   etica?: string;
   observaciones?: string[];
-  timeline?: { titulo: string; detalle: string; fecha: string }[];
+  timeline?: { id?:number; titulo: string; detalle: string; fecha: string }[];
   documentos: { nombre: string; estado: string }[];
   evaluacionComite?: { average: number };
   oficioComite?: string;

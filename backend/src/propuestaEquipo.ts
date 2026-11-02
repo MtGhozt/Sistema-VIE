@@ -25,6 +25,7 @@ export async function saveEquipo(id: number, raw: unknown, execute: typeof query
       const inserted = await execute<{ id_participante: number }>(`INSERT INTO propuesta_participante(nombre_completo,orcid,instancia_o_institucion,rol_en_proyecto,periodo_nombramiento,tipo,id_usuario,id_propuesta) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id_participante`, [...values, id]);
       participant = inserted.rows[0].id_participante;
     }
+    await execute("UPDATE propuesta_participante SET titular_cons=$2 WHERE id_participante=$1",[participant,String(row.titularCons??'').trim().slice(0,150)||null]);
     retained.push(participant);
     if (!Array.isArray(row.horas)) throw new HttpError(400, "Horas inválidas");
     const kinds = new Set<string>();
@@ -44,7 +45,7 @@ export async function saveEquipo(id: number, raw: unknown, execute: typeof query
   }
 }
 export async function loadEquipo(id: number, execute: typeof query) {
-  const result = await execute(`SELECT p.id_participante AS id, p.id_usuario AS "idUsuario",p.nombre_completo AS nombre,p.orcid,p.instancia_o_institucion AS instancia,p.rol_en_proyecto AS rol,p.periodo_nombramiento AS periodo,p.tipo,
+  const result = await execute(`SELECT p.id_participante AS id, p.id_usuario AS "idUsuario",p.nombre_completo AS nombre,p.orcid,p.instancia_o_institucion AS instancia,p.rol_en_proyecto AS rol,p.periodo_nombramiento AS periodo,p.tipo,p.titular_cons AS "titularCons",
     COALESCE((SELECT json_agg(json_build_object('tipo',h.tipo_hora,'cantidad',h.cantidad_horas::float) ORDER BY h.tipo_hora) FROM propuesta_participante_hora h WHERE h.id_participante=p.id_participante),'[]') AS horas
     FROM propuesta_participante p WHERE p.id_propuesta=$1 ORDER BY p.id_participante`, [id]);
   return result.rows;

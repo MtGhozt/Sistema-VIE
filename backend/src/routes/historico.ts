@@ -29,6 +29,7 @@ const ESTADO_LABEL: Record<string, string> = {
   avalada: "Avalada",
   aprobada: "Aprobada",
   rechazada: "Rechazada",
+  rechazo_aval:"Aval rechazado",
 };
 
 const MODALIDAD_LABEL: Record<string, string> = {
@@ -43,7 +44,7 @@ type HistoricoRow = {
   id_propuesta: number;
   codigo: string;
   titulo: string;
-  modalidad: string;
+  modalidad: string;modalidad_nombre:string|null;
   estado_actual: string;
   etapa_flujo: number;
   fecha_envio: string | null;
@@ -63,7 +64,7 @@ const SELECT_BASE = `
     p.id_propuesta,
     p.codigo,
     p.titulo,
-    p.modalidad,
+    p.modalidad,mc.nombre AS modalidad_nombre,
     p.estado_actual,
     p.etapa_flujo,
     p.fecha_envio,
@@ -83,6 +84,7 @@ const SELECT_BASE = `
     rc.numero_oficio AS numero_oficio_comite,
     dpi.numero_oficio AS numero_oficio_pi
   FROM propuesta p
+  LEFT JOIN modalidad_catalogo mc ON mc.codigo=p.modalidad
   JOIN escuela e ON e.id_escuela = p.id_escuela
   JOIN usuario u ON u.id_usuario = p.id_coordinador
   LEFT JOIN resolucion_cie r ON r.id_propuesta = p.id_propuesta
@@ -172,7 +174,7 @@ function mapRow(row: HistoricoRow) {
     codigo: row.codigo,
     titulo: row.titulo,
     modalidad: row.modalidad,
-    modalidadLabel: MODALIDAD_LABEL[row.modalidad] ?? row.modalidad,
+    modalidadLabel: row.modalidad_nombre ?? MODALIDAD_LABEL[row.modalidad] ?? row.modalidad,
     estado: row.estado_actual,
     estadoLabel: ESTADO_LABEL[row.estado_actual] ?? row.estado_actual,
     etapaFlujo: row.etapa_flujo,

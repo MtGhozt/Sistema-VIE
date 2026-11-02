@@ -1,3 +1,5 @@
+import {DocumentosPanel} from "../components/DocumentosPanel";
+import {downloadFile} from "../api/client";
 import seccionesSubsanacion from "../../../shared/subsanacion-secciones.json";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -84,6 +86,7 @@ export function PropuestaNuevaPage() {
         setIdConvocatoria(d.idConvocatoria);
         setForm((prev) => ({
           ...prev,
+          trlActual:d.trlActual,trlEsperado:d.trlEsperado,lineas:d.lineas??[],
           titulo: d.titulo,
           escuela: d.escuelaNombre,
           modalidad: d.modalidadLabel || prev.modalidad,
@@ -127,6 +130,8 @@ export function PropuestaNuevaPage() {
 
   function draftPayload() {
     return {
+      idConvocatoria:Number(idConvocatoria),
+      trlActual:form.trlActual,trlEsperado:form.trlEsperado,lineas:form.lineas,
       titulo: form.titulo.trim(),
       modalidad: form.modalidad,
       resumen: form.resumen.trim(),
@@ -154,7 +159,8 @@ export function PropuestaNuevaPage() {
       const payload=draftPayload();
       if(subsanacion) {
         const allowed=seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).flatMap(s=>s.campos);
-        return patchPropuesta(editId,Object.fromEntries(Object.entries(payload).filter(([key])=>allowed.includes(key))));
+        const changes=Object.fromEntries(Object.entries(payload).filter(([key])=>allowed.includes(key)));
+        return Object.keys(changes).length?patchPropuesta(editId,changes):fetchPropuesta(editId);
       }
       return patchPropuesta(editId,payload);
     }
@@ -164,7 +170,7 @@ export function PropuestaNuevaPage() {
     });
   }
 
-  async function onSave() {
+  async function onSave(exit=false) {
     if (!canCreate) {
       showToast("Ingresá como investigador para crear propuestas", "error");
       return;
@@ -174,12 +180,14 @@ export function PropuestaNuevaPage() {
       return;
     }
     setSaving(true);
+    setSaveStatus("Guardando…");
     try {
       const saved = await persistDraft();
-      setSaveStatus("Borrador guardado en el servidor");
-      showToast("Borrador guardado", "success");
-      navigate(`/propuestas/${saved.id}`, { replace: true });
+      setSaveStatus(subsanacion?"Correcciones guardadas en el servidor":"Borrador guardado en el servidor");
+      showToast(subsanacion?"Correcciones guardadas":"Borrador guardado", "success");
+      navigate(exit?`/propuestas/${saved.id}`:`/propuestas/nueva?edit=${saved.id}`, { replace: true });
     } catch (err) {
+      setSaveStatus("No se guardó: revise el error");
       showToast(
         err instanceof Error ? err.message : "No se pudo guardar",
         "error",
@@ -199,6 +207,7 @@ export function PropuestaNuevaPage() {
       showToast("Completá título y convocatoria antes de enviar", "error");
       return;
     }
+    if(!form.abstract.trim()){showToast("Complete el abstract en inglés; keywords EN son opcionales","error");return;}
     const count = form.resumen.trim().split(/\s+/u).filter(Boolean).length;
     const terms = form.palabras.split(",").map(w => w.trim()).filter(Boolean);
     if (count > 500 || terms.length < 4 || terms.length > 6) {
@@ -318,8 +327,11 @@ export function PropuestaNuevaPage() {
           {subsanacion && <div className="stack-md" role="note"><p><strong>Subsanación para {subsanacion.instancia}:</strong> {subsanacion.motivo}</p><p>Edite únicamente: {seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=>s.etiqueta).join(", ")}.</p>
             <label className="field"><span className="field-label">Respuesta a las observaciones</span><textarea aria-label="Respuesta a las observaciones" className="input textarea" value={respuesta} onChange={e=>setRespuesta(e.target.value)} required /></label></div>}
           <fieldset disabled={Boolean(subsanacion)&&!seccionesSubsanacion.some(s=>s.paso===step&&subsanacion?.secciones.includes(s.codigo))} style={{border:0,padding:0,margin:0,minWidth:0}}>
+          {(step===7||step===15)&&<div className="action-row"><button type="button" className="btn btn-secondary" onClick={()=>void downloadFile('/api/plantillas/presupuesto','Presupuesto-VIE-2027.xlsx').catch(e=>showToast(e.message,'error'))}>Descargar plantilla oficial de presupuesto</button></div>}
           <div className="wizard-body">
             <FormWizardStepContent
+              bloquearIdentificacion={Boolean(subsanacion)}
+              documentos={isEditing?<DocumentosPanel id={editId} editable/>:undefined}
               step={step}
               form={form}
               patch={patch}
@@ -330,6 +342,7 @@ export function PropuestaNuevaPage() {
           </div>
 
           </fieldset>
+          {isEditing&&<Link className="btn btn-ghost" aria-disabled={saving} onClick={e=>{if(saving)e.preventDefault();}} to={`/propuestas/${editId}`}>Ver expediente guardado</Link>}
           <div className="wizard-footer">
             <button
               type="button"
@@ -366,7 +379,7 @@ export function PropuestaNuevaPage() {
                     type="button"
                     className="btn btn-secondary"
                     disabled={saving}
-                    onClick={() => void onSave()}
+                    onClick={() => void onSave(true)}
                   >
                     Guardar y salir
                   </button>

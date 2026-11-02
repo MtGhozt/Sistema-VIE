@@ -1,7 +1,7 @@
 import { alcancePropuestas, exigirAlcance, etapaRol } from "../alcancePropuestas.js";
 import { seccionesSubsanacion } from "../subsanacion.js";
 import { readFileSync } from "node:fs";
-import { saveRubric, loadRubric } from "../rubricas.js";
+import { saveRubric, loadRubric, proposalRubric, committeeStatus, assignCommittee, productRequirements } from "../rubricas.js";
 import { HttpError } from "../middleware/HttpError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
@@ -32,6 +32,7 @@ const ESTADO_LABEL: Record<string, string> = {
   avalada: "Avalada",
   aprobada: "Aprobada",
   rechazada: "Rechazada",
+  rechazo_aval: "Aval rechazado",
 };
 
 const MODALIDAD_LABEL: Record<string, string> = {
@@ -46,7 +47,7 @@ type BandejaRow = {
   id_propuesta: number;
   codigo: string;
   titulo: string;
-  modalidad: string;
+  modalidad: string;modalidad_nombre:string|null;
   estado_actual: string;
   etapa_flujo: number;
   fecha_envio: string | null;
@@ -74,7 +75,7 @@ const BANDEJA_SQL = `
     p.id_propuesta,
     p.codigo,
     p.titulo,
-    p.modalidad,
+    p.modalidad,mc.nombre AS modalidad_nombre,
     p.estado_actual,
     p.etapa_flujo,
     p.fecha_envio,
@@ -97,6 +98,7 @@ const BANDEJA_SQL = `
     EXISTS (SELECT 1 FROM comunicacion_institucional ci WHERE ci.id_propuesta=p.id_propuesta AND ci.tipo='resolucion_cie' AND ci.confirmada=true) AS notificada,
     rc.calificacion_promedio::text AS calificacion_comite
   FROM propuesta p
+  LEFT JOIN modalidad_catalogo mc ON mc.codigo=p.modalidad
   JOIN escuela e ON e.id_escuela = p.id_escuela
   JOIN usuario u ON u.id_usuario = p.id_coordinador
   JOIN convocatoria c ON c.id_convocatoria = p.id_convocatoria
@@ -114,7 +116,7 @@ function mapBandeja(row: BandejaRow) {
     codigo: row.codigo,
     titulo: row.titulo,
     modalidad: row.modalidad,
-    modalidadLabel: MODALIDAD_LABEL[row.modalidad] ?? row.modalidad,
+    modalidadLabel: row.modalidad_nombre ?? MODALIDAD_LABEL[row.modalidad] ?? row.modalidad,
     estadoActual: row.estado_actual,
     estadoLabel: ESTADO_LABEL[row.estado_actual] ?? row.estado_actual,
     etapaFlujo: row.etapa_flujo,
@@ -144,6 +146,9 @@ function mapBandeja(row: BandejaRow) {
 /** Roles que pueden operar cada acción del prototipo. */
 const ACTION_ROLES: Record<string, Set<string>> = {
   pi: new Set(["vinculacion", "admin"]),
+  "committee-confirm": new Set(["comite_asistente", "admin"]),
+  "request-reconsideration": new Set(["investigador"]),
+  "council-reconsider": new Set(["consejo", "admin"]),
   "committee-ready": new Set(["comite_asistente", "admin"]),
   return: new Set(["comite_asistente", "gestora_vie", "admin"]),
   "pi-not-required": new Set(["vinculacion", "admin"]),
@@ -192,18 +197,18 @@ function bandejaClause(role: string | null | undefined): {
     case "consejo":
     case "direccion_escuela":
       return {
-        // Incluye dictaminada/en_evaluación (por decidir) y avalada (ya decidida, aún visible).
-        sql: ` AND p.etapa_flujo BETWEEN 2 AND 4 AND p.estado_actual IN ('en_evaluacion', 'dictaminada', 'avalada')`,
+        // Solo expedientes consolidados; incluye rechazo de aval para su reconsideración.
+        sql: ` AND p.etapa_flujo BETWEEN 3 AND 4 AND p.estado_actual IN ('dictaminada','avalada','rechazo_aval')`,
         params: [],
       };
     case "gestora_vie":
       return {
-        sql: ` AND p.etapa_flujo BETWEEN 3 AND 4 AND p.estado_actual IN ('dictaminada', 'avalada')`,
+        sql: ` AND p.etapa_flujo = 4 AND p.estado_actual='avalada'`,
         params: [],
       };
     case "cie":
       return {
-        sql: ` AND p.etapa_flujo >= 4 AND p.estado_actual IN ('avalada', 'en_evaluacion', 'dictaminada') AND p.estado_actual NOT IN ('aprobada', 'rechazada')`,
+        sql: ` AND p.etapa_flujo = 5 AND p.estado_actual='avalada' AND p.estado_actual NOT IN ('aprobada', 'rechazada')`,
         params: [],
       };
     case "direccion_investigacion":
@@ -295,6 +300,8 @@ evaluacionesRouter.get(
     const role = requestedView || authenticatedRole;
     const clause = bandejaClause(role);
     const scope = alcancePropuestas(req.demoAuth!,clause.params.length+1);
+    if(authenticatedRole==='comite_evaluador'){scope.params.push(req.demoAuth!.userId);scope.sql+=` AND EXISTS(SELECT 1 FROM comite_miembro cm WHERE cm.id_propuesta=p.id_propuesta AND cm.id_usuario=$${clause.params.length+scope.params.length})`;}
+
     const result = await query<BandejaRow>(
       `${BANDEJA_SQL}${clause.sql} AND ${scope.sql}
        ORDER BY p.fecha_envio DESC NULLS LAST, p.id_propuesta DESC
@@ -356,10 +363,41 @@ evaluacionesRouter.get("/evaluaciones/propuestas/:id/rubrica", requireDemoAuth, 
   const id=Number(req.params.id);
   if(!Number.isSafeInteger(id)||id<1){res.status(400).json({error:"ID inválido"});return;}
   await exigirAlcance(id,req.demoAuth!);
-  const p=await query<{modalidad:string}>("SELECT modalidad FROM propuesta WHERE id_propuesta=$1",[id]);
+  const p=await query<{modalidad:string;ciclo_evaluacion:number}>("SELECT modalidad,ciclo_evaluacion FROM propuesta WHERE id_propuesta=$1",[id]);
   if(!p.rows[0]){res.status(404).json({error:"Propuesta no encontrada"});return;}
   const instance=role==='cie'?'cie':role==='admin'&&req.query.instancia==='cie'?'cie':'comite';
-  res.json({scores:await loadRubric(pool,id,req.demoAuth!.userId!,instance,p.rows[0].modalidad)});
+  const rubric=await proposalRubric(pool,id,p.rows[0].modalidad);
+  const evaluation=(await query("SELECT estado,productos_cumplen,productos_verificados FROM evaluacion WHERE id_propuesta=$1 AND id_evaluador=$2 AND instancia=$3 AND id_rubrica=$4 AND ciclo=$5",[id,req.demoAuth!.userId,instance,rubric.id_rubrica,p.rows[0].ciclo_evaluacion])).rows[0];
+  const assigned=instance!=="comite"||!!(await query("SELECT 1 FROM comite_miembro WHERE id_propuesta=$1 AND id_usuario=$2",[id,req.demoAuth!.userId])).rowCount;
+  const ciclo=p.rows[0].ciclo_evaluacion;
+  res.json({ciclo,asignado:assigned,scores:await loadRubric(pool,id,req.demoAuth!.userId!,instance,p.rows[0].modalidad,ciclo),productosVerificados:evaluation?.productos_verificados??false,productos:await productRequirements(pool,id,p.rows[0].modalidad),sections:rubric.definicion,version:rubric.codigo,estado:evaluation?.estado??null,productosCumplen:evaluation?.productos_cumplen??false});
+}));
+
+evaluacionesRouter.get('/evaluaciones/propuestas/:id/reconsideracion',requireDemoAuth,asyncHandler(async(req,res)=>{const id=Number(req.params.id);await exigirAlcance(id,req.demoAuth!);if(!['consejo','admin'].includes(req.demoAuth!.role!))throw new HttpError(403,'Solo el Consejo revisa la solicitud');res.json((await query('SELECT motivo,fecha_solicitud FROM reconsideracion_aval WHERE id_propuesta=$1 AND fecha_autorizacion IS NULL ORDER BY fecha_solicitud DESC',[id])).rows);}));
+
+evaluacionesRouter.get('/evaluaciones/propuestas/:id/comite/candidatos',requireDemoAuth,asyncHandler(async(req,res)=>{
+ const id=Number(req.params.id);await exigirAlcance(id,req.demoAuth!);if(!['comite_asistente','admin'].includes(req.demoAuth!.role!))throw new HttpError(403,'Solo asistencia del Comité o admin gestiona sus miembros');
+ res.json((await query("SELECT u.id_usuario,u.nombre_completo FROM usuario u JOIN usuario_rol ur ON ur.id_usuario=u.id_usuario JOIN rol r ON r.id_rol=ur.id_rol JOIN propuesta p ON p.id_escuela=u.id_escuela WHERE p.id_propuesta=$1 AND u.activo=true AND r.codigo='comite_evaluador' ORDER BY u.nombre_completo",[id])).rows);
+}));
+evaluacionesRouter.post('/evaluaciones/propuestas/:id/comite/reemplazo',requireDemoAuth,asyncHandler(async(req,res)=>{
+ const id=Number(req.params.id);if(!['comite_asistente','admin'].includes(req.demoAuth!.role!))throw new HttpError(403,'Solo asistencia del Comité o admin gestiona sus miembros');await exigirAlcance(id,req.demoAuth!);
+ const anterior=Number(req.body.idAnterior),nuevo=Number(req.body.idNuevo),motivo=String(req.body.motivo??'').trim();
+ if(!Number.isSafeInteger(anterior)||!Number.isSafeInteger(nuevo)||!motivo||anterior===nuevo)throw new HttpError(400,'Indique evaluador anterior, sustituto y motivo');
+ const client=await pool.connect();try{await client.query('BEGIN');const prop=(await client.query('SELECT * FROM propuesta WHERE id_propuesta=$1 FOR UPDATE',[id])).rows[0];
+ if(prop.etapa_flujo!==2||prop.estado_actual!=='en_evaluacion'||(await client.query('SELECT 1 FROM resultado_comite WHERE id_propuesta=$1',[id])).rowCount)throw new HttpError(409,'No se puede modificar un Comité con dictamen cerrado o fuera de su etapa');
+ if(!(await client.query('SELECT 1 FROM comite_miembro WHERE id_propuesta=$1 AND id_usuario=$2',[id,anterior])).rowCount)throw new HttpError(404,'La persona anterior no está asignada');
+ if((await client.query("SELECT 1 FROM evaluacion WHERE id_propuesta=$1 AND id_evaluador=$2 AND instancia='comite' AND id_rubrica=$3 AND ciclo=$4 AND estado='completada'",[id,anterior,prop.id_rubrica_actual,prop.ciclo_evaluacion])).rowCount)throw new HttpError(409,'No se sustituye una evaluación individual ya entregada');
+ if(!(await client.query("SELECT 1 FROM usuario u JOIN usuario_rol ur ON ur.id_usuario=u.id_usuario JOIN rol r ON r.id_rol=ur.id_rol WHERE u.id_usuario=$1 AND u.id_escuela=$2 AND u.activo=true AND r.codigo='comite_evaluador'",[nuevo,prop.id_escuela])).rowCount)throw new HttpError(400,'El sustituto debe ser un evaluador activo de la escuela');
+ await client.query('DELETE FROM comite_miembro WHERE id_propuesta=$1 AND id_usuario=$2',[id,anterior]);await client.query('INSERT INTO comite_miembro VALUES($1,$2)',[id,nuevo]);
+ await client.query("INSERT INTO auditoria_operacion(id_usuario,accion,entidad,id_entidad,motivo,datos) VALUES($1,'sustituir','comite_miembro',$2,$3,$4::jsonb)",[req.demoAuth!.userId,id,motivo,JSON.stringify({idAnterior:anterior,idNuevo:nuevo})]);
+ await client.query('COMMIT');res.json({message:'Evaluador sustituido; sus borradores anteriores se conservan sin contarlos en el consolidado'});
+ }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
+}));
+
+evaluacionesRouter.get('/evaluaciones/propuestas/:id/comite',requireDemoAuth,asyncHandler(async(req,res)=>{
+ const id=Number(req.params.id);await exigirAlcance(id,req.demoAuth!);
+ if(!['comite_asistente','comite_evaluador','admin'].includes(req.demoAuth!.role!))throw new HttpError(403,'La consolidación pertenece al Comité');
+ const ciclo=(await query('SELECT ciclo_evaluacion FROM propuesta WHERE id_propuesta=$1',[id])).rows[0].ciclo_evaluacion;const anteriores=(await query("SELECT e.ciclo,u.nombre_completo,e.estado,e.puntaje_total FROM evaluacion e JOIN usuario u ON u.id_usuario=e.id_evaluador WHERE e.id_propuesta=$1 AND e.instancia='comite' AND e.ciclo<$2 ORDER BY e.ciclo,e.id_evaluador",[id,ciclo])).rows;res.json({ciclo,anteriores,miembros:await committeeStatus(pool,id),confirmado:!!(await query('SELECT 1 FROM resultado_comite WHERE id_propuesta=$1',[id])).rowCount});
 }));
 
 /**
@@ -411,26 +449,33 @@ evaluacionesRouter.post(
       }
 
       if(propuesta.estado_actual==="en_subsanacion") throw new HttpError(409,"El investigador debe subsanar y reenviar a la instancia que devolvió antes de continuar");
+      if(propuesta.estado_actual==='rechazo_aval'&&!['request-reconsideration','council-reconsider'].includes(action))throw new HttpError(409,'Aval rechazado: solicite y autorice un nuevo ciclo en el Consejo');
       const decisions=await client.query("SELECT 1 FROM aval_consejo WHERE id_propuesta=$1 AND resultado IN ('rechaza','rechazado') UNION ALL SELECT 1 FROM resolucion_cie WHERE id_propuesta=$1 AND resultado='rechazada'",[id]);
-      if(decisions.rowCount && action!=="notify-resolution") throw new HttpError(409,"Existe un rechazo previo; su reapertura requiere la excepción del equipo (D09)");
+      if(decisions.rowCount && !["notify-resolution","request-reconsideration","council-reconsider"].includes(action)) throw new HttpError(409,"Existe un rechazo previo; su reapertura requiere la excepción del equipo (D09)");
       const pi=await client.query("SELECT * FROM dictamen_pi WHERE id_propuesta=$1",[id]);
       const piRecord=pi.rows[0];
       const certification=(await client.query("SELECT * FROM pi_certificacion_no_requerido WHERE id_propuesta=$1",[id])).rows[0];
       if((action==="pi"&&piRecord&&["emitido","no_requerido"].includes(piRecord.estado)) || (action==="pi-not-required"&&certification)) throw new HttpError(409,"El dictamen o certificación PI está cerrado; no puede sobrescribirse");
-      const advances=new Set(["committee-ready","committee-score","send-council","council-approve","council-reject","communicate-aval","send-cie","cie-approve","cie-reject"]);
+      const advances=new Set(["committee-ready","committee-score","committee-confirm","send-council","council-approve","council-reject","communicate-aval","send-cie","cie-approve","cie-reject"]);
       if(advances.has(action)) {
         const valid=locked.rows[0].requiere_dictamen_pi
           ? piRecord?.estado==="emitido" && piRecord.id_emisor && piRecord.fecha_dictamen
           : certification && String(certification.fundamento??"").trim() && certification.id_certificador && certification.fecha_certificacion;
         if(!valid) throw new HttpError(409,locked.rows[0].requiere_dictamen_pi?"Se requiere dictamen PI emitido antes de avanzar":"Falta certificar PI no requerido con fundamento y responsable");
       }
-      const ranges:Record<string,[number,number]>={pi:[1,5],"pi-not-required":[1,5],"committee-ready":[1,2],"committee-score":[1,2],"send-council":[2,3],"council-approve":[3,3],"council-reject":[3,3],"communicate-aval":[3,4],"vie-checklist":[4,4],"vie-observation":[4,4],"send-cie":[4,4],"cie-approve":[5,5],"cie-reject":[5,5]};
+      const ranges:Record<string,[number,number]>={pi:[1,5],"pi-not-required":[1,5],"committee-confirm":[2,2],"committee-ready":[1,2],"committee-score":[1,2],"send-council":[2,3],"council-approve":[3,3],"council-reject":[3,3],"communicate-aval":[3,4],"vie-checklist":[4,4],"vie-observation":[4,4],"send-cie":[4,4],"cie-approve":[5,5],"cie-reject":[5,5]};
       const range=ranges[action];
       if(range&&(propuesta.etapa_flujo<range[0]||propuesta.etapa_flujo>range[1])) throw new HttpError(409,"La acción no corresponde a la instancia actual del expediente");
       const instance=role==="cie" || role==="admin"&&payload.instancia==="cie"?"cie":"comite";
       if(action==="save-rubric"&&propuesta.etapa_flujo!==(instance==="cie"?5:2)) throw new HttpError(409,"La evaluación no corresponde a la instancia actual");
       if((action==="committee-score"||action==="save-rubric"&&instance==="comite")&&(await client.query("SELECT 1 FROM resultado_comite WHERE id_propuesta=$1",[id])).rowCount) throw new HttpError(409,"El dictamen del Comité está cerrado; no puede sobrescribirse");
 
+      if(['council-approve','council-reject','send-council'].includes(action)&&!(await client.query('SELECT 1 FROM resultado_comite WHERE id_propuesta=$1',[id])).rowCount)throw new HttpError(409,'El Comité debe confirmar su dictamen consolidado');
+      if(['send-cie','cie-approve','cie-reject'].includes(action)){
+        if(!(await client.query("SELECT 1 FROM aval_consejo WHERE id_propuesta=$1 AND resultado IN ('aprueba','aprobado')",[id])).rowCount)throw new HttpError(409,'Se requiere aval aprobado del Consejo');
+        if(!(await client.query("SELECT 1 FROM comunicacion_institucional WHERE id_propuesta=$1 AND tipo='aval_consejo'",[id])).rowCount)throw new HttpError(409,'El aval debe comunicarse a VIE');
+      }
+      if(['cie-approve','cie-reject'].includes(action)&&!(await client.query("SELECT 1 FROM propuesta_historial_estado WHERE id_propuesta=$1 AND estado_nuevo='avalada' AND observacion='Expediente remitido al CIE'",[id])).rowCount)throw new HttpError(409,'VIE debe remitir formalmente el expediente al CIE');
       const adminStage=action==="return"?(payload.instancia==="vie"?4:2):action==="pi"||action==="pi-not-required"?1:action.startsWith("committee")?2:action.startsWith("council")||action==="communicate-aval"||action==="send-council"?3:action.startsWith("vie")||action==="send-cie"?4:action.startsWith("cie")?5:action==="notify-resolution"?6:propuesta.etapa_flujo;
       const actorStage=role==="admin"?adminStage:etapaRol(role);
       await client.query("SELECT set_config('vie.etapa_evento',$1,true)",[String(actorStage)]);
@@ -510,6 +555,9 @@ evaluacionesRouter.post(
         }
 
         case "committee-ready": {
+          await assignCommittee(client,id,propuesta.id_escuela);
+          await proposalRubric(client,id,locked.rows[0].modalidad);
+
           await client.query(
             `
             INSERT INTO revision_expediente (
@@ -543,6 +591,7 @@ evaluacionesRouter.post(
           if(!texto||!Array.isArray(secciones)||!secciones.length||secciones.some(c=>!seccionesSubsanacion.some(s=>s.codigo===c))) throw new HttpError(400,"Indique motivo y secciones concretas a subsanar");
           await client.query(`INSERT INTO propuesta_subsanacion(id_propuesta,instancia,rol_destino,estado_retorno,etapa_retorno,secciones,motivo,id_devuelta_por)
             VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,[id,instancia,instancia==="vie"?"gestora_vie":"comite_asistente",instancia==="vie"?prev:"en_evaluacion",instancia==="vie"?4:2,[...new Set(secciones)],texto,userId]);
+          if(instancia==='comite')await client.query('UPDATE propuesta SET ciclo_evaluacion=ciclo_evaluacion+1 WHERE id_propuesta=$1',[id]);
           const rev=await client.query(`INSERT INTO revision_expediente(id_propuesta,etapa,ciclo,id_revisor,resultado,fecha_inicio,fecha_fin)
             SELECT $1,$2::varchar(20),COALESCE(MAX(ciclo),0)+1,$3,'devuelto',NOW(),NOW() FROM revision_expediente WHERE id_propuesta=$1 AND etapa=$2::varchar(20) RETURNING id_revision`,[id,instancia,userId]);
           for(const section of [...new Set(secciones)]) await client.query(`INSERT INTO observacion(id_propuesta,id_revision,etapa,seccion_formulario,id_creada_por,mensaje,requiere_respuesta,fecha_creacion)
@@ -562,48 +611,42 @@ evaluacionesRouter.post(
         }
 
         case "committee-score": {
-          const evaluation = await saveRubric(client,id,userId,"comite",locked.rows[0].modalidad as string,payload,true);
-          const promedio = evaluation.total;
-          const oficio =
-            str(payload.oficio) ||
-            `CT-${new Date().getFullYear()}-${String(id).padStart(3, "0")}`;
-          const fundamento =
-            str(payload.fundamento) ||
-            str(payload.texto) ||
-            "Evaluación del Comité Técnico registrada desde el prototipo.";
-          await client.query(
-            `
-            INSERT INTO resultado_comite (
-              id_propuesta, recomendacion, calificacion_promedio, numero_oficio,
-              fundamento, fecha_dictamen, id_coordinador_comite
-            ) VALUES ($1, $6, $2, $3, $4, CURRENT_DATE, $5)
-            ON CONFLICT (id_propuesta) DO UPDATE SET
-              recomendacion = EXCLUDED.recomendacion,
-              calificacion_promedio = EXCLUDED.calificacion_promedio,
-              numero_oficio = EXCLUDED.numero_oficio,
-              fundamento = EXCLUDED.fundamento,
-              fecha_dictamen = CURRENT_DATE,
-              id_coordinador_comite = EXCLUDED.id_coordinador_comite
-            `,
-            [
-              id,
-              promedio,
-              oficio.slice(0, 40),
-              fundamento,
-              userId,
-              evaluation.recommendation,
-            ],
-          );
-          await advanceEstado(client, {
-            idPropuesta: id,
-            estadoAnterior: prev,
-            estadoNuevo: "dictaminada",
-            etapa: Math.max(propuesta.etapa_flujo, 3),
-            userId,
-            observacion: `Dictamen del Comité (${oficio})`,
-          });
-          message = "Evaluación completada y preparada para consolidación.";
+          await saveRubric(client,id,userId,"comite",locked.rows[0].modalidad,payload,true);
+          message="Evaluación individual entregada. Falta confirmación del consolidado por la asistencia.";
           break;
+        }
+        case "committee-confirm": {
+          const members=await committeeStatus(client,id);
+          if(members.length!==3||members.some(m=>m.estado!=='completada'))throw new HttpError(409,'Deben estar entregadas las tres evaluaciones independientes');
+          const fundamento=str(payload.texto);
+          if(!fundamento)throw new HttpError(400,'Fundamente la confirmación del dictamen consolidado');
+          if((await client.query('SELECT 1 FROM resultado_comite WHERE id_propuesta=$1',[id])).rowCount)throw new HttpError(409,'El dictamen consolidado ya está cerrado');
+          const average=Math.round(members.reduce((n,m)=>n+Number(m.puntaje_total),0)/members.length*100)/100;
+          const failed=(await client.query(`SELECT 1 FROM evaluacion e JOIN evaluacion_puntaje ep ON ep.id_evaluacion=e.id_evaluacion JOIN rubrica_criterio rc ON rc.id_criterio=ep.id_criterio JOIN propuesta p ON p.id_propuesta=e.id_propuesta WHERE e.id_propuesta=$1 AND e.instancia='comite' AND e.id_rubrica=p.id_rubrica_actual AND e.ciclo=p.ciclo_evaluacion AND e.estado='completada' AND EXISTS(SELECT 1 FROM comite_miembro cm WHERE cm.id_propuesta=e.id_propuesta AND cm.id_usuario=e.id_evaluador) AND rc.es_obligatorio AND ep.puntaje<=6 LIMIT 1`,[id])).rowCount;
+          const recommendation=average>=70&&!failed&&members.every(m=>m.productos_cumplen)?'recomienda':'no_recomienda';
+          await client.query(`INSERT INTO resultado_comite(id_propuesta,recomendacion,calificacion_promedio,numero_oficio,fundamento,fecha_dictamen,id_coordinador_comite) VALUES($1,$2,$3,$4,$5,CURRENT_DATE,$6)`,[id,recommendation,average,`CT-${id}`,fundamento,userId]);
+          await advanceEstado(client,{idPropuesta:id,estadoAnterior:prev,estadoNuevo:'dictaminada',etapa:3,userId,observacion:`Dictamen consolidado confirmado: ${recommendation}`});
+          message='Dictamen consolidado confirmado. La recomendación informa al Consejo; no es resolución CIE.';
+          break;
+        }
+        case 'request-reconsideration': {
+          if(prev!=='rechazo_aval'||propuesta.id_coordinador!==userId)throw new HttpError(409,'Solo la coordinación puede solicitar reconsideración de su aval rechazado');
+          const texto=str(payload.texto);if(!texto)throw new HttpError(400,'Justifique la solicitud de reconsideración');
+          await client.query('INSERT INTO reconsideracion_aval(id_propuesta,id_solicitante,motivo) VALUES($1,$2,$3)',[id,userId,texto]);
+          message='Reconsideración solicitada al Consejo; el rechazo continúa vigente.';break;
+        }
+        case 'council-reconsider': {
+          if(prev!=='rechazo_aval')throw new HttpError(409,'Solo puede iniciar otro ciclo desde un aval rechazado');
+          const texto=str(payload.texto);if(!texto)throw new HttpError(400,'Fundamente la autorización de un nuevo ciclo');
+          const request=(await client.query('SELECT * FROM reconsideracion_aval WHERE id_propuesta=$1 AND fecha_autorizacion IS NULL',[id])).rows[0];
+          if(!request)throw new HttpError(409,'Falta solicitud de la coordinación');
+          const aval=(await client.query('SELECT * FROM aval_consejo WHERE id_propuesta=$1',[id])).rows[0];
+          await client.query(`INSERT INTO auditoria_operacion(id_usuario,accion,entidad,id_entidad,motivo,datos) VALUES($1,'reconsiderar','aval_consejo',$2,$3,$4::jsonb)`,[userId,id,texto,JSON.stringify({aval,solicitud:request})]);
+          await client.query('UPDATE reconsideracion_aval SET id_autorizador=$2,fundamento=$3,fecha_autorizacion=NOW() WHERE id_reconsideracion=$1',[request.id_reconsideracion,userId,texto]);
+          await client.query('DELETE FROM aval_consejo WHERE id_propuesta=$1',[id]);
+          await client.query(`INSERT INTO revision_expediente(id_propuesta,etapa,ciclo,id_revisor,resultado,fecha_inicio) SELECT $1,'consejo',COALESCE(MAX(ciclo),0)+1,$2,'en_revision',NOW() FROM revision_expediente WHERE id_propuesta=$1 AND etapa='consejo'`,[id,userId]);
+          await advanceEstado(client,{idPropuesta:id,estadoAnterior:prev,estadoNuevo:'dictaminada',etapa:3,userId,observacion:'Nuevo ciclo de Consejo autorizado: '+texto});
+          message='Nuevo ciclo del Consejo iniciado; la decisión anterior se conserva en auditoría.';break;
         }
 
         case "send-council": {
@@ -659,15 +702,19 @@ evaluacionesRouter.post(
           await advanceEstado(client, {
             idPropuesta: id,
             estadoAnterior: prev,
-            estadoNuevo: aprueba ? "avalada" : "rechazada",
-            etapa: aprueba ? Math.max(propuesta.etapa_flujo, 4) : 6,
+            estadoNuevo: aprueba ? "avalada" : "rechazo_aval",
+            etapa: aprueba ? 4 : 3,
             userId,
             observacion: aprueba
               ? `Aval aprobado (${oficio})`
               : `Aval rechazado (${oficio}): ${texto.slice(0, 200)}`,
           });
+          if(!aprueba){
+            await client.query("INSERT INTO notificacion(id_usuario_destino,id_propuesta,titulo,mensaje,leida,fecha_hora) VALUES($1,$2,'Aval rechazado por el Consejo',$3,false,NOW())",[propuesta.id_coordinador,id,texto]);
+            await client.query("INSERT INTO comunicacion_institucional(id_propuesta,tipo,id_emisor,id_destinatario,confirmada,fecha_envio,mensaje) VALUES($1,'rechazo_aval',$2,$3,true,NOW(),$4)",[id,userId,propuesta.id_coordinador,texto]);
+          }
           message = aprueba
-            ? "Aval aprobado y oficio generado."
+            ? "Aval aprobado y número de oficio registrado."
             : "Aval rechazado correctamente. Justificación registrada.";
           break;
         }
@@ -754,17 +801,8 @@ evaluacionesRouter.post(
 
         case "cie-approve":
         case "cie-reject": {
-          const fundamento =
-            str(payload.texto) ||
-            str(payload.fundamento) ||
-            (action === "cie-approve"
-              ? "Resolución aprobatoria del CIE."
-              : "Resolución de rechazo del CIE.");
-          if (action === "cie-reject" && !str(payload.texto) && !str(payload.fundamento)) {
-            await client.query("ROLLBACK");
-            res.status(400).json({ error: "La justificación es obligatoria" });
-            return;
-          }
+          const fundamento=str(payload.texto)||str(payload.fundamento);
+          if(!fundamento)throw new HttpError(400,'El fundamento de la resolución es obligatorio');
           const numero =
             str(payload.numero) ||
             `CIE-RES-${new Date().getFullYear()}-${String(id).padStart(3, "0")}`;

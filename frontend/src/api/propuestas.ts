@@ -10,6 +10,7 @@ export type FuenteInput = { tipo: string; anio: number; monto: number; oficio: s
 export type ParticipanteInput = {
   id?: number; idUsuario?: number | null; tipo: "funcionario_tec" | "externo";
   nombre: string; orcid: string | null; instancia: string | null; rol: string | null; periodo: string | null;
+  titularCons?:string|null;
   horas: { tipo: string; cantidad: number }[];
 };
 
@@ -36,6 +37,7 @@ export type Propuesta = {
   divulgacion: string | null;
   fechaInicio: string | null;
   fechaFin: string | null;
+  trlActual:number|null;trlEsperado:number|null;lineas:number[];lineasNombres:string[];
   requiereDictamenPi: boolean;
   piAcreditada: boolean;
   declaracion: boolean;
@@ -70,6 +72,7 @@ export type PropuestaInput = {
   divulgacion?: string;
   fechaInicio?: string;
   fechaFin?: string;
+  trlActual?:number|null;trlEsperado?:number|null;lineas?:number[];
   requiereDictamenPi?: boolean;
   declaracion?: boolean;
   resguardoRepositorio?: boolean;

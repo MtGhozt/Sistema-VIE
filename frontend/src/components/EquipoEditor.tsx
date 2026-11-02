@@ -22,7 +22,7 @@ export function EquipoEditor({ equipo, onChange }: { equipo: ParticipanteInput[]
           <option value="">Captura manual / seleccionar…</option>{people.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
         </select></label>}
       <div className="form-grid two-col">
-        {([['nombre','Nombre'],['orcid','ORCID'],['instancia',row.tipo === 'externo' ? 'Institución / empresa' : 'Instancia académica'],['rol','Rol en el proyecto'],['periodo','Periodo de nombramiento']] as const).map(([key,label]) => <label className="field" key={key}><span className="field-label">{label}</span><input className="input" readOnly={Boolean(row.idUsuario) && (key === 'nombre' || key === 'instancia')} value={row[key] ?? ''} onChange={e => update(index, { [key]: e.target.value })} /></label>)}
+        {([['nombre','Nombre'],['orcid','ORCID'],['instancia',row.tipo === 'externo' ? 'Institución / empresa' : 'Instancia académica'],['rol','Rol en el proyecto'],['periodo','Periodo de nombramiento'],['titularCons','Persona titular de horas CONS (si aplica)']] as const).map(([key,label]) => <label className="field" key={key}><span className="field-label">{label}</span><input className="input" readOnly={Boolean(row.idUsuario) && (key === 'nombre' || key === 'instancia')} value={row[key] ?? ''} onChange={e => update(index, { [key]: e.target.value })} /></label>)}
       </div>
       {row.horas.map((h,j) => <div className="form-grid two-col" key={j}>
         <label className="field"><span className="field-label">Tipo de horas</span><select className="input" value={h.tipo} onChange={e => update(index,{horas:row.horas.map((h,k)=>k===j?{...h,tipo:e.target.value}:h)})}>{TIPOS_HORA.map(t=><option key={t}>{t}</option>)}</select></label>

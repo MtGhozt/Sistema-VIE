@@ -54,3 +54,9 @@ body { font-size: 1rem; }
   height: 18px;
   accent-color: var(--blue);
 }
+
+.expediente-documentos .documento-version { flex-wrap: wrap; }
+.documento-version > span { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.documento-version .btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
+.wizard-card a[aria-disabled="true"] { opacity: .6; cursor: progress; }

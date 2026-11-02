@@ -43,6 +43,7 @@ export type FormWizardState = {
   equipo: ParticipanteInput[];
   presupuesto: PresupuestoInput[];
   fuentes: FuenteInput[];
+  trlActual:number|null;trlEsperado:number|null;lineas:number[];
   titulo: string;
   modalidad: string;
   inicio: string;
@@ -78,6 +79,7 @@ export type FormWizardState = {
 };
 
 export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
+  trlActual:null,trlEsperado:null,lineas:[],
   equipo: [], actividades: [], compromisos: [], presupuesto: [], fuentes: [], permisos: [],
   aspectosEticos: { humanos:false, biodiversidad:false, animales:false, indigenas:false, exencion:"" },
   titulo:"", modalidad:"Investigación básica", inicio:"", fin:"", escuela:"",

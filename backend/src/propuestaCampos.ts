@@ -33,6 +33,10 @@ export async function savePropuestaCampos(id: number, body: Record<string, unkno
     if (typeof body.requiereDictamenPi !== "boolean") throw new HttpError(400, "requiereDictamenPi debe ser booleano");
     values.push(body.requiereDictamenPi); fields.push(`requiere_dictamen_pi=$${values.length}`);
   }
+  for(const [api,col] of [['trlActual','trl_actual'],['trlEsperado','trl_esperado']]){
+    if(body[api]!==undefined){const n=body[api]===null||body[api]===''?null:Number(body[api]);if(n!==null&&(!Number.isInteger(n)||n<1||n>9))throw new HttpError(400,'TRL debe ser un entero de 1 a 9');values.push(n);fields.push(`${col}=$${values.length}`);}
+  }
+  if(body.lineas!==undefined){if(!Array.isArray(body.lineas)||body.lineas.some(n=>!Number.isSafeInteger(n)))throw new HttpError(400,'Líneas inválidas');const ids=[...new Set(body.lineas)];if((await execute('SELECT 1 FROM linea_investigacion WHERE id_linea_investigacion=ANY($1::int[]) AND (activo=true OR id_linea_investigacion IN (SELECT id_linea_investigacion FROM propuesta_linea WHERE id_propuesta=$2))',[ids,id])).rowCount!==ids.length)throw new HttpError(400,'Seleccione líneas activas');await execute('DELETE FROM propuesta_linea WHERE id_propuesta=$1',[id]);for(const n of ids)await execute('INSERT INTO propuesta_linea VALUES($1,$2)',[id,n]);}
   if (fields.length) { values.push(id); await execute(`UPDATE propuesta SET ${fields.join(',')} WHERE id_propuesta=$${values.length}`, values); }
   if (body.preguntasGenerales !== undefined) {
     const answers = body.preguntasGenerales;

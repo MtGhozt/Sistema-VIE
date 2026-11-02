@@ -8,7 +8,10 @@
       "modalidad",
       "fechaInicio",
       "fechaFin",
-      "preguntasGenerales"
+      "preguntasGenerales",
+      "trlActual",
+      "trlEsperado",
+      "lineas"
     ]
   },
   {
@@ -128,6 +131,14 @@
     "paso": 14,
     "campos": [
       "declaracion"
+    ]
+  },
+  {
+    "codigo": "documentacion",
+    "etiqueta": "Documentación",
+    "paso": 15,
+    "campos": [
+      "documentos"
     ]
   }
 ]

@@ -1,19 +1,19 @@
+import {apiJson} from "../api/client";
 import { PlanEditor } from "./PlanEditor";
 import { EditableRows } from "./EditableRows";
 import { EquipoEditor } from "./EquipoEditor";
-import { useId, type ReactNode } from "react";
+import { useId, useEffect, useState, type ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
-import { MODALIDADES } from "../data/demo";
 import {
-  ALT_TEXT_MIN_CHARS,
   type FormWizardState,
   type GradoVinculo,
-  type GraphicResource,
   type YesNo,
 } from "../data/formWizard";
 import { formatCRC } from "../data/proposalView";
 
 type Props = {
+  bloquearIdentificacion?:boolean;
+  documentos?: ReactNode;
   step: number;
   form: FormWizardState;
   patch: (partial: Partial<FormWizardState>) => void;
@@ -82,6 +82,8 @@ function YesNoRow({
 }
 
 export function FormWizardStepContent({
+  bloquearIdentificacion=false,
+  documentos,
   step,
   form,
   patch,
@@ -89,6 +91,9 @@ export function FormWizardStepContent({
   idConvocatoria,
   setIdConvocatoria,
 }: Props) {
+  const [catalogs,setCatalogs]=useState<{modalidades:{codigo:string;nombre:string}[];lineas:{id_linea_investigacion:number;nombre:string}[]}>({modalidades:[],lineas:[]});
+  const [catalogError,setCatalogError]=useState('');
+  useEffect(()=>{let active=true;apiJson<typeof catalogs>('/api/catalogos').then(c=>{if(active)setCatalogs(c);}).catch(e=>{if(active)setCatalogError(e.message);});return()=>{active=false;};},[]);
 
   if (step === 0) {
     return (
@@ -110,7 +115,7 @@ export function FormWizardStepContent({
             <span className="field-label">Convocatoria</span>
             <select
               className="input"
-              value={idConvocatoria}
+              disabled={bloquearIdentificacion} value={idConvocatoria}
               onChange={(e) =>
                 setIdConvocatoria(
                   e.target.value ? Number(e.target.value) : "",
@@ -127,6 +132,9 @@ export function FormWizardStepContent({
               ))}
             </select>
           </label>
+          {catalogError&&<p role="alert">{catalogError}</p>}
+          <fieldset><legend>Líneas de investigación</legend>{catalogs.lineas.map(l=><label className="subsanacion-seccion" key={l.id_linea_investigacion}><input type="checkbox" checked={form.lineas.includes(l.id_linea_investigacion)} onChange={e=>patch({lineas:e.target.checked?[...form.lineas,l.id_linea_investigacion]:form.lineas.filter(id=>id!==l.id_linea_investigacion)})}/>{l.nombre}</label>)}</fieldset>
+          <div className="form-grid two-col">{(['trlActual','trlEsperado'] as const).map(key=><label className="field" key={key}>{key==='trlActual'?'TRL actual (si aplica)':'TRL esperado (si aplica)'}<input className="input" type="number" min="1" max="9" value={form[key]??''} onChange={e=>patch({[key]:e.target.value?Number(e.target.value):null})}/></label>)}</div>
           <div className="form-grid two-col">
             <label className="field">
               <span className="field-label">Nombre del proyecto</span>
@@ -140,12 +148,13 @@ export function FormWizardStepContent({
               <span className="field-label">Modalidad</span>
               <select
                 className="input"
-                value={form.modalidad}
+                disabled={bloquearIdentificacion} value={form.modalidad}
                 onChange={(e) => patch({ modalidad: e.target.value })}
               >
-                {MODALIDADES.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
+                {!catalogs.modalidades.some(m=>m.nombre===form.modalidad||m.codigo===form.modalidad)&&<option disabled={bloquearIdentificacion} value={form.modalidad}>{form.modalidad} (actual)</option>}
+                {catalogs.modalidades.map((m) => (
+                  <option key={m.codigo} value={m.nombre}>
+                    {m.nombre}
                   </option>
                 ))}
               </select>
@@ -302,7 +311,7 @@ export function FormWizardStepContent({
               number={8}
               question="¿La propuesta presenta potencial de generar resultados susceptibles de protección mediante propiedad intelectual?"
             >
-              <YesNoRow value={form.q8} onChange={(q8) => patch({ q8 })} />
+              <fieldset disabled={bloquearIdentificacion} style={{border:0,padding:0,margin:0}}><YesNoRow value={form.q8} onChange={(q8) => patch({ q8 })} /></fieldset>
             </QuestionBlock>
           </div>
         </section>
@@ -332,7 +341,7 @@ export function FormWizardStepContent({
             onChange={(e) => patch({ abstract: e.target.value })}
           />
         </label>
-        <label className="field"><span className="field-label">Keywords (English)</span>
+        <label className="field"><span className="field-label">Keywords (English · opcional)</span>
           <input className="input" value={form.keywordsEn} onChange={e => patch({ keywordsEn: e.target.value })} />
         </label>
         <label className="field">
@@ -473,140 +482,7 @@ export function FormWizardStepContent({
   }
 
   if (step === 15) {
-    function addResource(tipo: GraphicResource["tipo"], fileList: FileList | null) {
-      const file = fileList?.[0];
-      if (!file) return;
-      const next: GraphicResource = {
-        id: `res-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        tipo,
-        nombreArchivo: file.name,
-        altText: "",
-      };
-      patch({ recursosGraficos: [...form.recursosGraficos, next] });
-    }
-
-    function updateAlt(id: string, altText: string) {
-      patch({
-        recursosGraficos: form.recursosGraficos.map((r) =>
-          r.id === id ? { ...r, altText } : r,
-        ),
-      });
-    }
-
-    function removeResource(id: string) {
-      patch({
-        recursosGraficos: form.recursosGraficos.filter((r) => r.id !== id),
-      });
-    }
-
-    return (
-      <div className="stack-md">
-        <div>
-          <h3>Documentos del expediente</h3>
-          <p className="field-hint">
-            Formulario, plan de acción, presupuesto y acuerdos (referencia del
-            prototipo).
-          </p>
-          <p className="field-hint">La carga y consulta de archivos del expediente está pendiente de implementación. No se han adjuntado los documentos de ejemplo.</p>
-        </div>
-
-        <div>
-          <h3>Recursos gráficos (imágenes y videos)</h3>
-          <p className="field-hint">
-            Esta vista local no sube ni guarda archivos en el servidor. Cada recurso debe incluir un texto alternativo editable y
-            suficientemente descriptivo (rúbrica de accesibilidad · WCAG 1.1.1).
-          </p>
-
-          <div className="resource-alt-actions" style={{ marginTop: 12 }}>
-            <label className="btn btn-secondary">
-              Seleccionar imagen (vista local)
-              <input
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={(e) => {
-                  addResource("imagen", e.target.files);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-            <label className="btn btn-secondary">
-              Seleccionar video (vista local)
-              <input
-                type="file"
-                accept="video/*"
-                className="sr-only"
-                onChange={(e) => {
-                  addResource("video", e.target.files);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          </div>
-
-          {form.recursosGraficos.length === 0 ? (
-            <p className="empty-state" style={{ marginTop: 16 }}>
-              Todavía no hay recursos gráficos. Agregue una imagen o un video y
-              complete su descripción alternativa.
-            </p>
-          ) : (
-            <ul className="resource-alt-list" style={{ marginTop: 16 }}>
-              {form.recursosGraficos.map((r) => {
-                const len = r.altText.trim().length;
-                const short = len > 0 && len < ALT_TEXT_MIN_CHARS;
-                const altId = `alt-${r.id}`;
-                return (
-                  <li key={r.id} className="resource-alt-card">
-                    <div className="resource-alt-card-head">
-                      <div className="resource-alt-meta">
-                        <span className="badge">
-                          {r.tipo === "imagen" ? "Imagen" : "Video"}
-                        </span>
-                        <strong>{r.nombreArchivo}</strong>
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        onClick={() => removeResource(r.id)}
-                      >
-                        Quitar
-                      </button>
-                    </div>
-                    <label className="field" htmlFor={altId}>
-                      <span className="field-label">
-                        Texto alternativo / descripción
-                      </span>
-                      <textarea
-                        id={altId}
-                        className="input textarea"
-                        rows={3}
-                        value={r.altText}
-                        onChange={(e) => updateAlt(r.id, e.target.value)}
-                        placeholder={
-                          r.tipo === "imagen"
-                            ? "Describa el contenido visual relevante de la imagen…"
-                            : "Describa el contenido del video (tema, escenas, información clave)…"
-                        }
-                      />
-                    </label>
-                    <p
-                      className={`resource-alt-hint${short ? " warn" : ""}`}
-                      role="status"
-                    >
-                      {len === 0
-                        ? "Falta el texto alternativo."
-                        : short
-                          ? `La descripción es corta (${len} caracteres). Se recomienda al menos ${ALT_TEXT_MIN_CHARS} para que sea útil con lector de pantalla.`
-                          : `Descripción lista (${len} caracteres). Puede editarla en cualquier momento.`}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </div>
-    );
+    return <div className="stack-md">{documentos??<p>Guarde primero el borrador para habilitar la carga de documentos.</p>}<p>Imágenes y videos quedan fuera del alcance de carga de esta entrega; no se presenta selección local como almacenamiento.</p></div>;
   }
 
   return (

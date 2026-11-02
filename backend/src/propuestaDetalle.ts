@@ -17,7 +17,7 @@ export async function loadPropuestaDisplay(id: number, execute: typeof query = q
     execute<{ anio: number; operativo: string; duraderos: string }>("SELECT anio, monto_operativo AS operativo, monto_bienes_duraderos AS duraderos FROM propuesta_presupuesto_anual WHERE id_propuesta=$1 ORDER BY anio", [id]),
     execute<{ descripcion: string }>("SELECT descripcion FROM propuesta_producto WHERE id_propuesta=$1 ORDER BY id_producto", [id]),
     execute<{ mensaje: string }>("SELECT mensaje FROM observacion WHERE id_propuesta=$1 ORDER BY fecha_creacion,id_observacion", [id]),
-    execute<{ titulo: string; detalle: string; fecha: Date }>("SELECT estado_nuevo AS titulo, observacion AS detalle, fecha_hora AS fecha FROM propuesta_historial_estado WHERE id_propuesta=$1 ORDER BY fecha_hora,id_historial", [id]),
+    execute<{id:number; titulo: string; detalle: string; fecha: Date }>("SELECT id_historial AS id,estado_nuevo AS titulo, observacion AS detalle, fecha_hora AS fecha FROM propuesta_historial_estado WHERE id_propuesta=$1 ORDER BY fecha_hora,id_historial", [id]),
     execute<{ nombre: string; estado: string }>("SELECT nombre, estado FROM propuesta_documento WHERE id_propuesta=$1 ORDER BY id_documento", [id]),
     execute<{ numero: number; respuesta: string; detalle: string | null }>("SELECT numero_pregunta AS numero,respuesta,detalle FROM propuesta_pregunta_general WHERE id_propuesta=$1 ORDER BY numero_pregunta", [id]),
   ]);

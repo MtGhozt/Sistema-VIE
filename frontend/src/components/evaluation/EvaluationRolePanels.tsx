@@ -1,3 +1,5 @@
+import {ConsejoReconsideracion} from "./ConsejoReconsideracion";
+import {ComiteConsolidado} from "./ComiteConsolidado";
 import seccionesSubsanacion from "../../../../shared/subsanacion-secciones.json";
 import vieItems from "../../../../shared/checklist-vie.json";
 import { apiJson } from "../../api/client";
@@ -5,7 +7,6 @@ import { fetchSavedRubric } from "../../api/evaluaciones";
 import { useEffect, useMemo, useState } from "react";
 import type { DemoProposal } from "../../data/demo";
 import {
-  COMMITTEE_EVALUATOR_SUMMARY,
   RUBRIC_SCORE_OPTIONS,
   getRubricForModalidad,
   getRubricSections,
@@ -236,6 +237,7 @@ export function ComiteAsistentePanel({
           title="Checklist de completitud"
           description="Verifique la documentación formal antes de iniciar la evaluación técnica."
         />
+        {proposal.numericId&&<ComiteConsolidado id={proposal.numericId} confirm={texto=>onAction("committee-confirm",{texto})}/>}
         <div className="checklist" role="group" aria-label="Checklist de completitud">
           {Object.entries(checks).map(([name, ok]) => (
             <label key={name} className="check-row">
@@ -324,15 +326,13 @@ function RubricPanel({
   onAction: ActionHandler;
   cie?: boolean;
 }) {
-  const criteria = useMemo(
-    () => getRubricForModalidad(proposal.modalidad),
-    [proposal.modalidad],
-  );
-  const sections = useMemo(
-    () => getRubricSections(proposal.modalidad),
-    [proposal.modalidad],
-  );
-
+  const [sections,setSections]=useState(()=>getRubricSections(proposal.modalidad));
+  const criteria=useMemo(()=>getRubricForModalidad(proposal.modalidad,sections),[proposal.modalidad,sections]);
+  const [assigned,setAssigned]=useState(true);
+  const [productRules,setProductRules]=useState<{minAcademicos:number;minPI:number;academicos:number;activosPI:number;cumple:boolean}|null>(null);
+  const [cycle,setCycle]=useState(0);
+  const [version,setVersion]=useState("Recuperando versión…");
+  const [closed,setClosed]=useState(false),[products,setProducts]=useState(false);
   const [scores, setScores] = useState(() =>
     Object.fromEntries(
       criteria.map((c) => [
@@ -351,11 +351,11 @@ function RubricPanel({
     if (!proposal.numericId) return;
     let active = true;
     void fetchSavedRubric(proposal.numericId,cie?"cie":"comite").then(data=>{
-      if(active) setScores(prev=>({...prev,...data.scores}));
+      if(active){setCycle(data.ciclo);setVersion(data.version);setAssigned(data.asignado);setSections(data.sections);setClosed(data.estado==='completada');setProductRules(data.productos);setProducts(data.productosVerificados);setScores(Object.fromEntries(getRubricForModalidad(proposal.modalidad,data.sections).map(c=>[c.id,data.scores[c.id]??{score:0,reason:''}])));}
     }).catch(err=>{ if(active) setLoadError(err instanceof Error?err.message:"No se pudo recuperar la evaluación"); })
       .finally(()=>{ if(active) setLoadingSaved(false); });
     return ()=>{active=false;};
-  },[proposal.numericId,cie]);
+  },[proposal.numericId,proposal.modalidad,cie]);
   const availablePoints = criteria.reduce((sum,c)=>sum+c.weight,0);
 
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -369,13 +369,13 @@ function RubricPanel({
   }, 0);
   const average = Math.round(weighted * 10) / 10;
   const failedRequired = criteria.filter(
-    (c) => c.required && (scores[c.id]?.score ?? 0) < 6,
+    (c) => c.required && (scores[c.id]?.score ?? 0) <= 6,
   );
   const allJustified = criteria.every((c) =>
     String(scores[c.id]?.reason ?? "").trim(),
   );
   const recommendation =
-    average >= 70 && failedRequired.length === 0
+    average >= 70 && failedRequired.length === 0 && products && productRules?.cumple
       ? "RECOMIENDA"
       : "NO RECOMIENDA";
 
@@ -385,7 +385,7 @@ function RubricPanel({
       <article className="card rubric-case">
         <CaseFile proposal={proposal} />
       </article>
-      <fieldset className="rubric-main" disabled={loadingSaved || Boolean(loadError)} style={{border:0,padding:0,margin:0,minWidth:0}}>
+      <fieldset className="rubric-main" disabled={loadingSaved || Boolean(loadError)||closed||!assigned} style={{border:0,padding:0,margin:0,minWidth:0}}>
         {loadingSaved && <p role="status">Recuperando evaluación guardada…</p>}
         <div className="rubric-summary">
           <div>
@@ -395,11 +395,10 @@ function RubricPanel({
             <h2>
               {cie
                 ? "Evaluación y resolución del CIE"
-                : `Rúbrica de demostración · ${proposal.modalidad}`}
+                : `Rúbrica versionada · ${proposal.modalidad}`}
             </h2>
             <p>
-              Subconjunto de demostración, pendiente de incorporar la rúbrica oficial completa. Escala simulada: 0, 6, 8 o 10. La sugerencia de IA
-              es apoyo; la decisión, nota y justificación final son humanas.
+              Definición versionada basada en la rúbrica oficial Fondos VIE 2027. Escala: 0, 6, 8 o 10. Los requisitos obligatorios con 0 o 6 y el incumplimiento de productos determinan una recomendación desfavorable. La nota y su justificación son humanas.
             </p>
           </div>
           <div className="score-ring">
@@ -409,40 +408,12 @@ function RubricPanel({
           </div>
         </div>
 
-        {!cie && (
-          <article className="card evaluator-summary">
-            <PanelIntro
-              title="Ejemplo de composición del Comité (datos simulados)"
-              description="La evaluación guardada corresponde únicamente a la cuenta actual; estas cifras de ejemplo no son notas registradas de otras personas."
-            />
-            <div className="evaluator-grid">
-              {COMMITTEE_EVALUATOR_SUMMARY.map(([name, score, status]) => (
-                <div key={name}>
-                  <span>{name}</span>
-                  <strong>{score ?? "—"}</strong>
-                  <span
-                    className={
-                      status === "Completa"
-                        ? "badge badge-primary"
-                        : "badge"
-                    }
-                  >
-                    {status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </article>
-        )}
-
-        <div className="rubric-alert">
-          <IconClipboard size={17} />
-          <span>
-            <strong>Sugerencia de IA:</strong> siempre editable. Ningún puntaje
-            se confirma automáticamente.
-          </span>
-        </div>
-
+        <p>Versión del expediente: {version} · Ciclo {cycle}</p>
+        {!cie&&proposal.numericId&&<ComiteConsolidado id={proposal.numericId}/>}
+        {!assigned&&<p role="status">Solo las personas asignadas al Comité pueden guardar una evaluación individual.</p>}
+        {closed&&<p role="status">Evaluación entregada; solo lectura.</p>}
+        {productRules&&<p>Productos mínimos: {productRules.minAcademicos} académicos{productRules.minPI?` más ${productRules.minPI} activo de la lista 5.5.a`:""}. Registrados: {productRules.academicos} académicos y {productRules.activosPI} activos. {productRules.cumple?"Cantidad suficiente; requiere verificación humana.":"No cumple la cantidad mínima registrada."}</p>}
+        <label className="subsanacion-seccion"><input type="checkbox" checked={products} onChange={e=>setProducts(e.target.checked)}/>Verifiqué que los productos comprometidos cumplen los mínimos oficiales (validación no sumativa).</label>
         {sections.map((section) => (
           <section key={section.id} className="rubric-section">
             <div className="rubric-section-head">
@@ -465,14 +436,9 @@ function RubricPanel({
                         {full.required ? "· Requisito obligatorio" : ""}
                       </span>
                     </div>
-                    <span className="badge">
-                      Sugerencia IA: {full.aiScore}/10
-                    </span>
                   </div>
-                  <div className="ai-box">
-                    <strong>Sugerencia de IA</strong>
-                    <p>{full.aiReason}</p>
-                  </div>
+                  {full.requirement&&<p>{full.requirement}</p>}
+                  <p>{full.levels[String(row?.score??0)]}</p>
                   <div className="human-eval">
                     <label className="field" htmlFor={`valoracion-${id}`}>
                       <span className="field-label">Valoración humana</span>
@@ -549,6 +515,7 @@ function RubricPanel({
               onAction("save-rubric", {
                 average,
                 scores,
+                productosCumplen:products,ciclo:cycle,
                 instancia: cie ? "cie" : "comite",
                 recommendation,
               })
@@ -568,7 +535,7 @@ function RubricPanel({
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={!allJustified || recommendation === "NO RECOMIENDA"}
+                disabled={false}
                 title={availablePoints < 100 ? "Pendiente de incorporar y validar la rúbrica oficial completa; este subconjunto no permite una recomendación definitiva." : undefined}
                 onClick={() => setApproveOpen(true)}
               >
@@ -584,7 +551,8 @@ function RubricPanel({
                 onAction("committee-score", {
                   average,
                   scores,
-                  recommendation,
+                  productosCumplen:products,ciclo:cycle,
+recommendation,
                 })
               }
             >
@@ -615,7 +583,8 @@ function RubricPanel({
                   if (!await onAction("cie-reject", {
                     average,
                     scores,
-                    texto: rejectText.trim(),
+                  productosCumplen:products,ciclo:cycle,
+texto: rejectText.trim(),
                   })) return;
                   setRejectOpen(false);
                 }}
@@ -661,7 +630,8 @@ function RubricPanel({
                   if (!await onAction("cie-approve", {
                     average,
                     scores,
-                    recommendation,
+                  productosCumplen:products,ciclo:cycle,
+recommendation,
                     texto: approveText.trim(),
                   })) return;
                   setApproveOpen(false);
@@ -744,7 +714,7 @@ export function ConsejoAsistentePanel({
               <span>
                 {proposal.piRequired
                   ? proposal.oficioPI || "Sin dictamen registrado"
-                  : "No requerido"}
+                  : proposal.piAcreditada ? "No requerido (certificado)" : "Falta certificación"}
               </span>
             </div>
             <span className="badge badge-primary">Verificado</span>
@@ -760,7 +730,8 @@ export function ConsejoAsistentePanel({
         <button
           type="button"
           className="btn btn-primary"
-          onClick={() => onAction("send-council")}
+          disabled={proposal.estado==='Aval rechazado'}
+            onClick={() => onAction("send-council")}
         >
           Enviar al Consejo
         </button>
@@ -782,6 +753,7 @@ export function ConsejoPanel({
   const [rejectText, setRejectText] = useState("");
   const [approveText, setApproveText] = useState("");
 
+  if(proposal.estado==='Aval rechazado'&&proposal.numericId)return <div className="split-review"><CaseFile proposal={proposal}/><ConsejoReconsideracion id={proposal.numericId} onAction={onAction}/></div>;
   return (
     <div className="split-review">
       <CaseFile proposal={proposal} />
@@ -801,7 +773,7 @@ export function ConsejoPanel({
               <strong>Oficio del Comité Técnico</strong>
               <span>{proposal.oficioComite || "Sin oficio registrado"}</span>
             </div>
-            <span className="badge">Disponible</span>
+            <span className="badge">{proposal.oficioComite?"Número registrado":"Pendiente"}</span>
           </div>
           <div className="document-row">
             <IconShield size={18} />
@@ -810,10 +782,10 @@ export function ConsejoPanel({
               <span>
                 {proposal.piRequired
                   ? proposal.oficioPI || "Sin dictamen registrado"
-                  : "No requerido"}
+                  : proposal.piAcreditada ? "No requerido (certificado)" : "Falta certificación"}
               </span>
             </div>
-            <span className="badge">Verificado</span>
+            <span className="badge">{proposal.piAcreditada?"Verificado":"Pendiente"}</span>
           </div>
         </div>
         {proposal.justificacionAval && (
@@ -826,6 +798,7 @@ export function ConsejoPanel({
           <button
             type="button"
             className="btn btn-secondary"
+            disabled={Boolean(proposal.oficioAval)||proposal.estado==='Avalada'}
             onClick={() => setRejectOpen(true)}
           >
             Rechazar aval
@@ -833,6 +806,7 @@ export function ConsejoPanel({
           <button
             type="button"
             className="btn btn-primary"
+            disabled={Boolean(proposal.oficioAval)||proposal.estado==='Avalada'}
             onClick={() => setApproveOpen(true)}
           >
             Aprobar aval
@@ -959,6 +933,7 @@ export function DireccionEscuelaPanel({
   proposal: DemoProposal;
   onAction: ActionHandler;
 }) {
+  if(proposal.estado==='Aval rechazado')return <div className="split-review"><CaseFile proposal={proposal}/><section className="card"><h2>Rechazo de aval comunicado</h2><p>El rechazo fue notificado a la coordinación. La reconsideración se solicita y autoriza en el Consejo; no se comunica como aval aprobado.</p></section></div>;
   return (
     <div className="split-review">
       <CaseFile proposal={proposal} />

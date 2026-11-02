@@ -95,11 +95,11 @@ const ACTION_TOAST: Record<string, string> = {
   "committee-score":
     "Evaluación completada y preparada para consolidación.",
   "send-council": "Expediente enviado al Consejo de Profesores.",
-  "council-approve": "Aval aprobado y oficio generado.",
+  "council-approve": "Aval aprobado y número de oficio registrado.",
   "council-reject":
     "Aval rechazado correctamente. Justificación registrada.",
   "communicate-aval":
-    "Memorando generado · Envío simulado a Dirección de Investigación / VIE.",
+    "Comunicación del aval registrada para VIE.",
   "vie-observation":
     "Observación enviada correctamente al equipo investigador.",
   "send-cie": "Expediente enviado al CIE.",
@@ -107,7 +107,7 @@ const ACTION_TOAST: Record<string, string> = {
   "cie-reject":
     "Resolución de rechazo emitida. Justificación registrada.",
   "notify-resolution":
-    "CIE-453 generado · notificación simulada · expediente en Histórico.",
+    "Notificación persistida para la persona coordinadora.",
 };
 
 const EVAL_ROLES: RoleId[] = [
@@ -136,7 +136,6 @@ export function EvaluacionesPage() {
   const [bandeja, setBandeja] = useState<BandejaEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState("");
   const [loading, setLoading] = useState(true);
-  const [source, setSource] = useState<"api" | "demo">("demo");
   const [bandejaNote, setBandejaNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const actionPending = useRef(false);
@@ -153,11 +152,9 @@ export function EvaluacionesPage() {
         key: item.codigo, numericId: item.id, demo: bandejaToDemoProposal(item), api: item,
       }));
       setBandeja(entries);
-      setSource("api");
       setSelectedKey((prev) => entries.some((e) => e.key === prev) ? prev : (entries[0]?.key ?? ""));
     } catch (err) {
       setBandeja([]);
-      setSource("api");
       setSelectedKey("");
       const detail = err instanceof Error ? err.message : "Error de red";
       setBandejaNote(`No se pudo cargar la bandeja: ${detail}. Reintente la consulta.`);
@@ -179,87 +176,10 @@ export function EvaluacionesPage() {
 
   const [eyebrow, title, description] = EVAL_HEADERS[role];
 
-  /** Actualiza el expediente demo en pantalla tras una decisión (sin API). */
-  function applyDemoAction(action: string, payload?: unknown) {
-    if (!selected) return;
-    const texto =
-      payload &&
-      typeof payload === "object" &&
-      "texto" in payload &&
-      typeof (payload as { texto: unknown }).texto === "string"
-        ? (payload as { texto: string }).texto.trim()
-        : "";
-
-    setBandeja((prev) =>
-      prev.map((e) => {
-        if (e.key !== selected.key) return e;
-        const next = { ...e.demo };
-        switch (action) {
-          case "pi":
-            next.estado = "En evaluación";
-            next.etapa = Math.max(next.etapa, 2);
-            next.oficioPI =
-              (payload as { oficio?: string } | undefined)?.oficio ??
-              next.oficioPI;
-            break;
-          case "committee-ready":
-          case "send-council":
-          case "send-cie":
-          case "communicate-aval":
-            next.etapa = Math.min(6, next.etapa + 1);
-            break;
-          case "return":
-          case "vie-observation":
-            if (texto) {
-              next.observaciones = [...(next.observaciones ?? []), texto];
-            }
-            break;
-          case "committee-score":
-            next.estado = "Dictaminada";
-            next.etapa = Math.max(next.etapa, 3);
-            next.evaluacionComite = {
-              average:
-                Number(
-                  (payload as { average?: number } | undefined)?.average,
-                ) || 80,
-            };
-            break;
-          case "council-approve":
-            next.estado = "Avalada";
-            next.etapa = Math.max(next.etapa, 4);
-            next.justificacionAval = texto || next.justificacionAval;
-            next.oficioAval = next.oficioAval || `ESC-DEMO-${next.id}`;
-            break;
-          case "council-reject":
-            next.estado = "Rechazada";
-            next.etapa = 6;
-            next.justificacionAval = texto || next.justificacionAval;
-            break;
-          case "cie-approve":
-            next.estado = "Aprobada";
-            next.etapa = 6;
-            next.resolucion = next.resolucion || `CIE-DEMO-${next.id}`;
-            break;
-          case "cie-reject":
-            next.estado = "Rechazada";
-            next.etapa = 6;
-            next.resolucion = next.resolucion || `CIE-DEMO-${next.id}`;
-            break;
-          case "notify-resolution":
-            next.notificada = true;
-            break;
-          default:
-            break;
-        }
-        return { ...e, demo: next };
-      }),
-    );
-  }
-
   const onAction = async (action: string, payload?: unknown) => {
     if (actionPending.current) return false;
 
-    // Justificaciones obligatorias también en modo demo (evita “Confirmar” vacío).
+    // No enviar decisiones sin fundamento.
     if (
       (action === "council-approve" ||
         action === "council-reject" ||
@@ -277,14 +197,7 @@ export function EvaluacionesPage() {
       return false;
     }
 
-    if (source !== "api" || selected?.numericId == null) {
-      applyDemoAction(action, payload);
-      showToast(
-        `${ACTION_TOAST[action] ?? "Acción registrada."} (demo local · no se guardó en PostgreSQL)`,
-        "success",
-      );
-      return true;
-    }
+    if (selected?.numericId == null) {showToast('Seleccione un expediente real antes de ejecutar la acción','error');return false;}
 
     actionPending.current = true;
     setBusy(true);
@@ -313,7 +226,7 @@ export function EvaluacionesPage() {
       } else {
         await loadBandeja();
       }
-      if (["pi","committee-ready","committee-score","send-council","council-approve","council-reject","communicate-aval","send-cie","cie-approve","cie-reject"].includes(action)) await loadBandeja();
+      if (["pi","pi-not-required","return","committee-confirm","council-reconsider","committee-ready","committee-score","send-council","council-approve","council-reject","communicate-aval","send-cie","cie-approve","cie-reject"].includes(action)) await loadBandeja();
       return true;
     } catch (err) {
       const msg =
@@ -401,9 +314,7 @@ export function EvaluacionesPage() {
           <h1>{title}</h1>
           <p>{description}</p>
           <p className="muted" style={{ marginTop: 8, fontSize: 13 }}>
-            {source === "api"
-              ? "Expedientes desde PostgreSQL · las acciones se persisten."
-              : "Modo demo local · las acciones actualizan esta pantalla pero no la base de datos."}
+            Expedientes desde PostgreSQL · las acciones se persisten.
           </p>
           {bandejaNote && (
             <p className="field-hint" role="status" style={{ marginTop: 8 }}>

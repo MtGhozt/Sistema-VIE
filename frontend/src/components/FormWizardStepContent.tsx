@@ -4,11 +4,20 @@ import { MODALIDADES } from "../data/demo";
 import { DEMO_PROPOSALS } from "../data/demo";
 import {
   ALT_TEXT_MIN_CHARS,
+  ESTADO_ARTE_MAX_WORDS,
+  PLAN_RESPONSIBILITIES,
+  type ActionPlanActivityDraft,
+  type ActionPlanParticipantDraft,
+  type ActionPlanRiskDraft,
   type AmbitoInstrumento,
   type FormWizardState,
   type GradoVinculo,
   type GraphicResource,
   type NivelTrl,
+  TEAM_HOUR_TYPES,
+  TEAM_MEMBER_ROLES,
+  type TeamHourDraft,
+  type TeamTecDraft,
   type TipoInnovacion,
   type YesNo,
   TRL_LEVELS,
@@ -112,6 +121,87 @@ export function FormWizardStepContent({
 }: Props) {
   const rich = DEMO_PROPOSALS[0]!;
   const q6GroupName = useId();
+
+  function patchTeamTec(id: string, partial: Partial<TeamTecDraft>) {
+    patch({
+      teamTec: form.teamTec.map((member) =>
+        member.id === id ? { ...member, ...partial } : member,
+      ),
+    });
+  }
+
+  function patchTeamHours(
+    memberId: string,
+    index: number,
+    partial: Partial<TeamHourDraft>,
+  ) {
+    patch({
+      teamTec: form.teamTec.map((member) =>
+        member.id === memberId
+          ? {
+              ...member,
+              horas:
+                member.horas.length === 0 && index === 0
+                  ? [{ tipo: "", cantidad: "", ...partial }]
+                  : member.horas.map((hours, hourIndex) =>
+                      hourIndex === index ? { ...hours, ...partial } : hours,
+                    ),
+            }
+          : member,
+      ),
+    });
+  }
+
+  function patchPlanActivity(
+    activityId: string,
+    partial: Partial<ActionPlanActivityDraft>,
+  ) {
+    patch({
+      planAccion: form.planAccion.map((activity) =>
+        activity.id === activityId ? { ...activity, ...partial } : activity,
+      ),
+    });
+  }
+
+  function patchPlanParticipant(
+    activityId: string,
+    participantId: string,
+    partial: Partial<ActionPlanParticipantDraft>,
+  ) {
+    patch({
+      planAccion: form.planAccion.map((activity) =>
+        activity.id === activityId
+          ? {
+              ...activity,
+              participantes: activity.participantes.map((participant) =>
+                participant.id === participantId
+                  ? { ...participant, ...partial }
+                  : participant,
+              ),
+            }
+          : activity,
+      ),
+    });
+  }
+
+  function patchPlanRisk(
+    activityId: string,
+    riskId: string,
+    partial: Partial<ActionPlanRiskDraft>,
+  ) {
+    patch({
+      planAccion: form.planAccion.map((activity) =>
+        activity.id === activityId
+          ? {
+              ...activity,
+              riesgos: activity.riesgos.map((risk) =>
+                risk.id === riskId ? { ...risk, ...partial } : risk,
+              ),
+            }
+          : activity,
+      ),
+    });
+  }
 
   if (step === 0) {
     return (
@@ -597,29 +687,429 @@ export function FormWizardStepContent({
 
   if (step === 2) {
     return (
-      <div className="table-wrap">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>ORCID</th>
-              <th>Instancia</th>
-              <th>Rol</th>
-              <th>Horas</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rich.teamTec.map((m) => (
-              <tr key={m.nombre}>
-                <td>{m.nombre}</td>
-                <td>{m.orcid ?? "—"}</td>
-                <td>{m.instancia}</td>
-                <td>{m.rol}</td>
-                <td>{m.horas}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="stack-xl">
+        <p className="body-copy">
+          Agregá las personas funcionarias del TEC y las personas colaboradoras
+          externas que participarán en la propuesta. Podés añadir tantas filas y
+          tipos de horas como necesités.
+        </p>
+
+        <section className="stack-md" aria-labelledby="team-tec-heading">
+          <div className="page-heading">
+            <div>
+              <h3 id="team-tec-heading">
+                Cuadro 2. Investigadores que son funcionarios del TEC
+              </h3>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() =>
+                patch({
+                  teamTec: [
+                    ...form.teamTec,
+                    {
+                      id: `tec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                      nombre: "",
+                      iniciales: "",
+                      orcid: "",
+                      instancia: "",
+                      rol: "",
+                      horas: [{ tipo: "", cantidad: "" }],
+                      periodo: "",
+                    },
+                  ],
+                })
+              }
+            >
+              Agregar investigador/a TEC
+            </button>
+          </div>
+          <div className="table-wrap">
+            <table className="data-table wide-form-table team-edit-table">
+              <thead>
+                <tr>
+                  <th scope="col">Nombre y apellidos</th>
+                  <th scope="col">Iniciales</th>
+                  <th scope="col">ID ORCID *</th>
+                  <th scope="col">Instancia académica</th>
+                  <th scope="col">Condición (rol) *</th>
+                  <th scope="col">
+                    Cantidad y tipo de horas (REC, CONS, DOC VIE, VIESA o
+                    VIE-Centro)
+                  </th>
+                  <th scope="col">Periodo de nombramiento</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {form.teamTec.length === 0 ? (
+                  <tr>
+                    <td colSpan={8}>
+                      Aún no agregaste personas funcionarias del TEC.
+                    </td>
+                  </tr>
+                ) : (
+                  form.teamTec.map((member, memberIndex) => (
+                    <tr key={member.id}>
+                      <td>
+                        <input
+                          className="input"
+                          value={member.nombre}
+                          maxLength={150}
+                          aria-label={`Nombre y apellidos, persona TEC ${memberIndex + 1}`}
+                          onChange={(event) =>
+                            patchTeamTec(member.id, {
+                              nombre: event.target.value,
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="input"
+                          value={member.iniciales}
+                          maxLength={10}
+                          aria-label={`Iniciales, persona TEC ${memberIndex + 1}`}
+                          onChange={(event) =>
+                            patchTeamTec(member.id, {
+                              iniciales: event.target.value.toUpperCase(),
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="input"
+                          value={member.orcid}
+                          maxLength={19}
+                          placeholder="0000-0000-0000-0000"
+                          aria-required="true"
+                          aria-label={`ID ORCID, persona TEC ${memberIndex + 1}`}
+                          onChange={(event) =>
+                            patchTeamTec(member.id, {
+                              orcid: event.target.value,
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="input"
+                          value={member.instancia}
+                          maxLength={200}
+                          aria-label={`Instancia académica, persona TEC ${memberIndex + 1}`}
+                          onChange={(event) =>
+                            patchTeamTec(member.id, {
+                              instancia: event.target.value,
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <select
+                          className="input"
+                          value={member.rol}
+                          aria-required="true"
+                          aria-label={`Condición o rol, persona TEC ${memberIndex + 1}`}
+                          onChange={(event) => {
+                            const role =
+                              TEAM_MEMBER_ROLES.find(
+                                (item) => item === event.target.value,
+                              ) ?? "";
+                            patchTeamTec(member.id, { rol: role });
+                          }}
+                        >
+                          <option value="">Elegí una condición</option>
+                          {TEAM_MEMBER_ROLES.map((role) => (
+                            <option key={role} value={role}>
+                              {role}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <div className="stack-sm">
+                          {(member.horas.length > 0
+                            ? member.horas
+                            : [{ tipo: "", cantidad: "" }]
+                          ).map((hours, hourIndex) => (
+                            <div
+                              className="team-hours-row"
+                              key={`${member.id}-hours-${hourIndex}`}
+                            >
+                              <label className="sr-only" htmlFor={`${member.id}-hours-type-${hourIndex}`}>
+                                Tipo de horas, persona TEC {memberIndex + 1}
+                              </label>
+                              <select
+                                id={`${member.id}-hours-type-${hourIndex}`}
+                                className="input"
+                                value={hours.tipo}
+                                aria-label={`Tipo de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
+                                onChange={(event) => {
+                                  const hourType =
+                                    TEAM_HOUR_TYPES.find(
+                                      (item) => item === event.target.value,
+                                    ) ?? "";
+                                  patchTeamHours(member.id, hourIndex, {
+                                    tipo: hourType,
+                                  });
+                                }}
+                              >
+                                <option value="">Tipo</option>
+                                {TEAM_HOUR_TYPES.map((type) => (
+                                  <option
+                                    key={type}
+                                    value={type}
+                                    disabled={member.horas.some(
+                                      (item, index) =>
+                                        index !== hourIndex &&
+                                        item.tipo === type,
+                                    )}
+                                  >
+                                    {type}
+                                  </option>
+                                ))}
+                              </select>
+                              <label className="sr-only" htmlFor={`${member.id}-hours-amount-${hourIndex}`}>
+                                Cantidad de horas, persona TEC {memberIndex + 1}
+                              </label>
+                              <input
+                                id={`${member.id}-hours-amount-${hourIndex}`}
+                                className="input"
+                                type="number"
+                                min="0.01"
+                                max="999.99"
+                                step="0.01"
+                                value={hours.cantidad}
+                                aria-label={`Cantidad de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
+                                onChange={(event) =>
+                                  patchTeamHours(member.id, hourIndex, {
+                                    cantidad: event.target.value,
+                                  })
+                                }
+                              />
+                              {member.horas.length > 1 && (
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary"
+                                  aria-label={`Quitar tipo de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
+                                  onClick={() =>
+                                    patchTeamTec(member.id, {
+                                      horas: member.horas.filter(
+                                        (_, index) => index !== hourIndex,
+                                      ),
+                                    })
+                                  }
+                                >
+                                  Quitar
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() =>
+                              patchTeamTec(member.id, {
+                                horas: [
+                                  ...member.horas,
+                                  { tipo: "", cantidad: "" },
+                                ],
+                              })
+                            }
+                          >
+                            Agregar otro tipo de horas
+                          </button>
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          className="input"
+                          value={member.periodo}
+                          maxLength={60}
+                          placeholder="Ej. ene. 2027 - dic. 2027"
+                          aria-label={`Periodo de nombramiento, persona TEC ${memberIndex + 1}`}
+                          onChange={(event) =>
+                            patchTeamTec(member.id, {
+                              periodo: event.target.value,
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() =>
+                            patch({
+                              teamTec: form.teamTec.filter(
+                                (item) => item.id !== member.id,
+                              ),
+                            })
+                          }
+                        >
+                          Quitar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="stack-md" aria-labelledby="team-external-heading">
+          <div className="page-heading">
+            <div>
+              <h3 id="team-external-heading">
+                Cuadro 3. Colaboradores externos
+              </h3>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() =>
+                patch({
+                  teamExternal: [
+                    ...form.teamExternal,
+                    {
+                      id: `externo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                      nombre: "",
+                      iniciales: "",
+                      orcid: "",
+                      institucion: "",
+                    },
+                  ],
+                })
+              }
+            >
+              Agregar colaborador/a externo/a
+            </button>
+          </div>
+          <div className="table-wrap">
+            <table className="data-table wide-form-table team-edit-table team-external-edit-table">
+              <thead>
+                <tr>
+                  <th scope="col">Nombre completo del colaborador externo</th>
+                  <th scope="col">Iniciales</th>
+                  <th scope="col">ID ORCID *</th>
+                  <th scope="col">Institución o empresa que representa</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {form.teamExternal.length === 0 ? (
+                  <tr>
+                    <td colSpan={5}>Aún no agregaste colaboradores externos.</td>
+                  </tr>
+                ) : (
+                  form.teamExternal.map((member, memberIndex) => (
+                    <tr key={member.id}>
+                      <td>
+                        <input
+                          className="input"
+                          value={member.nombre}
+                          maxLength={150}
+                          aria-label={`Nombre completo, colaborador externo ${memberIndex + 1}`}
+                          onChange={(event) =>
+                            patch({
+                              teamExternal: form.teamExternal.map((item) =>
+                                item.id === member.id
+                                  ? { ...item, nombre: event.target.value }
+                                  : item,
+                              ),
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="input"
+                          value={member.iniciales}
+                          maxLength={10}
+                          aria-label={`Iniciales, colaborador externo ${memberIndex + 1}`}
+                          onChange={(event) =>
+                            patch({
+                              teamExternal: form.teamExternal.map((item) =>
+                                item.id === member.id
+                                  ? {
+                                      ...item,
+                                      iniciales: event.target.value.toUpperCase(),
+                                    }
+                                  : item,
+                              ),
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="input"
+                          value={member.orcid}
+                          maxLength={19}
+                          placeholder="0000-0000-0000-0000"
+                          aria-required="true"
+                          aria-label={`ID ORCID, colaborador externo ${memberIndex + 1}`}
+                          onChange={(event) =>
+                            patch({
+                              teamExternal: form.teamExternal.map((item) =>
+                                item.id === member.id
+                                  ? { ...item, orcid: event.target.value }
+                                  : item,
+                              ),
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="input"
+                          value={member.institucion}
+                          maxLength={200}
+                          aria-label={`Institución o empresa, colaborador externo ${memberIndex + 1}`}
+                          onChange={(event) =>
+                            patch({
+                              teamExternal: form.teamExternal.map((item) =>
+                                item.id === member.id
+                                  ? {
+                                      ...item,
+                                      institucion: event.target.value,
+                                    }
+                                  : item,
+                              ),
+                            })
+                          }
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() =>
+                            patch({
+                              teamExternal: form.teamExternal.filter(
+                                (item) => item.id !== member.id,
+                              ),
+                            })
+                          }
+                        >
+                          Quitar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <p className="field-hint">
+          * El ID ORCID es indispensable para asegurar la visibilidad y
+          trazabilidad de la colaboración en el portal público de Orión.
+        </p>
       </div>
     );
   }
@@ -637,24 +1127,101 @@ export function FormWizardStepContent({
           />
         </label>
         <label className="field">
-          <span className="field-label">Objetivos</span>
+          <span className="field-label">Objetivo general</span>
           <textarea
             className="input textarea"
-            rows={4}
-            value={form.objetivos}
-            onChange={(e) => patch({ objetivos: e.target.value })}
+            rows={3}
+            value={form.objetivoGeneral}
+            onChange={(e) => patch({ objetivoGeneral: e.target.value })}
           />
         </label>
+        <section
+          className="stack-md"
+          aria-labelledby="specific-objectives-heading"
+        >
+          <div>
+            <h3 id="specific-objectives-heading">Objetivos específicos</h3>
+            <p className="field-hint">
+              Completá los tres objetivos específicos requeridos en el
+              Formulario 4.
+            </p>
+          </div>
+          {form.objetivosEspecificos.slice(0, 3).map((objective, index) => (
+            <label
+              className="field"
+              key={objective.id}
+              htmlFor={`specific-objective-${objective.id}`}
+            >
+              <span className="field-label">
+                Objetivo específico {index + 1}
+              </span>
+              <textarea
+                id={`specific-objective-${objective.id}`}
+                className="input textarea"
+                rows={2}
+                value={objective.descripcion}
+                onChange={(event) =>
+                  patch({
+                    objetivosEspecificos: form.objetivosEspecificos.map(
+                      (item) =>
+                        item.id === objective.id
+                          ? { ...item, descripcion: event.target.value }
+                          : item,
+                    ),
+                  })
+                }
+              />
+            </label>
+          ))}
+        </section>
       </div>
     );
   }
 
   if (step === 4) {
+    const wordCount = form.estadoArte
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
     return (
-      <p className="body-copy">
-        Revisión bibliográfica y antecedentes técnicos alineados al formulario
-        oficial VIE 2027 (sección Estado del arte).
-      </p>
+      <div className="stack-lg">
+        <p className="body-copy">
+          Analizá teorías actualizadas, investigaciones, antecedentes y
+          metodologías previas nacionales e internacionales. Explicá el aporte
+          original de la investigación y los vacíos de conocimiento que busca
+          atender. Incluí al menos 10 referencias bibliográficas de fuentes
+          primarias publicadas en los últimos cinco años; los artículos deben
+          provenir de revistas indexadas en Scopus o Web of Science.
+        </p>
+        <label className="field">
+          <span className="field-label">Estado del arte (máximo 2 páginas)</span>
+          <textarea
+            className="input textarea"
+            rows={12}
+            value={form.estadoArte}
+            aria-describedby="estado-arte-guidance estado-arte-count"
+            onChange={(event) => patch({ estadoArte: event.target.value })}
+          />
+        </label>
+        <p id="estado-arte-guidance" className="field-hint">
+          Para orientar la extensión en este campo de texto, el límite es de{" "}
+          {ESTADO_ARTE_MAX_WORDS} palabras (aproximación a dos páginas; la
+          cantidad real por página depende del formato).
+        </p>
+        <p
+          id="estado-arte-count"
+          className={
+            wordCount > ESTADO_ARTE_MAX_WORDS
+              ? "field-error-text"
+              : "field-hint"
+          }
+          aria-live="polite"
+        >
+          {wordCount} / {ESTADO_ARTE_MAX_WORDS} palabras
+          {wordCount > ESTADO_ARTE_MAX_WORDS &&
+            " — reducilo para poder guardar el borrador"}
+        </p>
+      </div>
     );
   }
 
@@ -672,31 +1239,375 @@ export function FormWizardStepContent({
     );
   }
 
-  if (step === 6 && rich.plan) {
+  if (step === 6) {
+    const teamMembers = [
+      ...form.teamTec.map((member) => ({
+        id: member.id,
+        nombre: member.nombre,
+        iniciales: member.iniciales,
+      })),
+      ...form.teamExternal.map((member) => ({
+        id: member.id,
+        nombre: member.nombre,
+        iniciales: member.iniciales,
+      })),
+    ];
+
     return (
-      <div className="table-wrap">
-        <table className="data-table wide-form-table">
-          <thead>
-            <tr>
-              <th>Objetivo</th>
-              <th>Actividad</th>
-              <th>Resultado</th>
-              <th>Riesgo</th>
-              <th>Mitigación</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rich.plan.map((row) => (
-              <tr key={row.objetivo + row.actividad}>
-                <td>{row.objetivo}</td>
-                <td>{row.actividad}</td>
-                <td>{row.resultado}</td>
-                <td>{row.riesgo}</td>
-                <td>{row.mitigacion}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="stack-xl">
+        <p className="body-copy">
+          Registrá las actividades y riesgos del proyecto. Incluí giras,
+          informes de avance y pasantías cuando corresponda. El periodo admite
+          hasta 36 meses; cada actividad debe tener al menos una persona
+          responsable y un riesgo con su medida de mitigación.
+        </p>
+        <div className="page-heading">
+          <div>
+            <h3>Plan de acción y gestión de riesgos</h3>
+            <p className="field-hint">
+              Los participantes se seleccionan del equipo de investigación
+              definido en la etapa 3.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() =>
+              patch({
+                planAccion: [
+                  ...form.planAccion,
+                  {
+                    id: `actividad-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                    objetivoNumero: "",
+                    actividad: "",
+                    resultadoEsperado: "",
+                    participantes: [],
+                    riesgos: [
+                      {
+                        id: `riesgo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                        riesgo: "",
+                        mitigacion: "",
+                        responsable: "",
+                      },
+                    ],
+                    mesInicio: "",
+                    duracionMeses: "",
+                  },
+                ],
+              })
+            }
+          >
+            Agregar actividad
+          </button>
+        </div>
+
+        {form.planAccion.length === 0 ? (
+          <p className="field-hint">
+            Aún no agregaste actividades al plan.
+          </p>
+        ) : (
+          form.planAccion.map((activity, activityIndex) => (
+            <section
+              className="form-section-block action-plan-activity"
+              key={activity.id}
+              aria-labelledby={`activity-heading-${activity.id}`}
+            >
+              <div className="page-heading">
+                <h3 id={`activity-heading-${activity.id}`}>
+                  Actividad {activityIndex + 1}
+                </h3>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() =>
+                    patch({
+                      planAccion: form.planAccion.filter(
+                        (item) => item.id !== activity.id,
+                      ),
+                    })
+                  }
+                >
+                  Quitar actividad
+                </button>
+              </div>
+              <div className="form-grid">
+                <label className="field">
+                  <span className="field-label">Objetivo asociado</span>
+                  <select
+                    className="input"
+                    value={activity.objetivoNumero}
+                    onChange={(event) => {
+                      const number = event.target.value;
+                      patchPlanActivity(activity.id, {
+                        objetivoNumero:
+                          number === "1" || number === "2" || number === "3"
+                            ? number
+                            : "",
+                      });
+                    }}
+                  >
+                    <option value="">Seleccioná un objetivo</option>
+                    {form.objetivosEspecificos.slice(0, 3).map((objective, index) => (
+                      <option key={objective.id} value={index + 1}>
+                        OE{index + 1}
+                        {objective.descripcion.trim()
+                          ? ` — ${objective.descripcion.trim()}`
+                          : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span className="field-label">Mes de inicio</span>
+                  <input
+                    className="input"
+                    type="number"
+                    min="1"
+                    max="36"
+                    step="1"
+                    value={activity.mesInicio}
+                    onChange={(event) =>
+                      patchPlanActivity(activity.id, {
+                        mesInicio: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span className="field-label">Duración (meses)</span>
+                  <input
+                    className="input"
+                    type="number"
+                    min="1"
+                    max="36"
+                    step="1"
+                    value={activity.duracionMeses}
+                    onChange={(event) =>
+                      patchPlanActivity(activity.id, {
+                        duracionMeses: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <div className="form-grid">
+                <label className="field">
+                  <span className="field-label">Actividad</span>
+                  <textarea
+                    className="input textarea"
+                    rows={3}
+                    value={activity.actividad}
+                    onChange={(event) =>
+                      patchPlanActivity(activity.id, {
+                        actividad: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span className="field-label">Resultado esperado</span>
+                  <textarea
+                    className="input textarea"
+                    rows={3}
+                    value={activity.resultadoEsperado}
+                    onChange={(event) =>
+                      patchPlanActivity(activity.id, {
+                        resultadoEsperado: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+              </div>
+
+              <section className="stack-md" aria-label="Participantes de la actividad">
+                <div className="page-heading">
+                  <h4>Participantes y responsabilidades</h4>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={teamMembers.length === 0}
+                    onClick={() =>
+                      patchPlanActivity(activity.id, {
+                        participantes: [
+                          ...activity.participantes,
+                          {
+                            id: `asignacion-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                            teamMemberId: "",
+                            responsabilidad: "",
+                          },
+                        ],
+                      })
+                    }
+                  >
+                    Agregar participante
+                  </button>
+                </div>
+                {activity.participantes.map((assignment, assignmentIndex) => (
+                  <div className="team-hours-row" key={assignment.id}>
+                    <label className="field">
+                      <span className="field-label">
+                        Persona participante {assignmentIndex + 1}
+                      </span>
+                      <select
+                        className="input"
+                        value={assignment.teamMemberId}
+                        onChange={(event) =>
+                          patchPlanParticipant(activity.id, assignment.id, {
+                            teamMemberId: event.target.value,
+                          })
+                        }
+                      >
+                        <option value="">Seleccioná una persona</option>
+                        {teamMembers.map((member) => (
+                          <option key={member.id} value={member.id}>
+                            {member.nombre || "Sin nombre"}
+                            {member.iniciales
+                              ? ` (${member.iniciales})`
+                              : " — agregá sus iniciales en etapa 3"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="field">
+                      <span className="field-label">Responsabilidad</span>
+                      <select
+                        className="input"
+                        value={assignment.responsabilidad}
+                        onChange={(event) => {
+                          const responsibility =
+                            PLAN_RESPONSIBILITIES.find(
+                              (value) => value === event.target.value,
+                            ) ?? "";
+                          patchPlanParticipant(activity.id, assignment.id, {
+                            responsabilidad: responsibility,
+                          });
+                        }}
+                      >
+                        <option value="">Seleccioná responsabilidad</option>
+                        {PLAN_RESPONSIBILITIES.map((responsibility) => (
+                          <option key={responsibility} value={responsibility}>
+                            {responsibility}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      aria-label={`Quitar participante ${assignmentIndex + 1} de actividad ${activityIndex + 1}`}
+                      onClick={() =>
+                        patchPlanActivity(activity.id, {
+                          participantes: activity.participantes.filter(
+                            (item) => item.id !== assignment.id,
+                          ),
+                        })
+                      }
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ))}
+                {teamMembers.length === 0 && (
+                  <p className="field-hint">
+                    Agregá personas al equipo en la etapa 3 para asignarlas a
+                    las actividades.
+                  </p>
+                )}
+              </section>
+
+              <section className="stack-md" aria-label="Gestión de riesgos">
+                <div className="page-heading">
+                  <h4>Riesgos y medidas de mitigación</h4>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() =>
+                      patchPlanActivity(activity.id, {
+                        riesgos: [
+                          ...activity.riesgos,
+                          {
+                            id: `riesgo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                            riesgo: "",
+                            mitigacion: "",
+                            responsable: "",
+                          },
+                        ],
+                      })
+                    }
+                  >
+                    Agregar riesgo
+                  </button>
+                </div>
+                {activity.riesgos.map((risk, riskIndex) => (
+                  <div className="form-section-block action-plan-risk" key={risk.id}>
+                    <div className="page-heading">
+                      <h5>Riesgo {riskIndex + 1}</h5>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        disabled={activity.riesgos.length === 1}
+                        onClick={() =>
+                          patchPlanActivity(activity.id, {
+                            riesgos: activity.riesgos.filter(
+                              (item) => item.id !== risk.id,
+                            ),
+                          })
+                        }
+                      >
+                        Quitar riesgo
+                      </button>
+                    </div>
+                    <div className="form-grid">
+                      <label className="field">
+                        <span className="field-label">Riesgo identificado</span>
+                        <textarea
+                          className="input textarea"
+                          rows={2}
+                          value={risk.riesgo}
+                          onChange={(event) =>
+                            patchPlanRisk(activity.id, risk.id, {
+                              riesgo: event.target.value,
+                            })
+                          }
+                        />
+                      </label>
+                      <label className="field">
+                        <span className="field-label">
+                          Medidas de mitigación
+                        </span>
+                        <textarea
+                          className="input textarea"
+                          rows={2}
+                          value={risk.mitigacion}
+                          onChange={(event) =>
+                            patchPlanRisk(activity.id, risk.id, {
+                              mitigacion: event.target.value,
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
+                    <label className="field">
+                      <span className="field-label">
+                        Responsable de la gestión del riesgo
+                      </span>
+                      <input
+                        className="input"
+                        value={risk.responsable}
+                        maxLength={150}
+                        onChange={(event) =>
+                          patchPlanRisk(activity.id, risk.id, {
+                            responsable: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                  </div>
+                ))}
+              </section>
+            </section>
+          ))
+        )}
       </div>
     );
   }
@@ -968,8 +1879,9 @@ export function FormWizardStepContent({
       </p>
       <p>
         «Guardar y salir» deja el expediente en borrador. «Enviar a revisión»
-        persiste el bloque núcleo (identificación, resumen, problema, objetivos,
-        metodología) y pasa la propuesta a la bandeja de evaluación.
+        persiste el bloque núcleo (identificación, resumen, problema, objetivo
+        general, objetivos específicos y metodología) y pasa la propuesta a la
+        bandeja de evaluación.
       </p>
     </div>
   );

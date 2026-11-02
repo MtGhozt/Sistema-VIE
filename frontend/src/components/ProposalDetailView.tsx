@@ -228,7 +228,7 @@ export function ProposalDetailView({
                     </thead>
                     <tbody>
                       {proposal.teamTec.map((m) => (
-                        <tr key={m.nombre}>
+                        <tr key={m.id ?? m.nombre}>
                           <td>{m.nombre}</td>
                           <td>{m.orcid ?? "—"}</td>
                           <td>{m.instancia}</td>
@@ -255,7 +255,7 @@ export function ProposalDetailView({
                       </thead>
                       <tbody>
                         {proposal.teamExternal!.map((m) => (
-                          <tr key={m.nombre}>
+                          <tr key={m.id ?? m.nombre}>
                             <td>{m.nombre}</td>
                             <td>{m.orcid ?? "—"}</td>
                             <td>{m.institucion}</td>

@@ -365,6 +365,7 @@ export type DemoProposal = {
   palabras: string[];
   keywords: string[];
   teamTec: {
+    id?: number;
     nombre: string;
     orcid?: string;
     instancia: string;
@@ -373,6 +374,7 @@ export type DemoProposal = {
     periodo?: string;
   }[];
   teamExternal?: {
+    id?: number;
     nombre: string;
     orcid?: string;
     institucion: string;

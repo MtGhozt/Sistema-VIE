@@ -36,6 +36,88 @@ export const TRL_LEVELS = [
 ] as const;
 export type NivelTrl = "" | (typeof TRL_LEVELS)[number]["value"];
 
+export const TEAM_HOUR_TYPES = [
+  "REC",
+  "CONS",
+  "DOC VIE",
+  "VIESA",
+  "VIE-Centro",
+] as const;
+export type TeamHourType = (typeof TEAM_HOUR_TYPES)[number];
+
+export const TEAM_MEMBER_ROLES = [
+  "Coordinador",
+  "Investigador",
+  "Investigador a contratar",
+  "Funcionario administrativo",
+  "Estudiante de posgrado",
+] as const;
+export type TeamMemberRole = (typeof TEAM_MEMBER_ROLES)[number];
+
+export type TeamHourDraft = {
+  tipo: TeamHourType | "";
+  cantidad: string;
+};
+
+export type TeamTecDraft = {
+  id: string;
+  participantId?: number;
+  nombre: string;
+  iniciales: string;
+  orcid: string;
+  instancia: string;
+  rol: TeamMemberRole | "";
+  horas: TeamHourDraft[];
+  periodo: string;
+};
+
+export type TeamExternalDraft = {
+  id: string;
+  participantId?: number;
+  nombre: string;
+  iniciales: string;
+  orcid: string;
+  institucion: string;
+};
+
+export type SpecificObjectiveDraft = {
+  id: string;
+  objectiveId?: number;
+  descripcion: string;
+};
+
+export const PLAN_RESPONSIBILITIES = [
+  "Ejecuta",
+  "Supervisa",
+  "Participa",
+] as const;
+export type PlanResponsibility = (typeof PLAN_RESPONSIBILITIES)[number];
+
+export type ActionPlanParticipantDraft = {
+  id: string;
+  teamMemberId: string;
+  responsabilidad: PlanResponsibility | "";
+};
+
+export type ActionPlanRiskDraft = {
+  id: string;
+  riesgo: string;
+  mitigacion: string;
+  responsable: string;
+};
+
+export type ActionPlanActivityDraft = {
+  id: string;
+  activityId?: number;
+  objetivoNumero: "" | "1" | "2" | "3";
+  actividad: string;
+  resultadoEsperado: string;
+  participantes: ActionPlanParticipantDraft[];
+  riesgos: ActionPlanRiskDraft[];
+  mesInicio: string;
+  duracionMeses: string;
+};
+
 /** Recurso gráfico del paso Documentación (rúbrica: alt text editable). */
 export type GraphicResource = {
   id: string;
@@ -47,6 +129,7 @@ export type GraphicResource = {
 
 /** Longitud mínima sugerida para una descripción útil (rúbrica a11y). */
 export const ALT_TEXT_MIN_CHARS = 40;
+export const ESTADO_ARTE_MAX_WORDS = 1000;
 
 export type FormWizardState = {
   titulo: string;
@@ -82,9 +165,14 @@ export type FormWizardState = {
   q9: YesNo;
   q9Tipo: TipoInnovacion;
   trlEsperado: NivelTrl;
+  teamTec: TeamTecDraft[];
+  teamExternal: TeamExternalDraft[];
   problema: string;
-  objetivos: string;
+  objetivoGeneral: string;
+  objetivosEspecificos: SpecificObjectiveDraft[];
+  estadoArte: string;
   metodologia: string;
+  planAccion: ActionPlanActivityDraft[];
   referencias: string;
   declaracion: boolean;
   /** Imágenes y videos con texto alternativo editable. */
@@ -125,9 +213,18 @@ export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
   q9: "",
   q9Tipo: "",
   trlEsperado: "",
+  teamTec: [],
+  teamExternal: [],
   problema: "",
-  objetivos: "",
+  objetivoGeneral: "",
+  objetivosEspecificos: [
+    { id: "objetivo-especifico-1", descripcion: "" },
+    { id: "objetivo-especifico-2", descripcion: "" },
+    { id: "objetivo-especifico-3", descripcion: "" },
+  ],
+  estadoArte: "",
   metodologia: "",
+  planAccion: [],
   referencias: "",
   declaracion: false,
   recursosGraficos: [],
@@ -170,10 +267,32 @@ function stepHasProgress(step: number, form: FormWizardState) {
       return Boolean(
         form.resumen || form.abstract || form.palabras || form.keywords,
       );
+    case 2:
+      return form.teamTec.length > 0 || form.teamExternal.length > 0;
     case 3:
-      return Boolean(form.problema || form.objetivos);
+      return Boolean(
+        form.problema ||
+          form.objetivoGeneral ||
+          form.objetivosEspecificos.some((objective) =>
+            objective.descripcion.trim(),
+          ),
+      );
+    case 4:
+      return Boolean(form.estadoArte);
     case 5:
       return Boolean(form.metodologia);
+    case 6:
+      return form.planAccion.some((activity) =>
+        Boolean(
+          activity.actividad.trim() ||
+          activity.resultadoEsperado.trim() ||
+          activity.objetivoNumero ||
+          activity.participantes.length > 0 ||
+          activity.riesgos.some(
+            (risk) => risk.riesgo || risk.mitigacion || risk.responsable,
+          ),
+        ),
+      );
     case 13:
       return Boolean(form.referencias);
     case 14:
@@ -233,11 +352,72 @@ export function getFormStepStatus(
         keywordCount <= 6;
       break;
     }
+    case 2:
+      complete =
+        form.teamTec.length > 0 &&
+        form.teamTec.every(
+          (member) =>
+            hasText(
+              member.nombre,
+              member.orcid,
+              member.instancia,
+              member.rol,
+              member.periodo,
+            ) &&
+            member.horas.length > 0 &&
+            member.horas.every(
+              (hours) =>
+                Boolean(hours.tipo) &&
+                Number.isFinite(Number(hours.cantidad)) &&
+                Number(hours.cantidad) > 0,
+            ),
+        ) &&
+        form.teamExternal.every((member) =>
+          hasText(member.nombre, member.orcid, member.institucion),
+        );
+      break;
     case 3:
-      complete = hasText(form.problema, form.objetivos);
+      complete =
+        hasText(form.problema, form.objetivoGeneral) &&
+        form.objetivosEspecificos.length === 3 &&
+        form.objetivosEspecificos.every((objective) =>
+          objective.descripcion.trim(),
+        );
+      break;
+    case 4:
+      complete =
+        hasText(form.estadoArte) &&
+        form.estadoArte.trim().split(/\s+/).length <= ESTADO_ARTE_MAX_WORDS;
       break;
     case 5:
       complete = hasText(form.metodologia);
+      break;
+    case 6:
+      complete =
+        form.planAccion.length > 0 &&
+        form.planAccion.every((activity) => {
+          const monthStart = Number(activity.mesInicio);
+          const duration = Number(activity.duracionMeses);
+          return (
+            Boolean(activity.objetivoNumero) &&
+            hasText(activity.actividad, activity.resultadoEsperado) &&
+            Number.isInteger(monthStart) &&
+            Number.isInteger(duration) &&
+            monthStart >= 1 &&
+            duration >= 1 &&
+            monthStart + duration - 1 <= 36 &&
+            activity.participantes.length > 0 &&
+            activity.participantes.every(
+              (participant) =>
+                Boolean(participant.teamMemberId) &&
+                Boolean(participant.responsabilidad),
+            ) &&
+            activity.riesgos.length > 0 &&
+            activity.riesgos.every((risk) =>
+              hasText(risk.riesgo, risk.mitigacion, risk.responsable),
+            )
+          );
+        });
       break;
     case 13:
       complete = hasText(form.referencias);

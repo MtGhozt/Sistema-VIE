@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { query } from "../db.js";
+import { pool, query } from "../db.js";
 import { requireDemoAuth } from "../middleware/demoAuth.js";
 
 export const propuestasRouter = Router();
@@ -24,6 +24,8 @@ const MODALIDAD_LABEL: Record<string, string> = {
   fortalecimiento: "Fortalecimiento",
 };
 
+const ESTADO_ARTE_MAX_WORDS = 1000;
+
 type PropuestaRow = {
   id_propuesta: number;
   codigo: string;
@@ -36,6 +38,7 @@ type PropuestaRow = {
   abstract_en: string | null;
   problema: string | null;
   objetivo_general: string | null;
+  estado_arte: string | null;
   metodologia: string | null;
   estado_actual: string;
   etapa_flujo: number;
@@ -51,6 +54,64 @@ type PreguntaGeneralInput = {
   respuesta: string;
   detalle: string | null;
 };
+
+type ObjetivoEspecificoInput = {
+  id?: number;
+  descripcion: string;
+};
+
+type PlanAccionInput = {
+  objetivoNumero: number;
+  actividad: string;
+  resultadoEsperado: string;
+  participantes: { iniciales: string; responsabilidad: string }[];
+  riesgos: { riesgo: string; mitigacion: string; responsable: string }[];
+  mesInicio: number;
+  duracionMeses: number;
+};
+
+type ParticipanteInput =
+  | {
+      id?: number;
+      tipo: "funcionario_tec";
+      nombre: string;
+      iniciales: string;
+      orcid: string;
+      instancia: string;
+      rol: string;
+      periodo: string;
+      horas: { tipo: string; cantidad: number }[];
+    }
+  | {
+      id?: number;
+      tipo: "colaborador_externo";
+      nombre: string;
+      iniciales: string;
+      orcid: string;
+      institucion: string;
+    };
+
+const TEAM_HOUR_TYPES = new Set([
+  "REC",
+  "CONS",
+  "DOC VIE",
+  "VIESA",
+  "VIE-Centro",
+]);
+
+const TEAM_MEMBER_ROLES = new Set([
+  "Coordinador",
+  "Investigador",
+  "Investigador a contratar",
+  "Funcionario administrativo",
+  "Estudiante de posgrado",
+]);
+
+const PLAN_RESPONSIBILITIES = new Set([
+  "Ejecuta",
+  "Supervisa",
+  "Participa",
+]);
 
 function mapPropuesta(row: PropuestaRow) {
   return {
@@ -69,11 +130,16 @@ function mapPropuesta(row: PropuestaRow) {
     abstractEn: row.abstract_en,
     problema: row.problema,
     objetivoGeneral: row.objetivo_general,
+    estadoArte: row.estado_arte,
     metodologia: row.metodologia,
     estadoActual: row.estado_actual,
     etapaFlujo: row.etapa_flujo,
     fechaEnvio: row.fecha_envio,
   };
+}
+
+function countWords(value: string) {
+  return value.trim().split(/\s+/).filter(Boolean).length;
 }
 
 const BASE_SELECT = `
@@ -229,6 +295,820 @@ async function replacePreguntasGenerales(
   }
 }
 
+function parseObjetivosEspecificos(
+  value: unknown,
+): ObjetivoEspecificoInput[] | undefined | null {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length !== 3) return null;
+
+  const objetivos: ObjetivoEspecificoInput[] = [];
+  const ids = new Set<number>();
+  for (const item of value) {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) {
+      return null;
+    }
+    const row = item as Record<string, unknown>;
+    if (
+      (row.id !== undefined &&
+        (typeof row.id !== "number" ||
+          !Number.isInteger(row.id) ||
+          row.id < 1 ||
+          ids.has(row.id))) ||
+      typeof row.descripcion !== "string" ||
+      row.descripcion.length > 5000
+    ) {
+      return null;
+    }
+    if (typeof row.id === "number") ids.add(row.id);
+    objetivos.push({
+      ...(typeof row.id === "number" ? { id: row.id } : {}),
+      descripcion: row.descripcion.trim(),
+    });
+  }
+  return objetivos;
+}
+
+function parsePlanAccion(value: unknown): PlanAccionInput[] | undefined | null {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > 200) return null;
+
+  const activities: PlanAccionInput[] = [];
+  for (const item of value) {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) {
+      return null;
+    }
+    const row = item as Record<string, unknown>;
+    if (
+      typeof row.objetivoNumero !== "number" ||
+      !Number.isInteger(row.objetivoNumero) ||
+      row.objetivoNumero < 1 ||
+      row.objetivoNumero > 3 ||
+      typeof row.actividad !== "string" ||
+      !row.actividad.trim() ||
+      row.actividad.length > 5000 ||
+      typeof row.resultadoEsperado !== "string" ||
+      !row.resultadoEsperado.trim() ||
+      row.resultadoEsperado.length > 5000 ||
+      !Array.isArray(row.participantes) ||
+      row.participantes.length === 0 ||
+      row.participantes.length > 50 ||
+      !Array.isArray(row.riesgos) ||
+      row.riesgos.length === 0 ||
+      row.riesgos.length > 50 ||
+      typeof row.mesInicio !== "number" ||
+      !Number.isInteger(row.mesInicio) ||
+      row.mesInicio < 1 ||
+      typeof row.duracionMeses !== "number" ||
+      !Number.isInteger(row.duracionMeses) ||
+      row.duracionMeses < 1 ||
+      row.mesInicio + row.duracionMeses - 1 > 36
+    ) {
+      return null;
+    }
+
+    const participantes: PlanAccionInput["participantes"] = [];
+    const initials = new Set<string>();
+    for (const participant of row.participantes) {
+      if (
+        typeof participant !== "object" ||
+        participant === null ||
+        Array.isArray(participant)
+      ) {
+        return null;
+      }
+      const person = participant as Record<string, unknown>;
+      if (
+        typeof person.iniciales !== "string" ||
+        !person.iniciales.trim() ||
+        person.iniciales.length > 10 ||
+        typeof person.responsabilidad !== "string" ||
+        !PLAN_RESPONSIBILITIES.has(person.responsabilidad) ||
+        initials.has(person.iniciales.trim().toUpperCase())
+      ) {
+        return null;
+      }
+      const normalizedInitials = person.iniciales.trim().toUpperCase();
+      initials.add(normalizedInitials);
+      participantes.push({
+        iniciales: normalizedInitials,
+        responsabilidad: person.responsabilidad,
+      });
+    }
+
+    const riesgos: PlanAccionInput["riesgos"] = [];
+    for (const risk of row.riesgos) {
+      if (typeof risk !== "object" || risk === null || Array.isArray(risk)) {
+        return null;
+      }
+      const riskRow = risk as Record<string, unknown>;
+      if (
+        typeof riskRow.riesgo !== "string" ||
+        !riskRow.riesgo.trim() ||
+        riskRow.riesgo.length > 5000 ||
+        typeof riskRow.mitigacion !== "string" ||
+        !riskRow.mitigacion.trim() ||
+        riskRow.mitigacion.length > 5000 ||
+        typeof riskRow.responsable !== "string" ||
+        !riskRow.responsable.trim() ||
+        riskRow.responsable.length > 150
+      ) {
+        return null;
+      }
+      riesgos.push({
+        riesgo: riskRow.riesgo.trim(),
+        mitigacion: riskRow.mitigacion.trim(),
+        responsable: riskRow.responsable.trim(),
+      });
+    }
+
+    activities.push({
+      objetivoNumero: row.objetivoNumero,
+      actividad: row.actividad.trim(),
+      resultadoEsperado: row.resultadoEsperado.trim(),
+      participantes,
+      riesgos,
+      mesInicio: row.mesInicio,
+      duracionMeses: row.duracionMeses,
+    });
+  }
+  return activities;
+}
+
+async function loadObjetivosEspecificos(idPropuesta: number) {
+  const result = await query<{
+    id_objetivo: number;
+    numero: number;
+    descripcion: string;
+  }>(
+    `
+    SELECT id_objetivo, numero, descripcion
+    FROM propuesta_objetivo_especifico
+    WHERE id_propuesta = $1
+    ORDER BY numero
+    `,
+    [idPropuesta],
+  );
+  return result.rows.map((row) => ({
+    id: row.id_objetivo,
+    numero: row.numero,
+    descripcion: row.descripcion,
+  }));
+}
+
+async function loadPlanAccion(idPropuesta: number) {
+  const activities = await query<{
+    id_actividad: number;
+    id_objetivo: number;
+    numero_objetivo: number;
+    descripcion: string;
+    resultado_esperado: string | null;
+    mes_inicio: number | null;
+    duracion_meses: string | number | null;
+  }>(
+    `
+    SELECT ap.id_actividad, ap.id_objetivo, oe.numero AS numero_objetivo,
+      ap.descripcion, ap.resultado_esperado, ap.mes_inicio, ap.duracion_meses
+    FROM actividad_plan ap
+    JOIN propuesta_objetivo_especifico oe
+      ON oe.id_objetivo = ap.id_objetivo
+    WHERE ap.id_propuesta = $1
+    ORDER BY oe.numero, ap.numero
+    `,
+    [idPropuesta],
+  );
+  const activityIds = activities.rows.map((activity) => activity.id_actividad);
+  const participantsByActivity = new Map<number, PlanAccionParticipante[]>();
+  const risksByActivity = new Map<number, PlanAccionRiesgo[]>();
+
+  if (activityIds.length > 0) {
+    const assignments = await query<{
+      id_actividad: number;
+      id_participante: number | null;
+      nombre_completo: string | null;
+      iniciales: string | null;
+      responsabilidad: string | null;
+    }>(
+      `
+      SELECT ap.id_actividad, ap.id_participante,
+        pp.nombre_completo,
+        COALESCE(ap.iniciales, pp.iniciales, '') AS iniciales,
+        ap.responsabilidad
+      FROM actividad_participante ap
+      LEFT JOIN propuesta_participante pp
+        ON pp.id_participante = ap.id_participante
+      WHERE ap.id_actividad = ANY($1::int[])
+      ORDER BY ap.id_actividad_participante
+      `,
+      [activityIds],
+    );
+    for (const assignment of assignments.rows) {
+      const current = participantsByActivity.get(assignment.id_actividad) ?? [];
+      current.push({
+        idParticipante: assignment.id_participante,
+        nombre: assignment.nombre_completo ?? "",
+        iniciales: assignment.iniciales ?? "",
+        responsabilidad: assignment.responsabilidad ?? "",
+      });
+      participantsByActivity.set(assignment.id_actividad, current);
+    }
+
+    const risks = await query<{
+      id_actividad: number;
+      riesgo_identificado: string;
+      medida_mitigacion: string;
+      responsable_gestion: string | null;
+    }>(
+      `
+      SELECT id_actividad, riesgo_identificado, medida_mitigacion,
+        responsable_gestion
+      FROM actividad_riesgo
+      WHERE id_actividad = ANY($1::int[])
+      ORDER BY id_riesgo
+      `,
+      [activityIds],
+    );
+    for (const risk of risks.rows) {
+      const current = risksByActivity.get(risk.id_actividad) ?? [];
+      current.push({
+        riesgo: risk.riesgo_identificado,
+        mitigacion: risk.medida_mitigacion,
+        responsable: risk.responsable_gestion ?? "",
+      });
+      risksByActivity.set(risk.id_actividad, current);
+    }
+  }
+
+  return activities.rows.map((activity) => ({
+    id: activity.id_actividad,
+    objetivoId: activity.id_objetivo,
+    objetivoNumero: activity.numero_objetivo,
+    actividad: activity.descripcion,
+    resultadoEsperado: activity.resultado_esperado ?? "",
+    participantes: participantsByActivity.get(activity.id_actividad) ?? [],
+    riesgos: risksByActivity.get(activity.id_actividad) ?? [],
+    mesInicio: activity.mes_inicio ?? 1,
+    duracionMeses: Number(activity.duracion_meses ?? 1),
+  }));
+}
+
+type PlanAccionParticipante = {
+  idParticipante: number | null;
+  nombre: string;
+  iniciales: string;
+  responsabilidad: string;
+};
+
+type PlanAccionRiesgo = {
+  riesgo: string;
+  mitigacion: string;
+  responsable: string;
+};
+
+async function replacePlanAccion(
+  idPropuesta: number,
+  activities: PlanAccionInput[] | undefined,
+): Promise<"saved" | "invalid_objective" | "invalid_participant"> {
+  if (activities === undefined) return "saved";
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const objectives = await client.query<{
+      id_objetivo: number;
+      numero: number;
+    }>(
+      `
+      SELECT id_objetivo, numero
+      FROM propuesta_objetivo_especifico
+      WHERE id_propuesta = $1
+      FOR UPDATE
+      `,
+      [idPropuesta],
+    );
+    const objectiveIds = new Map(
+      objectives.rows.map((objective) => [objective.numero, objective.id_objetivo]),
+    );
+    if (activities.some((activity) => !objectiveIds.has(activity.objetivoNumero))) {
+      await client.query("ROLLBACK");
+      return "invalid_objective";
+    }
+
+    const participants = await client.query<{
+      id_participante: number;
+      nombre_completo: string;
+      iniciales: string | null;
+    }>(
+      `
+      SELECT id_participante, nombre_completo, iniciales
+      FROM propuesta_participante
+      WHERE id_propuesta = $1
+      `,
+      [idPropuesta],
+    );
+    const participantsByInitials = new Map<
+      string,
+      { id: number; nombre: string }
+    >();
+    const duplicateInitials = new Set<string>();
+    for (const participant of participants.rows) {
+      const initials = participant.iniciales?.trim().toUpperCase();
+      if (!initials) continue;
+      if (participantsByInitials.has(initials)) {
+        duplicateInitials.add(initials);
+      } else {
+        participantsByInitials.set(initials, {
+          id: participant.id_participante,
+          nombre: participant.nombre_completo,
+        });
+      }
+    }
+    if (
+      activities.some((activity) =>
+        activity.participantes.some((assignment) => {
+          const initials = assignment.iniciales.toUpperCase();
+          return (
+            !participantsByInitials.has(initials) ||
+            duplicateInitials.has(initials)
+          );
+        }),
+      )
+    ) {
+      await client.query("ROLLBACK");
+      return "invalid_participant";
+    }
+
+    const existing = await client.query<{ id_actividad: number }>(
+      `SELECT id_actividad FROM actividad_plan WHERE id_propuesta = $1 FOR UPDATE`,
+      [idPropuesta],
+    );
+    const existingIds = existing.rows.map((activity) => activity.id_actividad);
+    if (existingIds.length > 0) {
+      await client.query(
+        `DELETE FROM actividad_participante WHERE id_actividad = ANY($1::int[])`,
+        [existingIds],
+      );
+      await client.query(
+        `DELETE FROM actividad_riesgo WHERE id_actividad = ANY($1::int[])`,
+        [existingIds],
+      );
+      await client.query(
+        `DELETE FROM actividad_plan WHERE id_actividad = ANY($1::int[])`,
+        [existingIds],
+      );
+    }
+
+    const activityNumbers = new Map<number, number>();
+    for (const activity of activities) {
+      const objectiveId = objectiveIds.get(activity.objetivoNumero)!;
+      const activityNumber =
+        (activityNumbers.get(activity.objetivoNumero) ?? 0) + 1;
+      activityNumbers.set(activity.objetivoNumero, activityNumber);
+      const inserted = await client.query<{ id_actividad: number }>(
+        `
+        INSERT INTO actividad_plan (
+          id_propuesta, id_objetivo, numero, descripcion,
+          resultado_esperado, mes_inicio, duracion_meses
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING id_actividad
+        `,
+        [
+          idPropuesta,
+          objectiveId,
+          activityNumber,
+          activity.actividad,
+          activity.resultadoEsperado,
+          activity.mesInicio,
+          activity.duracionMeses,
+        ],
+      );
+      const activityId = inserted.rows[0].id_actividad;
+      for (const assignment of activity.participantes) {
+        const participant = participantsByInitials.get(
+          assignment.iniciales.toUpperCase(),
+        )!;
+        await client.query(
+          `
+          INSERT INTO actividad_participante (
+            id_actividad, id_participante, iniciales, responsabilidad
+          ) VALUES ($1, $2, $3, $4)
+          `,
+          [
+            activityId,
+            participant.id,
+            assignment.iniciales,
+            assignment.responsabilidad,
+          ],
+        );
+      }
+      for (const risk of activity.riesgos) {
+        await client.query(
+          `
+          INSERT INTO actividad_riesgo (
+            id_actividad, riesgo_identificado, medida_mitigacion,
+            responsable_gestion
+          ) VALUES ($1, $2, $3, $4)
+          `,
+          [activityId, risk.riesgo, risk.mitigacion, risk.responsable],
+        );
+      }
+    }
+    await client.query("COMMIT");
+    return "saved";
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function replaceObjetivosEspecificos(
+  idPropuesta: number,
+  objetivos: ObjetivoEspecificoInput[] | undefined,
+): Promise<"saved" | "invalid_id" | "in_use"> {
+  if (objetivos === undefined) return "saved";
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const existing = await client.query<{ id_objetivo: number }>(
+      `
+      SELECT id_objetivo
+      FROM propuesta_objetivo_especifico
+      WHERE id_propuesta = $1
+      FOR UPDATE
+      `,
+      [idPropuesta],
+    );
+    const existingIds = new Set(
+      existing.rows.map((row) => row.id_objetivo),
+    );
+    if (
+      objetivos.some(
+        (objective) =>
+          objective.id !== undefined && !existingIds.has(objective.id),
+      )
+    ) {
+      await client.query("ROLLBACK");
+      return "invalid_id";
+    }
+
+    const retainedIds = new Set(
+      objetivos.flatMap((objective) =>
+        objective.id === undefined ? [] : [objective.id],
+      ),
+    );
+    const removedIds = [...existingIds].filter((id) => !retainedIds.has(id));
+    if (removedIds.length > 0) {
+      const references = await client.query<{ id_objetivo: number }>(
+        `
+        SELECT id_objetivo FROM actividad_plan
+        WHERE id_objetivo = ANY($1::int[])
+        UNION
+        SELECT id_objetivo FROM propuesta_producto
+        WHERE id_objetivo = ANY($1::int[])
+        `,
+        [removedIds],
+      );
+      if (references.rows.length > 0) {
+        await client.query("ROLLBACK");
+        return "in_use";
+      }
+      await client.query(
+        `DELETE FROM propuesta_objetivo_especifico WHERE id_objetivo = ANY($1::int[])`,
+        [removedIds],
+      );
+    }
+
+    await client.query(
+      `
+      UPDATE propuesta_objetivo_especifico
+      SET numero = -numero
+      WHERE id_propuesta = $1
+      `,
+      [idPropuesta],
+    );
+    for (const [index, objective] of objetivos.entries()) {
+      if (objective.id !== undefined) {
+        await client.query(
+          `
+          UPDATE propuesta_objetivo_especifico
+          SET numero = $1, descripcion = $2
+          WHERE id_objetivo = $3 AND id_propuesta = $4
+          `,
+          [index + 1, objective.descripcion, objective.id, idPropuesta],
+        );
+      } else {
+        await client.query(
+          `
+          INSERT INTO propuesta_objetivo_especifico (
+            id_propuesta, numero, descripcion
+          ) VALUES ($1, $2, $3)
+          `,
+          [idPropuesta, index + 1, objective.descripcion],
+        );
+      }
+    }
+    await client.query("COMMIT");
+    return "saved";
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+function parseParticipantes(value: unknown):
+  | ParticipanteInput[]
+  | undefined
+  | null {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > 100) return null;
+
+  const participantes: ParticipanteInput[] = [];
+  const ids = new Set<number>();
+  const initials = new Set<string>();
+  for (const item of value) {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) {
+      return null;
+    }
+    const row = item as Record<string, unknown>;
+    if (
+      (row.id !== undefined &&
+        (typeof row.id !== "number" ||
+          !Number.isInteger(row.id) ||
+          row.id < 1 ||
+          ids.has(row.id))) ||
+      typeof row.nombre !== "string" ||
+      row.nombre.length > 150 ||
+      (row.iniciales !== undefined &&
+        (typeof row.iniciales !== "string" || row.iniciales.length > 10)) ||
+      typeof row.orcid !== "string" ||
+      row.orcid.length > 19
+    ) {
+      return null;
+    }
+    if (typeof row.id === "number") ids.add(row.id);
+    const normalizedInitials =
+      typeof row.iniciales === "string"
+        ? row.iniciales.trim().toUpperCase()
+        : "";
+    if (normalizedInitials && initials.has(normalizedInitials)) return null;
+    if (normalizedInitials) initials.add(normalizedInitials);
+
+    if (row.tipo === "funcionario_tec") {
+      if (
+        typeof row.instancia !== "string" ||
+        row.instancia.length > 200 ||
+        typeof row.rol !== "string" ||
+        (row.rol !== "" && !TEAM_MEMBER_ROLES.has(row.rol)) ||
+        typeof row.periodo !== "string" ||
+        row.periodo.length > 60 ||
+        !Array.isArray(row.horas) ||
+        row.horas.length > 20
+      ) {
+        return null;
+      }
+
+      const horas: { tipo: string; cantidad: number }[] = [];
+      const tiposHora = new Set<string>();
+      for (const hour of row.horas) {
+        if (typeof hour !== "object" || hour === null || Array.isArray(hour)) {
+          return null;
+        }
+        const hourRow = hour as Record<string, unknown>;
+        if (
+          typeof hourRow.tipo !== "string" ||
+          !TEAM_HOUR_TYPES.has(hourRow.tipo) ||
+          typeof hourRow.cantidad !== "number" ||
+          !Number.isFinite(hourRow.cantidad) ||
+          hourRow.cantidad <= 0 ||
+          hourRow.cantidad > 999.99 ||
+          tiposHora.has(hourRow.tipo)
+        ) {
+          return null;
+        }
+        tiposHora.add(hourRow.tipo);
+        horas.push({ tipo: hourRow.tipo, cantidad: hourRow.cantidad });
+      }
+
+      participantes.push({
+        ...(typeof row.id === "number" ? { id: row.id } : {}),
+        tipo: row.tipo,
+        nombre: row.nombre.trim(),
+        iniciales: normalizedInitials,
+        orcid: row.orcid.trim(),
+        instancia: row.instancia.trim(),
+        rol: row.rol,
+        periodo: row.periodo.trim(),
+        horas,
+      });
+      continue;
+    }
+
+    if (
+      row.tipo !== "colaborador_externo" ||
+      typeof row.institucion !== "string" ||
+      row.institucion.length > 200
+    ) {
+      return null;
+    }
+    participantes.push({
+      ...(typeof row.id === "number" ? { id: row.id } : {}),
+      tipo: row.tipo,
+      nombre: row.nombre.trim(),
+      iniciales: normalizedInitials,
+      orcid: row.orcid.trim(),
+      institucion: row.institucion.trim(),
+    });
+  }
+  return participantes;
+}
+
+async function loadParticipantes(idPropuesta: number) {
+  const participants = await query<{
+    id_participante: number;
+    tipo: string;
+    nombre_completo: string;
+    iniciales: string | null;
+    orcid: string | null;
+    instancia_o_institucion: string | null;
+    rol_en_proyecto: string | null;
+    periodo_nombramiento: string | null;
+  }>(
+    `
+    SELECT id_participante, tipo, nombre_completo, iniciales, orcid,
+      instancia_o_institucion, rol_en_proyecto, periodo_nombramiento
+    FROM propuesta_participante
+    WHERE id_propuesta = $1
+    ORDER BY id_participante
+    `,
+    [idPropuesta],
+  );
+  const ids = participants.rows.map((row) => row.id_participante);
+  const hoursByParticipant = new Map<
+    number,
+    { tipo: string; cantidad: number }[]
+  >();
+
+  if (ids.length > 0) {
+    const hours = await query<{
+      id_participante: number;
+      tipo_hora: string;
+      cantidad_horas: string | number;
+    }>(
+      `
+      SELECT id_participante, tipo_hora, cantidad_horas
+      FROM propuesta_participante_hora
+      WHERE id_participante = ANY($1::int[])
+      ORDER BY id_participante, id_participante_hora
+      `,
+      [ids],
+    );
+    for (const hour of hours.rows) {
+      const participantHours =
+        hoursByParticipant.get(hour.id_participante) ?? [];
+      participantHours.push({
+        tipo: hour.tipo_hora,
+        cantidad: Number(hour.cantidad_horas),
+      });
+      hoursByParticipant.set(hour.id_participante, participantHours);
+    }
+  }
+
+  return participants.rows.map((row) => {
+    const common = {
+      id: row.id_participante,
+      nombre: row.nombre_completo,
+      iniciales: row.iniciales?.trim() ?? "",
+      orcid: row.orcid?.trimEnd() ?? "",
+    };
+    if (row.tipo === "funcionario_tec") {
+      return {
+        tipo: "funcionario_tec" as const,
+        ...common,
+        instancia: row.instancia_o_institucion ?? "",
+        rol: row.rol_en_proyecto ?? "",
+        periodo: row.periodo_nombramiento ?? "",
+        horas: hoursByParticipant.get(row.id_participante) ?? [],
+      };
+    }
+    if (row.tipo === "externo") {
+      return {
+        tipo: "colaborador_externo" as const,
+        ...common,
+        institucion: row.instancia_o_institucion ?? "",
+      };
+    }
+    throw new Error(`Tipo de participante inválido en propuesta ${idPropuesta}`);
+  });
+}
+
+async function replaceParticipantes(
+  idPropuesta: number,
+  participantes: ParticipanteInput[] | undefined,
+) {
+  if (participantes === undefined) return;
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const existing = await client.query<{ id_participante: number }>(
+      `
+      SELECT id_participante
+      FROM propuesta_participante
+      WHERE id_propuesta = $1
+      FOR UPDATE
+      `,
+      [idPropuesta],
+    );
+    const existingIds = new Set(
+      existing.rows.map((row) => row.id_participante),
+    );
+    const retainedIds = new Set<number>();
+
+    for (const participant of participantes) {
+      const isTec = participant.tipo === "funcionario_tec";
+      const participantValues = [
+        isTec ? "funcionario_tec" : "externo",
+        participant.nombre,
+        participant.iniciales || null,
+        participant.orcid || null,
+        isTec ? participant.instancia || null : participant.institucion || null,
+        isTec ? participant.rol || null : null,
+        isTec ? participant.periodo || null : null,
+      ];
+      let idParticipante: number;
+      if (participant.id && existingIds.has(participant.id)) {
+        idParticipante = participant.id;
+        await client.query(
+          `
+          UPDATE propuesta_participante
+          SET tipo = $1, nombre_completo = $2, iniciales = $3, orcid = $4,
+            instancia_o_institucion = $5, rol_en_proyecto = $6,
+            periodo_nombramiento = $7
+          WHERE id_participante = $8 AND id_propuesta = $9
+          `,
+          [...participantValues, idParticipante, idPropuesta],
+        );
+      } else {
+        const inserted = await client.query<{ id_participante: number }>(
+          `
+          INSERT INTO propuesta_participante (
+            id_propuesta, tipo, nombre_completo, iniciales, orcid,
+            instancia_o_institucion, rol_en_proyecto, periodo_nombramiento
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          RETURNING id_participante
+          `,
+          [idPropuesta, ...participantValues],
+        );
+        idParticipante = inserted.rows[0].id_participante;
+      }
+      retainedIds.add(idParticipante);
+      await client.query(
+        `DELETE FROM propuesta_participante_hora WHERE id_participante = $1`,
+        [idParticipante],
+      );
+
+      if (isTec) {
+        for (const hour of participant.horas) {
+          await client.query(
+            `
+            INSERT INTO propuesta_participante_hora (
+              id_participante, tipo_hora, cantidad_horas
+            ) VALUES ($1, $2, $3)
+            `,
+            [idParticipante, hour.tipo, hour.cantidad],
+          );
+        }
+      }
+    }
+
+    const removedIds = [...existingIds].filter((id) => !retainedIds.has(id));
+    if (removedIds.length > 0) {
+      await client.query(
+        `DELETE FROM actividad_participante WHERE id_participante = ANY($1::int[])`,
+        [removedIds],
+      );
+      await client.query(
+        `DELETE FROM propuesta_participante_hora WHERE id_participante = ANY($1::int[])`,
+        [removedIds],
+      );
+      await client.query(
+        `DELETE FROM propuesta_participante WHERE id_participante = ANY($1::int[])`,
+        [removedIds],
+      );
+    }
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 function parseKeywordInput(value: unknown): string[] | undefined {
   if (value === undefined) return undefined;
   if (Array.isArray(value)) {
@@ -280,7 +1160,17 @@ propuestasRouter.get("/propuestas/:id", requireDemoAuth, async (req, res) => {
   }
   const keywords = await loadKeywords(id);
   const preguntasGenerales = await loadPreguntasGenerales(id);
-  res.json({ ...mapPropuesta(row), ...keywords, preguntasGenerales });
+  const participantes = await loadParticipantes(id);
+  const objetivosEspecificos = await loadObjetivosEspecificos(id);
+  const planAccion = await loadPlanAccion(id);
+  res.json({
+    ...mapPropuesta(row),
+    ...keywords,
+    preguntasGenerales,
+    participantes,
+    objetivosEspecificos,
+    planAccion,
+  });
 });
 
 /** Crear borrador. */
@@ -302,6 +1192,23 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
   const objetivoGeneral = req.body?.objetivoGeneral
     ? String(req.body.objetivoGeneral).trim()
     : null;
+  if (
+    req.body?.estadoArte !== undefined &&
+    typeof req.body.estadoArte !== "string"
+  ) {
+    res.status(400).json({ error: "estadoArte debe ser texto" });
+    return;
+  }
+  const estadoArte = String(req.body?.estadoArte ?? "").trim();
+  if (countWords(estadoArte) > ESTADO_ARTE_MAX_WORDS) {
+    res.status(400).json({
+      error: `El estado del arte no puede superar ${ESTADO_ARTE_MAX_WORDS} palabras (aproximadamente dos páginas)`,
+    });
+    return;
+  }
+  const objetivosEspecificos = parseObjetivosEspecificos(
+    req.body?.objetivosEspecificos,
+  );
   const metodologia = req.body?.metodologia
     ? String(req.body.metodologia).trim()
     : null;
@@ -319,6 +1226,30 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
   );
   if (preguntasGenerales === null) {
     res.status(400).json({ error: "preguntasGenerales inválidas" });
+    return;
+  }
+  if (objetivosEspecificos === null) {
+    res.status(400).json({
+      error: "Se requieren exactamente tres objetivos específicos válidos",
+    });
+    return;
+  }
+  if (
+    objetivosEspecificos?.some((objective) => objective.id !== undefined)
+  ) {
+    res.status(400).json({
+      error: "No se admiten identificadores de objetivos al crear una propuesta",
+    });
+    return;
+  }
+  const participantes = parseParticipantes(req.body?.participantes);
+  if (participantes === null) {
+    res.status(400).json({ error: "participantes inválidos" });
+    return;
+  }
+  const planAccion = parsePlanAccion(req.body?.planAccion);
+  if (planAccion === null) {
+    res.status(400).json({ error: "Plan de acción y riesgos inválido" });
     return;
   }
 
@@ -354,9 +1285,9 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
     INSERT INTO propuesta (
       codigo, id_convocatoria, id_coordinador, id_escuela,
       titulo, modalidad, resumen, abstract_en,
-      problema, objetivo_general, metodologia,
+      problema, objetivo_general, estado_arte, metodologia,
       estado_actual, etapa_flujo
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'borrador', 0)
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'borrador', 0)
     RETURNING id_propuesta
     `,
     [
@@ -370,6 +1301,7 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
       abstractEn,
       problema,
       objetivoGeneral,
+      estadoArte,
       metodologia,
     ],
   );
@@ -380,8 +1312,29 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
     codigo,
     id,
   ]);
+  const objectivesSaved = await replaceObjetivosEspecificos(
+    id,
+    objetivosEspecificos,
+  );
+  if (objectivesSaved !== "saved") {
+    res.status(400).json({
+      error: "No se pudieron guardar los tres objetivos específicos",
+    });
+    return;
+  }
   await replaceKeywords(id, keywordsEs, keywordsEn);
   await replacePreguntasGenerales(id, preguntasGenerales);
+  await replaceParticipantes(id, participantes);
+  const planSaved = await replacePlanAccion(id, planAccion);
+  if (planSaved !== "saved") {
+    res.status(400).json({
+      error:
+        planSaved === "invalid_objective"
+          ? "El plan contiene un objetivo que no pertenece a la propuesta"
+          : "Verificá que cada participante del plan tenga iniciales únicas registradas en el equipo",
+    });
+    return;
+  }
 
   const detail = await query<PropuestaRow>(
     `${BASE_SELECT} WHERE p.id_propuesta = $1`,
@@ -389,10 +1342,16 @@ propuestasRouter.post("/propuestas", requireDemoAuth, async (req, res) => {
   );
   const keywords = await loadKeywords(id);
   const preguntas = await loadPreguntasGenerales(id);
+  const team = await loadParticipantes(id);
+  const objectives = await loadObjetivosEspecificos(id);
+  const plan = await loadPlanAccion(id);
   res.status(201).json({
     ...mapPropuesta(detail.rows[0]),
     ...keywords,
     preguntasGenerales: preguntas,
+    participantes: team,
+    objetivosEspecificos: objectives,
+    planAccion: plan,
   });
 });
 
@@ -430,6 +1389,39 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, async (req, res) => {
   );
   if (preguntasGenerales === null) {
     res.status(400).json({ error: "preguntasGenerales inválidas" });
+    return;
+  }
+  const participantes = parseParticipantes(req.body?.participantes);
+  if (participantes === null) {
+    res.status(400).json({ error: "participantes inválidos" });
+    return;
+  }
+  const planAccion = parsePlanAccion(req.body?.planAccion);
+  if (planAccion === null) {
+    res.status(400).json({ error: "Plan de acción y riesgos inválido" });
+    return;
+  }
+  const objetivosEspecificos = parseObjetivosEspecificos(
+    req.body?.objetivosEspecificos,
+  );
+  if (objetivosEspecificos === null) {
+    res.status(400).json({
+      error: "Se requieren exactamente tres objetivos específicos válidos",
+    });
+    return;
+  }
+  const objectivesSaved = await replaceObjetivosEspecificos(
+    id,
+    objetivosEspecificos,
+  );
+  if (objectivesSaved === "invalid_id") {
+    res.status(400).json({ error: "Objetivo específico inválido para esta propuesta" });
+    return;
+  }
+  if (objectivesSaved === "in_use") {
+    res.status(400).json({
+      error: "No se puede quitar un objetivo específico asociado al plan o a un producto",
+    });
     return;
   }
 
@@ -486,6 +1478,24 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, async (req, res) => {
         : String(req.body.objetivoGeneral).trim(),
     );
   }
+  if (req.body?.estadoArte !== undefined) {
+    if (
+      req.body.estadoArte !== null &&
+      typeof req.body.estadoArte !== "string"
+    ) {
+      res.status(400).json({ error: "estadoArte debe ser texto" });
+      return;
+    }
+    const estadoArte =
+      req.body.estadoArte === null ? "" : req.body.estadoArte.trim();
+    if (countWords(estadoArte) > ESTADO_ARTE_MAX_WORDS) {
+      res.status(400).json({
+        error: `El estado del arte no puede superar ${ESTADO_ARTE_MAX_WORDS} palabras (aproximadamente dos páginas)`,
+      });
+      return;
+    }
+    set("estado_arte", estadoArte || null);
+  }
   if (req.body?.metodologia !== undefined) {
     set(
       "metodologia",
@@ -509,6 +1519,21 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, async (req, res) => {
     parseKeywordInput(req.body?.keywordsEn),
   );
   await replacePreguntasGenerales(id, preguntasGenerales);
+  await replaceParticipantes(id, participantes);
+  const planSaved = await replacePlanAccion(id, planAccion);
+  if (planSaved === "invalid_objective") {
+    res.status(400).json({
+      error: "El plan contiene un objetivo que no pertenece a la propuesta",
+    });
+    return;
+  }
+  if (planSaved === "invalid_participant") {
+    res.status(400).json({
+      error:
+        "Verificá que cada participante del plan tenga iniciales únicas registradas en el equipo",
+    });
+    return;
+  }
 
   const detail = await query<PropuestaRow>(
     `${BASE_SELECT} WHERE p.id_propuesta = $1`,
@@ -516,10 +1541,16 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, async (req, res) => {
   );
   const keywords = await loadKeywords(id);
   const preguntas = await loadPreguntasGenerales(id);
+  const team = await loadParticipantes(id);
+  const objectives = await loadObjetivosEspecificos(id);
+  const plan = await loadPlanAccion(id);
   res.json({
     ...mapPropuesta(detail.rows[0]),
     ...keywords,
     preguntasGenerales: preguntas,
+    participantes: team,
+    objetivosEspecificos: objectives,
+    planAccion: plan,
   });
 });
 
@@ -587,10 +1618,16 @@ propuestasRouter.post(
     );
     const keywords = await loadKeywords(id);
     const preguntasGenerales = await loadPreguntasGenerales(id);
+    const participantes = await loadParticipantes(id);
+    const objetivosEspecificos = await loadObjetivosEspecificos(id);
+    const planAccion = await loadPlanAccion(id);
     res.json({
       ...mapPropuesta(detail.rows[0]),
       ...keywords,
       preguntasGenerales,
+      participantes,
+      objetivosEspecificos,
+      planAccion,
     });
   },
 );

@@ -15,8 +15,12 @@ import { FormWizardStepContent } from "../components/FormWizardStepContent";
 import { useToast } from "../components/toast/ToastContext";
 import {
   DEFAULT_FORM_WIZARD_STATE,
+  ESTADO_ARTE_MAX_WORDS,
   FORM_WIZARD_STEPS,
   getFormStepStatus,
+  PLAN_RESPONSIBILITIES,
+  TEAM_HOUR_TYPES,
+  TEAM_MEMBER_ROLES,
   type FormWizardState,
   type NivelTrl,
   TRL_LEVELS,
@@ -161,6 +165,51 @@ export function PropuestaNuevaPage() {
         const detalle8 = parseDetails(preguntas.get("q8"));
         const detalle9 = parseDetails(preguntas.get("q9"));
         const trl = preguntas.get("trl_esperado")?.respuesta;
+        const teamTec: FormWizardState["teamTec"] =
+          d.participantes.flatMap((participant, index) =>
+            participant.tipo === "funcionario_tec"
+              ? [
+                  {
+                    id: `tec-${d.id}-${index}`,
+                    participantId: participant.id,
+                    nombre: participant.nombre,
+                    iniciales: participant.iniciales,
+                    orcid: participant.orcid,
+                    instancia: participant.instancia,
+                    rol:
+                      TEAM_MEMBER_ROLES.find(
+                        (role) => role === participant.rol,
+                      ) ?? "",
+                    horas:
+                      participant.horas.length > 0
+                        ? participant.horas.map((hours) => ({
+                            tipo:
+                              TEAM_HOUR_TYPES.find(
+                                (type) => type === hours.tipo,
+                              ) ?? "",
+                            cantidad: String(hours.cantidad),
+                          }))
+                        : [{ tipo: "", cantidad: "" }],
+                    periodo: participant.periodo,
+                  },
+                ]
+              : [],
+          );
+        const teamExternal: FormWizardState["teamExternal"] =
+          d.participantes.flatMap((participant, index) =>
+            participant.tipo === "colaborador_externo"
+              ? [
+                  {
+                    id: `externo-${d.id}-${index}`,
+                    participantId: participant.id,
+                    nombre: participant.nombre,
+                    iniciales: participant.iniciales,
+                    orcid: participant.orcid,
+                    institucion: participant.institucion,
+                  },
+                ]
+              : [],
+          );
         setIdConvocatoria(d.idConvocatoria);
         setForm((prev) => ({
           ...prev,
@@ -171,7 +220,21 @@ export function PropuestaNuevaPage() {
           palabras: d.keywordsEs.join(", "),
           keywords: d.keywordsEn.join(", "),
           problema: d.problema ?? prev.problema,
-          objetivos: d.objetivoGeneral ?? prev.objetivos,
+          objetivoGeneral: d.objetivoGeneral ?? prev.objetivoGeneral,
+          estadoArte: d.estadoArte ?? prev.estadoArte,
+          objetivosEspecificos: Array.from({ length: 3 }, (_, index) => {
+            const objective = d.objetivosEspecificos[index];
+            return objective
+              ? {
+                  id: `objetivo-${d.id}-${objective.id}`,
+                  objectiveId: objective.id,
+                  descripcion: objective.descripcion,
+                }
+              : {
+                  id: `objetivo-${d.id}-${index + 1}`,
+                  descripcion: "",
+                };
+          }),
           metodologia: d.metodologia ?? prev.metodologia,
           q1: yesNoFromApi(preguntas.get("q1"), prev.q1),
           q1Entidad: detalle1.entidad ?? prev.q1Entidad,
@@ -211,6 +274,49 @@ export function PropuestaNuevaPage() {
             trl && isNivelTrl(trl)
               ? trl
               : prev.trlEsperado,
+          teamTec,
+          teamExternal,
+          planAccion: d.planAccion.map((activity) => ({
+            id: `actividad-${d.id}-${activity.id}`,
+            activityId: activity.id,
+            objetivoNumero:
+              activity.objetivoNumero === 1
+                ? "1"
+                : activity.objetivoNumero === 2
+                  ? "2"
+                  : activity.objetivoNumero === 3
+                    ? "3"
+                    : "",
+            actividad: activity.actividad,
+            resultadoEsperado: activity.resultadoEsperado,
+            participantes: activity.participantes.map(
+              (assignment, assignmentIndex) => {
+                const teamMember = [...teamTec, ...teamExternal].find(
+                  (member) =>
+                    (assignment.idParticipante !== null &&
+                      member.participantId === assignment.idParticipante) ||
+                    member.iniciales === assignment.iniciales,
+                );
+                return {
+                  id: `asignacion-${d.id}-${activity.id}-${assignmentIndex}`,
+                  teamMemberId: teamMember?.id ?? "",
+                  responsabilidad:
+                    PLAN_RESPONSIBILITIES.find(
+                      (responsibility) =>
+                        responsibility === assignment.responsabilidad,
+                    ) ?? "",
+                };
+              },
+            ),
+            riesgos: activity.riesgos.map((risk, riskIndex) => ({
+              id: `riesgo-${d.id}-${activity.id}-${riskIndex}`,
+              riesgo: risk.riesgo,
+              mitigacion: risk.mitigacion,
+              responsable: risk.responsable,
+            })),
+            mesInicio: String(activity.mesInicio),
+            duracionMeses: String(activity.duracionMeses),
+          })),
         }));
         setSaveStatus("Borrador cargado");
       } catch (err) {
@@ -231,16 +337,164 @@ export function PropuestaNuevaPage() {
   }
 
   function draftPayload() {
+    const estadoArteWordCount = form.estadoArte
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
+    if (estadoArteWordCount > ESTADO_ARTE_MAX_WORDS) {
+      throw new Error(
+        `El estado del arte supera el máximo de ${ESTADO_ARTE_MAX_WORDS} palabras (aproximadamente dos páginas).`,
+      );
+    }
+
+    const teamMembers = [...form.teamTec, ...form.teamExternal];
+    const planAccion = form.planAccion.flatMap((activity) => {
+      const risks = activity.riesgos.filter(
+        (risk) =>
+          risk.riesgo.trim() ||
+          risk.mitigacion.trim() ||
+          risk.responsable.trim(),
+      );
+      const hasAnyValue = Boolean(
+        activity.objetivoNumero ||
+          activity.actividad.trim() ||
+          activity.resultadoEsperado.trim() ||
+          activity.mesInicio ||
+          activity.duracionMeses ||
+          activity.participantes.length > 0 ||
+          risks.length > 0,
+      );
+      if (!hasAnyValue) return [];
+
+      const mesInicio = Number(activity.mesInicio);
+      const duracionMeses = Number(activity.duracionMeses);
+      const assignments = activity.participantes.map((assignment) => {
+        const member = teamMembers.find(
+          (candidate) => candidate.id === assignment.teamMemberId,
+        );
+        if (
+          !member ||
+          !member.iniciales.trim() ||
+          !assignment.responsabilidad
+        ) {
+          throw new Error(
+            "Cada actividad debe tener participantes seleccionados con iniciales y responsabilidad.",
+          );
+        }
+        return {
+          iniciales: member.iniciales.trim().toUpperCase(),
+          responsabilidad: assignment.responsabilidad,
+        };
+      });
+      if (
+        !activity.objetivoNumero ||
+        !activity.actividad.trim() ||
+        !activity.resultadoEsperado.trim() ||
+        !Number.isInteger(mesInicio) ||
+        !Number.isInteger(duracionMeses) ||
+        mesInicio < 1 ||
+        duracionMeses < 1 ||
+        mesInicio + duracionMeses - 1 > 36 ||
+        assignments.length === 0 ||
+        risks.length === 0 ||
+        risks.length !== activity.riesgos.length ||
+        risks.some(
+          (risk) =>
+            !risk.riesgo.trim() ||
+            !risk.mitigacion.trim() ||
+            !risk.responsable.trim(),
+        )
+      ) {
+        throw new Error(
+          "Completá cada actividad con objetivo, resultado, participantes, periodo y al menos un riesgo con mitigación y responsable.",
+        );
+      }
+
+      const initials = assignments.map((assignment) => assignment.iniciales);
+      if (new Set(initials).size !== initials.length) {
+        throw new Error(
+          "No repitas a la misma persona en una actividad. Cada participante debe tener iniciales distintas.",
+        );
+      }
+
+      return [
+        {
+          objetivoNumero: Number(activity.objetivoNumero),
+          actividad: activity.actividad.trim(),
+          resultadoEsperado: activity.resultadoEsperado.trim(),
+          participantes: assignments,
+          riesgos: risks.map((risk) => ({
+            riesgo: risk.riesgo.trim(),
+            mitigacion: risk.mitigacion.trim(),
+            responsable: risk.responsable.trim(),
+          })),
+          mesInicio,
+          duracionMeses,
+        },
+      ];
+    });
+
+    const participantes = [
+      ...form.teamTec.map((member) => ({
+        ...(member.participantId === undefined
+          ? {}
+          : { id: member.participantId }),
+        tipo: "funcionario_tec" as const,
+        nombre: member.nombre.trim(),
+        iniciales: member.iniciales.trim().toUpperCase(),
+        orcid: member.orcid.trim(),
+        instancia: member.instancia.trim(),
+        rol: member.rol,
+        periodo: member.periodo.trim(),
+        horas: member.horas.flatMap((hours) => {
+          if (!hours.tipo && !hours.cantidad.trim()) return [];
+          const cantidad = Number(hours.cantidad);
+          if (
+            !hours.tipo ||
+            !hours.cantidad.trim() ||
+            !Number.isFinite(cantidad) ||
+            cantidad <= 0 ||
+            cantidad > 999.99
+          ) {
+            throw new Error(
+              `Completá el tipo y una cantidad válida de horas para ${member.nombre || "cada persona del equipo"}`,
+            );
+          }
+          return [{ tipo: hours.tipo, cantidad }];
+        }),
+      })),
+      ...form.teamExternal.map((member) => ({
+        ...(member.participantId === undefined
+          ? {}
+          : { id: member.participantId }),
+        tipo: "colaborador_externo" as const,
+        nombre: member.nombre.trim(),
+        iniciales: member.iniciales.trim().toUpperCase(),
+        orcid: member.orcid.trim(),
+        institucion: member.institucion.trim(),
+      })),
+    ];
     return {
       titulo: form.titulo.trim(),
       modalidad: form.modalidad,
       resumen: form.resumen.trim() || undefined,
       abstractEn: form.abstract.trim() || undefined,
       problema: form.problema.trim() || undefined,
-      objetivoGeneral: form.objetivos.trim() || undefined,
+      objetivoGeneral: form.objetivoGeneral.trim() || undefined,
+      estadoArte: form.estadoArte.trim(),
+      objetivosEspecificos: form.objetivosEspecificos
+        .slice(0, 3)
+        .map((objective) => ({
+          ...(objective.objectiveId === undefined
+            ? {}
+            : { id: objective.objectiveId }),
+          descripcion: objective.descripcion.trim(),
+        })),
+      planAccion,
       metodologia: form.metodologia.trim() || undefined,
       keywordsEs: form.palabras,
       keywordsEn: form.keywords,
+      participantes,
       preguntasGenerales: [
         form.q1
           ? questionDetails(1, "q1", yesNoToApi(form.q1), {

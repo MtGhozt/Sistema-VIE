@@ -23,6 +23,15 @@ export function bandejaToDemoProposal(
     abstract: item.abstractEn ?? "",
     palabras: [],
     keywords: [],
+    teamTec: [
+      {
+        nombre: item.investigadora,
+        instancia: item.escuela,
+        rol: "Coordinador",
+        horas: "—",
+      },
+    ],
+    teamExternal: [],
     documentos: [
       ...(item.oficioPI
         ? [{ nombre: `Dictamen PI ${item.oficioPI}`, estado: "Registrado" }]

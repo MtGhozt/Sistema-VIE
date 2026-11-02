@@ -6,6 +6,7 @@ import {
 } from "./demo";
 
 export type TeamTecMember = {
+  id?: number;
   nombre: string;
   orcid?: string;
   instancia: string;
@@ -15,6 +16,7 @@ export type TeamTecMember = {
 };
 
 export type TeamExternalMember = {
+  id?: number;
   nombre: string;
   orcid?: string;
   institucion: string;
@@ -210,16 +212,36 @@ export function apiToProposalView(detail: PropuestaDetalle): ProposalViewModel {
     abstract: detail.abstractEn ?? "",
     palabras: detail.keywordsEs.length ? detail.keywordsEs : ["—"],
     keywords: detail.keywordsEn.length ? detail.keywordsEn : [],
-    teamTec: [
-      {
-        nombre: detail.coordinadorNombre,
-        instancia: detail.escuelaNombre,
-        rol: "Coordinadora",
-        horas: "—",
-        periodo: "—",
-      },
-    ],
-    teamExternal: RICH_TEMPLATE.teamExternal ?? [],
+    teamTec: detail.participantes.flatMap((participant) =>
+      participant.tipo === "funcionario_tec"
+        ? [
+            {
+              id: participant.id,
+              nombre: participant.nombre,
+              orcid: participant.orcid || undefined,
+              instancia: participant.instancia,
+              rol: participant.rol,
+              horas:
+                participant.horas
+                  .map((hours) => `${hours.cantidad} ${hours.tipo}`)
+                  .join(", ") || "—",
+              periodo: participant.periodo || "—",
+            },
+          ]
+        : [],
+    ),
+    teamExternal: detail.participantes.flatMap((participant) =>
+      participant.tipo === "colaborador_externo"
+        ? [
+            {
+              id: participant.id,
+              nombre: participant.nombre,
+              orcid: participant.orcid || undefined,
+              institucion: participant.institucion,
+            },
+          ]
+        : [],
+    ),
     plan: RICH_TEMPLATE.plan ?? DEFAULT_PLAN,
     presupuestoAnual: DEFAULT_PRESUPUESTO,
     financiamiento: RICH_TEMPLATE.financiamiento ?? [],

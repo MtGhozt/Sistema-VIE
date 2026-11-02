@@ -63,3 +63,59 @@
 .convocatoria-detail .section-inline > .btn {
   flex-shrink: 0;
 }
+
+.team-edit-table {
+  min-width: 1280px;
+}
+
+.team-external-edit-table {
+  min-width: 950px;
+}
+
+.team-edit-table td {
+  vertical-align: top;
+}
+
+.team-edit-table td > .input {
+  box-sizing: border-box;
+  min-width: 140px;
+  width: 100%;
+}
+
+.team-hours-row {
+  align-items: start;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(110px, 1fr) minmax(85px, 0.65fr) auto;
+}
+
+.team-hours-row .input {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+}
+
+.action-plan-activity {
+  display: grid;
+  gap: 20px;
+}
+
+.action-plan-risk {
+  display: grid;
+  gap: 14px;
+}
+
+.action-plan-activity .page-heading,
+.action-plan-risk .page-heading {
+  align-items: center;
+}
+
+.action-plan-activity .team-hours-row {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.6fr) auto;
+}
+
+@media (max-width: 720px) {
+  .action-plan-activity .team-hours-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

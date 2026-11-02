@@ -16,6 +16,7 @@ export type Propuesta = {
   abstractEn: string | null;
   problema: string | null;
   objetivoGeneral: string | null;
+  estadoArte: string | null;
   metodologia: string | null;
   estadoActual: string;
   etapaFlujo: number;
@@ -26,6 +27,55 @@ export type PropuestaDetalle = Propuesta & {
   keywordsEs: string[];
   keywordsEn: string[];
   preguntasGenerales: PreguntaGeneral[];
+  participantes: PropuestaParticipante[];
+  objetivosEspecificos: ObjetivoEspecifico[];
+  planAccion: PlanAccionActividad[];
+};
+
+export type PlanAccionParticipante = {
+  idParticipante: number | null;
+  nombre: string;
+  iniciales: string;
+  responsabilidad: string;
+};
+
+export type PlanAccionRiesgo = {
+  riesgo: string;
+  mitigacion: string;
+  responsable: string;
+};
+
+export type PlanAccionActividad = {
+  id: number;
+  objetivoId: number;
+  objetivoNumero: number;
+  actividad: string;
+  resultadoEsperado: string;
+  participantes: PlanAccionParticipante[];
+  riesgos: PlanAccionRiesgo[];
+  mesInicio: number;
+  duracionMeses: number;
+};
+
+export type PlanAccionActividadInput = {
+  objetivoNumero: number;
+  actividad: string;
+  resultadoEsperado: string;
+  participantes: { iniciales: string; responsabilidad: string }[];
+  riesgos: PlanAccionRiesgo[];
+  mesInicio: number;
+  duracionMeses: number;
+};
+
+export type ObjetivoEspecifico = {
+  id: number;
+  numero: number;
+  descripcion: string;
+};
+
+export type ObjetivoEspecificoInput = {
+  id?: number;
+  descripcion: string;
 };
 
 export type PreguntaGeneral = {
@@ -35,6 +85,36 @@ export type PreguntaGeneral = {
   detalle: string | null;
 };
 
+export type TeamHour = {
+  tipo: string;
+  cantidad: number;
+};
+
+export type TeamTecMember = {
+  nombre: string;
+  iniciales: string;
+  orcid: string;
+  instancia: string;
+  rol: string;
+  horas: TeamHour[];
+  periodo: string;
+};
+
+export type TeamExternalMember = {
+  nombre: string;
+  iniciales: string;
+  orcid: string;
+  institucion: string;
+};
+
+export type PropuestaParticipante =
+  | ({ id: number; tipo: "funcionario_tec" } & TeamTecMember)
+  | ({ id: number; tipo: "colaborador_externo" } & TeamExternalMember);
+
+export type PropuestaParticipanteInput =
+  | ({ id?: number; tipo: "funcionario_tec" } & TeamTecMember)
+  | ({ id?: number; tipo: "colaborador_externo" } & TeamExternalMember);
+
 export type PropuestaInput = {
   titulo: string;
   idConvocatoria: number;
@@ -43,10 +123,14 @@ export type PropuestaInput = {
   abstractEn?: string;
   problema?: string;
   objetivoGeneral?: string;
+  estadoArte?: string;
+  objetivosEspecificos?: ObjetivoEspecificoInput[];
   metodologia?: string;
   keywordsEs?: string;
   keywordsEn?: string;
   preguntasGenerales?: PreguntaGeneral[];
+  participantes?: PropuestaParticipanteInput[];
+  planAccion?: PlanAccionActividadInput[];
 };
 
 export function fetchPropuestas() {

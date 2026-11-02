@@ -1,5 +1,7 @@
 # Evidencias de validación
 
+**Entrega actual · 2 de noviembre:** [validación D05–D11](D05-D11-validacion.md), con enlaces a las ejecuciones finales, límites y comparación de desarrollo. Los fallos anteriores son diagnósticos conservados.
+
 Crear una carpeta por ejecución con fecha y SHA, por ejemplo `2026-10-29-b526885-linea-base/`.
 
 Conservar reporte de casos, salidas de comandos y capturas con su viewport, zoom, rol, expediente y pasos. Registrar los enlaces en [VALIDACION-DEL-FLUJO.md](../VALIDACION-DEL-FLUJO.md).

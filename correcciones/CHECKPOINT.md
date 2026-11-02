@@ -1,6 +1,6 @@
 # Checkpoint histórico · Pausa del 30 de octubre de 2026
 
-> **Actualización:** el usuario reanudó el trabajo el 31 de octubre. Ver [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md) para el estado actual; este archivo conserva la pausa histórica.
+> **Actualización · 2 de noviembre:** trabajo reanudado y ampliado por el usuario a D05–D11, ya implementados y verificados automáticamente. Ver [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md) y [validación final](evidencias/D05-D11-validacion.md). La aceptación humana sigue pendiente; este archivo conserva la pausa y estimación históricas.
 >
 > **Fecha de referencia:** 30 de octubre de 2026, Costa Rica.  
 > **Motivo:** solicitud explícita del usuario de detenerse y continuar más adelante.  

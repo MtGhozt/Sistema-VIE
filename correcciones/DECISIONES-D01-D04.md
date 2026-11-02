@@ -1,6 +1,8 @@
 # Decisiones e implementación · D01–D04
 
-**Fuente:** instrucciones del usuario del 31 de octubre de 2026. Se implementan exclusivamente estos cuatro acuerdos. D05–D11 siguen a cargo del equipo; este documento no los resuelve ni sustituye la aceptación del usuario.
+**Actualización del 2 de noviembre:** el usuario amplió el alcance. Consultar [DECISIONES-D05-D11.md](DECISIONES-D05-D11.md), que resuelve los pendientes posteriores y el nuevo ciclo del Consejo.
+
+**Fuente original:** instrucciones del usuario del 31 de octubre de 2026. Este documento registra el alcance de aquella etapa (D01–D04); D05–D11 se implementaron después por instrucción del usuario; este documento no los resuelve ni sustituye la aceptación del usuario.
 
 ## D01 · Numeración automática anual
 
@@ -38,7 +40,7 @@ Una subsanación activa bloquea las acciones de evaluación y avance, también p
 
 En VIE, **enviar comentario sin devolución** es informativo; **devolver para subsanación** exige secciones, habilita edición controlada y bloquea el avance. La acción informativa no crea una obligación de respuesta imposible de atender.
 
-Los dictámenes y decisiones cerrados no se sobrescriben. Un rechazo formal del Consejo o CIE no puede ser convertido en aprobación por otra instancia. Su reapertura requiere resolver **D09**; no se implementó una excepción. El tratamiento de una recomendación negativa del Comité sigue perteneciendo a **D05**.
+Los dictámenes y decisiones cerrados no se sobrescriben. Un rechazo formal del Consejo o CIE no puede ser convertido en aprobación por otra instancia. D09 no habilita un override. D11 permite un nuevo ciclo de Consejo con solicitud, fundamento y auditoría; no modifica una resolución CIE cerrada. D05 trata la recomendación negativa del Comité como informe al Consejo.
 
 **Justificación:** devolver debe permitir una corrección real y trazable, sin abrir el expediente completo ni saltarse decisiones previas.
 

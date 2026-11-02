@@ -66,4 +66,15 @@ El usuario reanudó la implementación el 31 de octubre. La guardia de Administr
 | `728b813` · implementación | D01: consecutivo anual inmutable; D02: ámbito de consulta y privacidad de eventos; D03: subsanación por secciones y retorno a la misma instancia; D04: evidencia PI obligatoria y certificación independiente del dictamen histórico. | Build; 33 casos API existentes, 14 específicos y 11 de navegador. Se conservan códigos y decisiones cerradas. |
 | `e6201a9` · regresiones e instalador | Hacer reproducibles las comprobaciones de los cuatro acuerdos e incluirlas en `--pruebas --verificar`. | Instalación real, 12 comprobaciones de scripts y tres ramas completas por API. |
 
-Los acuerdos, sus límites y los espacios de revisión humana están en [DECISIONES-D01-D04.md](DECISIONES-D01-D04.md). La [evidencia final](evidencias/D01-D04-validacion.md) distingue recorridos reales, preparación sintética y reportes de diagnóstico. No se implementaron D05–D11 ni se completaron las casillas del usuario.
+Los acuerdos, sus límites y los espacios de revisión humana están en [DECISIONES-D01-D04.md](DECISIONES-D01-D04.md). La [evidencia de esa entrega](evidencias/D01-D04-validacion.md) distingue recorridos reales, preparación sintética y reportes de diagnóstico. En esa entrega no se implementaron D05–D11 ni se completaron las casillas del usuario.
+
+## Ampliación autorizada · 2 de noviembre de 2026
+
+El usuario autorizó implementar D05–D11 y revisar botones sin efecto. [Decisiones y justificación](DECISIONES-D05-D11.md); [validación final](evidencias/D05-D11-validacion.md).
+
+| Commit | Justificación | Validación |
+| --- | --- | --- |
+| `4582c4c` | Rúbricas oficiales completas y versionadas, tres notas independientes y consolidación; archivos locales reales; CRUD administrativo; idiomas y captura estructurada; guardar borrador sin duplicar; requisitos comunes al admin y reconsideración documentada del rechazo de aval. Las subsanaciones conservan evaluaciones previas por ciclo. | Build y lint sin errores; 69 casos API, 22 de navegador; tres ramas completas adicionales. |
+| `e5b2cf9` | Regresiones reproducibles e integración en instalador; prueba de esquema nuevo y conservación del seed. | Instalador integral código 0; 12 comprobaciones de scripts; esquema limpio con siete migraciones. |
+
+Se actualizaron las siete migraciones en desarrollo sin reinicializar; se conservan IDs y códigos de sus 21 propuestas. Las casillas de aceptación humana siguen pendientes. Los acuerdos actuales sustituyen los pendientes históricos D05–D11 de las filas anteriores; esas filas conservan la trazabilidad de cada entrega.

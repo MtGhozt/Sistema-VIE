@@ -1,72 +1,58 @@
-# Pendientes para completar el sistema
+# Revisión pendiente del equipo
 
-> **Base:** [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md). Este archivo reúne decisiones, implementaciones y validaciones pendientes.
-> **Regla:** lo exigido por las fuentes oficiales se implementa; las ambigüedades se acuerdan antes de cambiar el comportamiento. Ningún punto se considera aprobado por aparecer aquí.
+**Actualización: 2 de noviembre de 2026.** El usuario indicó el comportamiento de D01–D11 y autorizó su implementación. Las decisiones ya no están abiertas; quedan revisión de las fuentes y aceptación humana. Ver [D01–D04](DECISIONES-D01-D04.md), [D05–D11](DECISIONES-D05-D11.md) y [estado de revisión](ESTADO-DE-REVISION.md).
 
-> **Actualización D01–D04:** el usuario indicó los acuerdos a implementar. Consultar [DECISIONES-D01-D04.md](DECISIONES-D01-D04.md); D05–D11 continúan pendientes para el equipo.
+## Decisiones aplicadas
 
-## 1. Decisiones del equipo
+| ID | Resultado |
+| --- | --- |
+| D01 | Código automático, inmutable y anual; históricos conservados. |
+| D02 | Consulta filtrada en API por propietario/equipo, escuela/asignación y rol; sin borradores ajenos. |
+| D03 | Subsanación por secciones y retorno a la instancia que devolvió. Nuevos ciclos conservan las notas anteriores. |
+| D04 | PI exige dictamen o certificación explícita y fundamentada de no requerimiento. |
+| D05 | Tres evaluadores independientes, rúbrica completa y confirmación del consolidado por asistencia. Una recomendación negativa informa al Consejo. |
+| D06 | Archivos reales PDF/DOCX/XLSX, 10 MiB, versiones, permisos y retiro lógico. |
+| D08 | ES 4–6 y abstract EN al enviar; keywords EN opcionales y editables. |
+| D07 | Usuarios, roles asignados, escuelas, modalidades, líneas y versiones de rúbrica. Sin motor genérico de formularios. |
+| D09 | Sin override administrativo; se mantienen las precondiciones. |
+| D10 | Captura estructurada y Excel adjunto; reasignación de coordinación/dependencia reservada a admin/VIE antes de evaluación. |
+| D11 | Rechazo de aval comunicado al investigador; reconsideración con solicitud, autorización y nuevo ciclo auditado. CIE cierra con fundamento. |
 
-Mantener estos identificadores al registrar acuerdos.
+## Qué se debe discutir
 
-| ID | Tema | Pregunta concreta |
-| --- | --- | --- |
-| D01 | Numeración | **Acordada:** consecutivo anual automático, histórico intacto. Ver decisiones D01–D04. |
-| D02 | Visibilidad | **Acordada:** ámbito en API por propiedad, equipo, escuela o asignación; sin borradores ajenos. |
-| D03 | Subsanación | **Acordada:** devolución con secciones autorizadas, respuesta y reenvío a la misma instancia; sin reapertura excepcional. |
-| D04 | PI | **Acordada:** dictamen emitido si es requerido; certificación fundamentada si no lo es. Los demás requisitos de etapa conservan su alcance pendiente. |
-| D05 | Comité | ¿Cómo se identifican los cinco evaluadores, se sustituyen integrantes y se consolida su valoración? ¿Qué trámite sigue una recomendación negativa? |
-| D06 | Archivos y oficios | ¿Esta entrega incluye carga real y PDF? Si los incluye: ¿qué formatos, tamaños, versiones, almacenamiento y retención se requieren? |
-| D07 | Administración | ¿Qué CRUD de usuarios, roles, catálogos y rúbricas entra en la entrega? El motor genérico de formularios está excluido del alcance actual. |
-| D08 | Textos e idiomas | ¿Qué campos en inglés son obligatorios según las fuentes? ¿Hay límites adicionales documentados? No añadir límites sin fuente. |
-| D09 | Excepciones admin | ¿El administrador puede anular requisitos? Si puede: ¿con qué autorización, motivo y auditoría? |
-| D10 | Formulario y plantillas | ¿Se admite captura estructurada, Excel o ambos? ¿Quién puede cambiar la dependencia coordinadora y gestionar los catálogos? |
-| D11 | Rechazo del Consejo | ¿Quién comunica el rechazo de aval y cómo se solicita reconsideración, sin inventar una resolución CIE? |
+1. **Errata de la fuente:** comprobar los descriptores de “Experiencia académica del equipo sobre el tema”, que parecen invertidos en algunas hojas. Se importaron literalmente; corregirlos requiere acuerdo y una nueva versión.
+2. **Aceptación del prototipo:** confirmar los tres evaluadores demo y el flujo implementado. No se presenta ese número como quórum institucional real.
+3. **Exclusiones aceptadas por alcance:** motor de formularios, imágenes/videos y generación automática de PDF de oficios. Sus controles no simulan funcionamiento. Si se requieren después, acordar esa ampliación explícitamente.
 
-**Ya establecido:** resumen de máximo **500 palabras**, entre **4 y 6 términos clave ES**, decisiones humanas justificadas y persistencia real. Estos requisitos no están pendientes de votación.
+No hay una aprobación pendiente para que admin pueda saltarse el circuito: **ese override no se implementó**.
 
-## 2. Implementaciones necesarias
+## Seguimiento de implementaciones
 
-La captura y persistencia de muchos campos ya existe. Aquí se lista lo que todavía falta cerrar, no se propone rehacer lo corregido.
+| ID anterior | Estado del alcance acordado |
+| --- | --- |
+| I01 | Numeración anual implementada y probada con concurrencia. |
+| I02 | Rúbricas completas de 100 puntos; niveles, requisitos obligatorios y versiones persistidos. |
+| I03 | Evaluación independiente, sustitución de pendientes y consolidación real de tres entregas. |
+| I04 | Devolución, edición autorizada, respuesta, adjuntos y reenvío; notas previas conservadas por ciclo. |
+| I05 | Precondiciones de PI, Comité, Consejo, VIE y CIE aplicadas en servidor, también para admin. |
+| I06 | Ámbito protegido en consultas, detalles y archivos. |
+| I07 | Captura y relectura de campos estructurados, TRL, líneas y titularidad CONS; revisar el contenido institucional campo a campo en aceptación. |
+| I08 | Carga/descarga/versiones reales y plantillas oficiales. Generación automática de PDF excluida del alcance actual. |
+| I09 | Administración y auditoría implementadas; sin motor de formularios ni override. |
+| I10 | Rechazo de aval, aviso, reconsideración y resolución CIE diferenciados. |
+| I11 | Lint sin errores; diez advertencias heredadas clasificadas en el informe de validación. |
 
-| ID | Pendiente | Dependencia / resultado exigido |
-| --- | --- | --- |
-| I01 | Implementado conforme a D01; pendiente aceptación humana. | Contador anual transaccional, códigos históricos conservados y pruebas de concurrencia. Ver decisiones D01–D04. |
-| I02 | Incorporar la **rúbrica oficial completa**, con criterios, pesos, niveles y requisitos por modalidad. | Fuente oficial. Versionarla y calcular en servidor; retirar la limitación del subconjunto demo y comprobar aprobación/rechazo desde la interfaz. |
-| I03 | Completar la evaluación independiente y consolidación real del Comité. | D05 + I02. Usar integrantes y notas persistidas; sustituir el resumen de evaluadores ficticios y generar el resultado/oficio correspondiente. |
-| I04 | Implementado para devoluciones de Comité y VIE; pendiente aceptación humana. | D03. Secciones autorizadas, respuesta, ciclos, avisos y reenvío a la instancia que devolvió. D09 sigue pendiente. |
-| I05 | Completar las precondiciones restantes de las etapas en la API. | PI y subsanación ya protegidas por D03/D04; las reglas restantes dependen del alcance del equipo y D09. Impedir saltos y acciones fuera de turno para cada rol, incluido admin; reflejar las acciones válidas en las bandejas. |
-| I06 | Implementado el ámbito de las consultas actuales; pendiente aceptación humana. | D02. Listados, filtros, detalles y evaluación protegidos en API. Las futuras descargas de D06 deberán aplicar el mismo ámbito. |
-| I07 | Completar el mapeo campo a campo del formulario y sus validaciones oficiales. | Revisar identificación/TRL, objetivos, horas y titularidad CONS, mínimos de productos, presupuesto, riesgos y ética. Resolver D08/D10 donde la fuente no sea suficiente. |
-| I08 | Implementar archivos y documentos acordados. | D06. Carga, consulta, permisos, metadatos accesibles y versiones; PDF/vistas previas con datos reales. Si se excluyen, registrar la exclusión y mantenerla visible. |
-| I09 | Implementar la administración incluida y las excepciones autorizadas. | D07/D09. CRUD con persistencia, protección de referencias y auditoría donde corresponda; no presentar funciones pendientes como disponibles. |
-| I10 | Completar comunicaciones y consistencia de vistas. | D11 e implementaciones anteriores. Cerrar rechazo de aval/reconsideración; revisar pendientes, indicadores, documentos y estado final desde cada rol. |
-| I11 | Revisar la deuda técnica restante. | Clasificar las **10 advertencias de lint**: corregir las relevantes y justificar las aceptadas. No confundir lint sin errores con ausencia de deuda. |
+## Validación humana
 
-**Fuentes para I02/I07:** [rúbricas](../docs/oficiales-vie/markdown/2-Rubricas_Investigacion_2027__Fondos_VIE.md), [formulario](<../docs/oficiales-vie/markdown/4- Formulario Proyecto Investigacion Fondos VIE 2027.md>), [disposiciones](<../docs/oficiales-vie/markdown/1-Disposiciones Convocatoria Fondos VIE 2027.md>) y [CU1–CU5](../docs/casos-de-uso/CASOS-DE-USO.md). No añadir reglas institucionales sin sustento.
+Las pruebas automatizadas no completan estas casillas.
 
-## 3. Validación pendiente para cerrar
+- [ ] **V01 · Flujo:** recorrer aprobación, rechazo CIE, rechazo de aval, reconsideración y subsanación con las cuentas reales del prototipo.
+- [ ] **V02 · Persistencia:** revisar los 17 pasos, guardar, salir, iniciar otra sesión y reiniciar servicios; comparar datos y archivos.
+- [ ] **V03 · Negativos:** probar permisos, requisitos faltantes, guardados antiguos, concurrencia y decisiones cerradas.
+- [ ] **V04 · Visual y accesible:** escritorio/móvil, zoom, teclado, foco, contraste, lector de pantalla y ortografía.
+- [ ] **V05 · Instalación:** revisar la actualización conservando datos y la política de conservación/purga. Los binarios tienen almacenamiento separado del volumen PostgreSQL.
+- [ ] **V06 · Aceptación:** completar las pausas de [VALIDACION-DEL-FLUJO.md](VALIDACION-DEL-FLUJO.md) y registrar hallazgos del equipo.
 
-Las **33 comprobaciones API, 14 de D01–D04, 11 de navegador y 12 de scripts** cubren correcciones concretas; no sustituyen esta aceptación integral.
+**Responsable:** ____________________ · **Fecha:** ____________________
 
-- [ ] **V01 · Flujo completo:** recorrer la interfaz con expedientes nuevos y todos los roles; probar aprobación, rechazo CIE, rechazo de aval y subsanación hasta comunicación e histórico. No sustituir etapas por cambios directos en BD.
-- [ ] **V02 · Persistencia:** completar los 17 pasos, guardar, salir, cambiar de sesión y reiniciar servicios; comparar todo lo capturado con el expediente mostrado.
-- [ ] **V03 · Casos negativos:** permisos, saltos de etapa, concurrencia, doble envío, cierre, límites y fallos de API sin pérdidas ni éxitos falsos.
-- [ ] **V04 · Revisión visual y accesible:** todas las pantallas, escritorio/móvil, zoom 100 %/200 %, teclado, foco, modales, contraste, lector de pantalla y ortografía.
-- [ ] **V05 · Instalación reproducible:** comprobar instalación limpia y actualización sobre datos existentes; limpieza/reinstalación y purga únicamente en un entorno desechable. Los scripts ya tienen pruebas, pero falta cubrir todos esos escenarios de entrega.
-- [ ] **V06 · Aceptación del usuario:** completar las pausas V0–V6 de [VALIDACION-DEL-FLUJO.md](VALIDACION-DEL-FLUJO.md), registrar observaciones y repetir los casos corregidos.
-
-## 4. Criterio de completitud
-
-- [ ] Cada decisión tiene acuerdo, fuente y responsable; las exclusiones están aceptadas explícitamente.
-- [ ] Cada implementación exigida por el alcance está terminada y tiene evidencia.
-- [ ] CU1–CU5 y sus ramas funcionan de principio a fin; no quedan fallos bloqueantes en el alcance aceptado.
-- [ ] Las simulaciones restantes están identificadas y no suplantan datos ni operaciones reales.
-- [ ] Código, migraciones, pruebas y README describen el mismo comportamiento.
-- [ ] El usuario registra su aceptación. No cerrar por cantidad de commits ni por porcentaje estimado.
-
-## 5. Acuerdos y seguimiento
-
-| ID | Acuerdo o tarea concreta | Fuente / participantes / fecha | Responsable | Commit y prueba | Validación del usuario |
-| --- | --- | --- | --- | --- | --- |
-| Pendiente | | | | | |
+**Observaciones / aceptación:** pendiente de revisión humana.

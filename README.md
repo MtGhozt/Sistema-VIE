@@ -35,7 +35,7 @@ Si el archivo perdió el permiso de ejecución al copiarlo, ejecute `bash instal
 ./instalar.sh --pruebas --verificar
 ```
 
-Este modo usa **`fondos_vie_test` en el puerto 55432**, con contenedor y volumen separados de desarrollo. Instala Chromium de Playwright y ejecuta las regresiones API, D01–D04 y de navegador. Cada prueba inicia sus propios servidores temporales y los cierra al finalizar.
+Este modo usa **`fondos_vie_test` en el puerto 55432**, con contenedor y volumen separados de desarrollo. Instala Chromium de Playwright y ejecuta las regresiones API, D01–D11 y de navegador. Cada prueba inicia sus propios servidores temporales y los cierra al finalizar.
 
 Los datos creados por las pruebas se conservan para inspección. Los reportes y capturas se escriben en `correcciones/evidencias/<ejecucion>/`. Un resultado correcto de estas regresiones no sustituye las validaciones del usuario ni resuelve las decisiones institucionales pendientes.
 
@@ -120,7 +120,10 @@ Para repetir verificaciones sobre la base aislada ya preparada:
 ```bash
 TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:api
 TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:decisions
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:completion
 TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:ui
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:completion-ui
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm test:fresh-schema
 pnpm test:lifecycle
 ```
 
@@ -139,12 +142,14 @@ Para actualizar, use `pnpm db:migrate` con `DATABASE_URL` explícita. Las migrac
 - Borradores con guardado y recuperación de textos, equipo/horas, plan/riesgos, presupuesto/fuentes, ética/permisos, compromisos y declaración.
 - Notificaciones reales por destinatario y marcas de lectura en la base.
 - Modales corregidos, mensajes de error que conservan el texto y vistas sin sustitución automática por expedientes ficticios.
-- Evaluaciones individuales persistidas por criterio del **subconjunto de rúbrica existente**. Sigue pendiente incorporar y validar la rúbrica oficial completa y acordar la consolidación del Comité; no se presenta el subconjunto como evaluación oficial definitiva.
-- Los archivos elegidos en el formulario siguen siendo una vista local: **no se suben binarios**. La carga real y los PDF de oficios requieren cerrar el alcance pendiente.
+- Rúbrica oficial completa (100 puntos), tres evaluadores independientes, notas por criterio y confirmación humana del consolidado. Las devoluciones abren otro ciclo sin sobrescribir las notas entregadas; el expediente conserva su versión de rúbrica.
+- Carga real de PDF/DOCX/XLSX de hasta 10 MiB, versiones, descarga autorizada y retiro lógico. Los binarios están en `var/documentos/` (desarrollo) o `var/documentos-pruebas/`; `DOCUMENTOS_DIR` permite configurarlo. Se conservan al actualizar/desinstalar; la purga de PostgreSQL no elimina esos directorios. La generación automática de PDF de oficios y la carga de imágenes/videos están fuera de este alcance.
+- Administración real de usuarios, roles asignados, escuelas, modalidades, líneas y rúbricas versionadas, con motivo y auditoría. No incluye motor genérico de formularios.
+- Guardar borrador permanece en edición; Guardar y salir abre el expediente. Para enviar se exige declaración, resumen de hasta 500 palabras, 4–6 términos ES y abstract EN; keywords EN son opcionales.
 
 Los códigos nuevos son automáticos (`PROP-AAAA-NNN`) con consecutivo anual transaccional; se conservan los códigos históricos. Las consultas respetan el ámbito de cada identidad. Las devoluciones de Comité/VIE permiten subsanar únicamente las secciones indicadas y reenviar a la misma instancia. El avance exige dictamen PI o certificación fundamentada de no requerimiento.
 
-Los acuerdos implementados están en [DECISIONES-D01-D04.md](correcciones/DECISIONES-D01-D04.md). Aplicar las migraciones 003 y 004 al actualizar una base existente; no se generan certificaciones PI ficticias para expedientes antiguos. D05–D11 continúan en [COSAS-A-DISCUTIR.md](correcciones/COSAS-A-DISCUTIR.md). Las casillas de aceptación del usuario se conservan en [VALIDACION-DEL-FLUJO.md](correcciones/VALIDACION-DEL-FLUJO.md).
+Los acuerdos implementados están en [DECISIONES-D01-D04.md](correcciones/DECISIONES-D01-D04.md). Aplicar las migraciones 001–007 al actualizar una base existente; no se generan certificaciones PI ficticias para expedientes antiguos. Las decisiones restantes implementadas y sus límites están en [DECISIONES-D05-D11.md](correcciones/DECISIONES-D05-D11.md). La aceptación del equipo continúa en [COSAS-A-DISCUTIR.md](correcciones/COSAS-A-DISCUTIR.md). Las casillas de aceptación del usuario se conservan en [VALIDACION-DEL-FLUJO.md](correcciones/VALIDACION-DEL-FLUJO.md).
 
 ## Estructura y referencias
 
@@ -164,3 +169,9 @@ Los acuerdos implementados están en [DECISIONES-D01-D04.md](correcciones/DECISI
 - Variables de referencia: [backend/.env.example](backend/.env.example) y [frontend/.env.example](frontend/.env.example).
 
 En desarrollo, Vite reenvía `/api` a `localhost:3000`; `VITE_API_URL` permite apuntar a otra API. El backend utiliza `DATABASE_URL` y `PORT` (3000 por defecto).
+
+## Comité y reconsideración
+
+Las tres cuentas demo son `comite_evaluador@tec.ac.cr`, `comite_evaluador2@tec.ac.cr` y `comite_evaluador3@tec.ac.cr` (contraseña inicial `prototipo2026`). Seleccionar el rol Comité · Evaluador y cambiar el correo para usar cada cuenta. Después de tres entregas, la asistencia confirma el dictamen; una sola nota no adelanta el expediente.
+
+El rechazo del Consejo se comunica al investigador como **aval rechazado**, sin fabricar una resolución CIE. El investigador solicita reconsideración y el Consejo autoriza un nuevo ciclo con fundamento; la decisión anterior permanece auditada. Admin no puede saltarse estas precondiciones.

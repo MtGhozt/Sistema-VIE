@@ -1,160 +1,177 @@
-# Sistema VIE (Fondos VIE — TEC)
+# Sistema VIE · Fondos VIE — TEC
 
-Prototipo funcional — Gestión de propuestas Fondos VIE.  
-Repo: https://github.com/MatiasBS027/Sistema-VIE
+Prototipo académico para formular, evaluar y consultar propuestas de investigación. Frontend React + TypeScript + Vite, API Express + TypeScript y PostgreSQL 16.
 
-**Gestor de paquetes:** `pnpm` (no npm).
+## Instalación rápida en Linux/macOS o una terminal Bash
 
-## Empezar aquí
+Requisitos previos:
 
-1. `PLAN-MAESTRO.md`  
-2. `CONTINUIDAD.md`  
-3. `docs/casos-de-uso/CASOS-DE-USO.md`  
-4. `docs/a11y/INFORME-WCAG.md` (accesibilidad)
+- Node.js compatible con Vite: **20.19+ o 22.12+**.
+- **pnpm** (el proyecto declara 9.15.0) o Corepack disponible para ejecutarlo.
+- **Docker con Compose**, iniciado y accesible desde su cuenta.
 
-## Estructura
+Desde la raíz del repositorio:
 
-```
-Sistema-VIE/
-├── backend/     # Solo API (src/)
-├── frontend/    # Solo app React (src/ + public/)
-├── database/    # Solo SQL (schema + seed)
-├── docs/        # Toda la documentación y referencias
-├── package.json # Workspace: pnpm dev levanta todo
-└── docker-compose.yml
-```
-
-## Levantar todo (desde la raíz)
-
-### Requisitos
-
-| Herramienta | Versión | Para qué |
-|---|---|---|
-| [Node.js](https://nodejs.org) | 20 o superior | frontend y backend |
-| [pnpm](https://pnpm.io/installation) | 9 o superior | gestor de paquetes (usa `corepack enable` si no lo tenés) |
-| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | cualquier versión reciente | PostgreSQL 16 |
-
-### Pasos
-
-```powershell
-# 1) Clonar
-git clone https://github.com/MatiasBS027/Sistema-VIE
-cd Sistema-VIE
-
-# 2) Dependencias (una sola vez)
-pnpm install
-
-# 3) Base de datos (Postgres 16 en Docker)
-pnpm db:up
-
-# 4) Frontend + backend juntos
+```bash
+./instalar.sh
 pnpm dev
 ```
 
-`pnpm db:up` levanta el contenedor `sistema-vie-db` en el puerto `5432` y
-ejecuta automáticamente `database/DisennoDB.sql` (esquema) y
-`database/seed.sql` (datos semilla) **solo la primera vez**, cuando se crea
-el volumen por primera vez.
+El instalador descarga las dependencias según `pnpm-lock.yaml`, compila frontend/backend, levanta PostgreSQL y aplica las migraciones incrementales. No sobrescribe archivos `.env` ni borra datos existentes. Las herramientas compartidas del sistema —Node, pnpm y Docker— son requisitos, no se instalan ni desinstalan automáticamente.
 
-Si ya tenés un volumen de base de datos anterior a estos cambios, aplicá la
-migración de los campos de aspectos éticos, declaración jurada y resguardo de
-productos:
+| Servicio | Dirección |
+| --- | --- |
+| Interfaz | http://localhost:5173 |
+| API · salud | http://localhost:3000/api/health |
+| PostgreSQL de desarrollo | `localhost:5432`, base `fondos_vie` |
 
-```powershell
-Get-Content database/migrations/20261102_add_proposal_ethics_declaration.sql |
-  docker compose exec -T db psql -U vie -d fondos_vie
+El usuario/contraseña local de PostgreSQL del compose es `vie` / `vie`. Si el puerto 5432 ya está ocupado, revise su servicio existente o configure el compose y la URL antes de iniciar.
+
+Si el archivo perdió el permiso de ejecución al copiarlo, ejecute `bash instalar.sh` o `bash desinstalar.sh`.
+
+## Preparar y ejecutar pruebas con un solo comando
+
+```bash
+./instalar.sh --pruebas --verificar
 ```
 
-### Resultado
+Este modo usa **`fondos_vie_test` en el puerto 55432**, con contenedor y volumen separados de desarrollo. Instala Chromium de Playwright y ejecuta las regresiones API, D01–D11 y de navegador. Cada prueba inicia sus propios servidores temporales y los cierra al finalizar.
 
-| Qué | URL |
-|---|---|
-| **App (UI)** | http://localhost:5173 |
-| API — health check | http://localhost:3000/api/health |
-| API — raíz | http://localhost:3000/api |
-| PostgreSQL | `postgresql://vie:vie@localhost:5432/fondos_vie` |
+Los datos creados por las pruebas se conservan para inspección. Los reportes y capturas se escriben en `correcciones/evidencias/<ejecucion>/`. Un resultado correcto de estas regresiones no sustituye las validaciones del usuario ni resuelve las decisiones institucionales pendientes.
 
-### Login demo
+Para preparar la base de pruebas sin ejecutar las regresiones:
 
-La pantalla de login ofrece los **12 roles institucionales** (VIE publicación,
-persona investigadora, Centro de Vinculación, Comité Técnico, Consejo de
-Escuela, Dirección de Escuela, Gestora VIE, CIE, Dirección de Investigación y
-Super Administrador). El correo es `<codigo_rol>@tec.ac.cr` y la contraseña
-demo para todas las cuentas es `prototipo2026`; el backend valida el hash
-guardado en PostgreSQL.
-
-> El rol Super Administrador puede cambiar la "Vista actual" en la barra
-> superior para operar la app completa como CIE, Comité o Consejo.
-
-### Comandos de la raíz
-
-```powershell
-pnpm dev            # frontend + backend en paralelo
-pnpm dev:frontend   # solo la UI (Vite, :5173)
-pnpm dev:backend    # solo la API (Express, :3000)
-pnpm db:up          # levanta Postgres
-pnpm db:down        # detiene Postgres (conserva el volumen)
-pnpm build          # compila backend (tsc) y frontend (vite build)
-pnpm brand          # regenera los PNG del logo TEC desde el manual de marca
-pnpm brand:preview  # renderiza los PDF del manual a out/brand-render/
+```bash
+./instalar.sh --pruebas
 ```
 
-### Recargar la base de datos
+Para revisar manualmente esa misma base desde la interfaz:
 
-El seed se ejecuta **únicamente al crear el volumen**. Si cambiaste
-`database/seed.sql` y querés volver a aplicarlo:
-
-```powershell
-docker compose down -v     # borra el volumen (se pierde lo creado a mano)
-docker compose up -d       # recrea la base con el seed actual
+```bash
+DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm dev
 ```
 
-### Problemas frecuentes
+La interfaz continúa en `localhost:5173` y la API en `localhost:3000`, conectadas a la base aislada. Cierre antes otra instancia de `pnpm dev` que use esos puertos.
 
-| Síntoma | Causa y solución |
-|---|---|
-| `ECONNREFUSED` en `/api/health` | Postgres no está arriba → `pnpm db:up` |
-| La UI dice "No hay conexión con la API" | el backend no está corriendo → `pnpm dev:backend` |
-| `port 5432 is already allocated` | ya hay un Postgres local → cambiá el mapeo en `docker-compose.yml` o apagá el local |
-| El login no lista los roles | falta el seed → `docker compose down -v && docker compose up -d` |
-| Cambié un `.sql` y no se refleja | el seed solo corre al crear el volumen → `down -v` + `up -d` |
-| `pnpm: command not found` | `corepack enable` (o instalá pnpm) |
+Otros modos útiles:
 
-### Variables de entorno
-
-El backend usa `DATABASE_URL` (por defecto `postgresql://vie:vie@localhost:5432/fondos_vie`)
-y `PORT` (por defecto `3000`). Se pueden sobrescribir con un `.env` en
-`backend/` — ver `backend/.env.example`. El frontend usa `VITE_API_URL` solo
-si necesitás apuntar a otra API; en desarrollo el proxy de Vite ya reenvía
-`/api` al backend.
-
-## Dónde está cada cosa
-
-| Qué | Dónde |
-|-----|--------|
-| App React | `frontend/src` |
-| Favicon / estáticos | `frontend/public` |
-| Logo TEC (assets de marca) | `frontend/public/brand/` + `docs/manual-identidad-tec/` |
-| Scripts de repo | `scripts/` |
-| API | `backend/src` |
-| SQL | `database/*.sql` |
-| Diseño BD (MD/PDF/DBML) | `docs/database/` |
-| Prototipo HTML viejo | `docs/prototipo-html-referencia/` |
-| API SQLite antigua | `docs/backend-legacy/` |
-
-## Scripts de la raíz
-
-```powershell
-pnpm brand          # regenera los PNG del logo TEC desde el manual de marca
-pnpm brand:preview  # renderiza los PDF del manual a out/brand-render/ (inspección)
+```bash
+./instalar.sh --pruebas --verificar --simular  # muestra acciones sin ejecutarlas
+./instalar.sh --con-navegador                 # desarrollo + Chromium
+./instalar.sh --help
 ```
 
-Los assets de marca se generan desde los PDF vectoriales que están en
-`docs/manual-identidad-tec/`. No hay rutas absolutas ni dependencias de una sola
-máquina: cualquier compañero puede correrlos.
+Las pruebas de navegador necesitan las bibliotecas del sistema que requiera Chromium. Si Playwright informa que faltan, resuelva ese requisito antes de repetir; el instalador no modifica paquetes del sistema operativo.
 
-## Notas
+## Desinstalar o limpiar el proyecto
 
-- Hay **dos** `node_modules` (frontend y backend) porque son dos apps distintas en un monorepo. Eso es normal.  
-- `frontend/index.html` lo exige Vite (entrada de la SPA). El backend **no** necesita HTML.  
-- No versionar: `node_modules/`, `.env`, `*.db`.
+Cierre primero `pnpm dev` u otros procesos del proyecto que haya iniciado manualmente.
+
+```bash
+./desinstalar.sh                 # detiene desarrollo y elimina dependencias/builds locales
+./desinstalar.sh --pruebas       # selecciona los contenedores del entorno de pruebas
+```
+
+Por defecto se conservan **el volumen PostgreSQL, el código, `.env`, documentos, lockfile y evidencias**. Las dependencias del repositorio son compartidas por ambos perfiles; puede conservarlas si solo quiere detener la base:
+
+```bash
+./desinstalar.sh --pruebas --conservar-dependencias
+```
+
+Para borrar también los datos del perfil elegido, debe solicitarlo expresamente:
+
+```bash
+./desinstalar.sh --pruebas --purgar-datos
+```
+
+**`--purgar-datos` elimina el volumen de ese perfil y pierde sus datos.** Para ver primero las acciones:
+
+```bash
+./desinstalar.sh --pruebas --purgar-datos --simular
+./desinstalar.sh --help
+```
+
+Los scripts no desinstalan Node/Docker/pnpm ni borran las cachés compartidas de otras aplicaciones. Después de limpiar dependencias puede volver a preparar el proyecto con `./instalar.sh` o `./instalar.sh --pruebas --verificar`.
+
+## Acceso de demostración
+
+En el login seleccione uno de los 12 roles. Las cuentas demo usan el correo `<codigo_rol>@tec.ac.cr` y contraseña **`prototipo2026`**. El catálogo se obtiene de PostgreSQL.
+
+Ejemplos: `investigador`, `vinculacion`, `comite_asistente`, `comite_evaluador`, `consejo`, `gestora_vie`, `cie`, `direccion_investigacion` y `admin`. VIE Publicación usa `vie_publicacion`.
+
+Super Administrador conserva su identidad al cambiar «Vista actual»; esa selección filtra el panel operativo. Es autenticación de demostración, sin integración con Orión.
+
+## Comandos manuales
+
+El gestor del repositorio es **pnpm**.
+
+```bash
+pnpm install --frozen-lockfile
+pnpm db:up
+DATABASE_URL=postgresql://vie:vie@localhost:5432/fondos_vie pnpm db:migrate
+pnpm dev
+pnpm build
+pnpm --filter sistema-vie-frontend lint
+pnpm --filter sistema-vie-backend typecheck
+```
+
+Para repetir verificaciones sobre la base aislada ya preparada:
+
+```bash
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:api
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:decisions
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:completion
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:ui
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:completion-ui
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm test:fresh-schema
+pnpm test:lifecycle
+```
+
+`test:lifecycle` comprueba los scripts Bash en un directorio temporal con Docker/pnpm simulados; no desinstala el repositorio real. Las regresiones API/UI sí usan PostgreSQL real y escriben fixtures propios.
+
+También existen `pnpm baseline:api`, `pnpm baseline:ui` y `pnpm smoke`. Son recorridos de diagnóstico con alcance parcial; no sustituyen las regresiones. `smoke` usa `API_BASE` o `localhost:3000/api` y escribe datos: apúntelo expresamente a una API de prueba cuando lo utilice. Los recorridos de línea base pueden conservar expectativas de diagnóstico que cambien al corregir un fallo.
+
+## Migraciones y conservación de datos
+
+`database/DisennoDB.sql` y `database/seed.sql` se ejecutan al crear un volumen nuevo. Cambiar esos archivos **no actualiza** uno existente.
+
+Para actualizar, use `pnpm db:migrate` con `DATABASE_URL` explícita. Las migraciones de `database/migrations/` quedan registradas y pueden volver a ejecutarse sin reiniciar ni borrar el volumen. No use una eliminación de volumen como sustituto de migraciones.
+
+## Qué está implementado y qué sigue abierto
+
+- Borradores con guardado y recuperación de textos, equipo/horas, plan/riesgos, presupuesto/fuentes, ética/permisos, compromisos y declaración.
+- Notificaciones reales por destinatario y marcas de lectura en la base.
+- Modales corregidos, mensajes de error que conservan el texto y vistas sin sustitución automática por expedientes ficticios.
+- Rúbrica oficial completa (100 puntos), tres evaluadores independientes, notas por criterio y confirmación humana del consolidado. Las devoluciones abren otro ciclo sin sobrescribir las notas entregadas; el expediente conserva su versión de rúbrica.
+- Carga real de PDF/DOCX/XLSX de hasta 10 MiB, versiones, descarga autorizada y retiro lógico. Los binarios están en `var/documentos/` (desarrollo) o `var/documentos-pruebas/`; `DOCUMENTOS_DIR` permite configurarlo. Se conservan al actualizar/desinstalar; la purga de PostgreSQL no elimina esos directorios. La generación automática de PDF de oficios y la carga de imágenes/videos están fuera de este alcance.
+- Administración real de usuarios, roles asignados, escuelas, modalidades, líneas y rúbricas versionadas, con motivo y auditoría. No incluye motor genérico de formularios.
+- Guardar borrador permanece en edición; Guardar y salir abre el expediente. Para enviar se exige declaración, resumen de hasta 500 palabras, 4–6 términos ES y abstract EN; keywords EN son opcionales.
+
+Los códigos nuevos son automáticos (`PROP-AAAA-NNN`) con consecutivo anual transaccional; se conservan los códigos históricos. Las consultas respetan el ámbito de cada identidad. Las devoluciones de Comité/VIE permiten subsanar únicamente las secciones indicadas y reenviar a la misma instancia. El avance exige dictamen PI o certificación fundamentada de no requerimiento.
+
+Los acuerdos implementados están en [DECISIONES-D01-D04.md](correcciones/DECISIONES-D01-D04.md). Aplicar las migraciones 001–007 al actualizar una base existente; no se generan certificaciones PI ficticias para expedientes antiguos. Las decisiones restantes implementadas y sus límites están en [DECISIONES-D05-D11.md](correcciones/DECISIONES-D05-D11.md). La aceptación del equipo continúa en [COSAS-A-DISCUTIR.md](correcciones/COSAS-A-DISCUTIR.md). Las casillas de aceptación del usuario se conservan en [VALIDACION-DEL-FLUJO.md](correcciones/VALIDACION-DEL-FLUJO.md).
+
+## Estructura y referencias
+
+| Carpeta | Contenido |
+| --- | --- |
+| `frontend/` | Interfaz React y recursos de marca TEC. |
+| `backend/` | API Express, reglas y persistencia. |
+| `database/` | Esquema, seed y migraciones SQL. |
+| `scripts/` | Verificaciones y generación de recursos. |
+| `correcciones/` | Hallazgos, implementación, discusiones y evidencias. |
+| `docs/` | Fuentes oficiales, casos de uso, diseño y referencias. |
+
+- [Plan de correcciones](correcciones/PLAN-DE-CORRECCIONES.md) y [bitácora](correcciones/IMPLEMENTACION.md).
+- [Casos de uso](docs/casos-de-uso/CASOS-DE-USO.md).
+- [Continuidad](CONTINUIDAD.md) y [plan maestro](PLAN-MAESTRO.md).
+- [Accesibilidad](docs/a11y/INFORME-WCAG.md): las pruebas pendientes no equivalen a certificación WCAG completa.
+- Variables de referencia: [backend/.env.example](backend/.env.example) y [frontend/.env.example](frontend/.env.example).
+
+En desarrollo, Vite reenvía `/api` a `localhost:3000`; `VITE_API_URL` permite apuntar a otra API. El backend utiliza `DATABASE_URL` y `PORT` (3000 por defecto).
+
+## Comité y reconsideración
+
+Las tres cuentas demo son `comite_evaluador@tec.ac.cr`, `comite_evaluador2@tec.ac.cr` y `comite_evaluador3@tec.ac.cr` (contraseña inicial `prototipo2026`). Seleccionar el rol Comité · Evaluador y cambiar el correo para usar cada cuenta. Después de tres entregas, la asistencia confirma el dictamen; una sola nota no adelanta el expediente.
+
+El rechazo del Consejo se comunica al investigador como **aval rechazado**, sin fabricar una resolución CIE. El investigador solicita reconsideración y el Consejo autoriza un nuevo ciclo con fundamento; la decisión anterior permanece auditada. Admin no puede saltarse estas precondiciones.

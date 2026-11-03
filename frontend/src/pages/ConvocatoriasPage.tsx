@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type FormEvent,
+} from "react";
 import { ApiError } from "../api/client";
 import {
   createConvocatoria,
+  deleteConvocatoria,
   fetchConvocatoria,
   fetchConvocatorias,
   patchConvocatoria,
@@ -42,6 +48,7 @@ export function ConvocatoriasPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [detail, setDetail] = useState<ConvocatoriaDetalle | null>(null);
 
@@ -75,6 +82,31 @@ export function ConvocatoriasPage() {
     void loadList();
   }, [loadList]);
 
+  function resetForm() {
+    setNombre("");
+    setDescripcion("");
+    setApertura("");
+    setCierre("");
+    setPresupuesto("");
+    setEditingId(null);
+    setShowForm(false);
+  }
+
+  function startEditing(convocatoria: ConvocatoriaDetalle) {
+    setNombre(convocatoria.nombre);
+    setDescripcion(convocatoria.descripcion ?? "");
+    setApertura(convocatoria.fechaApertura);
+    setCierre(convocatoria.fechaCierre);
+    setPresupuesto(
+      convocatoria.presupuestoEstimado == null
+        ? ""
+        : String(convocatoria.presupuestoEstimado),
+    );
+    setEditingId(convocatoria.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function openDetail(id: number) {
     setDetail(null);
     try {
@@ -87,41 +119,50 @@ export function ConvocatoriasPage() {
     }
   }
 
-  async function onCreate(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!nombre.trim() || !apertura || !cierre) return;
     setSaving(true);
     setError(null);
     try {
-      const created = await createConvocatoria({
+      const input = {
         nombre: nombre.trim(),
-        descripcion: descripcion.trim() || undefined,
+        descripcion:
+          descripcion.trim() || (editingId != null ? null : undefined),
         fechaApertura: apertura,
         fechaCierre: cierre,
         presupuestoEstimado: presupuesto
           ? Number(presupuesto)
           : null,
-        estado: "borrador",
-        hitos: [
-          {
-            nombre: "Recepción de propuestas",
-            responsable: "VIE",
-            fechaInicio: apertura,
-            fechaFin: cierre,
-          },
-        ],
-      });
-      setNombre("");
-      setDescripcion("");
-      setApertura("");
-      setCierre("");
-      setPresupuesto("");
-      setShowForm(false);
-      showToast("Borrador de convocatoria guardado", "success");
+      };
+      if (editingId != null) {
+        await patchConvocatoria(editingId, input);
+        showToast("Borrador de convocatoria actualizado", "success");
+      } else {
+        const created = await createConvocatoria({
+          ...input,
+          estado: "borrador",
+          hitos: [
+            {
+              nombre: "Recepción de propuestas",
+              responsable: "VIE",
+              fechaInicio: apertura,
+              fechaFin: cierre,
+            },
+          ],
+        });
+        showToast("Borrador de convocatoria guardado", "success");
+        await loadList();
+        resetForm();
+        await openDetail(created.id);
+        return;
+      }
+      const updatedId = editingId;
       await loadList();
-      await openDetail(created.id);
+      resetForm();
+      if (updatedId != null) await openDetail(updatedId);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al crear";
+      const msg = err instanceof Error ? err.message : "Error al guardar";
       setError(msg);
       showToast(msg, "error");
     } finally {
@@ -154,6 +195,28 @@ export function ConvocatoriasPage() {
     }
   }
 
+  async function removeDraft(id: number) {
+    if (!window.confirm("¿Desea eliminar este borrador de convocatoria?")) {
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await deleteConvocatoria(id);
+      if (editingId === id) resetForm();
+      if (detail?.id === id) setDetail(null);
+      showToast("Borrador de convocatoria eliminado", "success");
+      await loadList();
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Error al eliminar borrador";
+      setError(msg);
+      showToast(msg, "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <>
       <header className="page-header">
@@ -170,7 +233,14 @@ export function ConvocatoriasPage() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => setShowForm((v) => !v)}
+              onClick={() => {
+                if (showForm && editingId == null) {
+                  resetForm();
+                } else {
+                  resetForm();
+                  setShowForm(true);
+                }
+              }}
             >
               Nueva convocatoria
             </button>
@@ -192,10 +262,14 @@ export function ConvocatoriasPage() {
         <form
           className="card stack-md"
           style={{ marginBottom: 18 }}
-          onSubmit={onCreate}
+          onSubmit={onSubmit}
         >
-          <h2>Nueva convocatoria</h2>
-          <p>Se guarda como borrador (incluye un hito inicial).</p>
+          <h2>{editingId == null ? "Nueva convocatoria" : "Editar borrador"}</h2>
+          <p>
+            {editingId == null
+              ? "Se guarda como borrador (incluye un hito inicial)."
+              : "Actualice los datos de la convocatoria antes de publicarla."}
+          </p>
           <div className="form-grid two-col">
             <label className="field" style={{ gridColumn: "1 / -1" }}>
               <span className="field-label">Nombre</span>
@@ -230,6 +304,7 @@ export function ConvocatoriasPage() {
               <input
                 className="input"
                 type="date"
+                min={apertura || undefined}
                 value={cierre}
                 onChange={(e) => setCierre(e.target.value)}
                 required
@@ -252,7 +327,7 @@ export function ConvocatoriasPage() {
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => setShowForm(false)}
+              onClick={resetForm}
             >
               Cancelar
             </button>
@@ -261,7 +336,11 @@ export function ConvocatoriasPage() {
               className="btn btn-primary"
               disabled={saving}
             >
-              {saving ? "Guardando…" : "Guardar borrador"}
+              {saving
+                ? "Guardando…"
+                : editingId == null
+                  ? "Guardar borrador"
+                  : "Guardar cambios"}
             </button>
           </div>
         </form>
@@ -369,14 +448,32 @@ export function ConvocatoriasPage() {
           {canPublish && (
             <div className="action-row">
               {detail.estado === "borrador" && (
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={saving}
-                  onClick={() => void changeEstado(detail.id, "activa")}
-                >
-                  Publicar
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={saving}
+                    onClick={() => startEditing(detail)}
+                  >
+                    Editar borrador
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    disabled={saving}
+                    onClick={() => void removeDraft(detail.id)}
+                  >
+                    Eliminar borrador
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={saving}
+                    onClick={() => void changeEstado(detail.id, "activa")}
+                  >
+                    Publicar
+                  </button>
+                </>
               )}
               {detail.estado === "activa" && (
                 <button

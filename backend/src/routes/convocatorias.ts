@@ -1,5 +1,5 @@
 import { Router, type Response } from "express";
-import { query } from "../db.js";
+import { pool, query } from "../db.js";
 import { requireDemoAuth, requirePublisher } from "../middleware/demoAuth.js";
 
 export const convocatoriasRouter = Router();
@@ -248,12 +248,38 @@ convocatoriasRouter.patch(
       return;
     }
 
-    const existing = await query<{ estado: string }>(
-      `SELECT estado FROM convocatoria WHERE id_convocatoria = $1`,
+    const existing = await query<{
+      estado: string;
+      fecha_apertura: string | Date;
+      fecha_cierre: string | Date;
+    }>(
+      `
+      SELECT estado, fecha_apertura, fecha_cierre
+      FROM convocatoria
+      WHERE id_convocatoria = $1
+      `,
       [id],
     );
-    if (!existing.rows[0]) {
+    const convocatoria = existing.rows[0];
+    if (!convocatoria) {
       res.status(404).json({ error: "Convocatoria no encontrada" });
+      return;
+    }
+
+    const editableFields = [
+      "nombre",
+      "descripcion",
+      "fechaApertura",
+      "fechaCierre",
+      "presupuestoEstimado",
+    ];
+    if (
+      convocatoria.estado !== "borrador" &&
+      editableFields.some((field) => req.body?.[field] !== undefined)
+    ) {
+      res.status(400).json({
+        error: "Solo se pueden editar los datos de una convocatoria en borrador",
+      });
       return;
     }
 
@@ -265,6 +291,33 @@ convocatoriasRouter.patch(
       fields.push(`${col} = $${i++}`);
       values.push(val);
     };
+
+    const fechaApertura =
+      req.body?.fechaApertura === undefined
+        ? asDateOnly(convocatoria.fecha_apertura)
+        : String(req.body.fechaApertura).trim();
+    const fechaCierre =
+      req.body?.fechaCierre === undefined
+        ? asDateOnly(convocatoria.fecha_cierre)
+        : String(req.body.fechaCierre).trim();
+    const isValidDate = (value: string) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+      const parsed = new Date(`${value}T00:00:00.000Z`);
+      return (
+        Number.isFinite(parsed.getTime()) &&
+        parsed.toISOString().slice(0, 10) === value
+      );
+    };
+    if (!isValidDate(fechaApertura) || !isValidDate(fechaCierre)) {
+      res.status(400).json({
+        error: "fechaApertura y fechaCierre deben ser fechas válidas",
+      });
+      return;
+    }
+    if (fechaCierre < fechaApertura) {
+      res.status(400).json({ error: "fechaCierre debe ser >= fechaApertura" });
+      return;
+    }
 
     if (req.body?.nombre !== undefined) {
       const nombre = String(req.body.nombre).trim();
@@ -303,7 +356,7 @@ convocatoriasRouter.patch(
         return;
       }
       set("estado", estado);
-      if (estado === "activa" && existing.rows[0].estado !== "activa") {
+      if (estado === "activa" && convocatoria.estado !== "activa") {
         set("id_publicada_por", req.demoAuth!.userId);
         set("fecha_publicacion", new Date().toISOString());
       }
@@ -329,6 +382,69 @@ convocatoriasRouter.patch(
       [id],
     );
     res.json(mapConvocatoria(result.rows[0]));
+  },
+);
+
+/** Eliminar borradores sin propuestas asociadas. */
+convocatoriasRouter.delete(
+  "/convocatorias/:id",
+  requireDemoAuth,
+  requirePublisher,
+  async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ error: "id inválido" });
+      return;
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const existing = await client.query<{ estado: string }>(
+        `SELECT estado FROM convocatoria WHERE id_convocatoria = $1 FOR UPDATE`,
+        [id],
+      );
+      if (!existing.rows[0]) {
+        await client.query("ROLLBACK");
+        res.status(404).json({ error: "Convocatoria no encontrada" });
+        return;
+      }
+      if (existing.rows[0].estado !== "borrador") {
+        await client.query("ROLLBACK");
+        res.status(400).json({
+          error: "Solo se pueden eliminar convocatorias en borrador",
+        });
+        return;
+      }
+
+      const proposals = await client.query<{ count: string }>(
+        `SELECT COUNT(*)::text AS count FROM propuesta WHERE id_convocatoria = $1`,
+        [id],
+      );
+      if (Number(proposals.rows[0]?.count ?? 0) > 0) {
+        await client.query("ROLLBACK");
+        res.status(409).json({
+          error: "No se puede eliminar: hay propuestas asociadas a esta convocatoria",
+        });
+        return;
+      }
+
+      await client.query(
+        `DELETE FROM convocatoria_hito WHERE id_convocatoria = $1`,
+        [id],
+      );
+      await client.query(
+        `DELETE FROM convocatoria WHERE id_convocatoria = $1`,
+        [id],
+      );
+      await client.query("COMMIT");
+      res.status(204).send();
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 );
 

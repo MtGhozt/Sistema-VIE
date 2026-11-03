@@ -1,3 +1,4 @@
+import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { scrypt, timingSafeEqual } from "node:crypto";
 import { query } from "../db.js";
@@ -26,7 +27,7 @@ function verifyPassword(password: string, storedHash: string): Promise<boolean> 
 }
 
 /** Lista roles + usuarios seed para el login demo (sin password real). */
-demoRouter.get("/demo/roles", async (_req, res) => {
+demoRouter.get("/demo/roles", asyncHandler(async (_req, res) => {
   const result = await query<{
     codigo: string;
     nombre: string;
@@ -42,9 +43,9 @@ demoRouter.get("/demo/roles", async (_req, res) => {
     ORDER BY r.id_rol
   `);
   res.json(result.rows);
-});
+}));
 
-demoRouter.post("/demo/login", async (req, res) => {
+demoRouter.post("/demo/login", asyncHandler(async (req, res) => {
   const email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
   const password = typeof req.body?.password === "string" ? req.body.password : "";
   const roleCode = typeof req.body?.roleCode === "string" ? req.body.roleCode.trim() : "";
@@ -87,4 +88,4 @@ demoRouter.post("/demo/login", async (req, res) => {
     },
     mode: "demo",
   });
-});
+}));

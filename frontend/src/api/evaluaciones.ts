@@ -1,3 +1,4 @@
+import type {RubricSection} from "../data/evaluationRubrics";
 import { apiJson } from "./client";
 
 export type EvaluacionBandejaItem = {
@@ -13,13 +14,19 @@ export type EvaluacionBandejaItem = {
   resumen: string | null;
   abstractEn: string | null;
   piRequired: boolean;
+  piEstado: string|null;
   escuela: string;
   investigadora: string;
+  coordinadorCorreo: string;
+  fechaResolucion: string | null;
   convocatoria: string;
   oficioPI: string | null;
   oficioComite: string | null;
   oficioAval: string | null;
   resolucion: string | null;
+  notificada: boolean;
+  vieChecks: Record<string,boolean>;
+  justificacionAval: string | null;
   evaluacionComite: { average: number } | null;
 };
 
@@ -35,8 +42,8 @@ export type EvaluacionAccionResponse = {
   propuesta: EvaluacionBandejaItem | null;
 };
 
-export function fetchEvaluacionBandeja() {
-  return apiJson<EvaluacionBandejaResponse>("/api/evaluaciones/bandeja");
+export function fetchEvaluacionBandeja(view?: string) {
+  return apiJson<EvaluacionBandejaResponse>(`/api/evaluaciones/bandeja${view ? `?vista=${encodeURIComponent(view)}` : ""}`);
 }
 
 export function postEvaluacionAccion(
@@ -51,4 +58,8 @@ export function postEvaluacionAccion(
       body: JSON.stringify({ action, payload }),
     },
   );
+}
+
+export function fetchSavedRubric(id: number, instancia: "cie" | "comite") {
+  return apiJson<{ scores: Record<string, { score:number; reason:string }>; productosVerificados:boolean;productos:{minAcademicos:number;minPI:number;academicos:number;activosPI:number;cumple:boolean};ciclo:number;asignado:boolean;sections:RubricSection[];version:string;estado:string|null;productosCumplen:boolean }>(`/api/evaluaciones/propuestas/${id}/rubrica?instancia=${instancia}`);
 }

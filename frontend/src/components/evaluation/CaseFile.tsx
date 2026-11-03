@@ -23,6 +23,7 @@ export function CaseFile({ proposal }: { proposal: DemoProposal }) {
       <ProcessTimeline
         currentStep={proposal.etapa}
         piRequired={proposal.piRequired}
+          piAcreditada={proposal.piAcreditada}
         completed={
           proposal.estado === "Aprobada" || proposal.estado === "Rechazada"
         }

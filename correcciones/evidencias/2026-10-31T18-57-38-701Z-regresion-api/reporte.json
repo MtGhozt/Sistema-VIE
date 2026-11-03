@@ -1,0 +1,107 @@
+{
+  "run": "2026-10-31T18-57-38-701Z",
+  "scope": "Regresión de correcciones; fixtures aislados, no certifica reglas ambiguas ni rúbrica pendiente.",
+  "results": [
+    {
+      "name": "Login investigador",
+      "status": "PASA"
+    },
+    {
+      "name": "Login vie_publicacion",
+      "status": "PASA"
+    },
+    {
+      "name": "Login vinculacion",
+      "status": "PASA"
+    },
+    {
+      "name": "Login comite_asistente",
+      "status": "PASA"
+    },
+    {
+      "name": "Login comite_evaluador",
+      "status": "PASA"
+    },
+    {
+      "name": "Login consejo_asistente",
+      "status": "PASA"
+    },
+    {
+      "name": "Login consejo",
+      "status": "PASA"
+    },
+    {
+      "name": "Login direccion_escuela",
+      "status": "PASA"
+    },
+    {
+      "name": "Login gestora_vie",
+      "status": "PASA"
+    },
+    {
+      "name": "Login cie",
+      "status": "PASA"
+    },
+    {
+      "name": "Login direccion_investigacion",
+      "status": "PASA"
+    },
+    {
+      "name": "Login admin",
+      "status": "PASA"
+    },
+    {
+      "name": "Migraciones conservan compromisos sin aceptación implícita",
+      "status": "PASA"
+    },
+    {
+      "name": "Campos generales, ES/EN y preguntas sobreviven a relectura",
+      "status": "PASA"
+    },
+    {
+      "name": "Error de keywords revierte título y no cae la API",
+      "status": "PASA"
+    },
+    {
+      "name": "Equipo interno/externo, tipos de hora y CRUD real",
+      "status": "PASA"
+    },
+    {
+      "name": "ID ajeno de integrante no permite modificar otra propuesta",
+      "status": "PASA"
+    },
+    {
+      "name": "Presupuesto exacto, fuentes y reversión de montos inválidos",
+      "status": "FALLA",
+      "detail": "PATCH /propuestas/29: {\"id\":29,\"codigo\":\"RG-1793473059783-7\",\"idConvocatoria\":1,\"convocatoriaNombre\":\"Convocatoria Interna Fondos VIE 2024\",\"idCoordinador\":2,\"coordinadorNombre\":\"Demo Persona Investigadora Coordinadora\",\"idEscuela\":1,\"escuelaNombre\":\"Escuela de Ingeniería en Computación\",\"titulo\":\"Regresión aislada\",\"modalidad\":\"aplicada\",\"modalidadLabel\":\"Investigación aplicada\",\"resumen\":null,\"abstractEn\":null,\"problema\":null,\"objetivoGeneral\":null,\"metodologia\":null,\"declaracion\":false,\"resguardoRepositorio\":false,\"resguardoTecnico\":false,\"estadoArte\":null,\"referencias\":null,\"hojaRuta\":null,\"divulgacion\":null,\"fechaInicio\":\"2027-01-15T06:00:00.000Z\",\"fechaFin\":null,\"requiereDictamenPi\":false,\"estadoActual\":\"borrador\",\"etapaFlujo\":0,\"fechaEnvio\":null,\"keywordsEs\":[],\"keywordsEn\":[]}\n\n200 !== 400\n"
+    },
+    {
+      "name": "Ética y productos se recuperan, editan y eliminan",
+      "status": "PASA"
+    },
+    {
+      "name": "Actividad/riesgo mantiene 0,07 meses y sus responsables",
+      "status": "PASA"
+    },
+    {
+      "name": "Declaración explícita y límites oficiales al enviar",
+      "status": "PASA"
+    },
+    {
+      "name": "CIE conserva fundamento y decisión cerrada rechaza sobrescritura",
+      "status": "PASA"
+    },
+    {
+      "name": "Notificación concurrente única, por destinatario y lectura persistida",
+      "status": "PASA"
+    },
+    {
+      "name": "No notificar resolución inexistente ni aprobar borrador",
+      "status": "PASA"
+    },
+    {
+      "name": "Colisión real de código revierte creación y mantiene health",
+      "status": "PASA"
+    }
+  ]
+}

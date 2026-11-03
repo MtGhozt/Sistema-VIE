@@ -1,0 +1,70 @@
+{
+  "run": "2026-11-02T19-13-30-478Z",
+  "scope": "D05–D11, API real, archivos locales, rubricación individual y recorrido hasta cierre; SQL solo lee resultados.",
+  "results": [
+    {
+      "name": "Guardar borrador parcial persiste y abstract solo se exige al enviar",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: carga, descarga binaria exacta y versión concurrente",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: no acepta rutas, extensión falsa, tamaño excesivo ni borrador ajeno",
+      "status": "PASA"
+    },
+    {
+      "name": "Plantilla oficial XLSX se descarga y acepta como adjunto real",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: retiro lógico conserva versión y bloquea descarga",
+      "status": "PASA"
+    },
+    {
+      "name": "Rúbrica oficial: 100 puntos, tres evaluadores y escalas completas",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: borrador individual guardado/releído y notas de usuarios separadas",
+      "status": "PASA"
+    },
+    {
+      "name": "Versionado: nueva rúbrica no altera la que utiliza un expediente iniciado",
+      "status": "PASA"
+    },
+    {
+      "name": "Consolidación: promedio de tres notas y requisito regular desfavorable",
+      "status": "PASA"
+    },
+    {
+      "name": "Recomendación negativa informa al Consejo y no crea resolución CIE",
+      "status": "PASA"
+    },
+    {
+      "name": "Reconsideración: solicitud, autorización y conservación de decisión anterior",
+      "status": "PASA"
+    },
+    {
+      "name": "Precondiciones VIE/CIE: comunicación, checklist y remisión reales",
+      "status": "PASA"
+    },
+    {
+      "name": "Admin: CRUD de catálogos con bajas lógicas y protección por rol",
+      "status": "PASA"
+    },
+    {
+      "name": "Admin: alta, edición, rol, escuela, contraseña y baja de usuario",
+      "status": "PASA"
+    },
+    {
+      "name": "Admin no puede retirar su propio acceso ni usar una acción override",
+      "status": "PASA"
+    },
+    {
+      "name": "Formulario: titularidad CONS se guarda y se exige al enviar",
+      "status": "PASA"
+    }
+  ]
+}

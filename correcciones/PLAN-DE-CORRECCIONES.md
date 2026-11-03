@@ -76,6 +76,8 @@ La compilación y el lint necesitaron ejecutarse fuera del sandbox por el bloque
 
 ## Reglas de ejecución
 
+**Regla del usuario (30 de octubre de 2026):** cada cambio funcional debe identificar el hallazgo y la fuente documental o decisión explícita que lo justifica. Si falta sustento, existe ambigüedad o contradice lo establecido, abrir discusión y esperar respuesta antes de implementar esa parte. No modificar campos, límites, permisos ni transiciones basándose solo en una preferencia técnica. Registrar la justificación y su validación en la bitácora de implementación.
+
 1. Ejecutar primero la **validación de línea base** de [VALIDACION-DEL-FLUJO.md](VALIDACION-DEL-FLUJO.md). Intentar todas las ramas; registrar fallos, bloqueos y pantallas no alcanzables. No marcar como aprobada una pantalla que solo se revisó en código.
 2. Antes de cada commit, revisar si otra persona ya implementó la corrección: comparar código, ejecutar la prueba de aceptación y registrar el SHA que la resolvió. Una implementación parcial no permite cerrar el hallazgo.
 3. Mantener **al menos 20 commits sustantivos**, con objetivo verificable. Este plan propone 32. No crear commits vacíos ni dividir cambios artificialmente; si algo ya está resuelto, reasignar el trabajo pendiente y actualizar el plan sin volver a introducirlo.
@@ -242,3 +244,28 @@ Criterio de cierre:
 - [ ] No quedan P0/P1 abiertos en el alcance aceptado; incidencias restantes documentadas y aceptadas.
 - [ ] V0–V6 registrados por el usuario; ningún campo de aprobación se autocompleta.
 - [ ] Documentación final refleja el código comprobado y diferencia datos reales de simulación.
+
+## Avance registrado · 30 de octubre de 2026
+
+- C01: `6ab3371`, bloqueo de compilación corregido y comprobado.
+- C02: preparación `1c86c33`; [ejecución con PostgreSQL](evidencias/C02-ejecucion-postgres.md) completó tres ramas API, con las limitaciones descritas. Navegador y aceptación V0 pendientes.
+- Nuevo **INC-01**: consecutivos derivados del ID chocan con códigos semilla; error no controlado termina la API y deja una creación parcial. Se incorpora como dependencia adicional antes de pruebas de múltiples propuestas; no se considera resuelto por repetir con otros IDs. Confirmar política de consecutivo antes de cambiar la estrategia, preservando formato y unicidad.
+- No se comenzaron C03 ni cambios funcionales sujetos a discusión. La regla de justificación documental continúa vigente.
+
+## Avance visual · 30 de octubre de 2026
+
+C02 dispone ahora de [evidencia en Chromium](evidencias/C02-validacion-visual.md): 12 logins por rol, 17 pasos, vistas principales y reproducción de superposición en devolución y rechazo CIE. Se mantiene V0 pendiente; no se modificaron reglas de formularios, numeración, permisos ni transiciones. Las condiciones originalmente no reproducidas ya tienen evidencia parcial concreta, sin certificar toda la matriz visual/accesible.
+
+## Ajuste de ejecución solicitado por el usuario
+
+Corregir todos los defectos comprobados y sustentados; trasladar ambigüedades a [COSAS-A-DISCUTIR.md](COSAS-A-DISCUTIR.md). La ejecución de esas correcciones ya está autorizada y no queda retenida por V0. Las decisiones ambiguas y las casillas de aceptación del usuario permanecen pendientes; no se consideran aprobadas por continuar la implementación. Se mantiene separación de commits, justificación y pruebas.
+
+
+## Pausa y punto de reanudación
+
+El usuario solicitó detener la implementación y continuar más adelante. Estado, estimación, verificaciones reales y pendientes en [CHECKPOINT.md](CHECKPOINT.md). No continuar automáticamente ni marcar aceptación final.
+
+
+## Reanudación y revisión · 31 de octubre de 2026
+
+Ver [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md) para trazabilidad actual de los 33 hallazgos. Se ejecutaron regresiones sobre las correcciones y los scripts de instalación/desinstalación solicitados al final; README principal actualizado. Las casillas de validación humana y decisiones del equipo permanecen abiertas.

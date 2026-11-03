@@ -1,0 +1,144 @@
+[
+  {
+    "codigo": "generales",
+    "etiqueta": "Datos y preguntas generales",
+    "paso": 0,
+    "campos": [
+      "titulo",
+      "modalidad",
+      "fechaInicio",
+      "fechaFin",
+      "preguntasGenerales",
+      "trlActual",
+      "trlEsperado",
+      "lineas"
+    ]
+  },
+  {
+    "codigo": "resumen",
+    "etiqueta": "Resumen y palabras clave",
+    "paso": 1,
+    "campos": [
+      "resumen",
+      "abstractEn",
+      "keywordsEs",
+      "keywordsEn"
+    ]
+  },
+  {
+    "codigo": "equipo",
+    "etiqueta": "Equipo de investigación",
+    "paso": 2,
+    "campos": [
+      "equipo"
+    ]
+  },
+  {
+    "codigo": "objetivos",
+    "etiqueta": "Problema y objetivos",
+    "paso": 3,
+    "campos": [
+      "problema",
+      "objetivoGeneral"
+    ]
+  },
+  {
+    "codigo": "estado_arte",
+    "etiqueta": "Estado del arte",
+    "paso": 4,
+    "campos": [
+      "estadoArte"
+    ]
+  },
+  {
+    "codigo": "metodologia",
+    "etiqueta": "Metodología",
+    "paso": 5,
+    "campos": [
+      "metodologia"
+    ]
+  },
+  {
+    "codigo": "plan",
+    "etiqueta": "Plan de acción y riesgos",
+    "paso": 6,
+    "campos": [
+      "actividades"
+    ]
+  },
+  {
+    "codigo": "presupuesto",
+    "etiqueta": "Presupuesto y financiamiento",
+    "paso": 7,
+    "campos": [
+      "presupuesto",
+      "fuentes"
+    ]
+  },
+  {
+    "codigo": "productos",
+    "etiqueta": "Compromisos de productos",
+    "paso": 8,
+    "campos": [
+      "compromisos"
+    ]
+  },
+  {
+    "codigo": "resguardo",
+    "etiqueta": "Resguardo de productos",
+    "paso": 9,
+    "campos": [
+      "resguardoRepositorio",
+      "resguardoTecnico"
+    ]
+  },
+  {
+    "codigo": "divulgacion",
+    "etiqueta": "Divulgación y socialización",
+    "paso": 10,
+    "campos": [
+      "divulgacion"
+    ]
+  },
+  {
+    "codigo": "etica",
+    "etiqueta": "Aspectos éticos",
+    "paso": 11,
+    "campos": [
+      "aspectosEticos",
+      "permisos"
+    ]
+  },
+  {
+    "codigo": "hoja_ruta",
+    "etiqueta": "Hoja de ruta",
+    "paso": 12,
+    "campos": [
+      "hojaRuta"
+    ]
+  },
+  {
+    "codigo": "referencias",
+    "etiqueta": "Referencias",
+    "paso": 13,
+    "campos": [
+      "referencias"
+    ]
+  },
+  {
+    "codigo": "declaracion",
+    "etiqueta": "Declaración jurada",
+    "paso": 14,
+    "campos": [
+      "declaracion"
+    ]
+  },
+  {
+    "codigo": "documentacion",
+    "etiqueta": "Documentación",
+    "paso": 15,
+    "campos": [
+      "documentos"
+    ]
+  }
+]

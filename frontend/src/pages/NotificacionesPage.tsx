@@ -2,7 +2,7 @@ import { IconBell } from "../components/icons";
 import { useNotifications } from "../notifications/NotificationsContext";
 
 export function NotificacionesPage() {
-  const { items, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { items, error, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   return (
     <>
@@ -28,6 +28,8 @@ export function NotificacionesPage() {
       </header>
 
       <section className="card notifications-card">
+        {error && <p role="alert">{error}</p>}
+        {!error && items.length === 0 && <p className="empty-state">No hay notificaciones para esta cuenta.</p>}
         {items.map((n) => (
           <article
             key={n.id}

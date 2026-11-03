@@ -1,0 +1,62 @@
+/* GEN-02: escala legible sobre estilos heredados; colores/foco siguen en a11y.css. */
+body { font-size: 1rem; }
+.field-label, .data-table td, .data-table th, .btn, .case-summary p,
+.case-meta strong, .criterion-head strong, .notification-copy p { font-size: .875rem; line-height: 1.5; }
+.field-hint, .form-code span, .form-code strong, .case-meta span,
+.criterion-head > div span, .rubric-section-head span, .evaluator-grid > div > span,
+.notification-copy > span, .notif-popover-item p, .notif-popover-item span,
+.flow-lane small, .admin-flow-cards small, .wizard-steps small { font-size: .8125rem; line-height: 1.45; }
+@media (max-width: 800px) {
+  .app-shell { grid-template-columns: minmax(0,1fr); }
+  .sidebar { position: static; height: auto; min-height: 0; padding: 14px; }
+  .sidebar .brand-block-tec { padding-bottom: 12px; gap: 6px; }
+  .sidebar .tec-logo-oficial { width: 160px; }
+  .sidebar-nav { display: flex; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .sidebar-footer { padding-top: 8px; margin-top: 8px; }
+  .sidebar-footer .security-note, .sidebar-footer .copyright-note { display: none; }
+  .topbar { height: auto; min-height: 70px; padding: 12px; flex-wrap: wrap; gap: 8px; }
+  .topbar-actions { flex-wrap: wrap; }
+  .content { min-width: 0; padding: 16px; }
+  .wizard-layout, .wizard-layout-wide { grid-template-columns: minmax(0,1fr) !important; }
+  .wizard-sidebar { position: static !important; max-height: 240px !important; }
+  .form-grid.two-col, .form-grid.three-col, .form-grid.five-col,
+  .split-review, .rubric-layout, .detail-layout, .proposal-detail-layout { grid-template-columns: minmax(0,1fr); }
+  .review-panel, .rubric-case { position: static; }
+  .stats-grid-five, .evaluator-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .action-row { flex-wrap: wrap; }
+  .table-wrap { max-width: 100%; overflow-x: auto; }
+}
+
+/* D03: selección de secciones con controles nativos visibles también en móvil. */
+.subsanacion-secciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 6px;
+  max-height: 240px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--ink-55);
+  border-radius: 8px;
+}
+.subsanacion-seccion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px;
+  font-size: .875rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.subsanacion-seccion input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+}
+
+.expediente-documentos .documento-version { flex-wrap: wrap; }
+.documento-version > span { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.documento-version .btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
+.wizard-card a[aria-disabled="true"] { opacity: .6; cursor: progress; }

@@ -13,8 +13,9 @@ type ProcessTimelineProps = {
   currentStep: number;
   /** If true, current step is completed (e.g. approved end state) */
   completed?: boolean;
-  /** When false, Vinculación shows "No requerida" */
+  /** Cuando no se requiere dictamen, la certificación de Vinculación sigue siendo obligatoria. */
   piRequired?: boolean;
+  piAcreditada?: boolean;
 };
 
 /**
@@ -25,6 +26,7 @@ export function ProcessTimeline({
   currentStep,
   completed = false,
   piRequired = true,
+  piAcreditada = false,
 }: ProcessTimelineProps) {
   const active = Math.max(0, Math.min(currentStep, FLOW_STEPS.length - 1));
 
@@ -52,7 +54,7 @@ export function ProcessTimeline({
               <strong>{label}</strong>
               <span>
                 {skipPi
-                  ? "No requerida"
+                  ? piAcreditada ? "Certificación registrada" : "Certificación pendiente"
                   : done
                     ? "Completada"
                     : isActive

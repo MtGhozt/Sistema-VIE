@@ -1,0 +1,62 @@
+{
+  "run": "2026-11-02T21-02-09-458Z",
+  "scope": "Regresión de correcciones en Chromium; error HTTP 500 CIE simulado sin decidir expedientes.",
+  "results": [
+    {
+      "name": "Acceso directo a Administración exige identidad admin",
+      "status": "PASA",
+      "detail": "acceso-restringido.png"
+    },
+    {
+      "name": "D02: URL por código no abre la plantilla demo fuera del ámbito",
+      "status": "PASA",
+      "detail": "codigo-sin-atajo-demo.png"
+    },
+    {
+      "name": "Editar y reabrir textos del formulario conserva datos propios",
+      "status": "PASA",
+      "detail": "arte-reabierto.png"
+    },
+    {
+      "name": "Nuevo formulario no atribuye texto ni recursos demo",
+      "status": "PASA",
+      "detail": "formulario-sin-recursos-demo.png"
+    },
+    {
+      "name": "Equipo permite alta y guarda la persona externa",
+      "status": "PASA",
+      "detail": "equipo-propio.png"
+    },
+    {
+      "name": "Modal devolución sin superposición 1440",
+      "status": "FALLA",
+      "detail": "locator.selectOption: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Expediente activo', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <select class=\"input\" aria-label=\"Expediente activo\">…</select>\u001b[22m\n\u001b[2m  - attempting select option action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    20 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m       - did not find some options\u001b[22m\n\u001b[2m     - retrying select option action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "name": "Modal devolución sin superposición 390",
+      "status": "FALLA",
+      "detail": "locator.selectOption: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Expediente activo', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <select class=\"input\" aria-label=\"Expediente activo\">…</select>\u001b[22m\n\u001b[2m  - attempting select option action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    20 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m       - did not find some options\u001b[22m\n\u001b[2m     - retrying select option action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "name": "CIE envía texto y conserva el modal y fundamento ante HTTP 500",
+      "status": "PASA",
+      "detail": "cie-error-conservado.png"
+    },
+    {
+      "name": "Guardar rúbrica y recargar recupera justificación propia",
+      "status": "PASA",
+      "detail": "rubrica-recuperada.png"
+    },
+    {
+      "name": "D04 y D03: certificar PI, devolver, editar solo lo indicado y reenviar por interfaz",
+      "status": "PASA",
+      "detail": "d03-subsanacion-reenviada.png"
+    },
+    {
+      "name": "Error y vacío de bandeja no crean expedientes demo",
+      "status": "PASA",
+      "detail": "bandeja-error-sin-demo.png"
+    }
+  ],
+  "errors": []
+}

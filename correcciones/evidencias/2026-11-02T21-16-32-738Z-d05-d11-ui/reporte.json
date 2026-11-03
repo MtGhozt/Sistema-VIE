@@ -1,0 +1,60 @@
+{
+  "run": "2026-11-02T21-16-32-738Z",
+  "scope": "Chromium real: guardado de borrador, adjuntos, tres evaluadores, consolidación, rechazo/reconsideración y catálogos.",
+  "results": [
+    {
+      "name": "Formulario: Guardar borrador persiste, sigue editando y no duplica propuestas",
+      "status": "PASA",
+      "detail": "borrador-guardado-real.png"
+    },
+    {
+      "name": "Documentos: cargar PDF, descargarlo y retirar su versión desde el formulario",
+      "status": "PASA",
+      "detail": "archivos-movil-reales.png"
+    },
+    {
+      "name": "Preparar evaluación mediante envío, certificación y revisión de completitud",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: evaluador 1 guarda y entrega su propia rúbrica oficial",
+      "status": "PASA",
+      "detail": "evaluador-1-entregado.png"
+    },
+    {
+      "name": "Comité: evaluador 2 guarda y entrega su propia rúbrica oficial",
+      "status": "PASA",
+      "detail": "evaluador-2-entregado.png"
+    },
+    {
+      "name": "Comité: evaluador 3 guarda y entrega su propia rúbrica oficial",
+      "status": "PASA",
+      "detail": "evaluador-3-entregado.png"
+    },
+    {
+      "name": "Subsanación conserva las tres notas anteriores y permite una nueva evaluación",
+      "status": "PASA"
+    },
+    {
+      "name": "Asistencia confirma el consolidado de las tres evaluaciones",
+      "status": "PASA",
+      "detail": "consolidado-confirmado.png"
+    },
+    {
+      "name": "Consejo rechaza aval, coordinación solicita y Consejo autoriza un nuevo ciclo",
+      "status": "PASA",
+      "detail": "aval-nuevo-ciclo.png"
+    },
+    {
+      "name": "Asistencia sustituye un evaluador pendiente desde la interfaz",
+      "status": "PASA",
+      "detail": "comite-sustitucion-auditada.png"
+    },
+    {
+      "name": "Administración: alta y edición de catálogo desde la pantalla",
+      "status": "PASA",
+      "detail": "catalogo-guardado-real.png"
+    }
+  ],
+  "errors": []
+}

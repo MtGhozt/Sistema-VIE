@@ -10,6 +10,7 @@ export function bandejaToDemoProposal(
 ): DemoProposal {
   return {
     id: item.codigo,
+    databaseId: item.id,
     titulo: item.titulo,
     convocatoria: item.convocatoria,
     investigadora: item.investigadora,

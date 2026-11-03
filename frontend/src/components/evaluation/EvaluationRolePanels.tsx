@@ -1,4 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ApiError } from "../../api/client";
+import {
+  fetchAiRubricSuggestion,
+  type AiRubricSuggestionResponse,
+  fetchOfficialRubric,
+  fetchSavedIndividualEvaluation,
+  type OfficialRubricResponse,
+} from "../../api/evaluaciones";
 import type { DemoProposal } from "../../data/demo";
 import {
   COMMITTEE_EVALUATOR_SUMMARY,
@@ -328,36 +336,205 @@ function RubricPanel({
       criteria.map((c) => [
         c.id,
         {
-          score: c.aiScore,
+          score: proposal.databaseId ? null : c.aiScore,
           reason:
-            c.aiScore >= 8
+            !proposal.databaseId && c.aiScore >= 8
               ? "La evidencia del expediente satisface el criterio; se conserva la valoración sugerida después de revisión humana."
               : "",
         },
       ]),
     ),
   );
+  const [aiResult, setAiResult] = useState<AiRubricSuggestionResponse | null>(null);
+  const [officialRubric, setOfficialRubric] = useState<OfficialRubricResponse | null>(null);
+  const [rubricLoading, setRubricLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [productsCompliance, setProductsCompliance] = useState<
+    "cumple" | "no_cumple" | "indeterminado"
+  >("indeterminado");
+  const [productsJustification, setProductsJustification] = useState("");
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectText, setRejectText] = useState("");
   const [approveText, setApproveText] = useState("");
 
-  const weighted = criteria.reduce((acc, c) => {
-    const s = scores[c.id]?.score ?? 0;
-    return acc + c.weight * (s / 10);
+  useEffect(() => {
+    if (!proposal.databaseId || cie) return;
+    let active = true;
+    setRubricLoading(true);
+    setOfficialRubric(null);
+    setAiResult(null);
+    setProductsCompliance("indeterminado");
+    setProductsJustification("");
+    setAiError("");
+    setScores({});
+    void Promise.all([
+      fetchOfficialRubric(proposal.databaseId),
+      fetchSavedIndividualEvaluation(proposal.databaseId),
+    ])
+      .then(([{ rubric }, { evaluation }]) => {
+        if (!active) return;
+        setOfficialRubric(rubric);
+        setScores(
+          Object.fromEntries(
+            rubric.criteria.map((criterion) => [
+              criterion.id,
+              evaluation?.scores[criterion.id] ?? { score: null, reason: "" },
+            ]),
+          ),
+        );
+        if (evaluation) {
+          setProductsCompliance(evaluation.productsCompliance);
+          setProductsJustification(evaluation.productsJustification);
+          setAiResult(
+            evaluation.aiSuggestions.length > 0
+              ? {
+                  rubric,
+                  suggestion: {
+                    criteria: evaluation.aiSuggestions,
+                    productsCompliance: evaluation.aiProductsCompliance,
+                    summary: evaluation.aiSummary,
+                    model: evaluation.aiModel,
+                  },
+                  weightedScore: 0,
+                  recommendation: "NO RECOMIENDA",
+                }
+              : null,
+          );
+        }
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setAiError(
+          error instanceof ApiError || error instanceof Error
+            ? error.message
+            : "No se pudo cargar la rúbrica oficial.",
+        );
+      })
+      .finally(() => {
+        if (active) setRubricLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [proposal.databaseId, cie]);
+
+  const activeRubric = aiResult?.rubric ?? officialRubric;
+  const aiSuggestions = aiResult?.suggestion.criteria ?? [];
+  const displayCriteria = activeRubric
+    ? activeRubric.criteria.map((criterion) => {
+        const suggestion = aiSuggestions.find((item) => item.id === criterion.id);
+        return {
+          id: criterion.id,
+          sectionId: criterion.section,
+          sectionTitle: criterion.section,
+          sectionWeight: 0,
+          label: criterion.name,
+          weight: criterion.weight * 100,
+          required: criterion.required,
+          aiScore: suggestion?.score ?? null,
+          aiReason: suggestion?.justification ?? "Aún no se ha generado una sugerencia de IA.",
+          evidence: suggestion?.evidence ?? "",
+          missingInformation: suggestion?.missingInformation ?? "",
+        };
+      })
+    : criteria.map((criterion) => ({
+        ...criterion,
+        aiScore: proposal.databaseId ? null : criterion.aiScore,
+        aiReason: proposal.databaseId
+          ? "Aún no se ha generado una sugerencia de IA."
+          : criterion.aiReason,
+        evidence: "",
+        missingInformation: "",
+      }));
+  const displaySections = activeRubric
+    ? [...new Set(displayCriteria.map((criterion) => criterion.sectionId))].map(
+        (sectionTitle) => ({
+          id: sectionTitle,
+          title: sectionTitle,
+          weight: displayCriteria
+            .filter((criterion) => criterion.sectionId === sectionTitle)
+            .reduce((total, criterion) => total + criterion.weight, 0),
+          criteria: displayCriteria.filter(
+            (criterion) => criterion.sectionId === sectionTitle,
+          ),
+        }),
+      )
+    : sections.map((section) => ({
+        ...section,
+        criteria: displayCriteria.filter(
+          (criterion) => criterion.sectionId === section.id,
+        ),
+      }));
+  const totalWeight = displayCriteria.reduce((total, criterion) => total + criterion.weight, 0);
+  const weighted = displayCriteria.reduce((total, criterion) => {
+    const score = scores[criterion.id]?.score ?? 0;
+    return total + criterion.weight * (score / 10);
   }, 0);
-  const average = Math.round(weighted * 10) / 10;
-  const failedRequired = criteria.filter(
-    (c) => c.required && (scores[c.id]?.score ?? 0) < 6,
+  const average = totalWeight > 0 ? Math.round((weighted / totalWeight) * 1000) / 10 : 0;
+  const failedRequired = displayCriteria.filter(
+    (criterion) => criterion.required && (scores[criterion.id]?.score ?? 0) < 6,
   );
-  const allJustified = criteria.every((c) =>
-    String(scores[c.id]?.reason ?? "").trim(),
+  const allScored = displayCriteria.every(
+    (criterion) => scores[criterion.id]?.score !== null && scores[criterion.id]?.score !== undefined,
+  );
+  const allJustified = displayCriteria.every((criterion) =>
+    String(scores[criterion.id]?.reason ?? "").trim(),
   );
   const recommendation =
-    average >= 70 && failedRequired.length === 0
+    activeRubric && productsCompliance === "indeterminado"
+      ? "REVISAR PRODUCTOS"
+      : average >= 70 && failedRequired.length === 0 && productsCompliance !== "no_cumple"
       ? "RECOMIENDA"
       : "NO RECOMIENDA";
+
+  async function generateAiSuggestion() {
+    if (!proposal.databaseId) {
+      setAiError("Las sugerencias IA requieren una propuesta cargada desde PostgreSQL.");
+      return;
+    }
+    setAiLoading(true);
+    setAiError("");
+    try {
+      const result = await fetchAiRubricSuggestion(proposal.databaseId);
+      setAiResult(result);
+      setScores(
+        Object.fromEntries(
+          result.suggestion.criteria.map((item) => [
+            item.id,
+            { score: null, reason: "" },
+          ]),
+        ),
+      );
+    } catch (error) {
+      setAiError(
+        error instanceof ApiError || error instanceof Error
+          ? error.message
+          : "No se pudo generar la sugerencia de IA.",
+      );
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  function evaluationPayload() {
+    return {
+      average,
+      scores,
+      recommendation,
+      aiScores: Object.fromEntries(
+        (aiResult?.suggestion.criteria ?? []).map((item) => [item.id, item.score]),
+      ),
+      aiSuggestions: aiResult?.suggestion.criteria ?? [],
+      aiProductsCompliance: aiResult?.suggestion.productsCompliance ?? null,
+      aiModel: aiResult?.suggestion.model ?? "",
+      productsCompliance,
+      productsJustification,
+      aiSummary: aiResult?.suggestion.summary ?? "",
+    };
+  }
 
   return (
     <div className="rubric-layout">
@@ -373,13 +550,28 @@ function RubricPanel({
             <h2>
               {cie
                 ? "Evaluación y resolución del CIE"
-                : `Rúbrica oficial · ${proposal.modalidad}`}
+                : `${proposal.databaseId ? "Rúbrica oficial" : "Rúbrica de demostración"} · ${proposal.modalidad}`}
             </h2>
             <p>
-              Escala institucional simulada: 0, 6, 8 o 10. La sugerencia de IA
-              es apoyo; la decisión, nota y justificación final son humanas.
+              {proposal.databaseId
+                ? "Escala oficial: 0, 6, 8 o 10. La IA ofrece apoyo; la decisión y valoración final son humanas."
+                : "Puntajes de ejemplo locales; no corresponden a una evaluación oficial ni se guardan en PostgreSQL."}
             </p>
           </div>
+          {!cie && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => void generateAiSuggestion()}
+              disabled={aiLoading || rubricLoading || !proposal.databaseId}
+            >
+              {aiLoading
+                ? "Analizando propuesta..."
+                : rubricLoading
+                  ? "Cargando rúbrica..."
+                  : "Generar sugerencias IA"}
+            </button>
+          )}
           <div className="score-ring">
             <strong>{average}</strong>
             <span>/ 100</span>
@@ -413,15 +605,28 @@ function RubricPanel({
           </article>
         )}
 
-        <div className="rubric-alert">
+        <div className="rubric-alert" aria-live="polite">
           <IconClipboard size={17} />
           <span>
             <strong>Sugerencia de IA:</strong> siempre editable. Ningún puntaje
             se confirma automáticamente.
           </span>
         </div>
+        {aiError && <p className="field-hint" role="alert">{aiError}</p>}
+        {aiResult && (
+          <div className="ai-box">
+            <strong>Lectura general · {aiResult.suggestion.model}</strong>
+            <p>{aiResult.suggestion.summary}</p>
+            <p>
+              Productos académicos (no sumativos): {aiResult.suggestion.productsCompliance.status}
+              {aiResult.suggestion.productsCompliance.justification
+                ? ` · ${aiResult.suggestion.productsCompliance.justification}`
+                : ""}
+            </p>
+          </div>
+        )}
 
-        {sections.map((section) => (
+        {displaySections.map((section) => (
           <section key={section.id} className="rubric-section">
             <div className="rubric-section-head">
               <div>
@@ -429,9 +634,8 @@ function RubricPanel({
                 <span>Peso total de la sección: {section.weight}%</span>
               </div>
             </div>
-            {section.criteria.map((_crit, idx) => {
-              const id = `${section.id}-${idx}`;
-              const full = criteria.find((c) => c.id === id)!;
+            {section.criteria.map((full) => {
+              const id = full.id;
               const row = scores[id];
               return (
                 <article key={id} className="card criterion">
@@ -439,17 +643,25 @@ function RubricPanel({
                     <div>
                       <strong>{full.label}</strong>
                       <span>
-                        Peso {full.weight}%{" "}
+                        Peso {full.weight.toFixed(1)}%{" "}
                         {full.required ? "· Requisito obligatorio" : ""}
                       </span>
                     </div>
                     <span className="badge">
-                      Sugerencia IA: {full.aiScore}/10
+                      {full.aiScore == null
+                        ? "Sin sugerencia IA"
+                        : `Sugerencia IA: ${full.aiScore}/10`}
                     </span>
                   </div>
                   <div className="ai-box">
                     <strong>Sugerencia de IA</strong>
                     <p>{full.aiReason}</p>
+                    {full.evidence && (
+                      <p><strong>Evidencia:</strong> {full.evidence}</p>
+                    )}
+                    {full.missingInformation && (
+                      <p><strong>Información faltante:</strong> {full.missingInformation}</p>
+                    )}
                   </div>
                   <div className="human-eval">
                     <label className="field" htmlFor={`valoracion-${id}`}>
@@ -457,17 +669,20 @@ function RubricPanel({
                       <select
                         id={`valoracion-${id}`}
                         className="input"
-                        value={row?.score ?? full.aiScore}
+                        value={row?.score ?? ""}
                         onChange={(e) =>
                           setScores((s) => ({
                             ...s,
                             [id]: {
                               ...s[id],
-                              score: Number(e.target.value),
+                              score: e.target.value === "" ? null : Number(e.target.value),
                             },
                           }))
                         }
                       >
+                        {row?.score == null && (
+                          <option value="">Seleccione una calificación</option>
+                        )}
                         {RUBRIC_SCORE_OPTIONS.map((n) => (
                           <option key={n} value={n}>
                             {n} / 10
@@ -503,6 +718,52 @@ function RubricPanel({
           </section>
         ))}
 
+        {!cie && activeRubric && (
+          <article className="card criterion">
+            <PanelIntro
+              title="Productos académicos · requisito no sumativo"
+              description="Esta verificación no agrega puntos. La persona evaluadora confirma el cumplimiento con base en los productos declarados y las disposiciones de la convocatoria."
+            />
+            {aiResult && (
+              <div className="ai-box">
+                <strong>Sugerencia IA: {aiResult.suggestion.productsCompliance.status}</strong>
+                <p>{aiResult.suggestion.productsCompliance.justification}</p>
+                {aiResult.suggestion.productsCompliance.evidence && (
+                  <p><strong>Evidencia:</strong> {aiResult.suggestion.productsCompliance.evidence}</p>
+                )}
+              </div>
+            )}
+            <div className="human-eval">
+              <label className="field" htmlFor="productos-cumplimiento">
+                <span className="field-label">Verificación humana</span>
+                <select
+                  id="productos-cumplimiento"
+                  className="input"
+                  value={productsCompliance}
+                  onChange={(event) =>
+                    setProductsCompliance(event.target.value as typeof productsCompliance)
+                  }
+                >
+                  <option value="indeterminado">Pendiente de verificar</option>
+                  <option value="cumple">Cumple</option>
+                  <option value="no_cumple">No cumple</option>
+                </select>
+              </label>
+              <label className="field" htmlFor="productos-justificacion">
+                <span className="field-label">Justificación humana</span>
+                <textarea
+                  id="productos-justificacion"
+                  className="input textarea"
+                  rows={3}
+                  value={productsJustification}
+                  onChange={(event) => setProductsJustification(event.target.value)}
+                  placeholder="Indique productos declarados y requisito aplicado..."
+                />
+              </label>
+            </div>
+          </article>
+        )}
+
         <article className="card rubric-result-card">
           <div>
             <span>Calificación ponderada</span>
@@ -522,13 +783,7 @@ function RubricPanel({
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={() =>
-              onAction("save-rubric", {
-                average,
-                scores,
-                recommendation,
-              })
-            }
+            onClick={() => onAction("save-rubric", evaluationPayload())}
           >
             Guardar evaluación
           </button>
@@ -554,14 +809,13 @@ function RubricPanel({
             <button
               type="button"
               className="btn btn-primary"
-              disabled={!allJustified}
-              onClick={() =>
-                onAction("committee-score", {
-                  average,
-                  scores,
-                  recommendation,
-                })
+              disabled={
+                !allScored ||
+                !allJustified ||
+                (Boolean(activeRubric) &&
+                  (productsCompliance === "indeterminado" || !productsJustification.trim()))
               }
+              onClick={() => onAction("committee-score", evaluationPayload())}
             >
               Completar evaluación
             </button>

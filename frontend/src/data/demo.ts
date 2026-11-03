@@ -350,6 +350,7 @@ export const ADMIN_STAGE_ROLES = [
 
 export type DemoProposal = {
   id: string;
+  databaseId?: number;
   titulo: string;
   convocatoria: string;
   investigadora: string;

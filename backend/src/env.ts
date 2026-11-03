@@ -13,4 +13,7 @@ export const env = {
     "postgresql://vie:vie@localhost:5432/fondos_vie",
   ),
   nodeEnv: process.env.NODE_ENV ?? "development",
+  openRouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
+  openRouterModel: process.env.OPENROUTER_MODEL ?? "openrouter/free",
+  officialRubricPath: process.env.VIE_OFFICIAL_RUBRIC_PATH ?? "",
 };

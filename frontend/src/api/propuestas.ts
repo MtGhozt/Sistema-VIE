@@ -1,18 +1,4 @@
-import type { DemoProposal } from "../data/demo";
 import { apiJson } from "./client";
-
-export type CompromisoInput = { id?:number; ambito:string; codigo:string; descripcion:string; cantidad:number; dictamen:string|null };
-export type ActividadInput = { id?:number; objetivo:string; actividad:string; resultado:string; responsabilidad:string; inicio:number; duracion:number; participantes:number[]; riesgos:{riesgo:string;mitigacion:string;responsable:string}[] };
-export type AspectosEticos = { humanos: boolean; biodiversidad: boolean; animales: boolean; indigenas: boolean; exencion: string };
-export type PermisoInput = { ente: string; detalle: string; estado: string };
-export type PresupuestoInput = { anio: number; operativo: number; duraderos: number };
-export type FuenteInput = { tipo: string; anio: number; monto: number; oficio: string | null };
-export type ParticipanteInput = {
-  id?: number; idUsuario?: number | null; tipo: "funcionario_tec" | "externo";
-  nombre: string; orcid: string | null; instancia: string | null; rol: string | null; periodo: string | null;
-  titularCons?:string|null;
-  horas: { tipo: string; cantidad: number }[];
-};
 
 export type Propuesta = {
   id: number;
@@ -32,33 +18,12 @@ export type Propuesta = {
   objetivoGeneral: string | null;
   estadoArte: string | null;
   metodologia: string | null;
-  estadoArte: string | null;
-  referencias: string | null;
-  hojaRuta: string | null;
-  divulgacion: string | null;
-  fechaInicio: string | null;
-  fechaFin: string | null;
-  trlActual:number|null;trlEsperado:number|null;lineas:number[];lineasNombres:string[];
-  requiereDictamenPi: boolean;
-  piAcreditada: boolean;
-  declaracion: boolean;
-  resguardoRepositorio: boolean;
-  resguardoTecnico: boolean;
   estadoActual: string;
   etapaFlujo: number;
   fechaEnvio: string | null;
 };
 
-export type PropuestaDetalle = Propuesta & Partial<Pick<DemoProposal, "teamTec" | "teamExternal" | "presupuestoAnual" | "productos" | "observaciones" | "timeline" | "documentos">> & {
-  subsanacion?: {instancia:string;motivo:string;secciones:string[];campos_atendidos:string[]}|null;
-  aspectosEticos?: AspectosEticos | null;
-  permisos?: PermisoInput[];
-  compromisos?: CompromisoInput[];
-  actividades?: ActividadInput[];
-  equipo?: ParticipanteInput[];
-  presupuesto?: PresupuestoInput[];
-  fuentes?: FuenteInput[];
-  preguntasGenerales?: { numero: number; respuesta: string; detalle: string | null }[];
+export type PropuestaDetalle = Propuesta & {
   keywordsEs: string[];
   keywordsEn: string[];
   preguntasGenerales: PreguntaGeneral[];
@@ -246,25 +211,6 @@ export type PropuestaInput = {
   titulo: string;
   idConvocatoria: number;
   modalidad: string;
-  estadoArte?: string;
-  referencias?: string;
-  hojaRuta?: string;
-  divulgacion?: string;
-  fechaInicio?: string;
-  fechaFin?: string;
-  trlActual?:number|null;trlEsperado?:number|null;lineas?:number[];
-  requiereDictamenPi?: boolean;
-  declaracion?: boolean;
-  resguardoRepositorio?: boolean;
-  resguardoTecnico?: boolean;
-  aspectosEticos?: AspectosEticos | null;
-  permisos?: PermisoInput[];
-  compromisos?: CompromisoInput[];
-  actividades?: ActividadInput[];
-  equipo?: ParticipanteInput[];
-  presupuesto?: PresupuestoInput[];
-  fuentes?: FuenteInput[];
-  preguntasGenerales?: { numero: number; respuesta: string; detalle: string | null }[];
   resumen?: string;
   abstractEn?: string;
   problema?: string;
@@ -309,9 +255,8 @@ export function patchPropuesta(id: number, body: Partial<PropuestaInput>) {
   });
 }
 
-export function enviarPropuesta(id: number, respuesta?: string) {
+export function enviarPropuesta(id: number) {
   return apiJson<PropuestaDetalle>(`/api/propuestas/${id}/enviar`, {
     method: "POST",
-    body: JSON.stringify({respuesta}),
   });
 }

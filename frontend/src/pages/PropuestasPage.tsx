@@ -1,4 +1,3 @@
-import { labelEstado, STAGE_LABELS } from "../data/proposalStates";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
@@ -6,7 +5,19 @@ import { fetchPropuestas, type Propuesta } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../components/toast/ToastContext";
 
+function labelEstado(estado: string) {
+  const map: Record<string, string> = {
+    borrador: "Borrador",
+    enviada: "Enviada",
+  };
+  return map[estado] ?? estado;
+}
 
+function progressPct(p: Propuesta) {
+  if (p.estadoActual === "borrador") return 35;
+  if (p.estadoActual === "enviada") return Math.min(95, 45 + p.etapaFlujo * 8);
+  return Math.min(100, 20 + p.etapaFlujo * 12);
+}
 
 export function PropuestasPage() {
   const { session, isAdminSession } = useAuth();
@@ -143,6 +154,7 @@ export function PropuestasPage() {
               </thead>
               <tbody>
                 {filtered.map((p) => {
+                  const pct = progressPct(p);
                   return (
                     <tr
                       key={p.id}
@@ -173,7 +185,18 @@ export function PropuestasPage() {
                         </span>
                       </td>
                       <td>
-                        <span>{STAGE_LABELS[p.etapaFlujo] ?? "Sin etapa registrada"}</span>
+                        <div
+                          className="mini-progress"
+                          role="progressbar"
+                          aria-label={`Avance del expediente ${p.id}`}
+                          aria-valuenow={pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuetext={`${pct}%`}
+                        >
+                          <div style={{ width: `${pct}%` }} />
+                          <span>{pct}%</span>
+                        </div>
                       </td>
                       <td>
                         <Link

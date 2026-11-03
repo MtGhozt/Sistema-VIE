@@ -1,4 +1,3 @@
-import { labelEstado } from "../data/proposalStates";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -26,6 +25,13 @@ const ADMIN_INSTANCE_ACCESS: [string, string, string][] = [
   ["Dirección de Investigación", "2", "notificaciones pendientes"],
 ];
 
+function labelEstado(estado: string) {
+  const map: Record<string, string> = {
+    borrador: "Borrador",
+    enviada: "Enviada",
+  };
+  return map[estado] ?? estado;
+}
 
 function instancePath(label: string) {
   if (label.includes("Investig")) return "/propuestas";
@@ -85,7 +91,6 @@ function AdminHome({
         </div>
       </header>
 
-      <p className="field-hint">Los indicadores de estas tarjetas son ejemplos del prototipo; las listas de expedientes se consultan en el servidor.</p>
       <section className="stats-grid stats-grid-five" aria-label="Indicadores">
         {home.stats.map(([label, value]) => (
           <article key={label} className="card stat-card">
@@ -99,7 +104,7 @@ function AdminHome({
         <article className="card">
           <div className="section-title">
             <div>
-              <h2>Distribución de expedientes por etapa</h2>
+              <h2>Flujo institucional en tiempo real</h2>
               <p>Carga de trabajo simulada por instancia.</p>
             </div>
           </div>
@@ -123,7 +128,7 @@ function AdminHome({
           <div className="section-title">
             <div>
               <h2>Acceso a instancias</h2>
-              <p>Accesos a instancias; las cifras de estas tarjetas son de ejemplo.</p>
+              <p>Resumen de tareas disponibles al Super Administrador.</p>
             </div>
           </div>
           <div className="admin-flow-cards">
@@ -209,7 +214,6 @@ function InvestigadorHome({
         </div>
       </header>
 
-      <p className="field-hint">Los indicadores de estas tarjetas son ejemplos del prototipo; las listas de expedientes se consultan en el servidor.</p>
       <section className="stats-grid stats-grid-five" aria-label="Indicadores">
         {home.stats.map(([label, value]) => (
           <article key={label} className="card stat-card">

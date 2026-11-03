@@ -60,10 +60,3 @@ export async function apiJson<T>(
   }
   return body as T;
 }
-
-export async function downloadFile(path:string,name:string){
- const headers=new Headers();if(demoAuth){headers.set('X-Demo-User-Id',String(demoAuth.userId));headers.set('X-Demo-Role',demoAuth.role);}
- const response=await fetch(API_BASE+path,{headers});
- if(!response.ok){const data=await response.json().catch(()=>null);throw new ApiError(data?.error??'No se pudo descargar',response.status);}
- const url=URL.createObjectURL(await response.blob());const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
-}

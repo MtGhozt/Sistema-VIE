@@ -1,8 +1,0 @@
-import {useEffect,useState} from 'react';
-import {apiJson} from '../api/client';
-import {useToast} from './toast/ToastContext';
-export function CoordinacionEditor({id,onSaved}:{id:number;onSaved:()=>void}){
- const [people,setPeople]=useState<{id:number;nombre:string;roles:string[]}[]>([]),[person,setPerson]=useState(''),[reason,setReason]=useState(''),[busy,setBusy]=useState(false);const {showToast}=useToast();
- useEffect(()=>{void apiJson<typeof people>('/api/personas').then(p=>setPeople(p.filter(u=>u.roles?.includes('investigador')))).catch(e=>showToast(e.message,'error'));},[showToast]);
- return <section className="card stack-md"><h2>Gestión de coordinación y dependencia</h2><p>Operación reservada a admin/VIE. La dependencia se obtiene de la persona coordinadora seleccionada.</p><label className="field">Nueva coordinación<select className="input" value={person} onChange={e=>setPerson(e.target.value)}><option value="">Seleccione</option>{people.map(p=><option key={p.id} value={p.id}>{p.nombre}</option>)}</select></label><label className="field">Motivo<input className="input" value={reason} onChange={e=>setReason(e.target.value)}/></label><button className="btn btn-secondary" type="button" disabled={busy||!person||!reason.trim()} onClick={async()=>{setBusy(true);try{await apiJson(`/api/gestion/propuestas/${id}/coordinacion`,{method:'PATCH',body:JSON.stringify({idCoordinador:Number(person),motivo:reason})});showToast('Coordinación actualizada y auditada','success');onSaved();}catch(e){showToast(e instanceof Error?e.message:'No se pudo reasignar','error');}finally{setBusy(false);}}}>Actualizar coordinación</button></section>;
-}

@@ -302,8 +302,8 @@ Completar durante la implementación; estos renglones no crean commits. Si cambi
 
 | Plan | SHA real | Pruebas / evidencia | Hallazgos cerrados | Validación del usuario |
 | --- | --- | --- | --- | --- |
-| C01 | `6ab3371` | [Compilación antes/después](evidencias/C01-compilacion.md) | Bloqueo TS2741 resuelto; ADI-01 continúa pendiente | V0 pendiente |
-| C02 | `1c86c33` + seguimiento de ejecución | [Preparación](evidencias/C02-preparacion.md) · [Línea base PostgreSQL](evidencias/C02-ejecucion-postgres.md) · [Chromium](evidencias/C02-validacion-visual.md) | Tres ramas API y recorrido visual inicial ejecutados; INC-01, rúbrica, CTA-01 y CIE-01 abiertos | V0 pendiente |
+| C01 | | | | |
+| C02 | | | | |
 | C03 | | | | |
 | C04 | | | | |
 | C05 | | | | |
@@ -334,16 +334,3 @@ Completar durante la implementación; estos renglones no crean commits. Si cambi
 | C30 | | | | |
 | C31 | | | | |
 | C32 | | | | |
-
-## Actualización de línea base · 30 de octubre de 2026
-
-Se ejecutaron los tres recorridos API con PostgreSQL aislado: [reporte e interpretación](evidencias/C02-ejecucion-postgres.md). Primera ejecución: 52 PASA, 1 FALLA y 13 BLOQUEADO. Segunda: 61 PASA y 5 NO APLICA. CTE-01 confirmado en BD; nuevo INC-01 por códigos duplicados y creación parcial. Los estados PENDIENTE de los casos completos y las aprobaciones del usuario permanecen sin completar.
-
-## Actualización de línea base visual · 30 de octubre de 2026
-
-[Chromium: 12 roles, 17 pasos y dos modales](evidencias/C02-validacion-visual.md). CTA-01 y CIE-01 reproducidos en escritorio y móvil. No se aprueban automáticamente las pruebas funcionales completas ni V0. La corrección sigue pendiente.
-
-
-## Regresión del 31 de octubre de 2026
-
-[Estado y evidencia actual](ESTADO-DE-REVISION.md): 33 comprobaciones API, 9 de navegador y 12 de los scripts correctas. Se conservaron reportes fallidos anteriores y se corrigieron los defectos que detectaron. Son pruebas del alcance especificado, no una aprobación automática de las 37 filas completas ni de V0–V6. El equipo puede revisar con `./instalar.sh --pruebas --verificar` y registrar aquí sus observaciones.

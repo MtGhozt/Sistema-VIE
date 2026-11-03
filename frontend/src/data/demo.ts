@@ -349,9 +349,6 @@ export const ADMIN_STAGE_ROLES = [
 ] as const;
 
 export type DemoProposal = {
-  numericId?: number;
-  coordinadorCorreo?: string;
-  fechaResolucion?: string | null;
   id: string;
   titulo: string;
   convocatoria: string;
@@ -362,7 +359,6 @@ export type DemoProposal = {
   /** Índice activo 0–6 (como `etapa` del HTML). */
   etapa: number;
   piRequired: boolean;
-  piAcreditada?: boolean;
   presupuesto: string;
   resumen: string;
   abstract: string;
@@ -407,7 +403,7 @@ export type DemoProposal = {
   activoPI?: string;
   etica?: string;
   observaciones?: string[];
-  timeline?: { id?:number; titulo: string; detalle: string; fecha: string }[];
+  timeline?: { titulo: string; detalle: string; fecha: string }[];
   documentos: { nombre: string; estado: string }[];
   evaluacionComite?: { average: number };
   oficioComite?: string;
@@ -416,7 +412,6 @@ export type DemoProposal = {
   resolucion?: string;
   justificacionResolucion?: string;
   notificada?: boolean;
-  vieChecks?: Record<string,boolean>;
   justificacionAval?: string;
   confidencialidad?: string;
 };

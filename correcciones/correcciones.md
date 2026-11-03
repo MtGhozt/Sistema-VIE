@@ -1,8 +1,5 @@
 # Revisión de correcciones · Sistema VIE · Steadman Murillo
 
-> **Seguimiento:** este es el informe de hallazgos inicial. El código posterior y sus verificaciones se resumen en [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md).
-
-
 > **Fecha:** 29 de octubre de 2026  
 > **Estado:** revisión documental y estática del código; validación visual en navegador pendiente.  
 > **Propósito:** conservar las observaciones originales, precisar su sustento y convertirlas en correcciones verificables para una siguiente iteración.

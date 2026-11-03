@@ -1,7 +1,5 @@
-import { saveHitos } from "../convocatoriaHitos.js";
-import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router, type Response } from "express";
-import { query, transaction } from "../db.js";
+import { query } from "../db.js";
 import { requireDemoAuth, requirePublisher } from "../middleware/demoAuth.js";
 
 export const convocatoriasRouter = Router();
@@ -107,17 +105,17 @@ const LIST_SQL = `
 convocatoriasRouter.get(
   "/convocatorias",
   requireDemoAuth,
-  asyncHandler(async (_req, res) => {
+  async (_req, res) => {
     const result = await query<ConvocatoriaRow>(LIST_SQL);
     res.json(result.rows.map(mapConvocatoria));
-  }),
+  },
 );
 
 /** Detalle + hitos. */
 convocatoriasRouter.get(
   "/convocatorias/:id",
   requireDemoAuth,
-  asyncHandler(async (req, res) => {
+  async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
       res.status(400).json({ error: "id inválido" });
@@ -149,7 +147,7 @@ convocatoriasRouter.get(
       ...mapConvocatoria(row),
       hitos: hitos.rows.map(mapHito),
     });
-  }),
+  },
 );
 
 /** Crear borrador o publicar. */
@@ -157,7 +155,7 @@ convocatoriasRouter.post(
   "/convocatorias",
   requireDemoAuth,
   requirePublisher,
-  asyncHandler(async (req, res) => {
+  async (req, res) => {
     const nombre = String(req.body?.nombre ?? "").trim();
     const descripcion = req.body?.descripcion
       ? String(req.body.descripcion).trim()
@@ -235,7 +233,7 @@ convocatoriasRouter.post(
       [created.id_convocatoria],
     );
     res.status(201).json(mapConvocatoria(detail.rows[0]));
-  }),
+  },
 );
 
 /** Actualizar datos / estado (publicar, cerrar). */
@@ -243,7 +241,7 @@ convocatoriasRouter.patch(
   "/convocatorias/:id",
   requireDemoAuth,
   requirePublisher,
-  asyncHandler(async (req, res) => {
+  async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
       res.status(400).json({ error: "id inválido" });
@@ -316,16 +314,13 @@ convocatoriasRouter.patch(
       return;
     }
 
-    const saved = await transaction(async(execute)=>{
-    await execute("SELECT id_convocatoria FROM convocatoria WHERE id_convocatoria=$1 FOR UPDATE",[id]);
     values.push(id);
-    await execute(
+    await query(
       `UPDATE convocatoria SET ${fields.join(", ")} WHERE id_convocatoria = $${i}`,
       values,
     );
 
-    await saveHitos(id,req.body?.hitos,execute);
-    const result = await execute<ConvocatoriaRow>(
+    const result = await query<ConvocatoriaRow>(
       `
       SELECT c.*,
         (SELECT COUNT(*)::int FROM propuesta p WHERE p.id_convocatoria = c.id_convocatoria) AS propuestas_count
@@ -333,10 +328,8 @@ convocatoriasRouter.patch(
       `,
       [id],
     );
-    return mapConvocatoria(result.rows[0]);
-    });
-    res.json(saved);
-  }),
+    res.json(mapConvocatoria(result.rows[0]));
+  },
 );
 
 /** Agregar hito. */
@@ -344,7 +337,7 @@ convocatoriasRouter.post(
   "/convocatorias/:id/hitos",
   requireDemoAuth,
   requirePublisher,
-  asyncHandler(async (req, res) => {
+  async (req, res) => {
     const id = Number(req.params.id);
     const nombre = String(req.body?.nombre ?? "").trim();
     const responsable = String(req.body?.responsable ?? "VIE").trim() || "VIE";
@@ -376,7 +369,7 @@ convocatoriasRouter.post(
       [id, nombre, responsable, fechaInicio, fechaFin, orden],
     );
     res.status(201).json(mapHito(result.rows[0]));
-  }),
+  },
 );
 
 /** Eliminar hito. */
@@ -384,7 +377,7 @@ convocatoriasRouter.delete(
   "/convocatorias/:id/hitos/:hitoId",
   requireDemoAuth,
   requirePublisher,
-  asyncHandler(async (req, res) => {
+  async (req, res) => {
     const id = Number(req.params.id);
     const hitoId = Number(req.params.hitoId);
     const result = await query(
@@ -399,5 +392,5 @@ convocatoriasRouter.delete(
       return;
     }
     res.status(204).send();
-  }),
+  },
 );

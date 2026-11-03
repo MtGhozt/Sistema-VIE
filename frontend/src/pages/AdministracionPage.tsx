@@ -1,33 +1,58 @@
-import {useEffect,useState} from 'react';
-import {apiJson} from '../api/client';
-import official from '../../../shared/rubricas-oficiales.json';
-import {ROLES} from '../data/roles';
-import {useToast} from '../components/toast/ToastContext';
-type Row=Record<string,unknown>;
-const blank={id:0,nombre:'',correo:'',escuela:'',activo:true,roles:['investigador'],password:'',codigo:''};
-export function AdministracionPage(){
- const [modalities,setModalities]=useState<{codigo:string;nombre:string}[]>([]);
- const [tab,setTab]=useState('usuarios'),[catalog,setCatalog]=useState('escuelas'),[rows,setRows]=useState<Row[]>([]),[schools,setSchools]=useState<Row[]>([]),[form,setForm]=useState({...blank}),[motivo,setMotivo]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[modality,setModality]=useState('aplicada'),[definition,setDefinition]=useState(JSON.stringify(official.general,null,2));const {showToast}=useToast();
- const route=tab==='catalogos'?`/api/admin/catalogos/${catalog}`:`/api/admin/${tab}`;
- async function reload(){setRows(await apiJson<Row[]>(route));}
- useEffect(()=>{let active=true;if(tab==='roles')return;apiJson<Row[]>(route).then(r=>{if(active)setRows(r);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[route,tab]);
- useEffect(()=>{void apiJson<{escuelas:Row[];modalidades:{codigo:string;nombre:string}[]}>('/api/catalogos').then(d=>{setSchools(d.escuelas);setModalities(d.modalidades);}).catch(e=>setError(e.message));},[]);
- async function save(){setBusy(true);setError('');try{
-  if(tab==='rubricas')await apiJson(route,{method:'POST',body:JSON.stringify({nombre:form.nombre||'Rúbrica versionada',modalidad:modality,definicion:JSON.parse(definition),motivo})});
-  else await apiJson(route+(form.id?`/${form.id}`:''),{method:form.id?'PATCH':'POST',body:JSON.stringify({...form,escuela:Number(form.escuela),motivo})});
-  await reload();const catalogos=await apiJson<{escuelas:Row[];modalidades:{codigo:string;nombre:string}[]}>('/api/catalogos');setSchools(catalogos.escuelas);setModalities(catalogos.modalidades);setForm({...blank});setMotivo('');showToast('Cambios guardados y auditados','success');
- }catch(e){setError(e instanceof Error?e.message:'No se guardó');}finally{setBusy(false);}}
- function edit(row:Row){setForm({...blank,id:(tab==='usuarios'?Number(row.id):tab==='catalogos'&&catalog==='modalidades'?row.codigo:Number(row.id_escuela??row.id_linea_investigacion)) as number,nombre:String(row.nombre??''),correo:String(row.correo??''),escuela:String(row.escuela??''),activo:row.activo===true,roles:(row.roles as string[])??['investigador'],codigo:String(row.codigo??'')});setMotivo('');}
- return <><header className="page-header"><div><h1>Administración del sistema</h1><p>Altas, edición y baja lógica. Las modificaciones requieren motivo y se conservan en auditoría.</p></div></header><nav className="action-row" aria-label="Secciones de administración">{['usuarios','catalogos','rubricas','auditoria','roles'].map(t=><button className="btn btn-secondary" type="button" key={t} aria-pressed={tab===t} onClick={()=>{setTab(t);setForm({...blank});setRows([]);setMotivo('');}}>{({usuarios:'Usuarios',catalogos:'Catálogos',rubricas:'Rúbricas versionadas',auditoria:'Auditoría',roles:'Roles y permisos'} as Record<string,string>)[t]}</button>)}<button className="btn btn-secondary" type="button" disabled title="Fuera de alcance: no se implementa un motor genérico de formularios">Formularios · fuera de alcance</button></nav>
- {error&&<p role="alert">{error}</p>}
- {tab==='roles'?<section className="card">{ROLES.map(r=><p key={r.id}>{r.label} · {r.id}</p>)}</section>:<section className="card stack-md">
- {tab==='catalogos'&&<label className="field">Catálogo<select className="input" value={catalog} onChange={e=>{setCatalog(e.target.value);setRows([]);setForm({...blank});}}>{['escuelas','modalidades','lineas'].map(c=><option key={c}>{c}</option>)}</select></label>}
- {tab!=='auditoria'&&<form className="stack-md" onSubmit={e=>{e.preventDefault();void save();}}><h2>{form.id?'Editar registro':tab==='rubricas'?'Publicar nueva versión':'Nuevo registro'}</h2>
- <label className="field">Nombre<input className="input" aria-label="Nombre del registro" value={form.nombre} onChange={e=>setForm({...form,nombre:e.target.value})} required/></label>
- {tab==='usuarios'&&<><label className="field">Correo<input aria-label="Correo del usuario" className="input" type="email" value={form.correo} onChange={e=>setForm({...form,correo:e.target.value})} required/></label><label className="field">Escuela<select aria-label="Escuela del usuario" className="input" value={form.escuela} onChange={e=>setForm({...form,escuela:e.target.value})} required><option value="">Seleccione</option>{schools.map(s=><option key={String(s.id_escuela)} value={String(s.id_escuela)}>{String(s.nombre)}</option>)}</select></label><fieldset><legend>Roles del usuario</legend>{ROLES.map(r=><label className="subsanacion-seccion" key={r.id}><input type="checkbox" checked={form.roles.includes(r.id)} onChange={e=>setForm({...form,roles:e.target.checked?[...form.roles,r.id]:form.roles.filter(v=>v!==r.id)})}/>{r.label}</label>)}</fieldset><label className="field">{form.id?'Nueva contraseña (opcional)':'Contraseña inicial'}<input aria-label="Contraseña del usuario" className="input" type="password" minLength={8} required={!form.id} value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></label></>}
- {tab==='catalogos'&&catalog!=='lineas'&&<label className="field">Código<input aria-label="Código del catálogo" className="input" value={form.codigo} disabled={Boolean(form.id)} onChange={e=>setForm({...form,codigo:e.target.value})} required/></label>}
- {tab==='rubricas'?<><p>Una versión publicada no se modifica: los expedientes ya iniciados conservan la suya. La definición debe incluir todos los niveles y sumar 100 puntos.</p><label className="field">Modalidad<select className="input" value={modality} onChange={e=>{const m=e.target.value;setModality(m);setDefinition(JSON.stringify(m==='desarrollo_tecnologico'?official.desarrollo:m==='fortalecimiento'?official.fortalecimiento:official.general,null,2));}}>{modalities.map(m=><option key={m.codigo} value={m.codigo}>{m.nombre}</option>)}</select></label><label className="field">Definición de criterios y niveles (JSON)<textarea aria-label="Definición de la rúbrica" className="input textarea" rows={12} value={definition} onChange={e=>setDefinition(e.target.value)}/></label></>:<label className="subsanacion-seccion"><input type="checkbox" checked={form.activo} onChange={e=>setForm({...form,activo:e.target.checked})}/>Activo (desmarcar para dar de baja)</label>}
- <label className="field">Motivo de la modificación<textarea aria-label="Motivo de la modificación" className="input textarea" required value={motivo} onChange={e=>setMotivo(e.target.value)}/></label><div className="action-row"><button className="btn btn-primary" disabled={busy} type="submit">{busy?'Guardando…':tab==='rubricas'?'Publicar versión':'Guardar registro'}</button><button type="button" className="btn btn-secondary" onClick={()=>setForm({...blank})}>Limpiar formulario</button></div></form>}
- <div className="table-wrap"><table className="data-table"><thead><tr><th>Registro</th><th>Estado / versión</th><th>Acción</th></tr></thead><tbody>{rows.map((r,i)=><tr key={String(r.id??r.id_auditoria??r.codigo??i)}><td>{String(r.nombre??r.accion??r.codigo??'Registro')} {r.correo?String(r.correo):''}{tab==='auditoria'&&<pre style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(r,null,2)}</pre>}</td><td>{tab==='rubricas'?r.definicion?`v${r.version} · ${r.activa?'activa':'anterior'}`:'Histórica, sin definición versionada':tab==='auditoria'?String(r.fecha):r.activo?'Activo':'Inactivo'}</td><td>{['usuarios','catalogos'].includes(tab)&&<button type="button" className="btn btn-secondary" onClick={()=>edit(r)}>Editar {String(r.nombre)}</button>}{tab==='rubricas'&&r.definicion!=null&&r.activa===true&&<button type="button" className="btn btn-secondary" disabled={!motivo.trim()||busy} onClick={async()=>{setBusy(true);try{await apiJson(`/api/admin/rubricas/${r.id}`,{method:'PATCH',body:JSON.stringify({activa:false,motivo})});await reload();showToast('Versión retirada para expedientes nuevos','success');}catch(e){setError(e instanceof Error?e.message:'No se pudo retirar');}finally{setBusy(false);}}}>Retirar versión (requiere motivo)</button>}{tab==='rubricas'&&r.definicion!=null&&<button type="button" className="btn btn-secondary" onClick={()=>{setModality(String(r.modalidad));setDefinition(JSON.stringify(r.definicion,null,2));setForm({...blank,nombre:String(r.nombre)});}}>Usar como base de nueva versión</button>}</td></tr>)}</tbody></table></div>
- </section>}</>;
+import { ROLES } from "../data/roles";
+
+export function AdministracionPage() {
+  return (
+    <>
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">Super Administrador</p>
+          <h1>Administración del sistema</h1>
+          <p>
+            Gestione elementos transversales y supervise la configuración de
+            todos los roles (prototipo local).
+          </p>
+        </div>
+      </header>
+
+      <div className="admin-layout">
+        <nav className="card admin-tabs" aria-label="Secciones de administración">
+          <button type="button" className="active" aria-current="page">
+            Roles y permisos
+          </button>
+          <button type="button" disabled title="No implementado en el prototipo">
+            Usuarios
+          </button>
+          <button type="button" disabled title="No implementado en el prototipo">
+            Catálogos
+          </button>
+          <button type="button" disabled title="No implementado en el prototipo">
+            Formularios
+          </button>
+        </nav>
+
+        <section className="card admin-content">
+          <div className="section-title">
+            <div>
+              <h2>Roles y permisos</h2>
+              <p>
+                Permisos alineados con el desglose institucional del Análisis de
+                Personas.
+              </p>
+            </div>
+          </div>
+          <div className="role-permission-list">
+            {ROLES.map((r) => (
+              <div key={r.id}>
+                <div>
+                  <strong>{r.label}</strong>
+                  <span>{r.id}</span>
+                </div>
+                <span className="badge badge-primary">{r.short}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </>
+  );
 }

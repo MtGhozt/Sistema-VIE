@@ -1,8 +1,0 @@
-[
-  {"codigo":"propuesta","etiqueta":"Propuesta completa"},
-  {"codigo":"pi","etiqueta":"Dictamen PI o constancia de no requerido"},
-  {"codigo":"evaluacion_comite","etiqueta":"Evaluación del Comité"},
-  {"codigo":"oficio_comite","etiqueta":"Oficio del Comité"},
-  {"codigo":"aval","etiqueta":"Aval del Consejo"},
-  {"codigo":"respaldos","etiqueta":"Documentos de respaldo"}
-]

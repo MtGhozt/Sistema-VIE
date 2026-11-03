@@ -47,7 +47,3 @@ Desktop.ini
 *~
 __pycache__/
 .pytest_cache/
-
-# Archivos persistidos en ejecución (conservar al actualizar)
-var/documentos/
-var/documentos-pruebas/

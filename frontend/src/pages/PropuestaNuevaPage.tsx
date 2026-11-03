@@ -19,13 +19,30 @@ import {
   FORM_WIZARD_STEPS,
   getFormStepStatus,
   PLAN_RESPONSIBILITIES,
+  TECHNOLOGY_ACADEMIC_PRODUCTS,
+  TECHNOLOGY_IP_ASSETS,
   TEAM_HOUR_TYPES,
   TEAM_MEMBER_ROLES,
   type FormWizardState,
+  type AcademicProductCode,
+  type TechnologyAssetCode,
   type NivelTrl,
   TRL_LEVELS,
   type YesNo,
 } from "../data/formWizard";
+
+function academicProductCode(value: string): AcademicProductCode | "" {
+  return (
+    TECHNOLOGY_ACADEMIC_PRODUCTS.find((option) => option.value === value)
+      ?.value ?? ""
+  );
+}
+
+function technologyAssetCode(value: string): TechnologyAssetCode | "" {
+  return (
+    TECHNOLOGY_IP_ASSETS.find((option) => option.value === value)?.value ?? ""
+  );
+}
 
 function yesNoToApi(value: Exclude<YesNo, "">) {
   return value === "Sí" ? "si" : "no";
@@ -317,6 +334,73 @@ export function PropuestaNuevaPage() {
             mesInicio: String(activity.mesInicio),
             duracionMeses: String(activity.duracionMeses),
           })),
+          presupuestoAnual: d.presupuestoAnual.map((budget) => ({
+            anio: budget.anio,
+            operativo: String(budget.operativo),
+            duraderos: String(budget.duraderos),
+          })),
+          financiamiento: prev.financiamiento.map((source) => {
+            const saved = d.financiamiento.find(
+              (funding) => funding.tipo === source.tipo,
+            );
+            return saved
+              ? {
+                  ...source,
+                  anio1: String(saved.anio1),
+                  anio2: String(saved.anio2),
+                  anio3: String(saved.anio3),
+                  oficio: saved.oficio,
+                }
+              : source;
+          }),
+          productosAcademicos: d.compromisosProductos.flatMap(
+            (product, index) =>
+              product.tipo === "academico"
+                ? [
+                    {
+                      id: `producto-academico-${d.id}-${product.id}-${index}`,
+                      codigoOpcion: academicProductCode(
+                        product.codigoOpcion,
+                      ),
+                      cantidad: String(product.cantidad),
+                      objetivoNumero:
+                        product.objetivoNumero === 1
+                          ? "1"
+                          : product.objetivoNumero === 2
+                            ? "2"
+                            : product.objetivoNumero === 3
+                              ? "3"
+                              : "",
+                    },
+                  ]
+                : [],
+          ),
+          activosPI: d.compromisosProductos.flatMap((product, index) =>
+            product.tipo === "activo_pi"
+              ? [
+                  {
+                    id: `activo-pi-${d.id}-${product.id}-${index}`,
+                    codigoOpcion: technologyAssetCode(product.codigoOpcion),
+                    cantidad: String(product.cantidad),
+                    dictamen: product.dictamenConsecutivo,
+                  },
+                ]
+              : [],
+          ),
+          productosAdicionales: d.compromisosProductos
+            .filter((product) => product.tipo === "adicional")
+            .slice(0, 2)
+            .map((product, index) => ({
+              id: `producto-adicional-${d.id}-${product.id}-${index}`,
+              descripcion: product.descripcion,
+            })),
+          divulgacion: d.divulgacion ?? prev.divulgacion,
+          aspectosEticos: d.aspectosEticos ?? prev.aspectosEticos,
+          hojaRuta: d.hojaRuta ?? prev.hojaRuta,
+          declaracionJurada:
+            d.declaracionJurada ?? prev.declaracionJurada,
+          resguardoProductos:
+            d.resguardoProductos ?? prev.resguardoProductos,
         }));
         setSaveStatus("Borrador cargado");
       } catch (err) {
@@ -348,6 +432,117 @@ export function PropuestaNuevaPage() {
     }
 
     const teamMembers = [...form.teamTec, ...form.teamExternal];
+    const presupuestoAnual = form.presupuestoAnual.map((budget, index) => {
+      const operativo = Number(budget.operativo || 0);
+      const duraderos =
+        index === 0 ? Number(budget.duraderos || 0) : 0;
+      if (
+        !Number.isFinite(operativo) ||
+        operativo < 0 ||
+        operativo > 999999999999.99 ||
+        !Number.isFinite(duraderos) ||
+        duraderos < 0 ||
+        duraderos > 999999999999.99
+      ) {
+        throw new Error("Ingresá montos válidos para el presupuesto anual.");
+      }
+      return { anio: budget.anio, operativo, duraderos };
+    });
+    const financiamiento = form.financiamiento.map((source) => {
+      const amounts = [source.anio1, source.anio2, source.anio3].map(
+        (value) => Number(value || 0),
+      );
+      if (
+        amounts.some(
+          (amount) =>
+            !Number.isFinite(amount) ||
+            amount < 0 ||
+            amount > 999999999999.99,
+        ) ||
+        source.oficio.length > 60
+      ) {
+        throw new Error("Ingresá montos y datos de oficio válidos.");
+      }
+      return {
+        tipo: source.tipo,
+        anio1: amounts[0],
+        anio2: amounts[1],
+        anio3: amounts[2],
+        oficio: source.oficio.trim(),
+      };
+    });
+    const technologyProject = form.modalidad === "Desarrollo tecnológico";
+    const compromisosProductos = [
+      ...form.productosAcademicos.flatMap((product) => {
+        const hasAnyValue = Boolean(
+          product.codigoOpcion || product.objetivoNumero,
+        );
+        if (!hasAnyValue) return [];
+        const cantidad = Number(product.cantidad);
+        if (
+          !product.codigoOpcion ||
+          !product.objetivoNumero ||
+          !Number.isInteger(cantidad) ||
+          cantidad < 1 ||
+          cantidad > 99
+        ) {
+          throw new Error(
+            "Completá la opción, cantidad y objetivo específico de cada producto académico.",
+          );
+        }
+        return [
+          {
+            tipo: "academico" as const,
+            codigoOpcion: product.codigoOpcion,
+            cantidad,
+            objetivoNumero: Number(product.objetivoNumero),
+          },
+        ];
+      }),
+      ...(technologyProject ? form.activosPI : []).flatMap((asset) => {
+        const hasAnyValue = Boolean(
+          asset.codigoOpcion || asset.dictamen.trim(),
+        );
+        if (!hasAnyValue) return [];
+        const cantidad = Number(asset.cantidad);
+        if (
+          !asset.codigoOpcion ||
+          !asset.dictamen.trim() ||
+          !Number.isInteger(cantidad) ||
+          cantidad < 1 ||
+          cantidad > 99 ||
+          asset.dictamen.length > 40
+        ) {
+          throw new Error(
+            "Completá el tipo, la cantidad y el consecutivo del dictamen de cada activo.",
+          );
+        }
+        return [
+          {
+            tipo: "activo_pi" as const,
+            codigoOpcion: asset.codigoOpcion,
+            cantidad,
+            dictamenConsecutivo: asset.dictamen.trim(),
+          },
+        ];
+      }),
+      ...(!technologyProject ? form.productosAdicionales : []).flatMap((product, index) => {
+        if (!product.descripcion.trim()) return [];
+        if (product.descripcion.length > 500) {
+          throw new Error(
+            "Cada producto adicional puede tener hasta 500 caracteres.",
+          );
+        }
+        return [
+          {
+            tipo: "adicional" as const,
+            codigoOpcion: `adicional_${index + 1}`,
+            cantidad: 1 as const,
+            descripcion: product.descripcion.trim(),
+          },
+        ];
+      }),
+    ];
     const planAccion = form.planAccion.flatMap((activity) => {
       const risks = activity.riesgos.filter(
         (risk) =>
@@ -491,6 +686,14 @@ export function PropuestaNuevaPage() {
           descripcion: objective.descripcion.trim(),
         })),
       planAccion,
+      presupuestoAnual,
+      financiamiento,
+      compromisosProductos,
+      divulgacion: form.divulgacion,
+      aspectosEticos: form.aspectosEticos,
+      hojaRuta: form.hojaRuta,
+      declaracionJurada: form.declaracionJurada,
+      resguardoProductos: form.resguardoProductos,
       metodologia: form.metodologia.trim() || undefined,
       keywordsEs: form.palabras,
       keywordsEn: form.keywords,
@@ -611,8 +814,25 @@ export function PropuestaNuevaPage() {
       showToast("Completá título y convocatoria antes de enviar", "error");
       return;
     }
-    if (!form.declaracion) {
-      showToast("Debés aceptar la declaración jurada antes de enviar", "error");
+    for (const [step, label] of [
+      [9, "Resguardo de productos"],
+      [10, "Divulgación y socialización"],
+      [11, "Aspectos éticos"],
+      [12, "Hoja de ruta"],
+      [14, "Declaración jurada"],
+    ] as const) {
+      if (getFormStepStatus(step, form, true) !== "Completa") {
+        setStep(step);
+        showToast(`Completá la sección ${label} antes de enviar`, "error");
+        return;
+      }
+    }
+    if (getFormStepStatus(8, form, true) !== "Completa") {
+      setStep(8);
+      showToast(
+        "Completá los compromisos de productos según las horas semanales y la modalidad del proyecto antes de enviarlo.",
+        "error",
+      );
       return;
     }
     setSaving(true);

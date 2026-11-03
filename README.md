@@ -56,6 +56,15 @@ ejecuta automáticamente `database/DisennoDB.sql` (esquema) y
 `database/seed.sql` (datos semilla) **solo la primera vez**, cuando se crea
 el volumen por primera vez.
 
+Si ya tenés un volumen de base de datos anterior a estos cambios, aplicá la
+migración de los campos de aspectos éticos, declaración jurada y resguardo de
+productos:
+
+```powershell
+Get-Content database/migrations/20261102_add_proposal_ethics_declaration.sql |
+  docker compose exec -T db psql -U vie -d fondos_vie
+```
+
 ### Resultado
 
 | Qué | URL |

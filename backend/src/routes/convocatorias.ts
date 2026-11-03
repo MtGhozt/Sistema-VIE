@@ -59,10 +59,71 @@ type HitoRow = {
   orden: number;
 };
 
+type HitoInput = {
+  nombre: string;
+  responsable: string;
+  fechaInicio: string;
+  fechaFin: string;
+};
+
+type HitosResult =
+  | { valid: true; value: HitoInput[] | undefined }
+  | { valid: false };
+
 function asDateOnly(value: string | Date | null | undefined): string {
   if (!value) return "";
   if (value instanceof Date) return value.toISOString().slice(0, 10);
   return String(value).slice(0, 10);
+}
+
+function isValidDateOnly(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return (
+    Number.isFinite(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 10) === value
+  );
+}
+
+function parseHitos(
+  value: unknown,
+  fallbackStart: string,
+  fallbackEnd: string,
+): HitosResult {
+  if (value === undefined) return { valid: true, value: undefined };
+  if (!Array.isArray(value)) return { valid: false };
+
+  const hitos: HitoInput[] = [];
+  for (const item of value) {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) {
+      return { valid: false };
+    }
+    const hito = item as Record<string, unknown>;
+    const nombre = String(hito.nombre ?? "").trim();
+    const responsable =
+      hito.responsable === undefined
+        ? "VIE"
+        : typeof hito.responsable === "string"
+          ? hito.responsable.trim()
+          : "";
+    const fechaInicio = String(hito.fechaInicio ?? fallbackStart).trim();
+    const fechaFin = String(hito.fechaFin ?? fallbackEnd).trim();
+    if (
+      !nombre ||
+      nombre.length > 200 ||
+      !responsable ||
+      responsable.length > 120 ||
+      !isValidDateOnly(fechaInicio) ||
+      !isValidDateOnly(fechaFin) ||
+      fechaInicio < fallbackStart ||
+      fechaFin > fallbackEnd ||
+      fechaFin < fechaInicio
+    ) {
+      return { valid: false };
+    }
+    hitos.push({ nombre, responsable, fechaInicio, fechaFin });
+  }
+  return { valid: true, value: hitos };
 }
 
 function mapConvocatoria(row: ConvocatoriaRow) {
@@ -98,15 +159,22 @@ const LIST_SQL = `
   SELECT c.*,
     (SELECT COUNT(*)::int FROM propuesta p WHERE p.id_convocatoria = c.id_convocatoria) AS propuestas_count
   FROM convocatoria c
+  WHERE ($1::boolean OR c.estado = 'activa')
   ORDER BY c.fecha_apertura DESC, c.id_convocatoria DESC
 `;
 
-/** Listado — cualquier sesión demo. */
+function canViewUnpublished(role: string | null | undefined) {
+  return role === "vie_publicacion";
+}
+
+/** Solo VIE Publicación ve convocatorias que no estén publicadas. */
 convocatoriasRouter.get(
   "/convocatorias",
   requireDemoAuth,
-  async (_req, res) => {
-    const result = await query<ConvocatoriaRow>(LIST_SQL);
+  async (req, res) => {
+    const result = await query<ConvocatoriaRow>(LIST_SQL, [
+      canViewUnpublished(req.demoAuth?.role),
+    ]);
     res.json(result.rows.map(mapConvocatoria));
   },
 );
@@ -127,8 +195,9 @@ convocatoriasRouter.get(
         (SELECT COUNT(*)::int FROM propuesta p WHERE p.id_convocatoria = c.id_convocatoria) AS propuestas_count
       FROM convocatoria c
       WHERE c.id_convocatoria = $1
+        AND ($2::boolean OR c.estado = 'activa')
       `,
-      [id],
+      [id, canViewUnpublished(req.demoAuth?.role)],
     );
     const row = result.rows[0];
     if (!row) {
@@ -181,47 +250,69 @@ convocatoriasRouter.post(
       res.status(400).json({ error: "fechaCierre debe ser >= fechaApertura" });
       return;
     }
+    const hitosResult = parseHitos(
+      req.body?.hitos,
+      fechaApertura,
+      fechaCierre,
+    );
+    if (!hitosResult.valid) {
+      res.status(400).json({
+        error:
+          "Cada actividad debe incluir nombre y fechas dentro del período de la convocatoria, con fechaFin >= fechaInicio",
+      });
+      return;
+    }
 
     const userId = req.demoAuth!.userId!;
     const publicar = estado === "activa";
 
-    const insert = await query<ConvocatoriaRow>(
-      `
-      INSERT INTO convocatoria (
-        nombre, descripcion, fecha_apertura, fecha_cierre,
-        presupuesto_estimado, estado, id_publicada_por, fecha_publicacion
-      ) VALUES ($1, $2, $3::date, $4::date, $5, $6, $7, $8)
-      RETURNING *, 0::int AS propuestas_count
-      `,
-      [
-        nombre,
-        descripcion,
-        fechaApertura,
-        fechaCierre,
-        presupuesto,
-        estado,
-        publicar ? userId : null,
-        publicar ? new Date().toISOString() : null,
-      ],
-    );
-
-    const created = insert.rows[0];
-    const hitosIn = Array.isArray(req.body?.hitos) ? req.body.hitos : [];
-    for (let i = 0; i < hitosIn.length; i++) {
-      const h = hitosIn[i];
-      const hNombre = String(h?.nombre ?? "").trim();
-      const responsable = String(h?.responsable ?? "VIE").trim() || "VIE";
-      const fechaInicio = String(h?.fechaInicio ?? fechaApertura).trim();
-      const fechaFin = String(h?.fechaFin ?? fechaCierre).trim();
-      if (!hNombre) continue;
-      await query(
+    const client = await pool.connect();
+    let createdId: number;
+    try {
+      await client.query("BEGIN");
+      const insert = await client.query<ConvocatoriaRow>(
         `
-        INSERT INTO convocatoria_hito (
-          id_convocatoria, nombre, responsable, fecha_inicio, fecha_fin, orden
-        ) VALUES ($1, $2, $3, $4::date, $5::date, $6)
+        INSERT INTO convocatoria (
+          nombre, descripcion, fecha_apertura, fecha_cierre,
+          presupuesto_estimado, estado, id_publicada_por, fecha_publicacion
+        ) VALUES ($1, $2, $3::date, $4::date, $5, $6, $7, $8)
+        RETURNING *, 0::int AS propuestas_count
         `,
-        [created.id_convocatoria, hNombre, responsable, fechaInicio, fechaFin, i + 1],
+        [
+          nombre,
+          descripcion,
+          fechaApertura,
+          fechaCierre,
+          presupuesto,
+          estado,
+          publicar ? userId : null,
+          publicar ? new Date().toISOString() : null,
+        ],
       );
+      createdId = insert.rows[0].id_convocatoria;
+      for (const [index, hito] of (hitosResult.value ?? []).entries()) {
+        await client.query(
+          `
+          INSERT INTO convocatoria_hito (
+            id_convocatoria, nombre, responsable, fecha_inicio, fecha_fin, orden
+          ) VALUES ($1, $2, $3, $4::date, $5::date, $6)
+          `,
+          [
+            createdId,
+            hito.nombre,
+            hito.responsable,
+            hito.fechaInicio,
+            hito.fechaFin,
+            index + 1,
+          ],
+        );
+      }
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
     }
 
     const detail = await query<ConvocatoriaRow>(
@@ -230,7 +321,7 @@ convocatoriasRouter.post(
         (SELECT COUNT(*)::int FROM propuesta p WHERE p.id_convocatoria = c.id_convocatoria) AS propuestas_count
       FROM convocatoria c WHERE c.id_convocatoria = $1
       `,
-      [created.id_convocatoria],
+      [createdId],
     );
     res.status(201).json(mapConvocatoria(detail.rows[0]));
   },
@@ -272,6 +363,7 @@ convocatoriasRouter.patch(
       "fechaApertura",
       "fechaCierre",
       "presupuestoEstimado",
+      "hitos",
     ];
     if (
       convocatoria.estado !== "borrador" &&
@@ -300,15 +392,10 @@ convocatoriasRouter.patch(
       req.body?.fechaCierre === undefined
         ? asDateOnly(convocatoria.fecha_cierre)
         : String(req.body.fechaCierre).trim();
-    const isValidDate = (value: string) => {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-      const parsed = new Date(`${value}T00:00:00.000Z`);
-      return (
-        Number.isFinite(parsed.getTime()) &&
-        parsed.toISOString().slice(0, 10) === value
-      );
-    };
-    if (!isValidDate(fechaApertura) || !isValidDate(fechaCierre)) {
+    if (
+      !isValidDateOnly(fechaApertura) ||
+      !isValidDateOnly(fechaCierre)
+    ) {
       res.status(400).json({
         error: "fechaApertura y fechaCierre deben ser fechas válidas",
       });
@@ -316,6 +403,18 @@ convocatoriasRouter.patch(
     }
     if (fechaCierre < fechaApertura) {
       res.status(400).json({ error: "fechaCierre debe ser >= fechaApertura" });
+      return;
+    }
+    const hitosResult = parseHitos(
+      req.body?.hitos,
+      fechaApertura,
+      fechaCierre,
+    );
+    if (!hitosResult.valid) {
+      res.status(400).json({
+        error:
+          "Cada actividad debe incluir nombre y fechas dentro del período de la convocatoria, con fechaFin >= fechaInicio",
+      });
       return;
     }
 
@@ -362,16 +461,51 @@ convocatoriasRouter.patch(
       }
     }
 
-    if (fields.length === 0) {
+    if (fields.length === 0 && hitosResult.value === undefined) {
       res.status(400).json({ error: "Sin campos para actualizar" });
       return;
     }
 
     values.push(id);
-    await query(
-      `UPDATE convocatoria SET ${fields.join(", ")} WHERE id_convocatoria = $${i}`,
-      values,
-    );
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      if (fields.length > 0) {
+        await client.query(
+          `UPDATE convocatoria SET ${fields.join(", ")} WHERE id_convocatoria = $${i}`,
+          values,
+        );
+      }
+      if (hitosResult.value !== undefined) {
+        await client.query(
+          `DELETE FROM convocatoria_hito WHERE id_convocatoria = $1`,
+          [id],
+        );
+        for (const [index, hito] of hitosResult.value.entries()) {
+          await client.query(
+            `
+            INSERT INTO convocatoria_hito (
+              id_convocatoria, nombre, responsable, fecha_inicio, fecha_fin, orden
+            ) VALUES ($1, $2, $3, $4::date, $5::date, $6)
+            `,
+            [
+              id,
+              hito.nombre,
+              hito.responsable,
+              hito.fechaInicio,
+              hito.fechaFin,
+              index + 1,
+            ],
+          );
+        }
+      }
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
 
     const result = await query<ConvocatoriaRow>(
       `

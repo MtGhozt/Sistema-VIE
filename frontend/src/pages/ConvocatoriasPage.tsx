@@ -13,6 +13,7 @@ import {
   patchConvocatoria,
   type Convocatoria,
   type ConvocatoriaDetalle,
+  type ConvocatoriaHitoInput,
   type ConvocatoriaHito,
 } from "../api/convocatorias";
 import { useAuth } from "../auth/AuthContext";
@@ -36,6 +37,15 @@ function labelEstado(estado: string) {
   return map[estado] ?? estado;
 }
 
+function emptyHito(): ConvocatoriaHitoInput {
+  return {
+    nombre: "",
+    responsable: "",
+    fechaInicio: "",
+    fechaFin: "",
+  };
+}
+
 export function ConvocatoriasPage() {
   const { session, isAdminSession } = useAuth();
   const { showToast } = useToast();
@@ -57,6 +67,7 @@ export function ConvocatoriasPage() {
   const [apertura, setApertura] = useState("");
   const [cierre, setCierre] = useState("");
   const [presupuesto, setPresupuesto] = useState("");
+  const [hitos, setHitos] = useState<ConvocatoriaHitoInput[]>([emptyHito()]);
 
   const loadList = useCallback(async () => {
     setLoading(true);
@@ -88,8 +99,15 @@ export function ConvocatoriasPage() {
     setApertura("");
     setCierre("");
     setPresupuesto("");
+    setHitos([emptyHito()]);
     setEditingId(null);
     setShowForm(false);
+  }
+
+  function updateHito(index: number, update: Partial<ConvocatoriaHitoInput>) {
+    setHitos((current) =>
+      current.map((hito, i) => (i === index ? { ...hito, ...update } : hito)),
+    );
   }
 
   function startEditing(convocatoria: ConvocatoriaDetalle) {
@@ -101,6 +119,18 @@ export function ConvocatoriasPage() {
       convocatoria.presupuestoEstimado == null
         ? ""
         : String(convocatoria.presupuestoEstimado),
+    );
+    setHitos(
+      convocatoria.hitos.length > 0
+        ? convocatoria.hitos.map(
+            ({ nombre, responsable, fechaInicio, fechaFin }) => ({
+              nombre,
+              responsable,
+              fechaInicio,
+              fechaFin,
+            }),
+          )
+        : [emptyHito()],
     );
     setEditingId(convocatoria.id);
     setShowForm(true);
@@ -122,6 +152,24 @@ export function ConvocatoriasPage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!nombre.trim() || !apertura || !cierre) return;
+    if (
+      hitos.some(
+        (hito) =>
+          !hito.nombre.trim() ||
+          !hito.responsable.trim() ||
+          !hito.fechaInicio ||
+          !hito.fechaFin ||
+          hito.fechaInicio < apertura ||
+          hito.fechaFin > cierre ||
+          hito.fechaFin < hito.fechaInicio,
+      )
+    ) {
+      const msg =
+        "Cada actividad debe tener sus datos completos y fechas dentro del período de la convocatoria";
+      setError(msg);
+      showToast(msg, "error");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -134,6 +182,12 @@ export function ConvocatoriasPage() {
         presupuestoEstimado: presupuesto
           ? Number(presupuesto)
           : null,
+        hitos: hitos.map((hito) => ({
+          nombre: hito.nombre.trim(),
+          responsable: hito.responsable.trim(),
+          fechaInicio: hito.fechaInicio,
+          fechaFin: hito.fechaFin,
+        })),
       };
       if (editingId != null) {
         await patchConvocatoria(editingId, input);
@@ -142,14 +196,6 @@ export function ConvocatoriasPage() {
         const created = await createConvocatoria({
           ...input,
           estado: "borrador",
-          hitos: [
-            {
-              nombre: "Recepción de propuestas",
-              responsable: "VIE",
-              fechaInicio: apertura,
-              fechaFin: cierre,
-            },
-          ],
         });
         showToast("Borrador de convocatoria guardado", "success");
         await loadList();
@@ -267,8 +313,8 @@ export function ConvocatoriasPage() {
           <h2>{editingId == null ? "Nueva convocatoria" : "Editar borrador"}</h2>
           <p>
             {editingId == null
-              ? "Se guarda como borrador (incluye un hito inicial)."
-              : "Actualice los datos de la convocatoria antes de publicarla."}
+              ? "Se guarda como borrador. Agregue las actividades, responsables y fechas del cronograma."
+              : "Actualice los datos y el cronograma antes de publicar."}
           </p>
           <div className="form-grid two-col">
             <label className="field" style={{ gridColumn: "1 / -1" }}>
@@ -322,6 +368,94 @@ export function ConvocatoriasPage() {
                 onChange={(e) => setPresupuesto(e.target.value)}
               />
             </label>
+          </div>
+          <div className="stack-md convocatoria-schedule-editor">
+            <div className="section-inline">
+              <div>
+                <h3>Cronograma de actividades</h3>
+                <p className="muted">
+                  Ingrese una actividad, su responsable y el rango de fechas.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setHitos((current) => [...current, emptyHito()])}
+              >
+                Agregar actividad
+              </button>
+            </div>
+            {hitos.map((hito, index) => (
+              <div className="schedule-box" key={index}>
+                <div className="form-grid two-col">
+                  <label className="field" style={{ gridColumn: "1 / -1" }}>
+                    <span className="field-label">Actividad</span>
+                    <input
+                      className="input"
+                      maxLength={200}
+                      value={hito.nombre}
+                      onChange={(e) => updateHito(index, { nombre: e.target.value })}
+                      required
+                    />
+                  </label>
+                  <label className="field" style={{ gridColumn: "1 / -1" }}>
+                    <span className="field-label">Responsable</span>
+                    <input
+                      className="input"
+                      maxLength={120}
+                      value={hito.responsable}
+                      onChange={(e) =>
+                        updateHito(index, { responsable: e.target.value })
+                      }
+                      required
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Fecha de inicio</span>
+                    <input
+                      className="input"
+                      type="date"
+                      min={apertura || undefined}
+                      max={cierre || undefined}
+                      value={hito.fechaInicio}
+                      onChange={(e) =>
+                        updateHito(index, { fechaInicio: e.target.value })
+                      }
+                      required
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Fecha de fin</span>
+                    <input
+                      className="input"
+                      type="date"
+                      min={hito.fechaInicio || apertura || undefined}
+                      max={cierre || undefined}
+                      value={hito.fechaFin}
+                      onChange={(e) =>
+                        updateHito(index, { fechaFin: e.target.value })
+                      }
+                      required
+                    />
+                  </label>
+                  {hitos.length > 1 && (
+                    <div className="page-actions" style={{ gridColumn: "1 / -1" }}>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        onClick={() =>
+                          setHitos((current) =>
+                            current.filter((_, i) => i !== index),
+                          )
+                        }
+                      >
+                        Eliminar actividad
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
           <div className="page-actions">
             <button

@@ -33,6 +33,13 @@ export type ConvocatoriaDetalle = Convocatoria & {
   hitos: ConvocatoriaHito[];
 };
 
+export type ConvocatoriaHitoInput = {
+  nombre: string;
+  responsable: string;
+  fechaInicio: string;
+  fechaFin: string;
+};
+
 export type CreateConvocatoriaInput = {
   nombre: string;
   descripcion?: string | null;
@@ -40,12 +47,7 @@ export type CreateConvocatoriaInput = {
   fechaCierre: string;
   presupuestoEstimado?: number | null;
   estado?: ConvocatoriaEstado;
-  hitos?: {
-    nombre: string;
-    responsable?: string;
-    fechaInicio: string;
-    fechaFin: string;
-  }[];
+  hitos?: ConvocatoriaHitoInput[];
 };
 
 export function fetchConvocatorias() {

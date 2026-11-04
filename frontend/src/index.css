@@ -70,22 +70,154 @@
   padding-top: 24px;
 }
 
-.team-edit-table {
-  min-width: 1280px;
+.team-member-list {
+  display: grid;
+  gap: 16px;
 }
 
-.team-external-edit-table {
-  min-width: 950px;
+.team-member-card {
+  background: #fff;
+  border: 1px solid var(--ink-15);
+  border-radius: 12px;
+  padding: 18px;
 }
 
-.team-edit-table td {
-  vertical-align: top;
+.team-member-card-header {
+  align-items: center;
+  border-bottom: 1px solid var(--ink-08);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
 }
 
-.team-edit-table td > .input {
+.team-member-card-header h4 {
+  font-size: 14px;
+  margin: 0;
+}
+
+.team-member-fields {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.team-member-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  grid-column: span 6;
+  min-width: 0;
+}
+
+.team-member-field .input {
   box-sizing: border-box;
-  min-width: 140px;
+  min-height: 44px;
+  min-width: 0;
+  padding: 10px 12px;
   width: 100%;
+}
+
+.team-tec-fields > .team-member-field:nth-child(1) {
+  grid-column: span 6;
+}
+
+.team-tec-fields > .team-member-field:nth-child(2) {
+  grid-column: span 2;
+}
+
+.team-tec-fields > .team-member-field:nth-child(3) {
+  grid-column: span 4;
+}
+
+.team-tec-fields > .team-member-field:nth-child(4),
+.team-tec-fields > .team-member-field:nth-child(5) {
+  grid-column: span 6;
+}
+
+.team-tec-fields > .team-hours-field {
+  grid-column: 1 / -1;
+}
+
+.team-hours-field .stack-sm {
+  gap: 10px;
+}
+
+.team-hours-field .team-hours-row {
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 0.6fr) auto;
+}
+
+.team-hours-field .team-hours-row .input {
+  min-width: 0;
+  width: 100%;
+}
+
+.team-hours-field .team-hours-row .btn,
+.team-hours-field .team-add-hours {
+  min-height: 38px;
+  padding: 7px 11px;
+}
+
+.team-hours-field .team-add-hours {
+  margin-top: 4px;
+  justify-self: start;
+}
+
+.team-external-fields > .team-member-field:nth-child(1) {
+  grid-column: span 6;
+}
+
+.team-external-fields > .team-member-field:nth-child(2) {
+  grid-column: span 2;
+}
+
+.team-external-fields > .team-member-field:nth-child(3) {
+  grid-column: span 4;
+}
+
+.team-external-fields > .team-member-field:nth-child(4) {
+  grid-column: 1 / -1;
+}
+
+.team-empty-state {
+  background: var(--canvas);
+  border: 1px dashed var(--ink-15);
+  border-radius: 10px;
+  margin: 0;
+  padding: 18px;
+  text-align: center;
+}
+
+.research-lines {
+  border: 1px solid var(--ink-15);
+  border-radius: 12px;
+  margin: 0;
+  padding: 14px 16px 16px;
+}
+
+.research-lines-options {
+  display: grid;
+  gap: 10px;
+}
+
+.research-line-option {
+  align-items: center;
+  display: flex;
+  gap: 9px;
+  line-height: 1.4;
+}
+
+.research-line-option input {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.project-identification {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .team-hours-row {
@@ -251,6 +383,38 @@
 
 @media (max-width: 720px) {
   .action-plan-activity .team-hours-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .team-member-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team-member-field,
+  .team-tec-fields > .team-member-field:nth-child(n),
+  .team-external-fields > .team-member-field:nth-child(n) {
+    grid-column: 1 / -1;
+  }
+
+  .team-hours-field .team-hours-row {
+    grid-template-columns: minmax(0, 1fr) minmax(90px, 0.6fr) auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-member-card {
+    padding: 14px;
+  }
+
+  .team-member-card-header {
+    align-items: flex-start;
+  }
+
+  .team-member-card-header .btn {
+    flex-shrink: 0;
+  }
+
+  .team-hours-field .team-hours-row {
     grid-template-columns: minmax(0, 1fr);
   }
 }

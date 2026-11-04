@@ -173,7 +173,7 @@ export function ProposalDetailView({
                   <p className="body-copy">{proposal.abstract}</p>
                 </div>
               )}
-              {proposal.identificacion&&<section><h2>Identificación</h2><p>TRL actual: {proposal.identificacion.trlActual??"No declarado"}. TRL esperado: {proposal.identificacion.trlEsperado??"No declarado"}.</p><p>Líneas: {proposal.identificacion.lineas.join(", ")||"Sin líneas seleccionadas"}.</p></section>}
+              {proposal.identificacion&&<section><h2>Identificación</h2><p>{proposal.identificacion.trlActual!==null&&proposal.identificacion.trlActual!==proposal.identificacion.trlEsperado?`TRL actual: ${proposal.identificacion.trlActual}. `:""}TRL esperado: {proposal.identificacion.trlEsperado??"No declarado"}.</p><p>Líneas: {proposal.identificacion.lineas.join(", ")||"Sin líneas seleccionadas"}.</p></section>}
               {proposal.general && <div className="stack-lg">
                 {([
                   ["Planteamiento del problema",proposal.general.problema],["Objetivo general",proposal.general.objetivoGeneral],

@@ -33,8 +33,7 @@ type Props = {
   bloquearIdentificacion?:boolean;
   documentos?:ReactNode;
   lineas:number[];
-  trlActual:number|null;
-  onIdentificacion:(p:{lineas?:number[];trlActual?:number|null})=>void;
+  onIdentificacion:(p:{lineas?:number[]})=>void;
   step: number;
   form: FormWizardState;
   patch: (partial: Partial<FormWizardState>) => void;
@@ -60,6 +59,37 @@ function tipoInnovacionValue(value: string): TipoInnovacion {
 
 function nivelTrlValue(value: string): NivelTrl {
   return TRL_LEVELS.find((nivel) => nivel.value === value)?.value ?? "";
+}
+
+function formatOrcidInput(input: HTMLInputElement): string {
+  const cursorPosition = input.selectionStart ?? input.value.length;
+  const inputBeforeCursor = input.value
+    .slice(0, cursorPosition)
+    .toUpperCase()
+    .replace(/[^0-9X]/g, "");
+  const characters = input.value.toUpperCase().replace(/[^0-9X]/g, "");
+  const digits = characters.replace(/\D/g, "").slice(0, 16);
+  const value =
+    characters.endsWith("X") && digits.length === 15
+      ? `${digits}X`
+      : digits;
+  const digitsBeforeCursor = inputBeforeCursor.replace(/X/g, "").length;
+  const cursorCharacters = Math.min(
+    digitsBeforeCursor +
+      (inputBeforeCursor.endsWith("X") && value.endsWith("X") ? 1 : 0),
+    value.length,
+  );
+  const formatted =
+    value.match(/.{1,4}/g)?.join("-") ?? "";
+  const formattedCursor =
+    cursorCharacters === 0
+      ? 0
+      : cursorCharacters + Math.floor((cursorCharacters - 1) / 4);
+
+  requestAnimationFrame(() =>
+    input.setSelectionRange(formattedCursor, formattedCursor),
+  );
+  return formatted;
 }
 
 function QuestionBlock({
@@ -124,7 +154,7 @@ function YesNoRow({
 }
 
 export function FormWizardIan({
-  bloquearIdentificacion=false, documentos, lineas, trlActual, onIdentificacion,
+  bloquearIdentificacion=false, documentos, lineas, onIdentificacion,
   step,
   form,
   patch,
@@ -264,9 +294,33 @@ export function FormWizardIan({
         </div>
 
         {error&&<p role="alert">{error}</p>}
-        <fieldset><legend>Líneas de investigación</legend>{catalogos.lineas.map(l=><label key={l.id_linea_investigacion}><input type="checkbox" checked={lineas.includes(l.id_linea_investigacion)} onChange={e=>onIdentificacion({lineas:e.target.checked?[...lineas,l.id_linea_investigacion]:lineas.filter(id=>id!==l.id_linea_investigacion)})}/>{l.nombre}</label>)}</fieldset>
-        <label className="field">TRL actual (si aplica)<input className="input" type="number" min="1" max="9" value={trlActual??''} onChange={e=>onIdentificacion({trlActual:e.target.value?Number(e.target.value):null})}/></label>
-        <section className="form-section-block">
+        <fieldset className="research-lines">
+          <legend>Líneas de investigación</legend>
+          <div className="research-lines-options">
+            {catalogos.lineas.map((linea) => (
+              <label
+                className="research-line-option"
+                key={linea.id_linea_investigacion}
+              >
+                <input
+                  type="checkbox"
+                  checked={lineas.includes(linea.id_linea_investigacion)}
+                  onChange={(event) =>
+                    onIdentificacion({
+                      lineas: event.target.checked
+                        ? [...lineas, linea.id_linea_investigacion]
+                        : lineas.filter(
+                            (id) => id !== linea.id_linea_investigacion,
+                          ),
+                    })
+                  }
+                />
+                {linea.nombre}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <section className="form-section-block project-identification">
           <div className="numbered-title">
             <span>1</span>
             <h3>Identificación del proyecto</h3>
@@ -688,7 +742,9 @@ export function FormWizardIan({
             {form.modalidad === "Desarrollo tecnológico" ? (
               <label className="field">
                 <span className="field-label">
-                  Nivel de madurez tecnológica (TRL) esperado
+                  Si es una iniciativa de desarrollo tecnológico, indique el
+                  nivel de madurez tecnológica (TRL) que mejor lo describe según
+                  el siguiente cuadro:
                 </span>
                 <select
                   aria-label="Nivel de madurez tecnológica (TRL) esperado"
@@ -800,240 +856,253 @@ export function FormWizardIan({
               Agregar investigador/a TEC
             </button>
           </div>
-          <div className="table-wrap">
-            <table className="data-table wide-form-table team-edit-table">
-              <thead>
-                <tr>
-                  <th scope="col">Nombre y apellidos</th>
-                  <th scope="col">Iniciales</th>
-                  <th scope="col">ID ORCID *</th>
-                  <th scope="col">Instancia académica</th>
-                  <th scope="col">Condición (rol) *</th>
-                  <th scope="col">
-                    Cantidad y tipo de horas (REC, CONS, DOC VIE, VIESA o
-                    VIE-Centro)
-                  </th>
-                  <th scope="col">Periodo de nombramiento</th>
-                  <th scope="col">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {form.teamTec.length === 0 ? (
-                  <tr>
-                    <td colSpan={8}>
-                      Aún no agregaste personas funcionarias del TEC.
-                    </td>
-                  </tr>
-                ) : (
-                  form.teamTec.map((member, memberIndex) => (
-                    <tr key={member.id}>
-                      <td>
-                        <input
-                          className="input"
-                          value={member.nombre}
-                          maxLength={150}
-                          aria-label={`Nombre y apellidos, persona TEC ${memberIndex + 1}`}
-                          onChange={(event) =>
-                            patchTeamTec(member.id, {
-                              nombre: event.target.value,
-                            })
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          className="input"
-                          value={member.iniciales}
-                          maxLength={10}
-                          aria-label={`Iniciales, persona TEC ${memberIndex + 1}`}
-                          onChange={(event) =>
-                            patchTeamTec(member.id, {
-                              iniciales: event.target.value.toUpperCase(),
-                            })
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          className="input"
-                          value={member.orcid}
-                          maxLength={19}
-                          placeholder="0000-0000-0000-0000"
-                          aria-required="true"
-                          aria-label={`ID ORCID, persona TEC ${memberIndex + 1}`}
-                          onChange={(event) =>
-                            patchTeamTec(member.id, {
-                              orcid: event.target.value,
-                            })
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          className="input"
-                          value={member.instancia}
-                          maxLength={200}
-                          aria-label={`Instancia académica, persona TEC ${memberIndex + 1}`}
-                          onChange={(event) =>
-                            patchTeamTec(member.id, {
-                              instancia: event.target.value,
-                            })
-                          }
-                        />
-                      </td>
-                      <td>
-                        <select
-                          className="input"
-                          value={member.rol}
-                          aria-required="true"
-                          aria-label={`Condición o rol, persona TEC ${memberIndex + 1}`}
-                          onChange={(event) => {
-                            const role =
-                              TEAM_MEMBER_ROLES.find(
-                                (item) => item === event.target.value,
-                              ) ?? "";
-                            patchTeamTec(member.id, { rol: role });
-                          }}
-                        >
-                          <option value="">Elegí una condición</option>
-                          {TEAM_MEMBER_ROLES.map((role) => (
-                            <option key={role} value={role}>
-                              {role}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td>
-                        <div className="stack-sm">
-                          {(member.horas.length > 0
-                            ? member.horas
-                            : [{ tipo: "", cantidad: "" }]
-                          ).map((hours, hourIndex) => (
-                            <div
-                              className="team-hours-row"
-                              key={`${member.id}-hours-${hourIndex}`}
+          {form.teamTec.length === 0 ? (
+            <p className="team-empty-state">
+              Aún no agregaste personas funcionarias del TEC.
+            </p>
+          ) : (
+            <div className="team-member-list">
+              {form.teamTec.map((member, memberIndex) => (
+                <article className="team-member-card" key={member.id}>
+                  <div className="team-member-card-header">
+                    <h4>Persona investigadora TEC {memberIndex + 1}</h4>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() =>
+                        patch({
+                          teamTec: form.teamTec.filter(
+                            (item) => item.id !== member.id,
+                          ),
+                        })
+                      }
+                    >
+                      Quitar persona
+                    </button>
+                  </div>
+                  <div className="team-member-fields team-tec-fields">
+                    <label className="team-member-field">
+                      <span className="field-label">Nombre y apellidos</span>
+                      <input
+                        className="input"
+                        value={member.nombre}
+                        maxLength={150}
+                        aria-label={`Nombre y apellidos, persona TEC ${memberIndex + 1}`}
+                        onChange={(event) =>
+                          patchTeamTec(member.id, {
+                            nombre: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                    <label className="team-member-field">
+                      <span className="field-label">Iniciales</span>
+                      <input
+                        className="input"
+                        value={member.iniciales}
+                        maxLength={10}
+                        aria-label={`Iniciales, persona TEC ${memberIndex + 1}`}
+                        onChange={(event) =>
+                          patchTeamTec(member.id, {
+                            iniciales: event.target.value.toUpperCase(),
+                          })
+                        }
+                      />
+                    </label>
+                    <label className="team-member-field">
+                      <span className="field-label">ID ORCID *</span>
+                      <input
+                        className="input"
+                        value={member.orcid}
+                        maxLength={19}
+                        placeholder="0000-0000-0000-0000"
+                        aria-required="true"
+                        aria-label={`ID ORCID, persona TEC ${memberIndex + 1}`}
+                        onChange={(event) =>
+                          patchTeamTec(member.id, {
+                            orcid: formatOrcidInput(event.currentTarget),
+                          })
+                        }
+                      />
+                    </label>
+                    <label className="team-member-field">
+                      <span className="field-label">Instancia académica</span>
+                      <input
+                        className="input"
+                        value={member.instancia}
+                        maxLength={200}
+                        aria-label={`Instancia académica, persona TEC ${memberIndex + 1}`}
+                        onChange={(event) =>
+                          patchTeamTec(member.id, {
+                            instancia: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                    <label className="team-member-field">
+                      <span className="field-label">Condición (rol) *</span>
+                      <select
+                        className="input"
+                        value={member.rol}
+                        aria-required="true"
+                        aria-label={`Condición o rol, persona TEC ${memberIndex + 1}`}
+                        onChange={(event) => {
+                          const role =
+                            TEAM_MEMBER_ROLES.find(
+                              (item) => item === event.target.value,
+                            ) ?? "";
+                          patchTeamTec(member.id, { rol: role });
+                        }}
+                      >
+                        <option value="">Elegí una condición</option>
+                        {TEAM_MEMBER_ROLES.map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="team-member-field team-hours-field">
+                      <span className="field-label">
+                        Cantidad y tipo de horas
+                      </span>
+                      <div className="stack-sm">
+                        {(member.horas.length > 0
+                          ? member.horas
+                          : [{ tipo: "", cantidad: "" }]
+                        ).map((hours, hourIndex) => (
+                          <div
+                            className="team-hours-row"
+                            key={`${member.id}-hours-${hourIndex}`}
+                          >
+                            <label
+                              className="sr-only"
+                              htmlFor={`${member.id}-hours-type-${hourIndex}`}
                             >
-                              <label className="sr-only" htmlFor={`${member.id}-hours-type-${hourIndex}`}>
-                                Tipo de horas, persona TEC {memberIndex + 1}
-                              </label>
-                              <select
-                                id={`${member.id}-hours-type-${hourIndex}`}
-                                className="input"
-                                value={hours.tipo}
-                                aria-label={`Tipo de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
-                                onChange={(event) => {
-                                  const hourType =
-                                    TEAM_HOUR_TYPES.find(
-                                      (item) => item === event.target.value,
-                                    ) ?? "";
-                                  patchTeamHours(member.id, hourIndex, {
-                                    tipo: hourType,
-                                  });
-                                }}
-                              >
-                                <option value="">Tipo</option>
-                                {TEAM_HOUR_TYPES.map((type) => (
-                                  <option
-                                    key={type}
-                                    value={type}
-                                    disabled={member.horas.some(
-                                      (item, index) =>
-                                        index !== hourIndex &&
-                                        item.tipo === type,
-                                    )}
-                                  >
-                                    {type}
-                                  </option>
-                                ))}
-                              </select>
-                              <label className="sr-only" htmlFor={`${member.id}-hours-amount-${hourIndex}`}>
-                                Cantidad de horas, persona TEC {memberIndex + 1}
-                              </label>
-                              <input
-                                id={`${member.id}-hours-amount-${hourIndex}`}
-                                className="input"
-                                type="number"
-                                min="0.01"
-                                max="999.99"
-                                step="0.01"
-                                value={hours.cantidad}
-                                aria-label={`Cantidad de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
-                                onChange={(event) =>
-                                  patchTeamHours(member.id, hourIndex, {
-                                    cantidad: event.target.value,
+                              Tipo de horas, persona TEC {memberIndex + 1}
+                            </label>
+                            <select
+                              id={`${member.id}-hours-type-${hourIndex}`}
+                              className="input"
+                              value={hours.tipo}
+                              aria-label={`Tipo de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
+                              onChange={(event) => {
+                                const hourType =
+                                  TEAM_HOUR_TYPES.find(
+                                    (item) => item === event.target.value,
+                                  ) ?? "";
+                                patchTeamHours(member.id, hourIndex, {
+                                  tipo: hourType,
+                                });
+                              }}
+                            >
+                              <option value="">Tipo</option>
+                              {TEAM_HOUR_TYPES.map((type) => (
+                                <option
+                                  key={type}
+                                  value={type}
+                                  disabled={member.horas.some(
+                                    (item, index) =>
+                                      index !== hourIndex &&
+                                      item.tipo === type,
+                                  )}
+                                >
+                                  {type}
+                                </option>
+                              ))}
+                            </select>
+                            <label
+                              className="sr-only"
+                              htmlFor={`${member.id}-hours-amount-${hourIndex}`}
+                            >
+                              Cantidad de horas, persona TEC {memberIndex + 1}
+                            </label>
+                            <input
+                              id={`${member.id}-hours-amount-${hourIndex}`}
+                              className="input"
+                              type="number"
+                              min="0.01"
+                              max="999.99"
+                              step="0.01"
+                              value={hours.cantidad}
+                              aria-label={`Cantidad de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
+                              onChange={(event) =>
+                                patchTeamHours(member.id, hourIndex, {
+                                  cantidad: event.target.value,
+                                })
+                              }
+                            />
+                            {member.horas.length > 1 && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                aria-label={`Quitar tipo de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
+                                onClick={() =>
+                                  patchTeamTec(member.id, {
+                                    horas: member.horas.filter(
+                                      (_, index) => index !== hourIndex,
+                                    ),
                                   })
                                 }
-                              />
-                              {member.horas.length > 1 && (
-                                <button
-                                  type="button"
-                                  className="btn btn-secondary"
-                                  aria-label={`Quitar tipo de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
-                                  onClick={() =>
-                                    patchTeamTec(member.id, {
-                                      horas: member.horas.filter(
-                                        (_, index) => index !== hourIndex,
-                                      ),
-                                    })
-                                  }
-                                >
-                                  Quitar
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={() =>
-                              patchTeamTec(member.id, {
-                                horas: [
-                                  ...member.horas,
-                                  { tipo: "", cantidad: "" },
-                                ],
-                              })
-                            }
-                          >
-                            Agregar otro tipo de horas
-                          </button>
-                        </div>
-                      </td>
-                      <td>
-                        <input
-                          className="input"
-                          value={member.periodo}
-                          maxLength={60}
-                          placeholder="Ej. ene. 2027 - dic. 2027"
-                          aria-label={`Periodo de nombramiento, persona TEC ${memberIndex + 1}`}
-                          onChange={(event) =>
-                            patchTeamTec(member.id, {
-                              periodo: event.target.value,
-                            })
-                          }
-                        />
-                    <label className="field"><span className="field-label">Titular de horas CONS (si aplica)</span><input aria-label="Titular de horas CONS (si aplica)" className="input" value={member.titularCons??''} onChange={e=>patchTeamTec(member.id,{titularCons:e.target.value})}/></label>
-                      </td>
-                      <td>
+                              >
+                                Quitar
+                              </button>
+                            )}
+                          </div>
+                        ))}
                         <button
                           type="button"
-                          className="btn btn-secondary"
+                          className="btn btn-secondary team-add-hours"
                           onClick={() =>
-                            patch({
-                              teamTec: form.teamTec.filter(
-                                (item) => item.id !== member.id,
-                              ),
+                            patchTeamTec(member.id, {
+                              horas: [
+                                ...member.horas,
+                                { tipo: "", cantidad: "" },
+                              ],
                             })
                           }
                         >
-                          Quitar
+                          Agregar otro tipo de horas
                         </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+                    <label className="team-member-field">
+                      <span className="field-label">
+                        Periodo de nombramiento
+                      </span>
+                      <input
+                        className="input"
+                        value={member.periodo}
+                        maxLength={60}
+                        placeholder="Ej. ene. 2027 - dic. 2027"
+                        aria-label={`Periodo de nombramiento, persona TEC ${memberIndex + 1}`}
+                        onChange={(event) =>
+                          patchTeamTec(member.id, {
+                            periodo: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                    <label className="team-member-field">
+                      <span className="field-label">
+                        Titular de horas CONS (si aplica)
+                      </span>
+                      <input
+                        aria-label={`Titular de horas CONS, persona TEC ${memberIndex + 1}`}
+                        className="input"
+                        value={member.titularCons ?? ""}
+                        onChange={(event) =>
+                          patchTeamTec(member.id, {
+                            titularCons: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="stack-md" aria-labelledby="team-external-heading">
@@ -1064,122 +1133,123 @@ export function FormWizardIan({
               Agregar colaborador/a externo/a
             </button>
           </div>
-          <div className="table-wrap">
-            <table className="data-table wide-form-table team-edit-table team-external-edit-table">
-              <thead>
-                <tr>
-                  <th scope="col">Nombre completo del colaborador externo</th>
-                  <th scope="col">Iniciales</th>
-                  <th scope="col">ID ORCID *</th>
-                  <th scope="col">Institución o empresa que representa</th>
-                  <th scope="col">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {form.teamExternal.length === 0 ? (
-                  <tr>
-                    <td colSpan={5}>Aún no agregaste colaboradores externos.</td>
-                  </tr>
-                ) : (
-                  form.teamExternal.map((member, memberIndex) => (
-                    <tr key={member.id}>
-                      <td>
-                        <input
-                          className="input"
-                          value={member.nombre}
-                          maxLength={150}
-                          aria-label={`Nombre completo, colaborador externo ${memberIndex + 1}`}
-                          onChange={(event) =>
-                            patch({
-                              teamExternal: form.teamExternal.map((item) =>
-                                item.id === member.id
-                                  ? { ...item, nombre: event.target.value }
-                                  : item,
-                              ),
-                            })
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          className="input"
-                          value={member.iniciales}
-                          maxLength={10}
-                          aria-label={`Iniciales, colaborador externo ${memberIndex + 1}`}
-                          onChange={(event) =>
-                            patch({
-                              teamExternal: form.teamExternal.map((item) =>
-                                item.id === member.id
-                                  ? {
-                                      ...item,
-                                      iniciales: event.target.value.toUpperCase(),
-                                    }
-                                  : item,
-                              ),
-                            })
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          className="input"
-                          value={member.orcid}
-                          maxLength={19}
-                          placeholder="0000-0000-0000-0000"
-                          aria-required="true"
-                          aria-label={`ID ORCID, colaborador externo ${memberIndex + 1}`}
-                          onChange={(event) =>
-                            patch({
-                              teamExternal: form.teamExternal.map((item) =>
-                                item.id === member.id
-                                  ? { ...item, orcid: event.target.value }
-                                  : item,
-                              ),
-                            })
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          className="input"
-                          value={member.institucion}
-                          maxLength={200}
-                          aria-label={`Institución o empresa, colaborador externo ${memberIndex + 1}`}
-                          onChange={(event) =>
-                            patch({
-                              teamExternal: form.teamExternal.map((item) =>
-                                item.id === member.id
-                                  ? {
-                                      ...item,
-                                      institucion: event.target.value,
-                                    }
-                                  : item,
-                              ),
-                            })
-                          }
-                        />
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={() =>
-                            patch({
-                              teamExternal: form.teamExternal.filter(
-                                (item) => item.id !== member.id,
-                              ),
-                            })
-                          }
-                        >
-                          Quitar
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          {form.teamExternal.length === 0 ? (
+            <p className="team-empty-state">
+              Aún no agregaste colaboradores externos.
+            </p>
+          ) : (
+            <div className="team-member-list">
+              {form.teamExternal.map((member, memberIndex) => (
+                <article className="team-member-card" key={member.id}>
+                  <div className="team-member-card-header">
+                    <h4>Colaborador/a externo/a {memberIndex + 1}</h4>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() =>
+                        patch({
+                          teamExternal: form.teamExternal.filter(
+                            (item) => item.id !== member.id,
+                          ),
+                        })
+                      }
+                    >
+                      Quitar colaborador/a
+                    </button>
+                  </div>
+                  <div className="team-member-fields team-external-fields">
+                    <label className="team-member-field">
+                      <span className="field-label">
+                        Nombre completo del colaborador externo
+                      </span>
+                      <input
+                        className="input"
+                        value={member.nombre}
+                        maxLength={150}
+                        aria-label={`Nombre completo, colaborador externo ${memberIndex + 1}`}
+                        onChange={(event) =>
+                          patch({
+                            teamExternal: form.teamExternal.map((item) =>
+                              item.id === member.id
+                                ? { ...item, nombre: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }
+                      />
+                    </label>
+                    <label className="team-member-field">
+                      <span className="field-label">Iniciales</span>
+                      <input
+                        className="input"
+                        value={member.iniciales}
+                        maxLength={10}
+                        aria-label={`Iniciales, colaborador externo ${memberIndex + 1}`}
+                        onChange={(event) =>
+                          patch({
+                            teamExternal: form.teamExternal.map((item) =>
+                              item.id === member.id
+                                ? {
+                                    ...item,
+                                    iniciales: event.target.value.toUpperCase(),
+                                  }
+                                : item,
+                            ),
+                          })
+                        }
+                      />
+                    </label>
+                    <label className="team-member-field">
+                      <span className="field-label">ID ORCID *</span>
+                      <input
+                        className="input"
+                        value={member.orcid}
+                        maxLength={19}
+                        placeholder="0000-0000-0000-0000"
+                        aria-required="true"
+                        aria-label={`ID ORCID, colaborador externo ${memberIndex + 1}`}
+                        onChange={(event) =>
+                          patch({
+                            teamExternal: form.teamExternal.map((item) =>
+                              item.id === member.id
+                                ? {
+                                    ...item,
+                                    orcid: formatOrcidInput(event.currentTarget),
+                                  }
+                                : item,
+                            ),
+                          })
+                        }
+                      />
+                    </label>
+                    <label className="team-member-field">
+                      <span className="field-label">
+                        Institución o empresa que representa
+                      </span>
+                      <input
+                        className="input"
+                        value={member.institucion}
+                        maxLength={200}
+                        aria-label={`Institución o empresa, colaborador externo ${memberIndex + 1}`}
+                        onChange={(event) =>
+                          patch({
+                            teamExternal: form.teamExternal.map((item) =>
+                              item.id === member.id
+                                ? {
+                                    ...item,
+                                    institucion: event.target.value,
+                                  }
+                                : item,
+                            ),
+                          })
+                        }
+                      />
+                    </label>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
         <p className="field-hint">

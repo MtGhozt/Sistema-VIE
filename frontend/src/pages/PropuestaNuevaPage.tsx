@@ -110,7 +110,7 @@ export function PropuestaNuevaPage() {
         setIdConvocatoria(d.idConvocatoria);
         setForm((prev) => ({
           ...prev,
-          trlActual:d.trlActual,trlEsperado:d.trlEsperado,lineas:d.lineas??[],
+          trlActual:d.trlEsperado??d.trlActual,trlEsperado:d.trlEsperado,lineas:d.lineas??[],
           objetivosRegistrados:d.objetivosEspecificos??[],
           detallesFormulario:d.detallesFormulario??{},
           titulo: d.titulo,
@@ -158,7 +158,7 @@ export function PropuestaNuevaPage() {
     return {
       ...form.detallesFormulario,
       idConvocatoria:Number(idConvocatoria),
-      trlActual:form.trlActual,trlEsperado:form.trlEsperado,lineas:form.lineas,
+      trlActual:form.trlEsperado??form.trlActual,trlEsperado:form.trlEsperado,lineas:form.lineas,
       titulo: form.titulo.trim(),
       modalidad: form.modalidad,
       resumen: form.resumen.trim(),

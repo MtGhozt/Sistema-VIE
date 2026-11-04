@@ -172,6 +172,14 @@ Los acuerdos implementados están en [DECISIONES-D01-D04.md](correcciones/DECISI
 
 En desarrollo, Vite reenvía `/api` a `localhost:3000`; `VITE_API_URL` permite apuntar a otra API. El backend utiliza `DATABASE_URL` y `PORT` (3000 por defecto).
 
+### IA de apoyo al Comité
+
+El panel de evaluación individual permite generar una **sugerencia** con Gemini a partir de la rúbrica oficial. La IA nunca escribe la nota oficial: la persona evaluadora revisa, ajusta y justifica cada criterio, y solo su evaluación humana se consolida.
+
+Configure `GEMINI_API_KEY` en `backend/.env` (nunca en el frontend). El modelo predeterminado es `gemini-3.8-flash`, disponible en el nivel gratuito; `AI_MODEL` permite cambiarlo por otro modelo gratuito como `gemini-3.6-flash` o `gemini-3.5-flash-lite`. La clave se obtiene en <https://aistudio.google.com/apikey>.
+
+> En el nivel gratuito, Google puede usar el contenido enviado para mejorar sus productos. Para propuestas reales o información sensible, use una cuenta/cuota institucional con condiciones de privacidad adecuadas.
+
 ## Comité y reconsideración
 
 Las tres cuentas demo son `comite_evaluador@tec.ac.cr`, `comite_evaluador2@tec.ac.cr` y `comite_evaluador3@tec.ac.cr` (contraseña inicial `prototipo2026`). Seleccionar el rol Comité · Evaluador y cambiar el correo para usar cada cuenta. Después de tres entregas, la asistencia confirma el dictamen; una sola nota no adelanta el expediente.

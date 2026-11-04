@@ -2,6 +2,7 @@ import { alcancePropuestas, exigirAlcance, etapaRol } from "../alcancePropuestas
 import { seccionesSubsanacion } from "../subsanacion.js";
 import { readFileSync } from "node:fs";
 import { saveRubric, loadRubric, proposalRubric, committeeStatus, assignCommittee, productRequirements } from "../rubricas.js";
+import { generateEvaluacionIA, loadEvaluacionIA } from "../iaEvaluacion.js";
 import { HttpError } from "../middleware/HttpError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
@@ -371,6 +372,48 @@ evaluacionesRouter.get("/evaluaciones/propuestas/:id/rubrica", requireDemoAuth, 
   const assigned=instance!=="comite"||!!(await query("SELECT 1 FROM comite_miembro WHERE id_propuesta=$1 AND id_usuario=$2",[id,req.demoAuth!.userId])).rowCount;
   const ciclo=p.rows[0].ciclo_evaluacion;
   res.json({ciclo,asignado:assigned,scores:await loadRubric(pool,id,req.demoAuth!.userId!,instance,p.rows[0].modalidad,ciclo),productosVerificados:evaluation?.productos_verificados??false,productos:await productRequirements(pool,id,p.rows[0].modalidad),sections:rubric.definicion,version:rubric.codigo,estado:evaluation?.estado??null,productosCumplen:evaluation?.productos_cumplen??false});
+}));
+
+/** Verifica que la persona pueda operar la sugerencia de IA del Comité. */
+async function exigirEvaluadorComiteIA(id: number, auth: { userId: number | null; role: string | null }) {
+  await exigirAlcance(id, auth);
+  if (auth.role === "admin") return;
+  if (auth.role !== "comite_evaluador") {
+    throw new HttpError(403, "Solo las personas evaluadoras del Comité pueden consultar la sugerencia de IA");
+  }
+  const assigned = await query(
+    "SELECT 1 FROM comite_miembro WHERE id_propuesta=$1 AND id_usuario=$2",
+    [id, auth.userId],
+  );
+  if (!assigned.rowCount) throw new HttpError(403, "No está asignado como evaluador de este Comité");
+}
+
+/** Sugerencia de IA vigente para el ciclo y la rúbrica del expediente. */
+evaluacionesRouter.get("/evaluaciones/propuestas/:id/ia", requireDemoAuth, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isSafeInteger(id) || id < 1) { res.status(400).json({ error: "ID inválido" }); return; }
+  await exigirEvaluadorComiteIA(id, req.demoAuth!);
+  const p = await query<{ modalidad: string; ciclo_evaluacion: number }>(
+    "SELECT modalidad, ciclo_evaluacion FROM propuesta WHERE id_propuesta=$1",
+    [id],
+  );
+  if (!p.rows[0]) { res.status(404).json({ error: "Propuesta no encontrada" }); return; }
+  const rubric = await proposalRubric(pool, id, p.rows[0].modalidad);
+  res.json({
+    evaluacion: await loadEvaluacionIA(id, rubric.id_rubrica, p.rows[0].ciclo_evaluacion),
+  });
+}));
+
+/** Genera o regenera la sugerencia de IA; nunca escribe la nota humana. */
+evaluacionesRouter.post("/evaluaciones/propuestas/:id/ia", requireDemoAuth, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isSafeInteger(id) || id < 1) { res.status(400).json({ error: "ID inválido" }); return; }
+  await exigirEvaluadorComiteIA(id, req.demoAuth!);
+  if ((await query("SELECT 1 FROM resultado_comite WHERE id_propuesta=$1", [id])).rowCount) {
+    throw new HttpError(409, "El dictamen del Comité ya está cerrado; no se regenera la sugerencia de IA");
+  }
+  const evaluacion = await generateEvaluacionIA(id, req.demoAuth!.userId!);
+  res.status(201).json({ evaluacion });
 }));
 
 evaluacionesRouter.get('/evaluaciones/propuestas/:id/reconsideracion',requireDemoAuth,asyncHandler(async(req,res)=>{const id=Number(req.params.id);await exigirAlcance(id,req.demoAuth!);if(!['consejo','admin'].includes(req.demoAuth!.role!))throw new HttpError(403,'Solo el Consejo revisa la solicitud');res.json((await query('SELECT motivo,fecha_solicitud FROM reconsideracion_aval WHERE id_propuesta=$1 AND fecha_autorizacion IS NULL ORDER BY fecha_solicitud DESC',[id])).rows);}));

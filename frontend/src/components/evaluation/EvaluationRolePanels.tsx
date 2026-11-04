@@ -3,7 +3,12 @@ import {ComiteConsolidado} from "./ComiteConsolidado";
 import seccionesSubsanacion from "../../../../shared/subsanacion-secciones.json";
 import vieItems from "../../../../shared/checklist-vie.json";
 import { apiJson } from "../../api/client";
-import { fetchSavedRubric } from "../../api/evaluaciones";
+import {
+  fetchEvaluacionIA,
+  fetchSavedRubric,
+  postEvaluacionIA,
+  type EvaluacionIA,
+} from "../../api/evaluaciones";
 import { useEffect, useMemo, useState } from "react";
 import type { DemoProposal } from "../../data/demo";
 import {
@@ -347,6 +352,10 @@ function RubricPanel({
 
   const [loadingSaved, setLoadingSaved] = useState(Boolean(proposal.numericId));
   const [loadError, setLoadError] = useState("");
+  const [ai, setAi] = useState<EvaluacionIA | null>(null);
+  const [aiLoading, setAiLoading] = useState(Boolean(proposal.numericId) && !cie);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState("");
   useEffect(() => {
     if (!proposal.numericId) return;
     let active = true;
@@ -356,6 +365,40 @@ function RubricPanel({
       .finally(()=>{ if(active) setLoadingSaved(false); });
     return ()=>{active=false;};
   },[proposal.numericId,proposal.modalidad,cie]);
+  useEffect(() => {
+    if (cie || !proposal.numericId) { setAiLoading(false); return; }
+    let active = true;
+    setAiLoading(true);
+    void fetchEvaluacionIA(proposal.numericId)
+      .then((data) => { if (active) setAi(data.evaluacion); })
+      .catch((err) => { if (active) setAiError(err instanceof Error ? err.message : "No se pudo consultar la sugerencia de IA"); })
+      .finally(() => { if (active) setAiLoading(false); });
+    return () => { active = false; };
+  }, [proposal.numericId, cie]);
+  const aiCriteria = useMemo(
+    () => new Map((ai?.resultado.criterios ?? []).map((criterion) => [criterion.id, criterion])),
+    [ai],
+  );
+  const applyAiSuggestions = () => {
+    if (!ai) return;
+    setScores((previous) => Object.fromEntries(criteria.map((criterion) => {
+      const suggestion = aiCriteria.get(criterion.id);
+      return [criterion.id, suggestion ? { score: suggestion.puntaje, reason: suggestion.justificacion } : previous[criterion.id]];
+    })));
+  };
+  const generateAi = async () => {
+    if (!proposal.numericId) return;
+    setAiBusy(true);
+    setAiError("");
+    try {
+      const data = await postEvaluacionIA(proposal.numericId);
+      setAi(data.evaluacion);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : "No se pudo generar la evaluación con IA");
+    } finally {
+      setAiBusy(false);
+    }
+  };
   const availablePoints = criteria.reduce((sum,c)=>sum+c.weight,0);
 
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -408,6 +451,72 @@ function RubricPanel({
           </div>
         </div>
 
+        {!cie && proposal.numericId && (
+          <article className="card ai-eval" aria-live="polite">
+            <div className="ai-eval-head">
+              <div>
+                <p className="eyebrow">Apoyo automatizado · no vinculante</p>
+                <h3>Evaluación sugerida por IA</h3>
+                <p className="muted">
+                  Analiza el expediente con la rúbrica oficial Fondos VIE 2027.
+                  Es una sugerencia para su revisión: la calificación definitiva
+                  y su justificación son humanas.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={aiBusy}
+                onClick={() => void generateAi()}
+              >
+                {aiBusy
+                  ? "Generando evaluación…"
+                  : ai
+                    ? "Regenerar evaluación IA"
+                    : "Generar evaluación con IA"}
+              </button>
+            </div>
+            {aiLoading && <p role="status">Buscando sugerencia de IA…</p>}
+            {aiError && <p role="alert" className="field-error-text">{aiError}</p>}
+            {ai && (
+              <>
+                <div className="ai-eval-summary">
+                  <div className={`ai-eval-score ${ai.recomendacion === "RECOMIENDA" ? "is-positive" : "is-negative"}`}>
+                    <strong>{ai.puntajeTotal}</strong>
+                    <span>/ 100</span>
+                    <small>{ai.recomendacion}</small>
+                  </div>
+                  <div>
+                    <p>{ai.resumen}</p>
+                    <small className="muted">
+                      {ai.modelo} · {new Date(ai.fechaGeneracion).toLocaleString("es-CR")} · generada por {ai.generadoPor}
+                    </small>
+                  </div>
+                </div>
+                {ai.resultado.alertas.length > 0 && (
+                  <ul className="ai-eval-alerts">
+                    {ai.resultado.alertas.map((alert) => <li key={alert}>{alert}</li>)}
+                  </ul>
+                )}
+                <div className="action-row">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={applyAiSuggestions}
+                  >
+                    Usar sugerencias como punto de partida
+                  </button>
+                </div>
+                <p className="muted">
+                  Se copiarán las notas y justificaciones sugeridas a su
+                  evaluación. Revíselas, corríjalas y confirme: la nota final es
+                  humana.
+                </p>
+              </>
+            )}
+          </article>
+        )}
+
         <p>Versión del expediente: {version} · Ciclo {cycle}</p>
         {!cie&&proposal.numericId&&<ComiteConsolidado id={proposal.numericId}/>}
         {!assigned&&<p role="status">Solo las personas asignadas al Comité pueden guardar una evaluación individual.</p>}
@@ -426,6 +535,7 @@ function RubricPanel({
               const id = `${section.id}-${idx}`;
               const full = criteria.find((c) => c.id === id)!;
               const row = scores[id];
+              const aiSuggestion = aiCriteria.get(id);
               return (
                 <article key={id} className="card criterion">
                   <div className="criterion-head">
@@ -439,6 +549,31 @@ function RubricPanel({
                   </div>
                   {full.requirement&&<p>{full.requirement}</p>}
                   <p>{full.levels[String(row?.score??0)]}</p>
+                  {!cie && aiSuggestion && (
+                    <div className="ai-criterion">
+                      <div className="ai-criterion-head">
+                        <span>Sugerencia IA</span>
+                        <strong>{aiSuggestion.puntaje} / 10</strong>
+                        {aiSuggestion.confianza && <small>Confianza {aiSuggestion.confianza}</small>}
+                      </div>
+                      <p>{aiSuggestion.justificacion}</p>
+                      {aiSuggestion.evidencia && (
+                        <small>Evidencia: {aiSuggestion.evidencia}</small>
+                      )}
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() =>
+                          setScores((current) => ({
+                            ...current,
+                            [id]: { score: aiSuggestion.puntaje, reason: aiSuggestion.justificacion },
+                          }))
+                        }
+                      >
+                        Usar esta sugerencia
+                      </button>
+                    </div>
+                  )}
                   <div className="human-eval">
                     <label className="field" htmlFor={`valoracion-${id}`}>
                       <span className="field-label">Valoración humana</span>

@@ -40,11 +40,12 @@ export function createApp() {
     if (res.headersSent) { next(error); return; }
     if (error instanceof HttpError) { res.status(error.status).json({ error: error.message }); return; }
     if(error?.type === "entity.too.large"){res.status(413).json({error:_req.is("application/json")?"El formulario supera el tamaño máximo de una solicitud. Reduzca los textos o registros extensos antes de guardar; los anexos se cargan desde Documentación.":"El archivo supera el máximo de 10 MiB"});return;}
-    const code = error && typeof error === "object" ? error.code : undefined;
-    console.error("[api]", error instanceof Error ? error.message : "Error inesperado");
+    const code = error && typeof error === "object" ? (error as { code?: string }).code : undefined;
+    const detail = error instanceof Error ? error.message : "Error inesperado";
+    console.error("[api]", detail, code ? `(${code})` : "");
     if (["22P02","22003","23503"].includes(String(code))) {res.status(400).json({error:"Dato o referencia no válidos; no se guardaron cambios"});return;}
     if (code === "22001") {
-      const limit=String(error?.message??'').match(/(?:character varying|character)\((\d+)\)/)?.[1];
+      const limit=String((error as { message?: string })?.message??'').match(/(?:character varying|character)\((\d+)\)/)?.[1];
       res.status(400).json({error:limit?`Uno de los textos supera el máximo de ${limit} caracteres permitido por su campo. Acórtelo antes de guardar.`:"Uno de los textos supera la longitud permitida por su campo. Acórtelo antes de guardar."});return;
     }
     if (["22007","22008"].includes(String(code))) {res.status(400).json({error:"Hay una fecha inválida o fuera de rango. Revise las fechas de inicio y finalización."});return;}
@@ -57,11 +58,46 @@ export function createApp() {
         propuesta_objetivo_especifico_id_propuesta_numero_idx:"Objetivos específicos: dos registros utilizan el mismo número. Recargue el expediente antes de volver a guardar.",
         actividad_plan_id_propuesta_id_objetivo_numero_idx:"Plan de acción: dos actividades utilizan el mismo número dentro de un objetivo. Recargue el expediente antes de volver a guardar.",
       };
-      const constraint=String(error?.constraint??'');
+      const constraint=String((error as { constraint?: string })?.constraint??'');
       res.status(409).json({ error: Object.hasOwn(reasons,constraint)?reasons[constraint]:"Hay un dato duplicado que debe ser único. No se guardaron los cambios; revise los registros repetidos." });
       return;
     }
-    res.status(500).json({ error: "No se pudo completar la operación" });
+    // Errores de Postgres / red con mensaje accionable en español
+    if (code === "42P01") {
+      const table = detail.match(/relation "([^"]+)"/)?.[1];
+      res.status(500).json({
+        error: table
+          ? `Falta la tabla «${table}» en la base de datos. Ejecute pnpm db:migrate con DATABASE_URL configurada.`
+          : "Falta una tabla en la base de datos. Ejecute pnpm db:migrate con DATABASE_URL configurada.",
+      });
+      return;
+    }
+    if (code === "42703") {
+      const col = detail.match(/column "([^"]+)"/)?.[1];
+      res.status(500).json({
+        error: col
+          ? `Falta la columna «${col}» en la base de datos. Ejecute pnpm db:migrate con DATABASE_URL configurada.`
+          : "El esquema de la base de datos está desactualizado. Ejecute pnpm db:migrate.",
+      });
+      return;
+    }
+    if (code === "ECONNREFUSED" || code === "57P01" || /ECONNREFUSED|connect ETIMEDOUT|Connection terminated/i.test(detail)) {
+      res.status(503).json({
+        error: "No hay conexión con PostgreSQL. Verifique que el contenedor esté en ejecución (docker compose up -d).",
+      });
+      return;
+    }
+    if (code === "28P01" || code === "3D000") {
+      res.status(500).json({
+        error: "Credenciales o nombre de base de datos incorrectos. Revise DATABASE_URL.",
+      });
+      return;
+    }
+    const safeDetail =
+      detail.length > 220 ? `${detail.slice(0, 220)}…` : detail;
+    res.status(500).json({
+      error: `No se pudo completar la operación: ${safeDetail}`,
+    });
   };
   app.use(handleError);
   return app;

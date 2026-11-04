@@ -1,6 +1,6 @@
 import { labelEstado, STAGE_LABELS } from "../data/proposalStates";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { fetchPropuestas, type Propuesta } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
@@ -12,6 +12,7 @@ export function PropuestasPage() {
   const { session, isAdminSession } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const role = session?.viewRole;
   const isAdminView = isAdminSession && role === "admin";
   const canCreate =
@@ -19,20 +20,33 @@ export function PropuestasPage() {
 
   const [rows, setRows] = useState<Propuesta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [estado, setEstado] = useState("Todos");
+  const estadoFromUrl = searchParams.get("estado");
+  const [estado, setEstado] = useState(estadoFromUrl || "Todos");
+  const lastToast = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (estadoFromUrl) setEstado(estadoFromUrl);
+  }, [estadoFromUrl]);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       setRows(await fetchPropuestas());
+      lastToast.current = null;
     } catch (err) {
-      showToast(
+      const mensaje =
         err instanceof ApiError
           ? err.message
-          : "No se pudieron cargar las propuestas",
-        "error",
-      );
+          : "No se pudieron cargar las propuestas";
+      setLoadError(mensaje);
+      // Evita dos toasts idénticos (p. ej. StrictMode en desarrollo)
+      if (lastToast.current !== mensaje) {
+        lastToast.current = mensaje;
+        showToast(mensaje, "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -47,6 +61,17 @@ export function PropuestasPage() {
     [rows],
   );
 
+  const matchesEstado = useCallback((estadoActual: string, filter: string) => {
+    if (filter === "Todos") return true;
+    const code = estadoActual.toLowerCase();
+    const label = labelEstado(estadoActual);
+    return (
+      label === filter ||
+      label.toLowerCase() === filter.toLowerCase() ||
+      code === filter.toLowerCase()
+    );
+  }, []);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows.filter((p) => {
@@ -55,11 +80,10 @@ export function PropuestasPage() {
         `${p.titulo} ${p.codigo} ${p.coordinadorNombre} ${p.escuelaNombre}`
           .toLowerCase()
           .includes(q);
-      const est =
-        estado === "Todos" || labelEstado(p.estadoActual) === estado;
+      const est = matchesEstado(p.estadoActual, estado);
       return hay && est;
     });
-  }, [rows, query, estado]);
+  }, [rows, query, estado, matchesEstado]);
 
   return (
     <>
@@ -86,24 +110,39 @@ export function PropuestasPage() {
         )}
       </header>
 
-      <section className="card" aria-busy={loading}>
-        <div className="toolbar">
-          <div className="search-field">
+      <section className="card filter-card" style={{ marginBottom: 18 }}>
+        <div className="filter-card-title">
+          <strong>Filtros de búsqueda</strong>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={!query && estado === "Todos"}
+            onClick={() => {
+              setQuery("");
+              setEstado("Todos");
+            }}
+          >
+            Limpiar
+          </button>
+        </div>
+        <div className="form-grid two-col">
+          <label className="field" htmlFor="prop-filtro-q">
+            <span className="field-label">Buscar</span>
             <input
+              id="prop-filtro-q"
+              className="input"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar por título, código, escuela o investigador..."
-              aria-label="Buscar propuestas"
+              placeholder="Título, código, escuela o investigador…"
             />
-          </div>
-          <label className="filter-select">
-            <span className="field-label" style={{ margin: 0 }}>
-              Estado
-            </span>
+          </label>
+          <label className="field" htmlFor="prop-filtro-estado">
+            <span className="field-label">Estado</span>
             <select
+              id="prop-filtro-estado"
+              className="input"
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
-              aria-label="Filtrar por estado"
             >
               {estados.map((e) => (
                 <option key={e} value={e}>
@@ -113,23 +152,27 @@ export function PropuestasPage() {
             </select>
           </label>
         </div>
+      </section>
 
-        {!loading && (
-          <p className="sr-only" role="status" aria-live="polite">
-            {filtered.length}{" "}
-            {filtered.length === 1
-              ? "propuesta coincide con los filtros"
-              : "propuestas coinciden con los filtros"}
+      <section className="card">
+        <div className="section-inline" style={{ marginBottom: 12 }}>
+          <strong>
+            {loading
+              ? "Cargando…"
+              : `${filtered.length} resultado${filtered.length === 1 ? "" : "s"}`}
+          </strong>
+          <span className="muted">Los filtros pueden combinarse</span>
+        </div>
+
+        {loading && <p>Cargando…</p>}
+
+        {!loading && loadError && (
+          <p role="alert" className="field-hint" style={{ color: "var(--danger, #b00020)" }}>
+            {loadError}
           </p>
         )}
 
-        {loading && (
-          <p role="status" aria-live="polite">
-            Cargando propuestas…
-          </p>
-        )}
-
-        {!loading && filtered.length === 0 && (
+        {!loading && !loadError && filtered.length === 0 && (
           <div className="empty-state small">
             <strong>Todavía no hay propuestas</strong>
             <span>
@@ -143,20 +186,15 @@ export function PropuestasPage() {
         {!loading && filtered.length > 0 && (
           <div className="table-wrap">
             <table className="data-table">
-              <caption className="sr-only">
-                Listado de propuestas con estado y etapa del expediente
-              </caption>
               <thead>
                 <tr>
-                  <th scope="col">Propuesta</th>
-                  {isAdminView && <th scope="col">Investigador/a</th>}
-                  <th scope="col">Escuela</th>
-                  <th scope="col">Modalidad</th>
-                  <th scope="col">Estado</th>
-                  <th scope="col">Expediente</th>
-                  <th scope="col">
-                    <span className="sr-only">Acciones</span>
-                  </th>
+                  <th>Propuesta</th>
+                  {isAdminView && <th>Investigador/a</th>}
+                  <th>Escuela</th>
+                  <th>Modalidad</th>
+                  <th>Estado</th>
+                  <th>Expediente</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -165,17 +203,18 @@ export function PropuestasPage() {
                     <tr
                       key={p.id}
                       className="clickable"
+                      tabIndex={0}
                       onClick={() => navigate(`/propuestas/${p.id}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          navigate(`/propuestas/${p.id}`);
+                        }
+                      }}
                     >
                       <td>
                         <div className="table-primary">
-                          <Link
-                            to={`/propuestas/${p.id}`}
-                            className="table-link"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <strong>{p.titulo}</strong>
-                          </Link>
+                          <strong>{p.titulo}</strong>
                           <span>
                             {p.codigo} · {p.modalidadLabel}
                           </span>
@@ -196,7 +235,6 @@ export function PropuestasPage() {
                         <Link
                           to={`/propuestas/${p.id}`}
                           className="btn btn-ghost"
-                          aria-label={`Ver propuesta ${p.codigo}: ${p.titulo}`}
                           onClick={(e) => e.stopPropagation()}
                         >
                           Ver

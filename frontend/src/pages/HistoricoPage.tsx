@@ -10,8 +10,6 @@ import {
 import { ApiError } from "../api/client";
 import { ProcessTimeline } from "../components/ProcessTimeline";
 import { SimpleModal } from "../components/evaluation/SimpleModal";
-import { useToast } from "../components/toast/ToastContext";
-
 const EMPTY_OPTIONS: HistoricoOpciones = {
   escuelas: [],
   lineas: [],
@@ -111,7 +109,6 @@ function HistoricoModal({
 
 export function HistoricoPage() {
   const { codigo } = useParams();
-  const { showToast } = useToast();
   const [filtros, setFiltros] = useState<HistoricoFiltros>(
     EMPTY_HISTORICO_FILTROS,
   );
@@ -134,12 +131,12 @@ export function HistoricoPage() {
         err instanceof ApiError
           ? err.message
           : "No se pudo consultar el histórico de propuestas";
+      // Solo error inline: evita duplicar el mismo mensaje en toast
       setError(mensaje);
-      showToast(mensaje, "error");
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, []);
 
   // La búsqueda por texto se difiere 300 ms para no golpear la API en cada tecla.
   useEffect(() => {

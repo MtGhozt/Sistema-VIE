@@ -1,10 +1,11 @@
 import {
   useCallback,
   useEffect,
-  useRef,
+  useMemo,
   useState,
   type FormEvent,
 } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import {
   createConvocatoria,
@@ -19,6 +20,37 @@ import {
 } from "../api/convocatorias";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../components/toast/ToastContext";
+
+const YEAR_MIN = 2000;
+const YEAR_MAX = 2100;
+
+function yearOf(iso: string) {
+  const y = Number(iso.slice(0, 4));
+  return Number.isFinite(y) ? y : NaN;
+}
+
+function datesInAllowedRange(inicio: string, fin: string) {
+  const yi = yearOf(inicio);
+  const yf = yearOf(fin);
+  return (
+    yi >= YEAR_MIN &&
+    yi <= YEAR_MAX &&
+    yf >= YEAR_MIN &&
+    yf <= YEAR_MAX &&
+    fin >= inicio
+  );
+}
+
+function isProximaCierre(c: Convocatoria, today = new Date()) {
+  if (c.estado !== "activa") return false;
+  const cierre = new Date(c.fechaCierre.slice(0, 10));
+  const start = new Date(today);
+  start.setHours(0, 0, 0, 0);
+  const limit = new Date(start);
+  limit.setDate(limit.getDate() + 30);
+  cierre.setHours(0, 0, 0, 0);
+  return cierre >= start && cierre <= limit;
+}
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
@@ -50,6 +82,7 @@ function emptyHito(): ConvocatoriaHitoInput {
 export function ConvocatoriasPage() {
   const { session, isAdminSession } = useAuth();
   const { showToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const canPublish =
     session?.role === "vie_publicacion" ||
     session?.role === "admin" ||
@@ -62,13 +95,9 @@ export function ConvocatoriasPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [detail, setDetail] = useState<ConvocatoriaDetalle | null>(null);
-  const detailTitleRef = useRef<HTMLHeadingElement>(null);
-
-  // Al abrir un detalle, el foco va al título para que el lector anuncie el
-  // nuevo bloque sin que la persona tenga que buscarlo.
-  useEffect(() => {
-    if (detail) detailTitleRef.current?.focus();
-  }, [detail]);
+  const [query, setQuery] = useState("");
+  const estadoParam = searchParams.get("estado") ?? "";
+  const [estadoFiltro, setEstadoFiltro] = useState(estadoParam || "todas");
 
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -76,6 +105,11 @@ export function ConvocatoriasPage() {
   const [cierre, setCierre] = useState("");
   const [presupuesto, setPresupuesto] = useState("");
   const [hitos, setHitos] = useState<ConvocatoriaHitoInput[]>([emptyHito()]);
+  const [scheduleOpen, setScheduleOpen] = useState(true);
+
+  useEffect(() => {
+    if (estadoParam) setEstadoFiltro(estadoParam);
+  }, [estadoParam]);
 
   const loadList = useCallback(async () => {
     setLoading(true);
@@ -101,6 +135,30 @@ export function ConvocatoriasPage() {
     void loadList();
   }, [loadList]);
 
+  const filteredRows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return rows.filter((c) => {
+      const hay =
+        !q ||
+        `${c.nombre} ${c.descripcion ?? ""} VIE-${c.id}`
+          .toLowerCase()
+          .includes(q);
+      const est = estadoFiltro.toLowerCase();
+      let matchEstado = true;
+      if (est && est !== "todas") {
+        if (est === "proximas" || est === "próximas") matchEstado = isProximaCierre(c);
+        else if (est === "activa" || est === "publicada")
+          matchEstado = c.estado === "activa";
+        else if (est === "finalizada" || est === "finalizadas" || est === "cerrada")
+          matchEstado = c.estado === "cerrada" || c.estado === "finalizada";
+        else if (est === "borrador" || est === "borradores")
+          matchEstado = c.estado === "borrador";
+        else matchEstado = c.estado === est;
+      }
+      return hay && matchEstado;
+    });
+  }, [rows, query, estadoFiltro]);
+
   function resetForm() {
     setNombre("");
     setDescripcion("");
@@ -110,6 +168,7 @@ export function ConvocatoriasPage() {
     setHitos([emptyHito()]);
     setEditingId(null);
     setShowForm(false);
+    setDetail(null);
   }
 
   function updateHito(index: number, update: Partial<ConvocatoriaHitoInput>) {
@@ -160,6 +219,19 @@ export function ConvocatoriasPage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!nombre.trim() || !apertura || !cierre) return;
+    if (!datesInAllowedRange(apertura, cierre)) {
+      const msg =
+        "Las fechas de apertura y cierre deben ser coherentes (cierre ≥ apertura) y estar entre los años 2000 y 2100.";
+      setError(msg);
+      showToast(msg, "error");
+      return;
+    }
+    if (presupuesto !== "" && Number(presupuesto) < 0) {
+      const msg = "El presupuesto estimado no puede ser negativo.";
+      setError(msg);
+      showToast(msg, "error");
+      return;
+    }
     if (
       hitos.some(
         (hito) =>
@@ -167,11 +239,13 @@ export function ConvocatoriasPage() {
           !hito.responsable.trim() ||
           !hito.fechaInicio ||
           !hito.fechaFin ||
-          hito.fechaFin < hito.fechaInicio,
+          !datesInAllowedRange(hito.fechaInicio, hito.fechaFin) ||
+          hito.fechaInicio < apertura ||
+          hito.fechaFin > cierre,
       )
     ) {
       const msg =
-        "Cada actividad debe tener sus datos completos y fechas coherentes";
+        "Cada actividad debe tener datos completos, fin ≥ inicio (años 2000–2100) y fechas dentro del rango de la convocatoria.";
       setError(msg);
       showToast(msg, "error");
       return;
@@ -286,6 +360,7 @@ export function ConvocatoriasPage() {
               type="button"
               className="btn btn-primary"
               onClick={() => {
+                setDetail(null);
                 if (showForm && editingId == null) {
                   resetForm();
                 } else {
@@ -342,21 +417,24 @@ export function ConvocatoriasPage() {
               />
             </label>
             <label className="field">
-              <span className="field-label">Apertura</span>
+              <span className="field-label">Apertura (día/mes/año)</span>
               <input
                 className="input"
                 type="date"
+                min={`${YEAR_MIN}-01-01`}
+                max={`${YEAR_MAX}-12-31`}
                 value={apertura}
                 onChange={(e) => setApertura(e.target.value)}
                 required
               />
             </label>
             <label className="field">
-              <span className="field-label">Cierre</span>
+              <span className="field-label">Cierre (día/mes/año)</span>
               <input
                 className="input"
                 type="date"
-                min={apertura || undefined}
+                min={apertura || `${YEAR_MIN}-01-01`}
+                max={`${YEAR_MAX}-12-31`}
                 value={cierre}
                 onChange={(e) => setCierre(e.target.value)}
                 required
@@ -378,20 +456,30 @@ export function ConvocatoriasPage() {
           <div className="stack-md convocatoria-schedule-editor">
             <div className="section-inline">
               <div>
-                <h3>Cronograma de actividades</h3>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  aria-expanded={scheduleOpen}
+                  onClick={() => setScheduleOpen((o) => !o)}
+                >
+                  {scheduleOpen ? "▾" : "▸"} Cronograma de actividades
+                </button>
                 <p className="muted">
                   Ingrese una actividad, su responsable y el rango de fechas.
                 </p>
               </div>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setHitos((current) => [...current, emptyHito()])}
-              >
-                Agregar actividad
-              </button>
+              {scheduleOpen && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setHitos((current) => [...current, emptyHito()])}
+                >
+                  Agregar actividad
+                </button>
+              )}
             </div>
-            {hitos.map((hito, index) => (
+            {scheduleOpen &&
+              hitos.map((hito, index) => (
               <div className="schedule-box" key={index}>
                 <div className="form-grid two-col">
                   <label className="field" style={{ gridColumn: "1 / -1" }}>
@@ -421,6 +509,8 @@ export function ConvocatoriasPage() {
                     <input
                       className="input"
                       type="date"
+                      min={apertura || `${YEAR_MIN}-01-01`}
+                      max={cierre || `${YEAR_MAX}-12-31`}
                       value={hito.fechaInicio}
                       onChange={(e) =>
                         updateHito(index, { fechaInicio: e.target.value })
@@ -433,7 +523,8 @@ export function ConvocatoriasPage() {
                     <input
                       className="input"
                       type="date"
-                      min={hito.fechaInicio || undefined}
+                      min={hito.fechaInicio || apertura || `${YEAR_MIN}-01-01`}
+                      max={cierre || `${YEAR_MAX}-12-31`}
                       value={hito.fechaFin}
                       onChange={(e) =>
                         updateHito(index, { fechaFin: e.target.value })
@@ -446,7 +537,6 @@ export function ConvocatoriasPage() {
                       <button
                         type="button"
                         className="btn btn-ghost"
-                        aria-label={`Eliminar actividad ${index + 1} del cronograma`}
                         onClick={() =>
                           setHitos((current) =>
                             current.filter((_, i) => i !== index),
@@ -484,50 +574,99 @@ export function ConvocatoriasPage() {
         </form>
       )}
 
-      <section className="card convocatorias-list" aria-busy={loading}>
-        {!loading && (
-          <p className="sr-only" role="status" aria-live="polite">
-            {rows.length}{" "}
-            {rows.length === 1
-              ? "convocatoria disponible"
-              : "convocatorias disponibles"}
-          </p>
-        )}
+      {!(showForm && editingId == null) && (
+      <>
+      <section className="card filter-card" style={{ marginBottom: 18 }}>
+        <div className="filter-card-title">
+          <strong>Filtros de búsqueda</strong>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={
+              !query &&
+              (!estadoFiltro || estadoFiltro === "todas")
+            }
+            onClick={() => {
+              setQuery("");
+              setEstadoFiltro("todas");
+              setSearchParams({});
+            }}
+          >
+            Limpiar
+          </button>
+        </div>
+        <div className="form-grid two-col">
+          <label className="field" htmlFor="conv-filtro-q">
+            <span className="field-label">Buscar</span>
+            <input
+              id="conv-filtro-q"
+              className="input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Nombre, descripción o ID…"
+            />
+          </label>
+          <label className="field" htmlFor="conv-filtro-estado">
+            <span className="field-label">Estado</span>
+            <select
+              id="conv-filtro-estado"
+              className="input"
+              value={estadoFiltro || "todas"}
+              onChange={(e) => {
+                const v = e.target.value;
+                setEstadoFiltro(v);
+                if (!v || v === "todas") setSearchParams({});
+                else setSearchParams({ estado: v });
+              }}
+            >
+              <option value="todas">Todas</option>
+              <option value="activa">Publicadas / activas</option>
+              <option value="borrador">Borradores</option>
+              <option value="proximas">Próximas a cerrar</option>
+              <option value="cerrada">Finalizadas / cerradas</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section className="card convocatorias-list">
+        <div className="section-inline" style={{ marginBottom: 12 }}>
+          <strong>
+            {loading
+              ? "Cargando…"
+              : `${filteredRows.length} resultado${filteredRows.length === 1 ? "" : "s"}`}
+          </strong>
+          <span className="muted">Los filtros pueden combinarse</span>
+        </div>
         <div className="table-wrap">
           <table className="data-table">
-            <caption className="sr-only">
-              Listado de convocatorias con fechas, estado y cantidad de
-              propuestas
-            </caption>
             <thead>
               <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Convocatoria</th>
-                <th scope="col">Apertura</th>
-                <th scope="col">Cierre</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Propuestas</th>
-                <th scope="col">
-                  <span className="sr-only">Acciones</span>
-                </th>
+                <th>ID</th>
+                <th>Convocatoria</th>
+                <th>Apertura</th>
+                <th>Cierre</th>
+                <th>Estado</th>
+                <th>Propuestas</th>
+                <th />
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
+                  <td colSpan={7}>Cargando…</td>
+                </tr>
+              )}
+              {!loading && filteredRows.length === 0 && (
+                <tr>
                   <td colSpan={7}>
-                    <span role="status" aria-live="polite">
-                      Cargando convocatorias…
-                    </span>
+                    {rows.length === 0
+                      ? "No hay convocatorias registradas."
+                      : "Ninguna convocatoria coincide con los filtros."}
                   </td>
                 </tr>
               )}
-              {!loading && rows.length === 0 && (
-                <tr>
-                  <td colSpan={7}>No hay convocatorias registradas.</td>
-                </tr>
-              )}
-              {rows.map((c) => (
+              {filteredRows.map((c) => (
                 <tr key={c.id} className="clickable">
                   <td>VIE-{c.id}</td>
                   <td className="table-primary">
@@ -546,7 +685,6 @@ export function ConvocatoriasPage() {
                     <button
                       type="button"
                       className="btn btn-ghost"
-                      aria-label={`Ver convocatoria VIE-${c.id}: ${c.nombre}`}
                       onClick={() => void openDetail(c.id)}
                     >
                       Ver
@@ -558,23 +696,18 @@ export function ConvocatoriasPage() {
           </table>
         </div>
       </section>
+      </>
+      )}
 
-      {detail && (
+      {detail && !showForm && (
         <section
           className="card stack-md convocatoria-detail"
           style={{ marginTop: 18 }}
-          aria-labelledby="convocatoria-detalle-title"
         >
           <div className="section-inline">
             <div>
               <p className="eyebrow">Detalle · VIE-{detail.id}</p>
-              <h2
-                id="convocatoria-detalle-title"
-                ref={detailTitleRef}
-                tabIndex={-1}
-              >
-                {detail.nombre}
-              </h2>
+              <h2>{detail.nombre}</h2>
               <p>{detail.descripcion || "Sin descripción"}</p>
             </div>
             <button

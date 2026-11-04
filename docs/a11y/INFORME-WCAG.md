@@ -18,9 +18,9 @@
 | Criterio | Peso | Antes | Después | Cambio principal |
 |---|---|---|---|---|
 | Uso de alto contraste | 7% | 🔴 ~40 reglas bajo 4.5:1 | 🟢 todos los textos ≥ 4.5:1, contornos ≥ 3:1 | Tokens de tinta + variantes accesibles del rojo y ámbar TEC |
-| Navegación por teclado | 7% | 🔴 sin `:focus-visible`, 4 `outline:0`, modales sin trampa | 🟢 anillo global, foco atrapado en modales, `Escape`, skip-link | `a11y.css` + `SimpleModal` |
+| Navegación por teclado | 7% | 🔴 sin `:focus-visible`, 4 `outline:0`, modales sin trampa | 🟢 anillo global, foco atrapado en modales, fondo `inert`, `Escape`, skip-link | `a11y.css` + `SimpleModal` |
 | Descripción de imágenes/videos | 7% | 🟢 mayormente bien | 🟢 igual + iconos decorativos marcados | `aria-hidden` en el check del checklist |
-| Lector de pantalla | 7% | 🔴 toasts no anunciados, diálogos sin nombre, `<h1>` ausente | 🟢 live regions permanentes, roles ARIA, jerarquía h1→h2→h3, landmarks | Cambios en 12 componentes/páginas |
+| Lector de pantalla | 7% | 🔴 toasts no anunciados, diálogos sin nombre, `<h1>` ausente, SPA sin avisos de ruta | 🟢 live regions permanentes, rutas anunciadas + título + foco, tablas con caption/scope, nombres contextuales | Cambios en 22 componentes/páginas + `RouteAnnouncer` |
 
 ---
 
@@ -223,15 +223,34 @@ El contenedor ahora **nunca se desmonta**; solo se vacía. Igual se aplicó en:
 
 - `LoginPage` — estado de la API y error de conexión.
 - `ConvocatoriasPage` — mensajes de error al crear/publicar.
+- `NotificacionesPage` y `NotificationBell` — cantidad de notificaciones sin
+  leer (`role="status"`), y «Sin leer.» como texto solo para lector dentro de
+  cada notificación no leída (el punto azul es decorativo).
+- `AppShell` — el contador de la barra lateral es `aria-hidden` y su equivalente
+  accesible («3 sin leer») forma parte del nombre del enlace.
+- `PropuestasPage`, `HistoricoPage` y `ConvocatoriasPage` — número de
+  resultados tras cargar o filtrar, con `aria-busy` en la tarjeta mientras se
+  consulta la API.
+- `AdministracionPage` — sección seleccionada al cambiar de pestaña.
+- `EvaluationRolePanels` — calificación ponderada y recomendación de la rúbrica.
+- `DocumentosPanel` — «Procesando documento…» mientras se sube o retira.
+- `PropuestaDetallePage` — aviso de subsanación.
 
 ### 5.2 Diálogos y popovers
 
 - `SimpleModal`: `aria-labelledby` (título) y `aria-describedby` (descripción).
+  Mientras está abierto, `.app-shell` / `.login-page` reciben `inert` y
+  `aria-hidden="true"` (con contador por si hay más de un diálogo), de modo que
+  el lector no puede recorrer la página de fondo. Al cerrar se restauran los
+  valores previos y el foco vuelve al control que abrió el diálogo.
 - `NotificationBell`: era `role="menu"` conteniendo `<ul>/<li>` (roles
   `listitem` dentro de un `menu`, **ARIA inválido**) y `role="menuitem"`
   sobre `<button>` (sobrescribía el rol `button` y exigía navegación con
   flechas inexistente). Ahora es `role="dialog"` con `aria-label` y
-  `aria-controls`, y el foco vuelve al botón al cerrar con `Escape`.
+  `aria-controls`; al abrir el foco entra en el primer elemento del panel, y al
+  cerrar con `Escape` vuelve al botón.
+- `ConvocatoriasPage`: al abrir el detalle, el foco va al `<h2>` del bloque
+  (`tabIndex={-1}`), que además nombra la región con `aria-labelledby`.
 
 ### 5.3 Landmarks
 
@@ -281,6 +300,72 @@ El contenedor ahora **nunca se desmonta**; solo se vacía. Igual se aplicó en:
   no están implementadas; antes parecían botones activos sin `onClick`.
   Ahora quedan `disabled` con `title` explicativo.
 
+### 5.7 Navegación de una SPA: título, anuncio y foco
+
+En una aplicación de una sola página no hay cambio de documento, así que el
+lector **no se enteraba** de que la vista había cambiado. `RouteAnnouncer`
+(`frontend/src/a11y/RouteAnnouncer.tsx`, montado en `main.tsx`):
+
+1. Actualiza `document.title` con el `<h1>` de la vista y el nombre del sitio.
+2. Anuncia «Página: …» en una región `role="status"` permanente.
+3. Mueve el foco al `<main>` (`tabIndex={-1}`) en cada cambio de ruta — el
+   primer render no mueve el foco.
+
+Un `MutationObserver` sobre el contenido vuelve a sincronizar el título cuando
+una vista de detalle termina de cargar (`Cargando…` → título real). Las
+mutaciones se agrupan en un `requestAnimationFrame` para no recalcular en cada
+tecla. El `<main>` del login también es enfocable (`id="contenido"`), igual que
+el `main` del shell.
+
+### 5.8 Tablas con semántica completa
+
+En `PropuestasPage`, `HistoricoPage`, `ConvocatoriasPage`,
+`AdministracionPage`, `ProposalDetailView` y en las tablas del wizard:
+
+- Cada tabla tiene `<caption>` (visible solo para lector) o `aria-label`.
+- Todos los `<th>` tienen `scope="col"`.
+- La columna de acciones tiene un `th` con «Acciones» solo para lector.
+
+Además, las filas de propuestas/histórico **dejaron de ser enfocables**
+(`tabIndex` + `onKeyDown` en `<tr>`). El título ahora es un `<Link>` o
+`<button>` real, de modo que se puede recorrer con la tecla de enlaces/botones
+del lector y cada acción tiene un nombre propio:
+
+- «Ver propuesta VIE-…: …», «Ver expediente …: …», «Ver convocatoria VIE-…: …».
+- El clic con ratón en la fila se conserva como atajo; el enlace detiene la
+  propagación para no navegar dos veces.
+
+### 5.9 Nombres accesibles en controles repetidos
+
+Los botones idénticos de listas dinámicas se distinguían solo por posición
+visual. Ahora incluyen contexto (`FormWizardIan`, `EquipoEditor`,
+`EditableRows`, `PlanEditor`, `ConvocatoriasPage`):
+
+| Antes | Ahora |
+|---|---|
+| «Quitar» | «Quitar persona TEC 2: Ana Pérez» |
+| «Quitar actividad» | «Quitar actividad 3» |
+| «Quitar riesgo» | «Quitar riesgo 2 de la actividad 1» |
+| «Agregar tipo de horas» | «Agregar tipo de horas, persona TEC 1» |
+| «Quitar tipo de horas» | «Quitar VIE de Ana Pérez» |
+| «Responsabilidad» | «Responsabilidad, participante 2 de la actividad 3» |
+| «Actividad» | «Descripción de la actividad 1» |
+| «Eliminar» (cronograma) | «Eliminar actividad 1 del cronograma» |
+| «Quitar ítem» | «Quitar Riesgos y mitigación 1» |
+
+En `PropuestaNuevaPage` el foco pasa al `<h2>` del paso al avanzar/retroceder,
+y el `role="progressbar"` anuncia «NN % del formulario completado» además del
+valor numérico.
+
+### 5.10 Estados de carga
+
+Las vistas que antes mostraban solo «Cargando…» ahora tienen un `h1` (visible o
+`sr-only`) para que la ruta tenga título, y el mensaje dentro de un
+`role="status"`. La tarjeta contenedora usa `aria-busy` mientras dura la
+consulta (`PropuestasPage`, `HistoricoPage`, `ConvocatoriasPage`,
+`EvaluacionesPage`, `PropuestaDetallePage`, `PropuestaNuevaPage`,
+`DocumentosPanel`).
+
 ---
 
 ## 6. Qué queda fuera (decisiones consciente)
@@ -295,13 +380,21 @@ El contenedor ahora **nunca se desmonta**; solo se vacía. Igual se aplicó en:
 ### 6.1 Checklist manual con lector de pantalla (NVDA / Narrator)
 
 1. Login: anuncia «Iniciar sesión», campos Correo / Contraseña / Rol.
-2. Activar **Alto contraste** → debe oírse el anuncio de estado.
-3. Skip-link con Tab → «Saltar al contenido principal».
-4. Wizard · Documentación: agregar imagen, oír el label «Texto alternativo»,
+2. Al entrar (o cambiar de sección) debe oírse «Página: …» y el foco quedar en
+   el contenido principal; el título de la ventana cambia con la vista.
+3. Activar **Alto contraste** → debe oírse el anuncio de estado.
+4. Skip-link con Tab → «Saltar al contenido principal».
+5. Propuestas / Histórico: con la tecla de tablas del lector, cada tabla
+   anuncia su caption y los encabezados; con la tecla de enlaces, cada título
+   se anuncia como enlace («Ver propuesta …»).
+6. Wizard · Documentación: agregar imagen, oír el label «Texto alternativo»,
    editar y oír el `role="status"` de longitud.
-5. Evaluaciones · modal de aval: justificación obligatoria anunciada; Confirmar
-   deshabilitado hasta escribir.
-6. Toast de éxito/error anunciado (live region permanente).
+7. Evaluaciones · modal de aval: justificación obligatoria anunciada; Confirmar
+   deshabilitado hasta escribir; con el modal abierto no se puede tabular al
+   fondo.
+8. Campana de notificaciones: al abrir, el foco entra en el panel; `Escape`
+   vuelve a la campana.
+9. Toast de éxito/error anunciado (live region permanente).
 
 ---
 

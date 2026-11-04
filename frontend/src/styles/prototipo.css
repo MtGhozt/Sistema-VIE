@@ -70,6 +70,28 @@ button[class*="danger"],.btn-danger,.variant-danger{background:var(--tec-red)!im
 .official-doc{border:1px solid var(--blue-mid);background:#fff;padding:16px;border-radius:12px}
 .rubric-summary h2{font-size:1.4rem}
 .score-ring strong{font-size:2rem;color:var(--blue)}
+.ai-eval{border-left:4px solid var(--blue);background:linear-gradient(180deg,#fff,#f4f8fd)}
+.ai-eval-head{display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.ai-eval-head h3{margin:2px 0 6px}
+.ai-eval-head p{margin:0;max-width:65ch}
+.ai-eval-summary{display:flex;gap:18px;align-items:center;margin-top:14px;background:#fff;border:1px solid var(--ink-08);border-radius:12px;padding:14px 16px}
+.ai-eval-summary p{margin:0 0 6px;white-space:pre-wrap}
+.ai-eval-score{display:flex;flex-direction:column;align-items:center;min-width:110px;padding-right:16px;border-right:1px solid var(--ink-08)}
+.ai-eval-score strong{font-size:2rem;line-height:1;color:var(--blue)}
+.ai-eval-score span{font-size:12px;color:var(--ink-55)}
+.ai-eval-score small{margin-top:6px;font-weight:800;font-size:11px;letter-spacing:.03em}
+.ai-eval-score.is-positive small{color:var(--success)}
+.ai-eval-score.is-negative small{color:var(--tec-red)}
+.ai-eval-alerts{margin:12px 0 0;padding:12px 16px 12px 32px;background:#fff8e6;border-left:4px solid var(--warning);border-radius:8px;font-size:13px}
+.ai-eval-alerts li{margin:4px 0}
+.ai-criterion{margin:10px 0 12px;padding:10px 12px;background:var(--blue-soft);border-left:3px solid var(--blue);border-radius:8px;font-size:13px}
+.ai-criterion-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ai-criterion-head span{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--blue)}
+.ai-criterion-head strong{font-size:14px}
+.ai-criterion-head small{color:var(--ink-55)}
+.ai-criterion p{margin:6px 0}
+.ai-criterion > small{display:block;color:var(--ink-55);margin-bottom:8px}
+.ai-criterion .btn{margin-top:4px;padding:6px 10px;font-size:12px}
 @media (max-width:900px){
   body{min-width:0}
   .app-shell{grid-template-columns:1fr}

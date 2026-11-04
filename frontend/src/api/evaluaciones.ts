@@ -42,6 +42,50 @@ export type EvaluacionAccionResponse = {
   propuesta: EvaluacionBandejaItem | null;
 };
 
+export type EvaluacionIACriterion = {
+  id: string;
+  label: string;
+  section: string;
+  weight: number;
+  required: boolean;
+  puntaje: number;
+  justificacion: string;
+  evidencia: string | null;
+  confianza: "alta" | "media" | "baja" | null;
+};
+
+export type EvaluacionIAResult = {
+  resumen: string;
+  criterios: EvaluacionIACriterion[];
+  alertas: string[];
+  completa: boolean;
+};
+
+export type EvaluacionIA = {
+  id: number;
+  modelo: string;
+  proveedor: string;
+  fechaGeneracion: string;
+  puntajeTotal: number;
+  recomendacion: "RECOMIENDA" | "NO RECOMIENDA";
+  resumen: string;
+  resultado: EvaluacionIAResult;
+  generadoPor: string;
+};
+
+export function fetchEvaluacionIA(idPropuesta: number) {
+  return apiJson<{ evaluacion: EvaluacionIA | null }>(
+    `/api/evaluaciones/propuestas/${idPropuesta}/ia`,
+  );
+}
+
+export function postEvaluacionIA(idPropuesta: number) {
+  return apiJson<{ evaluacion: EvaluacionIA }>(
+    `/api/evaluaciones/propuestas/${idPropuesta}/ia`,
+    { method: "POST" },
+  );
+}
+
 export function fetchEvaluacionBandeja(view?: string) {
   return apiJson<EvaluacionBandejaResponse>(`/api/evaluaciones/bandeja${view ? `?vista=${encodeURIComponent(view)}` : ""}`);
 }

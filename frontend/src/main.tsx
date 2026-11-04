@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ContrastProvider } from "./a11y/ContrastContext";
+import { RouteAnnouncer } from "./a11y/RouteAnnouncer";
 import { AuthProvider } from "./auth/AuthContext";
 import { NotificationsProvider } from "./notifications/NotificationsContext";
 import { ToastProvider } from "./components/toast/ToastContext";
@@ -17,6 +18,7 @@ import "./styles/reading.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
+      <RouteAnnouncer />
       <ContrastProvider>
         <AuthProvider>
           <NotificationsProvider>

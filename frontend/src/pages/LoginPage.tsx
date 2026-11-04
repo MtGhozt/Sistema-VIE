@@ -134,7 +134,7 @@ export function LoginPage() {
         </div>
       </div>
 
-      <main className="login-form-panel">
+      <main className="login-form-panel" id="contenido" tabIndex={-1}>
         <form className="login-form" onSubmit={onSubmit}>
           <div className="login-form-title">
             <span className="eyebrow">Acceso institucional</span>

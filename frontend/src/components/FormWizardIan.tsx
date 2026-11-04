@@ -801,7 +801,7 @@ export function FormWizardIan({
             </button>
           </div>
           <div className="table-wrap">
-            <table className="data-table wide-form-table team-edit-table">
+            <table className="data-table wide-form-table team-edit-table" aria-label="Equipo TEC">
               <thead>
                 <tr>
                   <th scope="col">Nombre y apellidos</th>
@@ -985,6 +985,7 @@ export function FormWizardIan({
                           <button
                             type="button"
                             className="btn btn-secondary"
+                            aria-label={`Agregar otro tipo de horas, persona TEC ${memberIndex + 1}`}
                             onClick={() =>
                               patchTeamTec(member.id, {
                                 horas: [
@@ -1017,6 +1018,7 @@ export function FormWizardIan({
                         <button
                           type="button"
                           className="btn btn-secondary"
+                          aria-label={`Quitar persona TEC ${memberIndex + 1}${member.nombre ? `: ${member.nombre}` : ""}`}
                           onClick={() =>
                             patch({
                               teamTec: form.teamTec.filter(
@@ -1065,7 +1067,7 @@ export function FormWizardIan({
             </button>
           </div>
           <div className="table-wrap">
-            <table className="data-table wide-form-table team-edit-table team-external-edit-table">
+            <table className="data-table wide-form-table team-edit-table team-external-edit-table" aria-label="Colaboradores externos">
               <thead>
                 <tr>
                   <th scope="col">Nombre completo del colaborador externo</th>
@@ -1163,6 +1165,7 @@ export function FormWizardIan({
                         <button
                           type="button"
                           className="btn btn-secondary"
+                          aria-label={`Quitar colaborador externo ${memberIndex + 1}${member.nombre ? `: ${member.nombre}` : ""}`}
                           onClick={() =>
                             patch({
                               teamExternal: form.teamExternal.filter(
@@ -1400,6 +1403,7 @@ export function FormWizardIan({
                 <button
                   type="button"
                   className="btn btn-secondary"
+                  aria-label={`Quitar actividad ${activityIndex + 1}`}
                   onClick={() =>
                     patch({
                       planAccion: form.planAccion.filter(
@@ -1415,7 +1419,7 @@ export function FormWizardIan({
                 <label className="field">
                   <span className="field-label">Objetivo asociado</span>
                   <select
-                    aria-label="Objetivo asociado"
+                    aria-label={`Objetivo asociado, actividad ${activityIndex + 1}`}
                     className="input"
                     value={activity.objetivoNumero}
                     onChange={(event) => {
@@ -1442,7 +1446,7 @@ export function FormWizardIan({
                 <label className="field">
                   <span className="field-label">Mes de inicio</span>
                   <input
-                    aria-label="Mes de inicio"
+                    aria-label={`Mes de inicio, actividad ${activityIndex + 1}`}
                     className="input"
                     type="number"
                     min="1"
@@ -1459,7 +1463,7 @@ export function FormWizardIan({
                 <label className="field">
                   <span className="field-label">Duración (meses)</span>
                   <input
-                    aria-label="Duración (meses)"
+                    aria-label={`Duración en meses, actividad ${activityIndex + 1}`}
                     className="input"
                     type="number"
                     min="0.01"
@@ -1478,7 +1482,7 @@ export function FormWizardIan({
                 <label className="field">
                   <span className="field-label">Actividad</span>
                   <textarea
-                    aria-label="Actividad"
+                    aria-label={`Descripción de la actividad ${activityIndex + 1}`}
                     className="input textarea"
                     rows={3}
                     value={activity.actividad}
@@ -1492,7 +1496,7 @@ export function FormWizardIan({
                 <label className="field">
                   <span className="field-label">Resultado esperado</span>
                   <textarea
-                    aria-label="Resultado esperado"
+                    aria-label={`Resultado esperado, actividad ${activityIndex + 1}`}
                     className="input textarea"
                     rows={3}
                     value={activity.resultadoEsperado}
@@ -1512,6 +1516,7 @@ export function FormWizardIan({
                     type="button"
                     className="btn btn-secondary"
                     disabled={teamMembers.length === 0}
+                    aria-label={`Agregar participante, actividad ${activityIndex + 1}`}
                     onClick={() =>
                       patchPlanActivity(activity.id, {
                         participantes: [
@@ -1557,7 +1562,7 @@ export function FormWizardIan({
                     <label className="field">
                       <span className="field-label">Responsabilidad</span>
                       <select
-                        aria-label="Responsabilidad"
+                        aria-label={`Responsabilidad, participante ${assignmentIndex + 1} de la actividad ${activityIndex + 1}`}
                         className="input"
                         value={assignment.responsabilidad}
                         onChange={(event) => {
@@ -1608,6 +1613,7 @@ export function FormWizardIan({
                   <button
                     type="button"
                     className="btn btn-secondary"
+                    aria-label={`Agregar riesgo, actividad ${activityIndex + 1}`}
                     onClick={() =>
                       patchPlanActivity(activity.id, {
                         riesgos: [
@@ -1633,6 +1639,7 @@ export function FormWizardIan({
                         type="button"
                         className="btn btn-secondary"
                         disabled={activity.riesgos.length === 1}
+                        aria-label={`Quitar riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
                         onClick={() =>
                           patchPlanActivity(activity.id, {
                             riesgos: activity.riesgos.filter(
@@ -1648,7 +1655,7 @@ export function FormWizardIan({
                       <label className="field">
                         <span className="field-label">Riesgo identificado</span>
                         <textarea
-                          aria-label="Riesgo identificado"
+                          aria-label={`Riesgo identificado, riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
                           className="input textarea"
                           rows={2}
                           value={risk.riesgo}
@@ -1664,7 +1671,7 @@ export function FormWizardIan({
                           Medidas de mitigación
                         </span>
                         <textarea
-                          aria-label="Medidas de mitigación"
+                          aria-label={`Medidas de mitigación, riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
                           className="input textarea"
                           rows={2}
                           value={risk.mitigacion}
@@ -1681,7 +1688,7 @@ export function FormWizardIan({
                         Responsable de la gestión del riesgo
                       </span>
                       <input
-                        aria-label="Responsable de la gestión del riesgo"
+                        aria-label={`Responsable de la gestión del riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
                         className="input"
                         value={risk.responsable}
                         maxLength={150}
@@ -1731,7 +1738,7 @@ export function FormWizardIan({
             </p>
           </div>
           <div className="table-wrap">
-            <table className="data-table">
+            <table className="data-table" aria-label="Presupuesto solicitado por año">
               <thead>
                 <tr>
                   <th scope="col">Año</th>
@@ -1830,7 +1837,7 @@ export function FormWizardIan({
             </p>
           </div>
           <div className="table-wrap">
-            <table className="data-table">
+            <table className="data-table" aria-label="Financiamiento externo, contrapartida y cofinanciamiento">
               <thead>
                 <tr>
                   <th scope="col">Desglose</th>
@@ -2003,7 +2010,7 @@ export function FormWizardIan({
               </p>
             )}
             <div className="table-wrap">
-              <table className="data-table">
+              <table className="data-table" aria-label="Productos mínimos requeridos según horas semanales">
                 <thead>
                   <tr>
                     <th scope="col">Horas semanales</th>
@@ -2068,7 +2075,7 @@ export function FormWizardIan({
             <p className="empty-state">Todavía no agregaste productos académicos.</p>
           ) : (
             <div className="table-wrap">
-              <table className="data-table">
+              <table className="data-table" aria-label="Productos académicos comprometidos">
                 <thead>
                   <tr>
                     <th scope="col">Selección</th>
@@ -2239,7 +2246,7 @@ export function FormWizardIan({
               <p className="empty-state">No has agregado activos de propiedad industrial.</p>
             ) : (
               <div className="table-wrap">
-                <table className="data-table">
+                <table className="data-table" aria-label="Activos de propiedad industrial comprometidos">
                   <thead>
                     <tr>
                       <th scope="col">Selección</th>

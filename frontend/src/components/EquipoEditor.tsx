@@ -27,10 +27,10 @@ export function EquipoEditor({ equipo, onChange }: { equipo: ParticipanteInput[]
       {row.horas.map((h,j) => <div className="form-grid two-col" key={j}>
         <label className="field"><span className="field-label">Tipo de horas</span><select className="input" value={h.tipo} onChange={e => update(index,{horas:row.horas.map((h,k)=>k===j?{...h,tipo:e.target.value}:h)})}>{TIPOS_HORA.map(t=><option key={t}>{t}</option>)}</select></label>
         <label className="field"><span className="field-label">Horas semanales</span><input className="input" type="number" min="0" step="0.01" value={h.cantidad} onChange={e=>update(index,{horas:row.horas.map((h,k)=>k===j?{...h,cantidad:Number(e.target.value)}:h)})}/></label>
-        <button type="button" className="btn btn-secondary" onClick={()=>update(index,{horas:row.horas.filter((_,k)=>k!==j)})}>Quitar tipo de horas</button>
+        <button type="button" className="btn btn-secondary" aria-label={`Quitar ${h.tipo || "tipo de horas"} de ${row.nombre || `la persona ${index + 1}`}`} onClick={()=>update(index,{horas:row.horas.filter((_,k)=>k!==j)})}>Quitar tipo de horas</button>
       </div>)}
-      <div className="action-row"><button type="button" className="btn btn-secondary" disabled={row.horas.length===TIPOS_HORA.length} onClick={()=>update(index,{horas:[...row.horas,{tipo:TIPOS_HORA.find(t=>!row.horas.some(h=>h.tipo===t)) ?? 'VIE',cantidad:0}]})}>Agregar tipo de horas</button>
-      <button type="button" className="btn btn-secondary" onClick={()=>onChange(equipo.filter((_,i)=>i!==index))}>Quitar participante</button></div>
+      <div className="action-row"><button type="button" className="btn btn-secondary" disabled={row.horas.length===TIPOS_HORA.length} aria-label={`Agregar tipo de horas a ${row.nombre || `la persona ${index + 1}`}`} onClick={()=>update(index,{horas:[...row.horas,{tipo:TIPOS_HORA.find(t=>!row.horas.some(h=>h.tipo===t)) ?? 'VIE',cantidad:0}]})}>Agregar tipo de horas</button>
+      <button type="button" className="btn btn-secondary" aria-label={`Quitar participante ${index + 1}${row.nombre ? `: ${row.nombre}` : ""}`} onClick={()=>onChange(equipo.filter((_,i)=>i!==index))}>Quitar participante</button></div>
     </fieldset>)}
     <div className="action-row"><button type="button" className="btn btn-secondary" onClick={()=>add('funcionario_tec')}>Agregar persona TEC</button><button type="button" className="btn btn-secondary" onClick={()=>add('externo')}>Agregar persona externa</button></div>
   </div>;

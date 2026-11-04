@@ -11,7 +11,7 @@ export function PlanEditor({ rows, equipo, onChange }: { rows:ActividadInput[]; 
       {equipo.some(p=>!p.id)&&<p className="field-hint">Guarde el equipo y vuelva a abrir el borrador para asignar las personas nuevas.</p>}
     </fieldset>
     <EditableRows title="Riesgos y mitigación" rows={row.riesgos} onChange={riesgos=>update(i,{riesgos})} blank={()=>({riesgo:'',mitigacion:'',responsable:''})} fields={[{key:'riesgo',label:'Riesgo identificado'},{key:'mitigacion',label:'Medida de mitigación'},{key:'responsable',label:'Responsable de gestión'}]}/>
-    <button className="btn btn-secondary" type="button" onClick={()=>onChange(rows.filter((_,j)=>i!==j))}>Quitar actividad</button>
+    <button className="btn btn-secondary" type="button" aria-label={`Quitar actividad ${i + 1}`} onClick={()=>onChange(rows.filter((_,j)=>i!==j))}>Quitar actividad</button>
   </fieldset>)}
     <button className="btn btn-secondary" type="button" onClick={()=>onChange([...rows,{objetivo:'',actividad:'',resultado:'',responsabilidad:'',inicio:1,duracion:1,participantes:[],riesgos:[]}])}>Agregar actividad</button>
     <p className="field-hint">El formulario oficial requiere al menos un riesgo por actividad y sus medidas de mitigación.</p>

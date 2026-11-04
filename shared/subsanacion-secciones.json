@@ -11,7 +11,8 @@
       "preguntasGenerales",
       "trlActual",
       "trlEsperado",
-      "lineas"
+      "lineas",
+      "formularioGenerales"
     ]
   },
   {
@@ -30,7 +31,8 @@
     "etiqueta": "Equipo de investigación",
     "paso": 2,
     "campos": [
-      "equipo"
+      "equipo",
+      "formularioEquipo"
     ]
   },
   {
@@ -39,7 +41,8 @@
     "paso": 3,
     "campos": [
       "problema",
-      "objetivoGeneral"
+      "objetivoGeneral",
+      "formularioObjetivos"
     ]
   },
   {
@@ -63,7 +66,8 @@
     "etiqueta": "Plan de acción y riesgos",
     "paso": 6,
     "campos": [
-      "actividades"
+      "actividades",
+      "formularioPlan"
     ]
   },
   {
@@ -80,7 +84,8 @@
     "etiqueta": "Compromisos de productos",
     "paso": 8,
     "campos": [
-      "compromisos"
+      "compromisos",
+      "formularioProductos"
     ]
   },
   {
@@ -89,7 +94,8 @@
     "paso": 9,
     "campos": [
       "resguardoRepositorio",
-      "resguardoTecnico"
+      "resguardoTecnico",
+      "formularioResguardo"
     ]
   },
   {
@@ -97,7 +103,8 @@
     "etiqueta": "Divulgación y socialización",
     "paso": 10,
     "campos": [
-      "divulgacion"
+      "divulgacion",
+      "formularioDivulgacion"
     ]
   },
   {
@@ -106,7 +113,8 @@
     "paso": 11,
     "campos": [
       "aspectosEticos",
-      "permisos"
+      "permisos",
+      "formularioEtica"
     ]
   },
   {
@@ -114,7 +122,8 @@
     "etiqueta": "Hoja de ruta",
     "paso": 12,
     "campos": [
-      "hojaRuta"
+      "hojaRuta",
+      "formularioHojaRuta"
     ]
   },
   {
@@ -130,7 +139,8 @@
     "etiqueta": "Declaración jurada",
     "paso": 14,
     "campos": [
-      "declaracion"
+      "declaracion",
+      "formularioDeclaracion"
     ]
   },
   {

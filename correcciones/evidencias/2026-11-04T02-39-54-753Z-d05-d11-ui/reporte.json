@@ -1,0 +1,12 @@
+{
+  "run": "2026-11-04T02-39-54-753Z",
+  "scope": "Chromium real: guardado de borrador, adjuntos, tres evaluadores, consolidación, rechazo/reconsideración y catálogos.",
+  "results": [
+    {
+      "name": "Formulario: Guardar borrador persiste, sigue editando y no duplica propuestas",
+      "status": "FALLA",
+      "detail": "expect(locator).toHaveValue(expected) failed\n\nLocator: getByLabel('Resumen (español · máximo 500 palabras)', { exact: true })\nExpected: \"Texto parcial persistido por el botón.\"\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveValue\" getByLabel('Resumen (español · máximo 500 palabras)', { exact: true }) with timeout 5000ms\n  - waiting for getByLabel('Resumen (español · máximo 500 palabras)', { exact: true })\n"
+    }
+  ],
+  "errors": []
+}

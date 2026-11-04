@@ -2,7 +2,8 @@ import type { query } from "./db.js";
 import { HttpError } from "./middleware/HttpError.js";
 const TIPOS_HORA = new Set(["VIE", "VIE-Centros", "CONS", "REC", "DOC", "VIESA"]);
 export async function saveEquipo(id: number, raw: unknown, execute: typeof query) {
-  if (raw === undefined) return;
+  const memberIds=new Map<string,number>();
+  if (raw === undefined) {const rows=await execute<{id_participante:number}>("SELECT id_participante FROM propuesta_participante WHERE id_propuesta=$1",[id]);for(const p of rows.rows)memberIds.set(`participante-${p.id_participante}`,p.id_participante);return memberIds;}
   if (!Array.isArray(raw)) throw new HttpError(400, "Equipo inválido");
   const retained: number[] = [];
   for (const row of raw) {
@@ -26,6 +27,8 @@ export async function saveEquipo(id: number, raw: unknown, execute: typeof query
       participant = inserted.rows[0].id_participante;
     }
     await execute("UPDATE propuesta_participante SET titular_cons=$2 WHERE id_participante=$1",[participant,String(row.titularCons??'').trim().slice(0,150)||null]);
+    if(row.clienteId){if(typeof row.clienteId!=="string"||memberIds.has(row.clienteId))throw new HttpError(400,"Identificador de equipo repetido o inválido");memberIds.set(row.clienteId,participant);}
+    memberIds.set(`participante-${participant}`,participant);
     retained.push(participant);
     if (!Array.isArray(row.horas)) throw new HttpError(400, "Horas inválidas");
     const kinds = new Set<string>();
@@ -43,6 +46,7 @@ export async function saveEquipo(id: number, raw: unknown, execute: typeof query
     await execute("DELETE FROM propuesta_participante_hora WHERE id_participante=$1", [p.id_participante]);
     await execute("DELETE FROM propuesta_participante WHERE id_participante=$1", [p.id_participante]);
   }
+  return memberIds;
 }
 export async function loadEquipo(id: number, execute: typeof query) {
   const result = await execute(`SELECT p.id_participante AS id, p.id_usuario AS "idUsuario",p.nombre_completo AS nombre,p.orcid,p.instancia_o_institucion AS instancia,p.rol_en_proyecto AS rol,p.periodo_nombramiento AS periodo,p.tipo,p.titular_cons AS "titularCons",

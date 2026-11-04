@@ -1,5 +1,7 @@
 # Evidencias de validación
 
+**Integración actual · 3 de noviembre:** [merge de Ian](../MERGE-IAN.md), pruebas finales y aceptación manual pendiente.
+
 **Entrega actual · 2 de noviembre:** [validación D05–D11](D05-D11-validacion.md), con enlaces a las ejecuciones finales, límites y comparación de desarrollo. Los fallos anteriores son diagnósticos conservados.
 
 Crear una carpeta por ejecución con fecha y SHA, por ejemplo `2026-10-29-b526885-linea-base/`.

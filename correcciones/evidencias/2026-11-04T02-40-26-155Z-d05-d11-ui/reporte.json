@@ -1,0 +1,12 @@
+{
+  "run": "2026-11-04T02-40-26-155Z",
+  "scope": "Chromium real: guardado de borrador, adjuntos, tres evaluadores, consolidación, rechazo/reconsideración y catálogos.",
+  "results": [
+    {
+      "name": "Formulario: Guardar borrador persiste, sigue editando y no duplica propuestas",
+      "status": "PASA",
+      "detail": "borrador-guardado-real.png"
+    }
+  ],
+  "errors": []
+}

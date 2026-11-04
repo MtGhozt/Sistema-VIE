@@ -36,6 +36,8 @@ export type GraphicResource = {
 export const ALT_TEXT_MIN_CHARS = 40;
 
 export type FormWizardState = {
+  objetivosRegistrados:{id:number;numero:number;descripcion:string}[];
+  detallesFormulario:Record<string,Record<string,unknown>>;
   aspectosEticos: AspectosEticos;
   permisos: PermisoInput[];
   compromisos: CompromisoInput[];
@@ -79,6 +81,8 @@ export type FormWizardState = {
 };
 
 export const DEFAULT_FORM_WIZARD_STATE: FormWizardState = {
+  objetivosRegistrados:[],
+  detallesFormulario:{},
   trlActual:null,trlEsperado:null,lineas:[],
   equipo: [], actividades: [], compromisos: [], presupuesto: [], fuentes: [], permisos: [],
   aspectosEticos: { humanos:false, biodiversidad:false, animales:false, indigenas:false, exencion:"" },

@@ -1,3 +1,4 @@
+import {camposComplementarios,validarComplemento} from "./formularioComplementos.js";
 import { saveProductos } from "./propuestaProductos.js";
 import { savePlan } from "./propuestaPlan.js";
 import { saveEtica } from "./propuestaEtica.js";
@@ -14,8 +15,28 @@ export async function savePropuestaCampos(id: number, body: Record<string, unkno
   await saveProductos(id, body.compromisos, execute);
   await saveEtica(id, body, execute);
   await savePresupuesto(id, body, execute);
-  await saveEquipo(id, body.equipo, execute);
-  await savePlan(id, body.actividades, execute);
+  for(const name of Object.keys(camposComplementarios))if(body[name]!==undefined)validarComplemento(name,body[name]);
+  if(body.formularioObjetivos!==undefined){
+    const raw=body.formularioObjetivos as {objetivosEspecificos?:{descripcion:unknown}[]};
+    if(raw?.objetivosEspecificos!==undefined){
+      if(!Array.isArray(raw.objetivosEspecificos)||raw.objetivosEspecificos.length>50)throw new HttpError(400,'Objetivos específicos inválidos');
+      for(const [i,o] of raw.objetivosEspecificos.entries()){
+        if(!o||typeof o.descripcion!=='string')throw new HttpError(400,'Objetivo específico inválido');
+        const old=await execute<{id_objetivo:number}>('SELECT id_objetivo FROM propuesta_objetivo_especifico WHERE id_propuesta=$1 AND numero=$2',[id,i+1]);
+        if(old.rows[0])await execute('UPDATE propuesta_objetivo_especifico SET descripcion=$2 WHERE id_objetivo=$1',[old.rows[0].id_objetivo,o.descripcion]);
+        else if(o.descripcion.trim())await execute('INSERT INTO propuesta_objetivo_especifico(id_propuesta,numero,descripcion) VALUES($1,$2,$3)',[id,i+1,o.descripcion]);
+      }
+    }
+  }
+  const memberIds=await saveEquipo(id, body.equipo, execute);
+  const resolveId=(key:unknown)=>typeof key==='string'?memberIds.get(key)??Number(key):key;
+  const plan=Array.isArray(body.actividades)?body.actividades.map(a=>({...a,participantes:Array.isArray(a.participantes)?a.participantes.map(resolveId):a.participantes,asignaciones:Array.isArray(a.asignaciones)?a.asignaciones.map((p:{idParticipante:unknown;responsabilidad:string})=>({...p,idParticipante:resolveId(p.idParticipante)})):undefined})):body.actividades;
+  await savePlan(id, plan, execute);
+  const extraNames=Object.keys(camposComplementarios);
+  for(const name of extraNames){
+    const value=body[name];if(value===undefined)continue;
+    await execute("UPDATE propuesta SET formulario_detalle=jsonb_set(formulario_detalle,ARRAY[$2]::text[],$3::jsonb) WHERE id_propuesta=$1",[id,name,JSON.stringify(value)]);
+  }
   const fields: string[] = [], values: unknown[] = [];
   for (const [api, column] of Object.entries(CAMPOS_TEXTO)) {
     if (body[api] !== undefined) { values.push(body[api] == null ? null : String(body[api]).trim()); fields.push(`${column}=$${values.length}`); }

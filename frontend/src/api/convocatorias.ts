@@ -35,7 +35,7 @@ export type ConvocatoriaDetalle = Convocatoria & {
 
 export type CreateConvocatoriaInput = {
   nombre: string;
-  descripcion?: string;
+  descripcion?: string | null;
   fechaApertura: string;
   fechaCierre: string;
   presupuestoEstimado?: number | null;
@@ -73,3 +73,6 @@ export function patchConvocatoria(
     body: JSON.stringify(body),
   });
 }
+
+export type ConvocatoriaHitoInput={nombre:string;responsable:string;fechaInicio:string;fechaFin:string};
+export function deleteConvocatoria(id:number){return apiJson<void>(`/api/convocatorias/${id}`,{method:"DELETE"});}

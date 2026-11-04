@@ -7,6 +7,9 @@ export async function savePlan(id: number, raw: unknown, execute: typeof query) 
   for (const r of raw) {
     if (!String(r.objetivo??'').trim() || !String(r.actividad??'').trim() || !Array.isArray(r.riesgos) || !Array.isArray(r.participantes)) throw new HttpError(400,"Complete objetivo y descripción de cada actividad");
     if (!Number.isInteger(Number(r.inicio)) || Number(r.inicio)<1 || !Number.isFinite(Number(r.duracion)) || Number(r.duracion)<=0) throw new HttpError(400,"Mes de inicio y duración deben ser positivos");
+    if(r.asignaciones!==undefined){
+      if(!Array.isArray(r.asignaciones)||r.asignaciones.some((a:{idParticipante:number;responsabilidad:string})=>!r.participantes.includes(a.idParticipante)||!['Ejecuta','Supervisa','Participa'].includes(a.responsabilidad))||new Set(r.asignaciones.map((a:{idParticipante:number})=>a.idParticipante)).size!==r.asignaciones.length)throw new HttpError(400,'Asignaciones individuales inválidas');
+    }
     let objective = await execute<{ id_objetivo:number }>("SELECT id_objetivo FROM propuesta_objetivo_especifico WHERE id_propuesta=$1 AND descripcion=$2 ORDER BY numero LIMIT 1",[id,r.objetivo.trim()]);
     if (!objective.rowCount) objective=await execute<{ id_objetivo:number }>("INSERT INTO propuesta_objetivo_especifico(id_propuesta,numero,descripcion) SELECT $1,COALESCE(MAX(numero),0)+1,$2 FROM propuesta_objetivo_especifico WHERE id_propuesta=$1 RETURNING id_objetivo",[id,r.objetivo.trim()]);
     const objectiveId=objective.rows[0].id_objetivo;
@@ -28,7 +31,7 @@ export async function savePlan(id: number, raw: unknown, execute: typeof query) 
     for (const participant of new Set(r.participantes)) {
       const found=await execute("SELECT 1 FROM propuesta_participante WHERE id_participante=$1 AND id_propuesta=$2",[participant,id]);
       if (!found.rowCount) throw new HttpError(400,"Responsable ajeno al equipo de la propuesta");
-      await execute("INSERT INTO actividad_participante(id_actividad,id_participante,responsabilidad) VALUES($1,$2,$3)",[activityId,participant,r.responsabilidad??'']);
+      await execute("INSERT INTO actividad_participante(id_actividad,id_participante,responsabilidad) VALUES($1,$2,$3)",[activityId,participant,Array.isArray(r.asignaciones)?r.asignaciones.find((a:{idParticipante:number})=>a.idParticipante===participant)?.responsabilidad??r.responsabilidad??'':r.responsabilidad??'']);
     }
   }
   const removed=await execute<{id_actividad:number}>("SELECT id_actividad FROM actividad_plan WHERE id_propuesta=$1 AND NOT(id_actividad=ANY($2::int[]))",[id,retained]);
@@ -40,6 +43,7 @@ export async function savePlan(id: number, raw: unknown, execute: typeof query) 
 }
 export async function loadPlan(id:number,execute:typeof query) {
   const rows=await execute(`SELECT a.id_actividad AS id,o.descripcion AS objetivo,a.descripcion AS actividad,a.resultado_esperado AS resultado,a.responsabilidad,a.mes_inicio AS inicio,a.duracion_meses::float AS duracion,
+    COALESCE((SELECT json_agg(json_build_object('idParticipante',ap.id_participante,'responsabilidad',ap.responsabilidad)) FROM actividad_participante ap WHERE ap.id_actividad=a.id_actividad),'[]') AS asignaciones,
     COALESCE((SELECT json_agg(ap.id_participante ORDER BY ap.id_actividad_participante) FROM actividad_participante ap WHERE ap.id_actividad=a.id_actividad),'[]') AS participantes,
     COALESCE((SELECT json_agg(json_build_object('riesgo',r.riesgo_identificado,'mitigacion',r.medida_mitigacion,'responsable',r.responsable_gestion) ORDER BY r.id_riesgo) FROM actividad_riesgo r WHERE r.id_actividad=a.id_actividad),'[]') AS riesgos
     FROM actividad_plan a JOIN propuesta_objetivo_especifico o ON o.id_objetivo=a.id_objetivo WHERE a.id_propuesta=$1 ORDER BY a.id_actividad`,[id]);

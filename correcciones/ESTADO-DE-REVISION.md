@@ -1,5 +1,7 @@
 # Estado de revisión · 2 de noviembre de 2026
 
+> **Integración posterior · 3 de noviembre:** formulario y convocatorias de Ian incorporados según el alcance autorizado. Ver [MERGE-IAN.md](MERGE-IAN.md) para adaptaciones, evidencia y aceptación manual.
+
 **Alcance implementado:** D01–D11 conforme a las indicaciones del usuario. Las funciones y sus límites están en [D01–D04](DECISIONES-D01-D04.md) y [D05–D11](DECISIONES-D05-D11.md). **No equivale a aceptación institucional ni del usuario.**
 
 ## Resultado funcional
@@ -22,7 +24,7 @@ DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm dev
 
 Abrir `http://localhost:5173`. Para las tres evaluaciones, seleccionar Comité · Evaluador y usar `comite_evaluador@tec.ac.cr`, `comite_evaluador2@tec.ac.cr` y `comite_evaluador3@tec.ac.cr` (contraseña inicial demo `prototipo2026`).
 
-El instalador aplica las migraciones **001–007** sin reinicializar el volumen. La comprobación de esquema nuevo usa un esquema temporal y revierte la transacción; las baterías funcionales conservan sus expedientes de prueba para inspección.
+El instalador aplica las migraciones **001–008** sin reinicializar el volumen. La comprobación de esquema nuevo usa un esquema temporal y revierte la transacción; las baterías funcionales conservan sus expedientes de prueba para inspección.
 
 ## Evidencia
 

@@ -1,5 +1,5 @@
 import {DocumentosPanel} from "../components/DocumentosPanel";
-import {downloadFile} from "../api/client";
+import {downloadFile,apiJson} from "../api/client";
 import seccionesSubsanacion from "../../../shared/subsanacion-secciones.json";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -43,9 +43,19 @@ export function PropuestaNuevaPage() {
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [idConvocatoria, setIdConvocatoria] = useState<number | "">("");
   const [saving, setSaving] = useState(false);
+  const [reload,setReload]=useState(0);
   const [loadingEdit, setLoadingEdit] = useState(isEditing);
 
   const progressPct = Math.round(((step + 1) / FORM_WIZARD_STEPS.length) * 100);
+
+  useEffect(()=>{
+    if(isEditing||!session)return;
+    let active=true;
+    apiJson<{id:number;instancia:string}[]>('/api/personas').then(rows=>{
+      const own=rows.find(p=>p.id===session.userId);if(active&&own)setForm(f=>({...f,escuela:own.instancia??''}));
+    }).catch(e=>{if(active)showToast(e.message,'error');});
+    return()=>{active=false;};
+  },[isEditing,session,showToast]);
 
   useEffect(() => {
     void (async () => {
@@ -87,6 +97,8 @@ export function PropuestaNuevaPage() {
         setForm((prev) => ({
           ...prev,
           trlActual:d.trlActual,trlEsperado:d.trlEsperado,lineas:d.lineas??[],
+          objetivosRegistrados:d.objetivosEspecificos??[],
+          detallesFormulario:d.detallesFormulario??{},
           titulo: d.titulo,
           escuela: d.escuelaNombre,
           modalidad: d.modalidadLabel || prev.modalidad,
@@ -121,7 +133,7 @@ export function PropuestaNuevaPage() {
         setLoadingEdit(false);
       }
     })();
-  }, [isEditing, editId, navigate, showToast]);
+  }, [isEditing, editId, navigate, showToast,reload]);
 
   function patch(partial: Partial<FormWizardState>) {
     setForm((prev) => ({ ...prev, ...partial, ...(subsanacion?{q8:prev.q8}:{}) }));
@@ -130,6 +142,7 @@ export function PropuestaNuevaPage() {
 
   function draftPayload() {
     return {
+      ...form.detallesFormulario,
       idConvocatoria:Number(idConvocatoria),
       trlActual:form.trlActual,trlEsperado:form.trlEsperado,lineas:form.lineas,
       titulo: form.titulo.trim(),
@@ -185,6 +198,7 @@ export function PropuestaNuevaPage() {
       const saved = await persistDraft();
       setSaveStatus(subsanacion?"Correcciones guardadas en el servidor":"Borrador guardado en el servidor");
       showToast(subsanacion?"Correcciones guardadas":"Borrador guardado", "success");
+      if(isEditing&&!exit)setReload(r=>r+1);
       navigate(exit?`/propuestas/${saved.id}`:`/propuestas/nueva?edit=${saved.id}`, { replace: true });
     } catch (err) {
       setSaveStatus("No se guardó: revise el error");

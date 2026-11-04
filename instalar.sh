@@ -64,7 +64,7 @@ if "$DRY_RUN"; then printf 'Simular: aplicar migraciones al perfil %s (sin mostr
 else DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" db:migrate; fi
 if "$BROWSER"; then run "${PNPM_CMD[@]}" exec playwright install chromium; fi
 if "$VERIFY"; then
-  if "$DRY_RUN"; then printf 'Simular: ejecutar test:fresh-schema, regression:api, regression:decisions, regression:completion, regression:ui y regression:completion-ui en fondos_vie_test.\n'
+  if "$DRY_RUN"; then printf 'Simular: ejecutar test:fresh-schema, regression:api, regression:decisions, regression:completion, regression:ui, regression:completion-ui y regression:merge-ian en fondos_vie_test.\n'
   else
     TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" test:fresh-schema
     TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:api
@@ -72,6 +72,7 @@ if "$VERIFY"; then
     TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:completion
     TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:ui
     TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:completion-ui
+    TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:merge-ian
   fi
 fi
 if "$DRY_RUN"; then printf 'Simulación completada; no se instaló ni modificó el proyecto.\n'; exit 0; fi

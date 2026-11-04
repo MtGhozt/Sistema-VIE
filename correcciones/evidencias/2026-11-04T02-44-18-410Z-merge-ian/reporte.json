@@ -1,0 +1,35 @@
+{
+  "run": "2026-11-04T02-44-18-410Z",
+  "scope": "Integración selectiva de Ian; API, Chromium y persistencia normalizada.",
+  "results": [
+    {
+      "name": "Convocatorias API: cronograma aislado y borrado de borrador sin propuestas",
+      "status": "PASA"
+    },
+    {
+      "name": "Convocatorias UI: editar actividad, guardar, reabrir y eliminar borrador",
+      "status": "PASA"
+    },
+    {
+      "name": "Formulario API: complementos, equipo nuevo y plan se guardan atómicamente",
+      "status": "PASA"
+    },
+    {
+      "name": "Formulario UI: usa campos Ian, conserva equipo, presupuesto y duración decimal al guardar dos veces",
+      "status": "PASA"
+    },
+    {
+      "name": "Complementos API: rechazo de sección ajena revierte todo el guardado",
+      "status": "PASA"
+    },
+    {
+      "name": "Convocatorias API: no elimina con propuestas ni permite devolver publicada a borrador",
+      "status": "PASA"
+    },
+    {
+      "name": "Subsanación: complementos respetan la sección y PI permanece congelada",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

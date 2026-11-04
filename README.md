@@ -63,6 +63,8 @@ Otros modos útiles:
 
 Las pruebas de navegador necesitan las bibliotecas del sistema que requiera Chromium. Si Playwright informa que faltan, resuelva ese requisito antes de repetir; el instalador no modifica paquetes del sistema operativo.
 
+La integración del formulario y las convocatorias de Ian se documenta en [MERGE-IAN.md](correcciones/MERGE-IAN.md). Sus comprobaciones específicas se ejecutan con `pnpm regression:merge-ian` usando `TEST_DATABASE_URL` de pruebas; también están incluidas en `./instalar.sh --pruebas --verificar`.
+
 ## Desinstalar o limpiar el proyecto
 
 Cierre primero `pnpm dev` u otros procesos del proyecto que haya iniciado manualmente.
@@ -149,7 +151,7 @@ Para actualizar, use `pnpm db:migrate` con `DATABASE_URL` explícita. Las migrac
 
 Los códigos nuevos son automáticos (`PROP-AAAA-NNN`) con consecutivo anual transaccional; se conservan los códigos históricos. Las consultas respetan el ámbito de cada identidad. Las devoluciones de Comité/VIE permiten subsanar únicamente las secciones indicadas y reenviar a la misma instancia. El avance exige dictamen PI o certificación fundamentada de no requerimiento.
 
-Los acuerdos implementados están en [DECISIONES-D01-D04.md](correcciones/DECISIONES-D01-D04.md). Aplicar las migraciones 001–007 al actualizar una base existente; no se generan certificaciones PI ficticias para expedientes antiguos. Las decisiones restantes implementadas y sus límites están en [DECISIONES-D05-D11.md](correcciones/DECISIONES-D05-D11.md). La aceptación del equipo continúa en [COSAS-A-DISCUTIR.md](correcciones/COSAS-A-DISCUTIR.md). Las casillas de aceptación del usuario se conservan en [VALIDACION-DEL-FLUJO.md](correcciones/VALIDACION-DEL-FLUJO.md).
+Los acuerdos implementados están en [DECISIONES-D01-D04.md](correcciones/DECISIONES-D01-D04.md). Aplicar las migraciones 001–008 al actualizar una base existente; no se generan certificaciones PI ficticias para expedientes antiguos. Las decisiones restantes implementadas y sus límites están en [DECISIONES-D05-D11.md](correcciones/DECISIONES-D05-D11.md). La aceptación del equipo continúa en [COSAS-A-DISCUTIR.md](correcciones/COSAS-A-DISCUTIR.md). Las casillas de aceptación del usuario se conservan en [VALIDACION-DEL-FLUJO.md](correcciones/VALIDACION-DEL-FLUJO.md).
 
 ## Estructura y referencias
 

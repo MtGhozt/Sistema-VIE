@@ -21,7 +21,8 @@
     "test:lifecycle": "node scripts/test-lifecycle.mjs",
     "baseline:ui": "node scripts/baseline-ui.mjs",
     "brand": "node scripts/build-brand-assets.mjs",
-    "brand:preview": "node scripts/extract-logotec.mjs"
+    "brand:preview": "node scripts/extract-logotec.mjs",
+    "regression:merge-ian": "node scripts/regression-merge-ian.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.10",

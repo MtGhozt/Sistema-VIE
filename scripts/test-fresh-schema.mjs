@@ -14,6 +14,7 @@ try{
  assert.deepEqual((await client.query('SELECT id_propuesta,codigo FROM propuesta ORDER BY id_propuesta')).rows,before);
  assert.equal(Number((await client.query("SELECT count(*) FROM usuario u JOIN usuario_rol ur ON ur.id_usuario=u.id_usuario JOIN rol r ON r.id_rol=ur.id_rol WHERE r.codigo='comite_evaluador' AND u.activo")).rows[0].count),3);
  assert.equal((await client.query('SELECT ciclo_evaluacion FROM propuesta LIMIT 1')).rows[0].ciclo_evaluacion,1);
+ assert.deepEqual((await client.query('SELECT formulario_detalle FROM propuesta LIMIT 1')).rows[0].formulario_detalle,{});
  result={run,status:'PASA',propuestas:before.length,codigosConservados:true,migrations,scope:'Esquema nuevo + seed + migraciones en una transacción; se revierte íntegramente sin borrar volúmenes ni modificar el esquema público.'};
 }catch(error){result={run,status:'FALLA',detail:error.message};process.exitCode=1;}
 finally{

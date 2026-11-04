@@ -22,6 +22,8 @@ export async function loadPropuestaDisplay(id: number, execute: typeof query = q
     execute<{ numero: number; respuesta: string; detalle: string | null }>("SELECT numero_pregunta AS numero,respuesta,detalle FROM propuesta_pregunta_general WHERE id_propuesta=$1 ORDER BY numero_pregunta", [id]),
   ]);
   return {
+    objetivosEspecificos:(await execute("SELECT id_objetivo AS id,numero,descripcion FROM propuesta_objetivo_especifico WHERE id_propuesta=$1 ORDER BY numero",[id])).rows,
+    detallesFormulario:(await execute<{formulario_detalle:Record<string,unknown>}>("SELECT formulario_detalle FROM propuesta WHERE id_propuesta=$1",[id])).rows[0]?.formulario_detalle??{},
     ...await loadEtica(id, execute),
     ...await loadPresupuesto(id, execute),
     compromisos: await loadProductos(id, execute),

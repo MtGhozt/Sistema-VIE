@@ -1,0 +1,196 @@
+{
+  "fechaLocal": "2026-11-03",
+  "base": "fondos_vie",
+  "puerto": 5432,
+  "migracion": "008_formulario_ian.sql",
+  "status": "PASA",
+  "antes": [
+    {
+      "id": 1,
+      "codigo": "PROP-2024-011"
+    },
+    {
+      "id": 2,
+      "codigo": "PROP-2024-018"
+    },
+    {
+      "id": 3,
+      "codigo": "PROP-2024-026"
+    },
+    {
+      "id": 4,
+      "codigo": "PROP-2024-033"
+    },
+    {
+      "id": 5,
+      "codigo": "PROP-2025-007"
+    },
+    {
+      "id": 6,
+      "codigo": "PROP-2025-014"
+    },
+    {
+      "id": 7,
+      "codigo": "PROP-2025-021"
+    },
+    {
+      "id": 8,
+      "codigo": "PROP-2025-028"
+    },
+    {
+      "id": 9,
+      "codigo": "PROP-2025-036"
+    },
+    {
+      "id": 10,
+      "codigo": "PROP-2025-042"
+    },
+    {
+      "id": 11,
+      "codigo": "PROP-2026-004"
+    },
+    {
+      "id": 12,
+      "codigo": "PROP-2026-012"
+    },
+    {
+      "id": 13,
+      "codigo": "PROP-2026-019"
+    },
+    {
+      "id": 14,
+      "codigo": "PROP-2026-023"
+    },
+    {
+      "id": 15,
+      "codigo": "PROP-2026-028"
+    },
+    {
+      "id": 16,
+      "codigo": "PROP-2026-031"
+    },
+    {
+      "id": 17,
+      "codigo": "PROP-2026-017"
+    },
+    {
+      "id": 18,
+      "codigo": "PROP-2026-018"
+    },
+    {
+      "id": 19,
+      "codigo": "TMP-2-1793322269464"
+    },
+    {
+      "id": 20,
+      "codigo": "PROP-2026-020"
+    },
+    {
+      "id": 21,
+      "codigo": "PROP-2026-021"
+    },
+    {
+      "id": 26,
+      "codigo": "PROP-2026-032"
+    },
+    {
+      "id": 34,
+      "codigo": "PROP-2026-033"
+    }
+  ],
+  "despues": [
+    {
+      "id": 1,
+      "codigo": "PROP-2024-011"
+    },
+    {
+      "id": 2,
+      "codigo": "PROP-2024-018"
+    },
+    {
+      "id": 3,
+      "codigo": "PROP-2024-026"
+    },
+    {
+      "id": 4,
+      "codigo": "PROP-2024-033"
+    },
+    {
+      "id": 5,
+      "codigo": "PROP-2025-007"
+    },
+    {
+      "id": 6,
+      "codigo": "PROP-2025-014"
+    },
+    {
+      "id": 7,
+      "codigo": "PROP-2025-021"
+    },
+    {
+      "id": 8,
+      "codigo": "PROP-2025-028"
+    },
+    {
+      "id": 9,
+      "codigo": "PROP-2025-036"
+    },
+    {
+      "id": 10,
+      "codigo": "PROP-2025-042"
+    },
+    {
+      "id": 11,
+      "codigo": "PROP-2026-004"
+    },
+    {
+      "id": 12,
+      "codigo": "PROP-2026-012"
+    },
+    {
+      "id": 13,
+      "codigo": "PROP-2026-019"
+    },
+    {
+      "id": 14,
+      "codigo": "PROP-2026-023"
+    },
+    {
+      "id": 15,
+      "codigo": "PROP-2026-028"
+    },
+    {
+      "id": 16,
+      "codigo": "PROP-2026-031"
+    },
+    {
+      "id": 17,
+      "codigo": "PROP-2026-017"
+    },
+    {
+      "id": 18,
+      "codigo": "PROP-2026-018"
+    },
+    {
+      "id": 19,
+      "codigo": "TMP-2-1793322269464"
+    },
+    {
+      "id": 20,
+      "codigo": "PROP-2026-020"
+    },
+    {
+      "id": 21,
+      "codigo": "PROP-2026-021"
+    },
+    {
+      "id": 26,
+      "codigo": "PROP-2026-032"
+    },
+    {
+      "id": 34,
+      "codigo": "PROP-2026-033"
+    }
+  ],
+  "codigosAnterioresConservados": true
+}

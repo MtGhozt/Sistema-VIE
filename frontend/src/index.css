@@ -2,3 +2,255 @@
 #root {
   min-height: 100%;
 }
+
+.convocatorias-list .data-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.convocatorias-list .data-table th:nth-child(1),
+.convocatorias-list .data-table td:nth-child(1) {
+  width: 8%;
+}
+
+.convocatorias-list .data-table th:nth-child(2),
+.convocatorias-list .data-table td:nth-child(2) {
+  width: 38%;
+}
+
+.convocatorias-list .data-table th:nth-child(3),
+.convocatorias-list .data-table th:nth-child(4),
+.convocatorias-list .data-table td:nth-child(3),
+.convocatorias-list .data-table td:nth-child(4) {
+  width: 12%;
+}
+
+.convocatorias-list .data-table th:nth-child(5),
+.convocatorias-list .data-table td:nth-child(5) {
+  width: 13%;
+}
+
+.convocatorias-list .data-table th:nth-child(6),
+.convocatorias-list .data-table td:nth-child(6) {
+  width: 9%;
+}
+
+.convocatorias-list .data-table th:nth-child(7),
+.convocatorias-list .data-table td:nth-child(7) {
+  width: 8%;
+}
+
+.convocatorias-list .data-table th,
+.convocatorias-list .data-table td {
+  overflow-wrap: anywhere;
+}
+
+.convocatorias-list .table-primary strong,
+.convocatorias-list .table-primary span {
+  overflow-wrap: anywhere;
+}
+
+.convocatoria-detail .section-inline > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.convocatoria-detail .section-inline h2,
+.convocatoria-detail .section-inline p {
+  overflow-wrap: anywhere;
+}
+
+.convocatoria-detail .section-inline > .btn {
+  flex-shrink: 0;
+}
+
+.convocatoria-schedule-editor {
+  border-top: 1px solid var(--ink-08);
+  margin-top: 12px;
+  padding-top: 24px;
+}
+
+.team-edit-table {
+  min-width: 1280px;
+}
+
+.team-external-edit-table {
+  min-width: 950px;
+}
+
+.team-edit-table td {
+  vertical-align: top;
+}
+
+.team-edit-table td > .input {
+  box-sizing: border-box;
+  min-width: 140px;
+  width: 100%;
+}
+
+.team-hours-row {
+  align-items: start;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(110px, 1fr) minmax(85px, 0.65fr) auto;
+}
+
+.team-hours-row .input {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+}
+
+.additional-product-row {
+  align-items: end;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.product-safeguard .field-label {
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+.product-safeguard .radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  margin-top: 12px;
+}
+
+.product-safeguard .radio-choice {
+  font-size: 1.125rem;
+  padding: 10px 16px;
+}
+
+.ethical-review .radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-top: 10px;
+}
+
+.ethical-review fieldset {
+  display: grid;
+  gap: 12px;
+}
+
+.wizard-card .wizard-body {
+  font-size: calc(1rem + 1px);
+}
+
+.wizard-card .wizard-body .field-label {
+  font-size: 13px;
+}
+
+.wizard-card .wizard-body .field-hint,
+.wizard-card .wizard-body .field-error-text {
+  font-size: 12px;
+}
+
+.wizard-card .wizard-body input:not([type="radio"]):not([type="checkbox"]),
+.wizard-card .wizard-body textarea,
+.wizard-card .wizard-body select,
+.wizard-card .wizard-body button {
+  font-size: calc(1rem + 1px);
+}
+
+.wizard-card .wizard-body .body-copy {
+  font-size: 15px;
+}
+
+.wizard-card .wizard-body .radio-choice {
+  font-size: 11px;
+}
+
+.wizard-card .wizard-body .data-table {
+  font-size: 13px;
+}
+
+.wizard-card .wizard-body .data-table th {
+  font-size: 11px;
+}
+
+.wizard-card .wizard-body .empty-state strong {
+  font-size: 14px;
+}
+
+.wizard-card .wizard-body .empty-state span {
+  font-size: 12px;
+}
+
+.wizard-card .wizard-body .editable-table .input {
+  font-size: 11px;
+}
+
+.wizard-card .wizard-card-head h2 {
+  font-size: 22px;
+}
+
+.wizard-layout .wizard-progress-head {
+  font-size: calc(.85rem + 1px) !important;
+}
+
+.wizard-layout .wizard-steps strong {
+  font-size: calc(.95rem + 1px) !important;
+}
+
+.wizard-layout .wizard-steps small {
+  font-size: calc(.78rem + 1px) !important;
+}
+
+.wizard-layout .wizard-steps button > span {
+  font-size: calc(.75rem + 1px) !important;
+}
+
+.wizard-layout .wizard-footer .btn {
+  font-size: calc(1rem + 1px);
+}
+
+.wizard-card .wizard-body .product-safeguard .field-label {
+  font-size: 1.1875rem;
+}
+
+.wizard-card .wizard-body .product-safeguard .radio-choice {
+  font-size: 1.0625rem;
+}
+
+.wizard-card .wizard-body .product-safeguard .body-copy {
+  font-size: 13px;
+}
+
+.wizard-card .wizard-body .product-safeguard .field-hint {
+  font-size: 10px;
+}
+
+.wizard-card .wizard-body .product-safeguard input:not([type="radio"]):not([type="checkbox"]),
+.wizard-card .wizard-body .product-safeguard textarea,
+.wizard-card .wizard-body .product-safeguard select,
+.wizard-card .wizard-body .product-safeguard button {
+  font-size: calc(1rem - 1px);
+}
+
+.action-plan-activity {
+  display: grid;
+  gap: 20px;
+}
+
+.action-plan-risk {
+  display: grid;
+  gap: 14px;
+}
+
+.action-plan-activity .page-heading,
+.action-plan-risk .page-heading {
+  align-items: center;
+}
+
+.action-plan-activity .team-hours-row {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.6fr) auto;
+}
+
+@media (max-width: 720px) {
+  .action-plan-activity .team-hours-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

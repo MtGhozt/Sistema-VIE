@@ -78,3 +78,7 @@ El usuario autorizó implementar D05–D11 y revisar botones sin efecto. [Decisi
 | `e5b2cf9` | Regresiones reproducibles e integración en instalador; prueba de esquema nuevo y conservación del seed. | Instalador integral código 0; 12 comprobaciones de scripts; esquema limpio con siete migraciones. |
 
 Se actualizaron las siete migraciones en desarrollo sin reinicializar; se conservan IDs y códigos de sus 21 propuestas. Las casillas de aceptación humana siguen pendientes. Los acuerdos actuales sustituyen los pendientes históricos D05–D11 de las filas anteriores; esas filas conservan la trazabilidad de cada entrega.
+
+## Integración de Ian · 3 de noviembre de 2026
+
+Se conserva la base de correcciones y se integra selectivamente `a605b81`: borradores de convocatorias, actividades/cronograma y formulario del investigador. El merge automático proponía retirar migraciones, permisos y documentación; esa retirada contradice la instrucción de conservar las correcciones. [MERGE-IAN.md](MERGE-IAN.md) registra las adaptaciones justificadas, la migración 008, resultados técnicos y casillas de validación manual pendientes.

@@ -1,3 +1,4 @@
+import {HttpError} from "../middleware/HttpError.js";
 import { saveHitos } from "../convocatoriaHitos.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router, type Response } from "express";
@@ -65,6 +66,13 @@ function asDateOnly(value: string | Date | null | undefined): string {
   if (!value) return "";
   if (value instanceof Date) return value.toISOString().slice(0, 10);
   return String(value).slice(0, 10);
+}
+
+function validDate(value:string){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;}
+async function lockDraft(id:number,execute:typeof query){
+ const found=await execute<{estado:string}>('SELECT estado FROM convocatoria WHERE id_convocatoria=$1 FOR UPDATE',[id]);
+ if(!found.rows[0])throw new HttpError(404,'Convocatoria no encontrada');
+ if(found.rows[0].estado!=='borrador')throw new HttpError(409,'Solo se edita el cronograma de una convocatoria en borrador');
 }
 
 function mapConvocatoria(row: ConvocatoriaRow) {
@@ -179,6 +187,7 @@ convocatoriasRouter.post(
       });
       return;
     }
+    if(!validDate(fechaApertura)||!validDate(fechaCierre))throw new HttpError(400,"Fechas de convocatoria inválidas");
     if (fechaCierre < fechaApertura) {
       res.status(400).json({ error: "fechaCierre debe ser >= fechaApertura" });
       return;
@@ -187,44 +196,11 @@ convocatoriasRouter.post(
     const userId = req.demoAuth!.userId!;
     const publicar = estado === "activa";
 
-    const insert = await query<ConvocatoriaRow>(
-      `
-      INSERT INTO convocatoria (
-        nombre, descripcion, fecha_apertura, fecha_cierre,
-        presupuesto_estimado, estado, id_publicada_por, fecha_publicacion
-      ) VALUES ($1, $2, $3::date, $4::date, $5, $6, $7, $8)
-      RETURNING *, 0::int AS propuestas_count
-      `,
-      [
-        nombre,
-        descripcion,
-        fechaApertura,
-        fechaCierre,
-        presupuesto,
-        estado,
-        publicar ? userId : null,
-        publicar ? new Date().toISOString() : null,
-      ],
-    );
-
-    const created = insert.rows[0];
-    const hitosIn = Array.isArray(req.body?.hitos) ? req.body.hitos : [];
-    for (let i = 0; i < hitosIn.length; i++) {
-      const h = hitosIn[i];
-      const hNombre = String(h?.nombre ?? "").trim();
-      const responsable = String(h?.responsable ?? "VIE").trim() || "VIE";
-      const fechaInicio = String(h?.fechaInicio ?? fechaApertura).trim();
-      const fechaFin = String(h?.fechaFin ?? fechaCierre).trim();
-      if (!hNombre) continue;
-      await query(
-        `
-        INSERT INTO convocatoria_hito (
-          id_convocatoria, nombre, responsable, fecha_inicio, fecha_fin, orden
-        ) VALUES ($1, $2, $3, $4::date, $5::date, $6)
-        `,
-        [created.id_convocatoria, hNombre, responsable, fechaInicio, fechaFin, i + 1],
-      );
-    }
+    const created=await transaction(async execute=>{
+      const inserted=await execute<ConvocatoriaRow>(`INSERT INTO convocatoria(nombre,descripcion,fecha_apertura,fecha_cierre,presupuesto_estimado,estado,id_publicada_por,fecha_publicacion) VALUES($1,$2,$3::date,$4::date,$5,$6,$7,$8) RETURNING *,0::int AS propuestas_count`,[nombre,descripcion,fechaApertura,fechaCierre,presupuesto,estado,publicar?userId:null,publicar?new Date().toISOString():null]);
+      await saveHitos(inserted.rows[0].id_convocatoria,req.body?.hitos,execute);
+      return inserted.rows[0];
+    });
 
     const detail = await query<ConvocatoriaRow>(
       `
@@ -311,19 +287,27 @@ convocatoriasRouter.patch(
       }
     }
 
-    if (fields.length === 0) {
+    if (fields.length === 0 && req.body?.hitos===undefined) {
       res.status(400).json({ error: "Sin campos para actualizar" });
       return;
     }
 
     const saved = await transaction(async(execute)=>{
-    await execute("SELECT id_convocatoria FROM convocatoria WHERE id_convocatoria=$1 FOR UPDATE",[id]);
+    const locked=await execute<{estado:string;fecha_apertura:Date;fecha_cierre:Date}>("SELECT estado,fecha_apertura,fecha_cierre FROM convocatoria WHERE id_convocatoria=$1 FOR UPDATE",[id]);
+    if(!locked.rows[0])throw new HttpError(404,'Convocatoria no encontrada');
+    const opening=String(req.body.fechaApertura??asDateOnly(locked.rows[0].fecha_apertura));
+    const closing=String(req.body.fechaCierre??asDateOnly(locked.rows[0].fecha_cierre));
+    if(!validDate(opening)||!validDate(closing)||closing<opening)throw new HttpError(400,'Fechas de convocatoria incoherentes');
+    if(locked.rows[0].estado!=='borrador'&&req.body.estado==='borrador')throw new HttpError(409,'Una convocatoria publicada no vuelve a borrador para eliminarse');
+    if(locked.rows[0].estado!=='borrador'&&['nombre','descripcion','fechaApertura','fechaCierre','presupuestoEstimado','hitos'].some(k=>req.body[k]!==undefined))throw new HttpError(409,'Solo se editan los datos de convocatorias en borrador');
+    if(fields.length){
     values.push(id);
     await execute(
       `UPDATE convocatoria SET ${fields.join(", ")} WHERE id_convocatoria = $${i}`,
       values,
     );
 
+    }
     await saveHitos(id,req.body?.hitos,execute);
     const result = await execute<ConvocatoriaRow>(
       `
@@ -338,6 +322,19 @@ convocatoriasRouter.patch(
     res.json(saved);
   }),
 );
+
+/** Borrado de borrador: nunca elimina propuestas asociadas. */
+convocatoriasRouter.delete('/convocatorias/:id',requireDemoAuth,requirePublisher,asyncHandler(async(req,res)=>{
+ const id=Number(req.params.id);if(!Number.isSafeInteger(id)||id<1)throw new HttpError(400,'ID inválido');
+ await transaction(async execute=>{
+  const found=await execute<{estado:string}>('SELECT estado FROM convocatoria WHERE id_convocatoria=$1 FOR UPDATE',[id]);
+  if(!found.rows[0])throw new HttpError(404,'Convocatoria no encontrada');
+  if(found.rows[0].estado!=='borrador')throw new HttpError(409,'Solo se pueden eliminar convocatorias en borrador');
+  if((await execute('SELECT 1 FROM propuesta WHERE id_convocatoria=$1',[id])).rowCount)throw new HttpError(409,'Hay propuestas asociadas: no se puede eliminar');
+  await execute('DELETE FROM convocatoria_hito WHERE id_convocatoria=$1',[id]);
+  await execute('DELETE FROM convocatoria WHERE id_convocatoria=$1',[id]);
+ });res.status(204).send();
+}));
 
 /** Agregar hito. */
 convocatoriasRouter.post(
@@ -357,7 +354,10 @@ convocatoriasRouter.post(
       return;
     }
 
-    const max = await query<{ m: number | null }>(
+    if(!validDate(fechaInicio)||!validDate(fechaFin)||fechaFin<fechaInicio)throw new HttpError(400,'Fechas de actividad incoherentes');
+    const saved=await transaction(async execute=>{
+    await lockDraft(id,execute);
+    const max = await execute<{ m: number | null }>(
       `SELECT MAX(orden) AS m FROM convocatoria_hito WHERE id_convocatoria = $1`,
       [id],
     );
@@ -366,7 +366,7 @@ convocatoriasRouter.post(
         ? Number(req.body.orden)
         : (max.rows[0]?.m ?? 0) + 1;
 
-    const result = await query<HitoRow>(
+    const result = await execute<HitoRow>(
       `
       INSERT INTO convocatoria_hito (
         id_convocatoria, nombre, responsable, fecha_inicio, fecha_fin, orden
@@ -375,7 +375,9 @@ convocatoriasRouter.post(
       `,
       [id, nombre, responsable, fechaInicio, fechaFin, orden],
     );
-    res.status(201).json(mapHito(result.rows[0]));
+    return mapHito(result.rows[0]);
+    });
+    res.status(201).json(saved);
   }),
 );
 
@@ -387,13 +389,13 @@ convocatoriasRouter.delete(
   asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     const hitoId = Number(req.params.hitoId);
-    const result = await query(
+    const result = await transaction(async execute=>{await lockDraft(id,execute);return execute(
       `
       DELETE FROM convocatoria_hito
       WHERE id_hito = $1 AND id_convocatoria = $2
       `,
       [hitoId, id],
-    );
+    );});
     if (result.rowCount === 0) {
       res.status(404).json({ error: "Hito no encontrado" });
       return;

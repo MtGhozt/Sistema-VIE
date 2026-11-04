@@ -35,7 +35,7 @@ try{
   await check('Editar y reabrir textos del formulario conserva datos propios',async()=>{
     const p=await fixture();const{page,context}=await login('investigador');try{
       await page.goto(`${env.uiOrigin}/propuestas/nueva?edit=${p.id_propuesta}`);await expect(page.locator('.wizard-steps button').first()).toBeVisible();
-      for(const[step,label,value]of [[4,'Estado del arte','Antecedentes UI propios'],[10,'Divulgación y socialización','Divulgación UI propia'],[12,'Hoja de ruta','Hoja UI propia']]){
+      for(const[step,label,value]of [[4,'Estado del arte','Antecedentes UI propios'],[10,'Divulgación científica o técnica','Divulgación UI propia'],[12,'Nombre de la línea de investigación','Hoja UI propia']]){
         await page.locator('.wizard-steps button').nth(step).click();await page.getByLabel(label,{exact:true}).fill(value);
       }
       await page.getByRole('button',{name:'Guardar borrador',exact:true}).click();await expect(page).toHaveURL(new RegExp(`edit=${p.id_propuesta}$`));await page.getByRole('link',{name:'Ver expediente guardado',exact:true}).click();await expect(page).toHaveURL(new RegExp(`/propuestas/${p.id_propuesta}$`));
@@ -50,7 +50,7 @@ try{
   });
   await check('Equipo permite alta y guarda la persona externa',async()=>{
     const p=await fixture();const{page,context}=await login('investigador');try{
-      await page.goto(`${env.uiOrigin}/propuestas/nueva?edit=${p.id_propuesta}`);await expect(page.locator('.wizard-steps button').first()).toBeVisible();await page.locator('.wizard-steps button').nth(2).click();await page.getByRole('button',{name:'Agregar persona externa',exact:true}).click();await page.getByLabel('Nombre',{exact:true}).fill('Externa UI propia');await page.getByLabel('Institución / empresa',{exact:true}).fill('Entidad UI');await page.getByRole('button',{name:'Guardar borrador',exact:true}).click();await expect(page).toHaveURL(new RegExp(`edit=${p.id_propuesta}$`));await page.getByRole('link',{name:'Ver expediente guardado',exact:true}).click();await expect(page).toHaveURL(new RegExp(`/propuestas/${p.id_propuesta}$`));await page.getByRole('tab',{name:'Equipo',exact:true}).click();await expect(page.getByText('Externa UI propia',{exact:true})).toBeVisible();return await shot(page,'equipo-propio');
+      await page.goto(`${env.uiOrigin}/propuestas/nueva?edit=${p.id_propuesta}`);await expect(page.locator('.wizard-steps button').first()).toBeVisible();await page.locator('.wizard-steps button').nth(2).click();await page.getByRole('button',{name:'Agregar colaborador/a externo/a',exact:true}).click();await page.getByLabel('Nombre completo, colaborador externo 1',{exact:true}).fill('Externa UI propia');await page.getByLabel('Institución o empresa, colaborador externo 1',{exact:true}).fill('Entidad UI');await page.getByRole('button',{name:'Guardar borrador',exact:true}).click();await expect(page).toHaveURL(new RegExp(`edit=${p.id_propuesta}$`));await page.getByRole('link',{name:'Ver expediente guardado',exact:true}).click();await expect(page).toHaveURL(new RegExp(`/propuestas/${p.id_propuesta}$`));await page.getByRole('tab',{name:'Equipo',exact:true}).click();await expect(page.getByRole('cell',{name:'Externa UI propia',exact:true})).toBeVisible();return await shot(page,'equipo-propio');
     }finally{await context.close();}
   });
   for(const viewport of [{width:1440,height:900},{width:390,height:844}])await check(`Modal devolución sin superposición ${viewport.width}`,async()=>{

@@ -1,3 +1,4 @@
+import {ComplementosFormulario} from "../components/ComplementosFormulario";
 import {CoordinacionEditor} from "../components/CoordinacionEditor";
 import {DocumentosPanel} from "../components/DocumentosPanel";
 import {apiJson} from "../api/client";
@@ -117,6 +118,7 @@ export function PropuestaDetallePage() {
         onSend={() => void onEnviarBorrador()}
       />
       {session&&["admin","vie_publicacion"].includes(session.role)&&detail.etapaFlujo<=1&&!["aprobada","rechazada"].includes(detail.estadoActual)&&<CoordinacionEditor id={detail.id} onSaved={()=>navigate("/propuestas")}/>}
+      <ComplementosFormulario detalles={detail.detallesFormulario??{}}/>
       <section className="card"><DocumentosPanel id={detail.id}/></section>
     </>
   );

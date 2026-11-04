@@ -1,0 +1,36 @@
+{
+  "run": "2026-11-04T02-43-37-560Z",
+  "scope": "Integración selectiva de Ian; API, Chromium y persistencia normalizada.",
+  "results": [
+    {
+      "name": "Convocatorias API: cronograma aislado y borrado de borrador sin propuestas",
+      "status": "PASA"
+    },
+    {
+      "name": "Convocatorias UI: editar actividad, guardar, reabrir y eliminar borrador",
+      "status": "PASA"
+    },
+    {
+      "name": "Formulario API: complementos, equipo nuevo y plan se guardan atómicamente",
+      "status": "PASA"
+    },
+    {
+      "name": "Formulario UI: usa campos Ian, conserva equipo, presupuesto y duración decimal al guardar dos veces",
+      "status": "FALLA",
+      "detail": "expect(locator).toHaveCount(expected) failed\n\nLocator:  getByRole('cell', { name: '2028', exact: true })\nExpected: 1\nReceived: 0\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toHaveCount\" getByRole('cell', { name: '2028', exact: true }) with timeout 5000ms\n  - waiting for getByRole('cell', { name: '2028', exact: true })\n    14 × locator resolved to 0 elements\n       - unexpected value \"0\"\n"
+    },
+    {
+      "name": "Complementos API: rechazo de sección ajena revierte todo el guardado",
+      "status": "PASA"
+    },
+    {
+      "name": "Convocatorias API: no elimina con propuestas ni permite devolver publicada a borrador",
+      "status": "PASA"
+    },
+    {
+      "name": "Subsanación: complementos respetan la sección y PI permanece congelada",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

@@ -5,6 +5,8 @@ export async function saveHitos(id:number,raw:unknown,execute:typeof query){
   if(!Array.isArray(raw))throw new HttpError(400,"Cronograma inválido");
   const retained:number[]=[];
   for(const[index,r]of raw.entries()){
+    if(!r||typeof r!=="object"||Array.isArray(r))throw new HttpError(400,"Actividad inválida");
+    if(r.id&&retained.includes(Number(r.id)))throw new HttpError(400,"Actividad repetida");
     const validDate=(value:unknown)=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
     if(!String(r.nombre??'').trim()||!validDate(r.fechaInicio)||!validDate(r.fechaFin)||r.fechaFin<r.fechaInicio)throw new HttpError(400,"Indique nombre y fechas coherentes para cada hito");
     const values=[r.nombre.trim(),String(r.responsable??'VIE').trim()||'VIE',r.fechaInicio,r.fechaFin,index+1];

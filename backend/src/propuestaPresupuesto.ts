@@ -7,12 +7,17 @@ export async function savePresupuesto(id: number, body: Record<string, unknown>,
     const start = await execute<{ anio: number | null }>("SELECT EXTRACT(YEAR FROM fecha_inicio)::int AS anio FROM propuesta WHERE id_propuesta=$1",[id]);
     const first = (body.fechaInicio ? Number(String(body.fechaInicio).slice(0,4)) : start.rows[0]?.anio) || Math.min(...body.presupuesto.map(r=>Number(r.anio)));
     await execute("DELETE FROM propuesta_presupuesto_anual WHERE id_propuesta=$1",[id]);
+    let total = 0;
     for (const r of body.presupuesto) {
       const year=Number(r.anio), op=Number(r.operativo), dur=Number(r.duraderos);
-      if (!Number.isInteger(year) || years.has(year) || !Number.isFinite(op) || !Number.isFinite(dur) || op<0 || dur<0) throw new HttpError(400,"Año repetido o montos inválidos");
+      if (!Number.isInteger(year) || years.has(year) || !Number.isFinite(op) || !Number.isFinite(dur) || op<0 || dur<0) throw new HttpError(400,"Presupuesto: año repetido o montos inválidos (no se permiten valores negativos)");
       if (dur>0 && year!==first) throw new HttpError(400,"Los bienes duraderos deben formularse para el primer año de ejecución");
       years.add(year);
+      total += op + dur;
       await execute("INSERT INTO propuesta_presupuesto_anual(id_propuesta,anio,monto_operativo,monto_bienes_duraderos,monto_total) VALUES($1,$2,$3,$4,$3::numeric+$4::numeric)",[id,year,op,dur]);
+    }
+    if (body.presupuesto.length > 0 && total <= 0) {
+      throw new HttpError(400, "El presupuesto total debe ser mayor que cero. Una partida puede ser 0, pero no todas.");
     }
   }
   if (body.fuentes !== undefined) {

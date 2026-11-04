@@ -811,7 +811,7 @@ evaluacionesRouter.post(
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error al generar sugerencias";
-      const status = message.includes("OPENROUTER_API_KEY") ? 503 : 502;
+      const status = message.includes("conectar con Ollama") ? 503 : 502;
       res.status(status).json({ error: message });
     }
   },

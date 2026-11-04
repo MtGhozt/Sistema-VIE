@@ -13,7 +13,8 @@ export const env = {
     "postgresql://vie:vie@localhost:5432/fondos_vie",
   ),
   nodeEnv: process.env.NODE_ENV ?? "development",
-  openRouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
-  openRouterModel: process.env.OPENROUTER_MODEL ?? "openrouter/free",
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434",
+  ollamaModel: process.env.OLLAMA_MODEL ?? "qwen2.5:7b",
+  ollamaTimeoutMs: Number(process.env.OLLAMA_TIMEOUT_MS ?? 300000),
   officialRubricPath: process.env.VIE_OFFICIAL_RUBRIC_PATH ?? "",
 };

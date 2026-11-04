@@ -14,6 +14,40 @@ type SimpleModalProps = {
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+// Puede haber más de un diálogo montado a la vez (por ejemplo, al abrir un
+// expediente desde otro). El bloqueo del fondo se cuenta para no reactivar la
+// aplicación mientras quede un diálogo abierto.
+let openDialogs = 0;
+let lockedBackground:
+  | { node: HTMLElement; ariaHidden: string | null; inert: boolean }
+  | null = null;
+
+function lockBackground() {
+  openDialogs += 1;
+  if (openDialogs > 1) return;
+  const node = document.querySelector<HTMLElement>(".app-shell, .login-page");
+  if (!node) return;
+  lockedBackground = {
+    node,
+    ariaHidden: node.getAttribute("aria-hidden"),
+    inert: node.hasAttribute("inert"),
+  };
+  // El portal del modal vive en <body>, fuera de `.app-shell`, así que no
+  // queda afectado por `inert`.
+  node.setAttribute("inert", "");
+  node.setAttribute("aria-hidden", "true");
+}
+
+function unlockBackground() {
+  openDialogs = Math.max(0, openDialogs - 1);
+  if (openDialogs > 0 || !lockedBackground) return;
+  const { node, ariaHidden, inert } = lockedBackground;
+  if (!inert) node.removeAttribute("inert");
+  if (ariaHidden == null) node.removeAttribute("aria-hidden");
+  else node.setAttribute("aria-hidden", ariaHidden);
+  lockedBackground = null;
+}
+
 export function SimpleModal({
   open,
   title,
@@ -84,9 +118,14 @@ export function SimpleModal({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
+    // Mientras el diálogo está abierto, el resto de la aplicación queda fuera
+    // del árbol accesible y no recibe foco.
+    lockBackground();
+
     return () => {
       document.removeEventListener("keydown", onKeyDown, true);
       document.body.style.overflow = previousOverflow;
+      unlockBackground();
       restoreFocusRef.current?.focus?.();
     };
   }, [open]);

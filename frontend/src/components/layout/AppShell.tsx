@@ -66,7 +66,14 @@ export function AppShell() {
               <NavIcon name={icon} />
               <span>{label}</span>
               {to === "/notificaciones" && unreadCount > 0 && (
-                <span className="nav-counter">{unreadCount}</span>
+                <>
+                  <span className="nav-counter" aria-hidden>
+                    {unreadCount}
+                  </span>
+                  <span className="sr-only">
+                    {unreadCount} sin leer
+                  </span>
+                </>
               )}
             </NavLink>
           ))}
@@ -151,7 +158,12 @@ export function AppShell() {
             ? "Alto contraste activado"
             : "Alto contraste desactivado"}
         </div>
-        <main className="content" id="contenido" tabIndex={-1}>
+        <main
+          className="content"
+          id="contenido"
+          tabIndex={-1}
+          aria-label="Contenido principal"
+        >
           <Outlet />
         </main>
       </div>

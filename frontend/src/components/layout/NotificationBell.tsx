@@ -9,12 +9,21 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const popoverId = "notif-popover";
   const { items, unreadCount, markAsRead } = useNotifications();
   const recent = items.slice(0, RECENT_LIMIT);
 
   useEffect(() => {
     if (!open) return;
+
+    // Al abrir, el foco entra en el primer elemento del panel para que el
+    // lector anuncie su contenido sin obligar a recorrer toda la barra.
+    const frame = window.requestAnimationFrame(() => {
+      popoverRef.current
+        ?.querySelector<HTMLElement>("button:not([disabled]), a[href]")
+        ?.focus();
+    });
 
     function onPointerDown(e: MouseEvent) {
       if (!rootRef.current?.contains(e.target as Node)) {
@@ -32,6 +41,7 @@ export function NotificationBell() {
     document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("keydown", onKey);
     return () => {
+      window.cancelAnimationFrame(frame);
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("keydown", onKey);
     };
@@ -56,11 +66,17 @@ export function NotificationBell() {
         <IconBell size={18} />
         {unreadCount > 0 && <span className="notification-dot" aria-hidden />}
       </button>
+      <span className="sr-only" role="status" aria-live="polite">
+        {unreadCount > 0
+          ? `${unreadCount} ${unreadCount === 1 ? "notificación sin leer" : "notificaciones sin leer"}`
+          : "No hay notificaciones sin leer"}
+      </span>
 
       {open && (
         // Popover de notificaciones: se anuncia como diálogo (no como menú,
         // porque sus hijos no son menuitem y no navega con flechas).
         <div
+          ref={popoverRef}
           className="notif-popover"
           id={popoverId}
           role="dialog"
@@ -82,6 +98,7 @@ export function NotificationBell() {
                     markAsRead(n.id);
                   }}
                 >
+                  {n.unread && <span className="sr-only">Sin leer. </span>}
                   <strong>{n.title}</strong>
                   <p>{n.body}</p>
                   <span>{n.when}</span>

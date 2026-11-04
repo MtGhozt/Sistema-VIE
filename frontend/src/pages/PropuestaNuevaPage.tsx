@@ -1,7 +1,7 @@
 import {DocumentosPanel} from "../components/DocumentosPanel";
 import {downloadFile,apiJson} from "../api/client";
 import seccionesSubsanacion from "../../../shared/subsanacion-secciones.json";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { fetchConvocatorias, type Convocatoria } from "../api/convocatorias";
@@ -43,8 +43,22 @@ export function PropuestaNuevaPage() {
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [idConvocatoria, setIdConvocatoria] = useState<number | "">("");
   const [saving, setSaving] = useState(false);
+  const [failure,setFailure]=useState<{title:string;message:string;savedCode?:string}|null>(null);
+  const failurePanel=useRef<HTMLDivElement>(null);
   const [reload,setReload]=useState(0);
   const [loadingEdit, setLoadingEdit] = useState(isEditing);
+
+  useEffect(()=>{if(failure&&!loadingEdit)failurePanel.current?.focus();},[failure,loadingEdit]);
+
+  function reportFailure(reason:unknown,operation:'guardar'|'enviar',saved?:PropuestaDetalle){
+    const network=reason instanceof TypeError&&/fetch|network|load failed/i.test(reason.message);
+    const message=network?'No se pudo confirmar la respuesta del servidor. Revise la conexión y compruebe el expediente antes de reintentar.':reason instanceof Error?reason.message:String(reason||'Ocurrió un error inesperado. Vuelva a intentarlo.');
+    const conflict=reason instanceof ApiError&&reason.status===409;
+    const title=saved?'El borrador se guardó, pero no se pudo enviar':`${conflict?'Conflicto':'Error'} al ${operation==='guardar'?'guardar el borrador':'enviar la propuesta'}`;
+    setFailure({title,message,savedCode:saved?.codigo});
+    setSaveStatus(saved?'Borrador guardado; envío pendiente':operation==='guardar'?'Guardado sin completar':'Envío sin completar');
+    showToast(message,'error');
+  }
 
   const progressPct = Math.round(((step + 1) / FORM_WIZARD_STEPS.length) * 100);
 
@@ -184,68 +198,48 @@ export function PropuestaNuevaPage() {
   }
 
   async function onSave(exit=false) {
-    if (!canCreate) {
-      showToast("Ingresá como investigador para crear propuestas", "error");
-      return;
-    }
-    if (!form.titulo.trim() || idConvocatoria === "") {
-      showToast("Completá título y convocatoria", "error");
-      return;
-    }
+    setFailure(null);
+    if (!canCreate) {reportFailure('Ingresá como investigador para crear propuestas','guardar');return;}
+    if (!form.titulo.trim() || idConvocatoria === '') {reportFailure('Complete el nombre del proyecto y seleccione una convocatoria antes de guardar.','guardar');return;}
     setSaving(true);
-    setSaveStatus("Guardando…");
+    setSaveStatus('Guardando…');
     try {
       const saved = await persistDraft();
-      setSaveStatus(subsanacion?"Correcciones guardadas en el servidor":"Borrador guardado en el servidor");
-      showToast(subsanacion?"Correcciones guardadas":"Borrador guardado", "success");
+      setSaveStatus(subsanacion?'Correcciones guardadas en el servidor':'Borrador guardado en el servidor');
+      showToast(subsanacion?'Correcciones guardadas':'Borrador guardado', 'success');
       if(isEditing&&!exit)setReload(r=>r+1);
       navigate(exit?`/propuestas/${saved.id}`:`/propuestas/nueva?edit=${saved.id}`, { replace: true });
     } catch (err) {
-      setSaveStatus("No se guardó: revise el error");
-      showToast(
-        err instanceof Error ? err.message : "No se pudo guardar",
-        "error",
-      );
+      reportFailure(err,'guardar');
     } finally {
       setSaving(false);
     }
   }
 
-  /** Guarda el borrador y lo envía a revisión (CU2 → bandeja CU3). */
+  /** Guardar y enviar son operaciones distintas: un fallo de envío conserva el borrador creado. */
   async function onEnviar() {
-    if (!canCreate) {
-      showToast("Ingresá como investigador para enviar propuestas", "error");
-      return;
-    }
-    if (!form.titulo.trim() || idConvocatoria === "") {
-      showToast("Completá título y convocatoria antes de enviar", "error");
-      return;
-    }
-    if(!form.abstract.trim()){showToast("Complete el abstract en inglés; keywords EN son opcionales","error");return;}
+    setFailure(null);
+    if (!canCreate) {reportFailure('Ingresá como investigador para enviar propuestas','enviar');return;}
+    if (!form.titulo.trim() || idConvocatoria === '') {reportFailure('Complete el nombre del proyecto y seleccione una convocatoria antes de enviar.','enviar');return;}
+    if(!form.abstract.trim()){reportFailure('Resumen y palabras clave: complete el abstract en inglés. Las keywords EN son opcionales.','enviar');return;}
     const count = form.resumen.trim().split(/\s+/u).filter(Boolean).length;
-    const terms = form.palabras.split(",").map(w => w.trim()).filter(Boolean);
-    if (count > 500 || terms.length < 4 || terms.length > 6) {
-      showToast("El resumen admite máximo 500 palabras y se requieren entre 4 y 6 términos clave en español.", "error");
-      return;
-    }
-    if (!form.declaracion) {
-      showToast("Debés aceptar la declaración jurada antes de enviar", "error");
-      return;
-    }
+    const terms = form.palabras.split(',').map(w => w.trim()).filter(Boolean);
+    if(count>500){reportFailure(`Resumen: contiene ${count} palabras y el máximo permitido es 500. Reduzca su extensión.`,'enviar');return;}
+    if(terms.length<4||terms.length>6){reportFailure(`Palabras clave en español: se requieren de 4 a 6 términos; actualmente hay ${terms.length}.`,'enviar');return;}
+    if (!form.declaracion) {reportFailure('Declaración jurada: debe aceptar el compromiso antes de enviar.','enviar');return;}
     setSaving(true);
+    setSaveStatus('Guardando antes de enviar…');
+    let saved:PropuestaDetalle|undefined;
     try {
-      const saved = await persistDraft();
+      saved = await persistDraft();
+      setSaveStatus('Borrador guardado; enviando…');
       const sent = await enviarPropuesta(saved.id,subsanacion?respuesta:undefined);
-      showToast(
-        `Propuesta ${sent.codigo} enviada a revisión`,
-        "success",
-      );
+      showToast(`Propuesta ${sent.codigo} enviada a revisión`, 'success');
       navigate(`/propuestas/${sent.id}`, { replace: true });
     } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "No se pudo enviar la propuesta",
-        "error",
-      );
+      reportFailure(err,saved?'enviar':'guardar',saved);
+      // Permite corregir/reintentar sobre el mismo registro si el primer envío falla.
+      if(saved&&!isEditing)navigate(`/propuestas/nueva?edit=${saved.id}`,{replace:true});
     } finally {
       setSaving(false);
     }
@@ -279,6 +273,12 @@ export function PropuestaNuevaPage() {
         <span>{isEditing ? "Editar borrador" : "Nueva"}</span>
       </div>
 
+      {failure&&<div ref={failurePanel} role="alert" tabIndex={-1} className="card stack-md" aria-labelledby="proposal-failure-title" style={{marginBottom:18,borderLeft:'4px solid var(--danger, #a51d2d)'}}>
+        <h2 id="proposal-failure-title">{failure.title}</h2>
+        <p style={{whiteSpace:'pre-wrap'}}>{failure.message}</p>
+        {failure.savedCode&&<p>El expediente <strong>{failure.savedCode}</strong> conserva el borrador. Corrija lo indicado y vuelva a intentar el envío.</p>}
+        <p>Los datos ingresados permanecen en el formulario. Este aviso corresponde al último intento.</p>
+      </div>}
       <div className="wizard-layout wizard-layout-wide">
         <aside className="wizard-sidebar">
           <div className="wizard-progress-head">

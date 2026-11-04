@@ -1,0 +1,93 @@
+{
+  "run": "2026-11-04T03-11-25-852Z",
+  "scope": "Regresión de correcciones en Chromium; error HTTP 500 CIE simulado sin decidir expedientes.",
+  "results": [
+    {
+      "name": "Acceso directo a Administración exige identidad admin",
+      "status": "PASA",
+      "detail": "acceso-restringido.png"
+    },
+    {
+      "name": "D02: URL por código no abre la plantilla demo fuera del ámbito",
+      "status": "PASA",
+      "detail": "codigo-sin-atajo-demo.png"
+    },
+    {
+      "name": "Editar y reabrir textos del formulario conserva datos propios",
+      "status": "PASA",
+      "detail": "arte-reabierto.png"
+    },
+    {
+      "name": "Nuevo formulario no atribuye texto ni recursos demo",
+      "status": "PASA",
+      "detail": "formulario-sin-recursos-demo.png"
+    },
+    {
+      "name": "Errores del formulario: conflicto real de palabras clave identifica el término y conserva la captura",
+      "status": "PASA"
+    },
+    {
+      "name": "Errores del formulario: validación previa al envío queda visible fuera de la notificación",
+      "status": "PASA"
+    },
+    {
+      "name": "Errores del formulario: envío 409 simulado conserva el nuevo borrador y el reintento no duplica",
+      "status": "FALLA",
+      "detail": "locator.check: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('checkbox', { name: /Declaro bajo fe de juramento/ })\u001b[22m\n\u001b[2m    - locator resolved to <input type=\"checkbox\"/>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span class=\"radio-dot\"></span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span class=\"radio-dot\"></span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <span class=\"radio-dot\"></span> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "name": "Errores del formulario: respuesta real de envío identifica la titularidad CONS pendiente",
+      "status": "PASA"
+    },
+    {
+      "name": "Errores del formulario: fallo de red explica la falta de confirmación y conserva el texto",
+      "status": "PASA"
+    },
+    {
+      "name": "Equipo permite alta y guarda la persona externa",
+      "status": "PASA",
+      "detail": "equipo-propio.png"
+    },
+    {
+      "name": "Modal devolución sin superposición 1440",
+      "status": "PASA",
+      "detail": {
+        "hits": [],
+        "focusInside": true,
+        "within": true,
+        "screenshot": "modal-devolucion-1440.png"
+      }
+    },
+    {
+      "name": "Modal devolución sin superposición 390",
+      "status": "PASA",
+      "detail": {
+        "hits": [],
+        "focusInside": true,
+        "within": true,
+        "screenshot": "modal-devolucion-390.png"
+      }
+    },
+    {
+      "name": "CIE envía texto y conserva el modal y fundamento ante HTTP 500",
+      "status": "PASA",
+      "detail": "cie-error-conservado.png"
+    },
+    {
+      "name": "Guardar rúbrica y recargar recupera justificación propia",
+      "status": "PASA",
+      "detail": "rubrica-recuperada.png"
+    },
+    {
+      "name": "D04 y D03: certificar PI, devolver, editar solo lo indicado y reenviar por interfaz",
+      "status": "PASA",
+      "detail": "d03-subsanacion-reenviada.png"
+    },
+    {
+      "name": "Error y vacío de bandeja no crean expedientes demo",
+      "status": "PASA",
+      "detail": "bandeja-error-sin-demo.png"
+    }
+  ],
+  "errors": []
+}

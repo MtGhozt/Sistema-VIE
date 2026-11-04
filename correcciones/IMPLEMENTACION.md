@@ -82,3 +82,7 @@ Se actualizaron las siete migraciones en desarrollo sin reinicializar; se conser
 ## Integración de Ian · 3 de noviembre de 2026
 
 Se conserva la base de correcciones y se integra selectivamente `a605b81`: borradores de convocatorias, actividades/cronograma y formulario del investigador. El merge automático proponía retirar migraciones, permisos y documentación; esa retirada contradice la instrucción de conservar las correcciones. [MERGE-IAN.md](MERGE-IAN.md) registra las adaptaciones justificadas, la migración 008, resultados técnicos y casillas de validación manual pendientes.
+
+## Mensajes de guardado y envío · 3 de noviembre de 2026
+
+Por solicitud del usuario se incorpora un aviso persistente con el motivo concreto del fallo, sección afectada y estado del borrador. Se detallan duplicados de términos y límites existentes del esquema; se evita crear otra propuesta cuando guardar funciona y enviar falla. [Sustento, pruebas y revisión manual](ERRORES-DEL-FORMULARIO.md).

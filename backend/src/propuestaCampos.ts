@@ -7,14 +7,18 @@ import { saveEquipo } from "./propuestaEquipo.js";
 import { HttpError } from "./middleware/HttpError.js";
 import type { query } from "./db.js";
 
+async function enSeccion<T>(name:string,work:()=>Promise<T>):Promise<T>{
+  try{return await work();}catch(error){if(error instanceof HttpError)throw new HttpError(error.status,`${name}: ${error.message}`);throw error;}
+}
+
 // Campos ya definidos en el modelo y en el formulario oficial (sin nuevas secciones).
 export const CAMPOS_TEXTO = {
   estadoArte: "estado_arte", hojaRuta: "hoja_ruta", referencias: "referencias", divulgacion: "divulgacion",
 } as const;
 export async function savePropuestaCampos(id: number, body: Record<string, unknown>, execute: typeof query) {
-  await saveProductos(id, body.compromisos, execute);
-  await saveEtica(id, body, execute);
-  await savePresupuesto(id, body, execute);
+  await enSeccion("Compromisos de productos",()=>saveProductos(id, body.compromisos, execute));
+  await enSeccion("Aspectos éticos",()=>saveEtica(id, body, execute));
+  await enSeccion("Presupuesto y financiamiento",()=>savePresupuesto(id, body, execute));
   for(const name of Object.keys(camposComplementarios))if(body[name]!==undefined)validarComplemento(name,body[name]);
   if(body.formularioObjetivos!==undefined){
     const raw=body.formularioObjetivos as {objetivosEspecificos?:{descripcion:unknown}[]};
@@ -28,10 +32,10 @@ export async function savePropuestaCampos(id: number, body: Record<string, unkno
       }
     }
   }
-  const memberIds=await saveEquipo(id, body.equipo, execute);
+  const memberIds=await enSeccion("Equipo de investigación",()=>saveEquipo(id, body.equipo, execute));
   const resolveId=(key:unknown)=>typeof key==='string'?memberIds.get(key)??Number(key):key;
   const plan=Array.isArray(body.actividades)?body.actividades.map(a=>({...a,participantes:Array.isArray(a.participantes)?a.participantes.map(resolveId):a.participantes,asignaciones:Array.isArray(a.asignaciones)?a.asignaciones.map((p:{idParticipante:unknown;responsabilidad:string})=>({...p,idParticipante:resolveId(p.idParticipante)})):undefined})):body.actividades;
-  await savePlan(id, plan, execute);
+  await enSeccion("Plan de acción y riesgos",()=>savePlan(id, plan, execute));
   const extraNames=Object.keys(camposComplementarios);
   for(const name of extraNames){
     const value=body[name];if(value===undefined)continue;

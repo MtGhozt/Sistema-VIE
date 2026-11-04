@@ -149,13 +149,21 @@ async function replaceKeywords(
     const word = p.trim();
     if (word) pairs.push(["en", word]);
   }
+  const seen=new Set<string>();
+  for(const [idioma,palabra] of pairs){
+    const language=idioma==='es'?'español':'inglés';
+    if(palabra.length>100)throw new HttpError(400,`Palabras clave (${language}): el término «${palabra.slice(0,40)}…» supera los 100 caracteres permitidos. Acórtelo antes de guardar.`);
+    const key=JSON.stringify([idioma,palabra]);
+    if(seen.has(key))throw new HttpError(409,`Palabras clave (${language}): el término «${palabra}» está repetido. Quite la repetición antes de guardar.`);
+    seen.add(key);
+  }
   for (const [idioma, palabra] of pairs) {
     await execute(
       `
       INSERT INTO propuesta_palabra_clave (id_propuesta, idioma, palabra)
       VALUES ($1, $2, $3)
       `,
-      [idPropuesta, idioma, palabra.slice(0, 100)],
+      [idPropuesta, idioma, palabra],
     );
   }
 }
@@ -225,6 +233,7 @@ propuestasRouter.post("/propuestas", requireDemoAuth, asyncHandler(async (req, r
 
   if (req.body?.codigo !== undefined) throw new HttpError(400,"El código es automático y no editable");
   const titulo = String(req.body?.titulo ?? "").trim();
+  if(titulo.length>500)throw new HttpError(400,"Datos generales: el nombre del proyecto supera los 500 caracteres permitidos. Acórtelo antes de guardar.");
   const idConvocatoria = Number(req.body?.idConvocatoria);
   const modalidadRaw = String(req.body?.modalidad ?? "").trim();
   const modalidad=(await query<{codigo:string}>("SELECT codigo FROM modalidad_catalogo WHERE (codigo=$1 OR nombre=$1) AND activo=true",[MODALIDAD_MAP[modalidadRaw]??modalidadRaw])).rows[0]?.codigo;
@@ -357,6 +366,7 @@ propuestasRouter.patch("/propuestas/:id", requireDemoAuth, asyncHandler(async (r
 
   if (req.body?.titulo !== undefined) {
     const titulo = String(req.body.titulo).trim();
+    if(titulo.length>500)throw new HttpError(400,"Datos generales: el nombre del proyecto supera los 500 caracteres permitidos. Acórtelo antes de guardar.");
     if (!titulo) {
       res.status(400).json({ error: "titulo vacío" });
       return;

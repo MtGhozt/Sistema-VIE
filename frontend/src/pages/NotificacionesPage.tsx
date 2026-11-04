@@ -28,6 +28,11 @@ export function NotificacionesPage() {
       </header>
 
       <section className="card notifications-card">
+        <p className="sr-only" role="status" aria-live="polite">
+          {unreadCount > 0
+            ? `${unreadCount} ${unreadCount === 1 ? "notificación sin leer" : "notificaciones sin leer"}`
+            : "No hay notificaciones sin leer"}
+        </p>
         {error && <p role="alert">{error}</p>}
         {!error && items.length === 0 && <p className="empty-state">No hay notificaciones para esta cuenta.</p>}
         {items.map((n) => (
@@ -35,10 +40,11 @@ export function NotificacionesPage() {
             key={n.id}
             className={`notification-row${n.unread ? " unread" : ""}`}
           >
-            <div className="notification-symbol">
+            <div className="notification-symbol" aria-hidden>
               <IconBell size={18} />
             </div>
             <div className="notification-copy">
+              {n.unread && <span className="sr-only">Sin leer. </span>}
               <strong>{n.title}</strong>
               <p>{n.body}</p>
               <span>{n.when}</span>

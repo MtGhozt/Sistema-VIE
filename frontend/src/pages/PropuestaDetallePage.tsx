@@ -89,8 +89,11 @@ export function PropuestaDetallePage() {
 
   if (loading || !detail) {
     return (
-      <section className="card">
-        <p>Cargando expediente…</p>
+      <section className="card" aria-busy="true">
+        <h1 className="sr-only">Cargando expediente</h1>
+        <p role="status" aria-live="polite">
+          Cargando expediente…
+        </p>
       </section>
     );
   }
@@ -107,7 +110,12 @@ export function PropuestaDetallePage() {
         <span>/</span>
         <span>{detail.codigo}</span>
       </div>
-      {isCorrection && <p role="status">Debe atender las observaciones y reenviar desde el formulario de edición.</p>}
+      {isCorrection && (
+        <p role="status" aria-live="polite">
+          Debe atender las observaciones y reenviar desde el formulario de
+          edición.
+        </p>
+      )}
       {detail.estadoActual==='rechazo_aval'&&canEdit&&<section className="card stack-md"><h2>Solicitar reconsideración al Consejo</h2><p>El rechazo de aval continúa vigente hasta que el Consejo autorice un nuevo ciclo. No es una resolución CIE.</p><label className="field"><span>Motivo de reconsideración</span><textarea aria-label="Motivo de reconsideración" className="input textarea" value={reconsideracion} onChange={e=>setReconsideracion(e.target.value)}/></label><button type="button" className="btn btn-primary" disabled={!reconsideracion.trim()||sending} onClick={async()=>{setSending(true);try{await apiJson(`/api/evaluaciones/propuestas/${detail.id}/acciones`,{method:'POST',body:JSON.stringify({action:'request-reconsideration',payload:{texto:reconsideracion}})});showToast('Solicitud registrada para el Consejo','success');}catch(e){showToast(e instanceof Error?e.message:'No se pudo solicitar','error');}finally{setSending(false);}}}>Solicitar nuevo ciclo</button></section>}
       <ProposalDetailView
         proposal={model}

@@ -15,7 +15,7 @@ export function CaseFile({ proposal }: { proposal: DemoProposal }) {
       <div className="case-file-head">
         <div>
           <span className="eyebrow">{proposal.id}</span>
-          <h3>{proposal.titulo}</h3>
+          <h2>{proposal.titulo}</h2>
         </div>
         <span className="badge badge-primary">{proposal.estado}</span>
       </div>

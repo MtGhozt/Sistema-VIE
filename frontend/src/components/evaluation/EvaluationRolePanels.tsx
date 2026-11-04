@@ -628,6 +628,10 @@ function RubricPanel({
         ))}
 
         <article className="card rubric-result-card">
+          <p className="sr-only" role="status" aria-live="polite">
+            Calificación ponderada: {average} de {availablePoints} puntos.
+            Resultado de referencia: {recommendation}.
+          </p>
           <div>
             <span>Calificación ponderada</span>
             <strong>{average} / {availablePoints} puntos incluidos</strong>

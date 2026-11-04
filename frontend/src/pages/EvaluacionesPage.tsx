@@ -283,8 +283,11 @@ export function EvaluacionesPage() {
 
   if (loading) {
     return (
-      <section className="card empty-state">
-        <strong>Cargando bandeja…</strong>
+      <section className="card empty-state" aria-busy="true">
+        <h1 className="sr-only">{title}</h1>
+        <p role="status" aria-live="polite">
+          Cargando bandeja…
+        </p>
       </section>
     );
   }
@@ -292,6 +295,7 @@ export function EvaluacionesPage() {
   if (!selected) {
     return (
       <section className="card empty-state">
+        <h1 className="sr-only">{title}</h1>
         <strong>{bandejaNote ? "No se pudo consultar la bandeja" : "No hay propuestas disponibles"}</strong>
         {bandejaNote && <p role="alert">{bandejaNote}</p>}
         <button type="button" className="btn btn-secondary" onClick={() => void loadBandeja()}>Actualizar bandeja</button>

@@ -45,10 +45,20 @@ export function PropuestaNuevaPage() {
   const [saving, setSaving] = useState(false);
   const [failure,setFailure]=useState<{title:string;message:string;savedCode?:string}|null>(null);
   const failurePanel=useRef<HTMLDivElement>(null);
+  const stepHeadingRef=useRef<HTMLHeadingElement>(null);
+  const previousStep=useRef(step);
   const [reload,setReload]=useState(0);
   const [loadingEdit, setLoadingEdit] = useState(isEditing);
 
   useEffect(()=>{if(failure&&!loadingEdit)failurePanel.current?.focus();},[failure,loadingEdit]);
+
+  // Al avanzar de paso, el foco va al título del paso nuevo. Así el lector
+  // anuncia «Paso X de 17 · <título>» en vez de dejar el foco en «Siguiente».
+  useEffect(()=>{
+    if(previousStep.current===step)return;
+    previousStep.current=step;
+    stepHeadingRef.current?.focus();
+  },[step]);
 
   function reportFailure(reason:unknown,operation:'guardar'|'enviar',saved?:PropuestaDetalle){
     const network=reason instanceof TypeError&&/fetch|network|load failed/i.test(reason.message);
@@ -259,8 +269,11 @@ export function PropuestaNuevaPage() {
 
   if (loadingEdit) {
     return (
-      <section className="card">
-        <p>Cargando borrador…</p>
+      <section className="card" aria-busy="true">
+        <h1 className="sr-only">Cargando propuesta</h1>
+        <p role="status" aria-live="polite">
+          Cargando borrador…
+        </p>
       </section>
     );
   }
@@ -292,6 +305,7 @@ export function PropuestaNuevaPage() {
             aria-valuenow={progressPct}
             aria-valuemin={0}
             aria-valuemax={100}
+            aria-valuetext={`${progressPct}% del formulario completado`}
           >
             <div style={{ width: `${progressPct}%` }} />
           </div>
@@ -328,7 +342,9 @@ export function PropuestaNuevaPage() {
               <h1 className="sr-only">
                 {subsanacion ? "Subsanar propuesta" : isEditing ? "Editar borrador de propuesta" : "Nueva propuesta de investigación"}
               </h1>
-              <h2>{FORM_WIZARD_STEPS[step]}</h2>
+              <h2 ref={stepHeadingRef} tabIndex={-1}>
+                {FORM_WIZARD_STEPS[step]}
+              </h2>
             </div>
             <div className="form-code">
               <strong>F-VIE-2027</strong>

@@ -139,6 +139,16 @@ export function IconChevron(p: IconProps) {
   );
 }
 
+/** Panel / menú lateral (estilo trigger shadcn). */
+export function IconPanelLeft(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M9 3v18" />
+    </Svg>
+  );
+}
+
 const MAP = {
   home: IconHome,
   megaphone: IconMegaphone,

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { useNotifications } from "../../notifications/NotificationsContext";
@@ -10,6 +11,7 @@ import {
 } from "../../data/roles";
 import {
   IconLogout,
+  IconPanelLeft,
   IconShield,
   NavIcon,
 } from "../icons";
@@ -18,11 +20,28 @@ import { ContrastToggle } from "../a11y/ContrastToggle";
 import { TecLogo } from "../TecLogo";
 import { NotificationBell } from "./NotificationBell";
 
+const SIDEBAR_KEY = "vie-sidebar-collapsed";
+
 export function AppShell() {
   const { session, logout, setViewRole, isAdminSession } = useAuth();
   const { unreadCount } = useNotifications();
   const { highContrast } = useContrast();
   const navigate = useNavigate();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIDEBAR_KEY, sidebarCollapsed ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }, [sidebarCollapsed]);
 
   if (!session) return null;
 
@@ -35,17 +54,25 @@ export function AppShell() {
   const allowed = ROUTES_BY_ROLE[isAdminSession ? "admin" : viewRole];
   const nav = NAV_ITEMS.filter((item) => allowed.includes(item.to));
 
+  function toggleSidebar() {
+    setSidebarCollapsed((c) => !c);
+  }
+
   function handleLogout() {
     logout();
     navigate("/login", { replace: true });
   }
 
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell${sidebarCollapsed ? " sidebar-collapsed" : ""}`}
+      data-sidebar-state={sidebarCollapsed ? "collapsed" : "expanded"}
+    >
       <a className="skip-link" href="#contenido">
         Saltar al contenido principal
       </a>
-      <aside className="sidebar">
+
+      <aside className="sidebar" aria-label="Menú lateral">
         <div className="brand-block brand-block-tec">
           <TecLogo variant="blanco" />
           <div className="brand-copy">
@@ -54,25 +81,24 @@ export function AppShell() {
           </div>
         </div>
 
-        <nav className="sidebar-nav" aria-label="Principal">
+        <nav id="sidebar-nav" className="sidebar-nav" aria-label="Principal">
           {nav.map(({ to, label, icon }) => (
             <NavLink
               key={to}
               to={to}
+              title={label}
               className={({ isActive }) =>
                 `nav-item${isActive ? " active" : ""}`
               }
             >
               <NavIcon name={icon} />
-              <span>{label}</span>
+              <span className="nav-item-label">{label}</span>
               {to === "/notificaciones" && unreadCount > 0 && (
                 <>
                   <span className="nav-counter" aria-hidden>
                     {unreadCount}
                   </span>
-                  <span className="sr-only">
-                    {unreadCount} sin leer
-                  </span>
+                  <span className="sr-only">{unreadCount} sin leer</span>
                 </>
               )}
             </NavLink>
@@ -80,38 +106,66 @@ export function AppShell() {
           {isAdminSession && (
             <NavLink
               to="/administracion"
+              title="Administración"
               className={({ isActive }) =>
                 `nav-item${isActive ? " active" : ""}`
               }
             >
               <NavIcon name="settings" />
-              <span>Administración</span>
+              <span className="nav-item-label">Administración</span>
             </NavLink>
           )}
         </nav>
 
         <footer className="sidebar-footer">
           <div className="security-note">
-            <IconShield size={15} /> Prototipo académico · TEC
+            <IconShield size={15} />
+            <span className="nav-item-label">Prototipo académico · TEC</span>
           </div>
           <button
             type="button"
             className="nav-item logout"
             onClick={handleLogout}
+            title="Cerrar sesión"
           >
             <IconLogout size={18} />
-            <span>Cerrar sesión</span>
+            <span className="nav-item-label">Cerrar sesión</span>
           </button>
           <div className="copyright-note">© 2026 ITCR Costa Rica</div>
         </footer>
+
+        {/* Rail: franja al borde, como SidebarRail de shadcn */}
+        <button
+          type="button"
+          className="sidebar-rail"
+          aria-label={sidebarCollapsed ? "Expandir menú" : "Contraer menú"}
+          title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"}
+          tabIndex={-1}
+          onClick={toggleSidebar}
+        />
       </aside>
 
       <div className="app-main">
         <header className="topbar">
-          <div className="topbar-product">
-            <strong>Fondos VIE</strong>
-            <span className="topbar-divider" />
-            <span>Sistema de Gestión de Propuestas</span>
+          <div className="topbar-leading">
+            <button
+              type="button"
+              className="sidebar-trigger"
+              aria-expanded={!sidebarCollapsed}
+              aria-controls="sidebar-nav"
+              onClick={toggleSidebar}
+              title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"}
+            >
+              <IconPanelLeft size={18} aria-hidden />
+              <span className="sr-only">
+                {sidebarCollapsed ? "Expandir menú" : "Contraer menú"}
+              </span>
+            </button>
+            <div className="topbar-product">
+              <strong>Fondos VIE</strong>
+              <span className="topbar-divider" />
+              <span>Sistema de Gestión de Propuestas</span>
+            </div>
           </div>
           <div className="topbar-actions">
             {isAdminSession && (

@@ -1,9 +1,11 @@
 # Continuidad — Sistema VIE
 
 > **Actualización de correcciones · 2026-10-31:** [estado técnico, evidencias y decisiones pendientes](correcciones/ESTADO-DE-REVISION.md). Instalación y limpieza por `instalar.sh` / `desinstalar.sh`; uso actualizado en README. El resto de este documento conserva contexto anterior y no sustituye ese seguimiento.
+>
+> **UI demo · 2026-11-04:** detalle = wizard en solo lectura, KPIs reales, filtros, line sidebar de pasos. Ver [docs/ui-demo-noviembre-2026.md](docs/ui-demo-noviembre-2026.md).
 
 
-Última actualización: 2026-10-29 (CU3/CU4 persistidos + CU2 campos núcleo)
+Última actualización: 2026-11-04 (detalle RO + line sidebar + KPIs/filtros)
 
 ## Lectura para el equipo
 

@@ -86,7 +86,7 @@ export function PropuestasPage() {
         )}
       </header>
 
-      <section className="card">
+      <section className="card" aria-busy={loading}>
         <div className="toolbar">
           <div className="search-field">
             <input
@@ -114,7 +114,20 @@ export function PropuestasPage() {
           </label>
         </div>
 
-        {loading && <p>Cargando…</p>}
+        {!loading && (
+          <p className="sr-only" role="status" aria-live="polite">
+            {filtered.length}{" "}
+            {filtered.length === 1
+              ? "propuesta coincide con los filtros"
+              : "propuestas coinciden con los filtros"}
+          </p>
+        )}
+
+        {loading && (
+          <p role="status" aria-live="polite">
+            Cargando propuestas…
+          </p>
+        )}
 
         {!loading && filtered.length === 0 && (
           <div className="empty-state small">
@@ -130,15 +143,20 @@ export function PropuestasPage() {
         {!loading && filtered.length > 0 && (
           <div className="table-wrap">
             <table className="data-table">
+              <caption className="sr-only">
+                Listado de propuestas con estado y etapa del expediente
+              </caption>
               <thead>
                 <tr>
-                  <th>Propuesta</th>
-                  {isAdminView && <th>Investigador/a</th>}
-                  <th>Escuela</th>
-                  <th>Modalidad</th>
-                  <th>Estado</th>
-                  <th>Expediente</th>
-                  <th />
+                  <th scope="col">Propuesta</th>
+                  {isAdminView && <th scope="col">Investigador/a</th>}
+                  <th scope="col">Escuela</th>
+                  <th scope="col">Modalidad</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Expediente</th>
+                  <th scope="col">
+                    <span className="sr-only">Acciones</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -147,18 +165,17 @@ export function PropuestasPage() {
                     <tr
                       key={p.id}
                       className="clickable"
-                      tabIndex={0}
                       onClick={() => navigate(`/propuestas/${p.id}`)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          navigate(`/propuestas/${p.id}`);
-                        }
-                      }}
                     >
                       <td>
                         <div className="table-primary">
-                          <strong>{p.titulo}</strong>
+                          <Link
+                            to={`/propuestas/${p.id}`}
+                            className="table-link"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <strong>{p.titulo}</strong>
+                          </Link>
                           <span>
                             {p.codigo} · {p.modalidadLabel}
                           </span>
@@ -179,6 +196,7 @@ export function PropuestasPage() {
                         <Link
                           to={`/propuestas/${p.id}`}
                           className="btn btn-ghost"
+                          aria-label={`Ver propuesta ${p.codigo}: ${p.titulo}`}
                           onClick={(e) => e.stopPropagation()}
                         >
                           Ver

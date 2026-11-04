@@ -156,6 +156,40 @@ button.btn-observation {
   border: 0;
 }
 
+/* Título de fila convertido en enlace/botón real: el lector puede navegar
+ * por enlaces o botones en lugar de depender de una fila con tabindex. */
+.table-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.table-link:hover {
+  color: var(--blue);
+}
+
+.table-link strong {
+  font-weight: 700;
+}
+
+/* `CaseFile` pasó su título de h3 a h2 para no saltar niveles de encabezado;
+ * se conserva el tamaño original de la regla `.case-file-head h3` (el
+ * prototipo no se edita). */
+.case-file-head h2 {
+  font-size: 18px;
+  max-width: 650px;
+  margin: 0;
+  letter-spacing: normal;
+}
+
 /* Skip link: visible solo al recibir foco por teclado (WCAG 2.4.1). */
 .skip-link {
   position: absolute;

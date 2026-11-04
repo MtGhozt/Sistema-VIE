@@ -237,14 +237,17 @@ export function ProposalDetailView({
                 <h2>Personas investigadoras funcionarias del TEC</h2>
                 <div className="table-wrap">
                   <table className="data-table">
+                    <caption className="sr-only">
+                      Personas investigadoras funcionarias del TEC
+                    </caption>
                     <thead>
                       <tr>
-                        <th>Nombre</th>
-                        <th>ORCID</th>
-                        <th>Instancia</th>
-                        <th>Rol</th>
-                        <th>Horas</th>
-                        <th>Periodo</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">ORCID</th>
+                        <th scope="col">Instancia</th>
+                        <th scope="col">Rol</th>
+                        <th scope="col">Horas</th>
+                        <th scope="col">Periodo</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -268,11 +271,12 @@ export function ProposalDetailView({
                   <h2>Colaboradores externos</h2>
                   <div className="table-wrap">
                     <table className="data-table">
+                      <caption className="sr-only">Colaboradores externos</caption>
                       <thead>
                         <tr>
-                          <th>Nombre</th>
-                          <th>ORCID</th>
-                          <th>Institución / empresa</th>
+                          <th scope="col">Nombre</th>
+                          <th scope="col">ORCID</th>
+                          <th scope="col">Institución / empresa</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -300,11 +304,12 @@ export function ProposalDetailView({
                 ) : (
                   <div className="table-wrap">
                     <table className="data-table">
+                      <caption className="sr-only">Presupuesto por año</caption>
                       <thead>
                         <tr>
-                          <th>Año</th>
-                          <th>Operativo</th>
-                          <th>Bienes duraderos</th>
+                          <th scope="col">Año</th>
+                          <th scope="col">Operativo</th>
+                          <th scope="col">Bienes duraderos</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -320,19 +325,22 @@ export function ProposalDetailView({
                   </div>
                 )}
               </div>
-              {!!proposal.fuentes?.length && <div><h2>Fuentes de financiamiento</h2><div className="table-wrap"><table className="data-table"><thead><tr><th>Fuente</th><th>Año</th><th>Monto</th><th>Oficio</th></tr></thead><tbody>{proposal.fuentes.map((f,i)=><tr key={i}><td>{({externo:"Externo",contrapartida:"Contrapartida",cofinanciamiento:"Cofinanciamiento"} as Record<string,string>)[f.tipo]??f.tipo}</td><td>{f.anio}</td><td>{formatColones(f.monto)}</td><td>{f.oficio||"Sin oficio registrado"}</td></tr>)}</tbody></table></div></div>}
+              {!!proposal.fuentes?.length && <div><h2>Fuentes de financiamiento</h2><div className="table-wrap"><table className="data-table"><caption className="sr-only">Fuentes de financiamiento</caption><thead><tr><th scope="col">Fuente</th><th scope="col">Año</th><th scope="col">Monto</th><th scope="col">Oficio</th></tr></thead><tbody>{proposal.fuentes.map((f,i)=><tr key={i}><td>{({externo:"Externo",contrapartida:"Contrapartida",cofinanciamiento:"Cofinanciamiento"} as Record<string,string>)[f.tipo]??f.tipo}</td><td>{f.anio}</td><td>{formatColones(f.monto)}</td><td>{f.oficio||"Sin oficio registrado"}</td></tr>)}</tbody></table></div></div>}
               {(proposal.financiamiento?.length ?? 0) > 0 && (
                 <div>
                   <h2>Financiamiento y contrapartida</h2>
                   <div className="table-wrap">
                     <table className="data-table">
+                      <caption className="sr-only">
+                        Financiamiento y contrapartida
+                      </caption>
                       <thead>
                         <tr>
-                          <th>Tipo</th>
-                          <th>Año 1</th>
-                          <th>Año 2</th>
-                          <th>Año 3</th>
-                          <th>Oficio</th>
+                          <th scope="col">Tipo</th>
+                          <th scope="col">Año 1</th>
+                          <th scope="col">Año 2</th>
+                          <th scope="col">Año 3</th>
+                          <th scope="col">Oficio</th>
                         </tr>
                       </thead>
                       <tbody>

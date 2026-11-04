@@ -272,9 +272,9 @@ export function HistoricoPage() {
         </div>
       </section>
 
-      <section className="card">
+      <section className="card" aria-busy={loading}>
         <div className="results-head">
-          <strong>
+          <strong role="status" aria-live="polite">
             {loading
               ? "Consultando…"
               : `${items.length} ${items.length === 1 ? "resultado" : "resultados"}`}
@@ -301,15 +301,20 @@ export function HistoricoPage() {
         {!loading && items.length > 0 && (
           <div className="table-wrap">
             <table className="data-table">
+              <caption className="sr-only">
+                Resultados del histórico de propuestas
+              </caption>
               <thead>
                 <tr>
-                  <th>Propuesta</th>
-                  <th>Escuela</th>
-                  <th>Persona investigadora</th>
-                  <th>Línea / Temática</th>
-                  <th>Año</th>
-                  <th>Estado</th>
-                  <th />
+                  <th scope="col">Propuesta</th>
+                  <th scope="col">Escuela</th>
+                  <th scope="col">Persona investigadora</th>
+                  <th scope="col">Línea / Temática</th>
+                  <th scope="col">Año</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">
+                    <span className="sr-only">Acciones</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -317,18 +322,21 @@ export function HistoricoPage() {
                   <tr
                     key={row.id}
                     className="clickable"
-                    tabIndex={0}
                     onClick={() => setSelected(row)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelected(row);
-                      }
-                    }}
                   >
                     <td>
                       <div className="table-primary">
-                        <strong>{row.titulo}</strong>
+                        <button
+                          type="button"
+                          className="table-link"
+                          aria-haspopup="dialog"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelected(row);
+                          }}
+                        >
+                          {row.titulo}
+                        </button>
                         <span>
                           {row.codigo} · {row.modalidadLabel}
                         </span>
@@ -355,6 +363,7 @@ export function HistoricoPage() {
                       <button
                         type="button"
                         className="btn btn-ghost"
+                        aria-label={`Ver expediente ${row.codigo}: ${row.titulo}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelected(row);

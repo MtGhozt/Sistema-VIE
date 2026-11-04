@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -61,6 +62,13 @@ export function ConvocatoriasPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [detail, setDetail] = useState<ConvocatoriaDetalle | null>(null);
+  const detailTitleRef = useRef<HTMLHeadingElement>(null);
+
+  // Al abrir un detalle, el foco va al título para que el lector anuncie el
+  // nuevo bloque sin que la persona tenga que buscarlo.
+  useEffect(() => {
+    if (detail) detailTitleRef.current?.focus();
+  }, [detail]);
 
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -438,6 +446,7 @@ export function ConvocatoriasPage() {
                       <button
                         type="button"
                         className="btn btn-ghost"
+                        aria-label={`Eliminar actividad ${index + 1} del cronograma`}
                         onClick={() =>
                           setHitos((current) =>
                             current.filter((_, i) => i !== index),
@@ -475,24 +484,42 @@ export function ConvocatoriasPage() {
         </form>
       )}
 
-      <section className="card convocatorias-list">
+      <section className="card convocatorias-list" aria-busy={loading}>
+        {!loading && (
+          <p className="sr-only" role="status" aria-live="polite">
+            {rows.length}{" "}
+            {rows.length === 1
+              ? "convocatoria disponible"
+              : "convocatorias disponibles"}
+          </p>
+        )}
         <div className="table-wrap">
           <table className="data-table">
+            <caption className="sr-only">
+              Listado de convocatorias con fechas, estado y cantidad de
+              propuestas
+            </caption>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Convocatoria</th>
-                <th>Apertura</th>
-                <th>Cierre</th>
-                <th>Estado</th>
-                <th>Propuestas</th>
-                <th />
+                <th scope="col">ID</th>
+                <th scope="col">Convocatoria</th>
+                <th scope="col">Apertura</th>
+                <th scope="col">Cierre</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Propuestas</th>
+                <th scope="col">
+                  <span className="sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7}>Cargando…</td>
+                  <td colSpan={7}>
+                    <span role="status" aria-live="polite">
+                      Cargando convocatorias…
+                    </span>
+                  </td>
                 </tr>
               )}
               {!loading && rows.length === 0 && (
@@ -519,6 +546,7 @@ export function ConvocatoriasPage() {
                     <button
                       type="button"
                       className="btn btn-ghost"
+                      aria-label={`Ver convocatoria VIE-${c.id}: ${c.nombre}`}
                       onClick={() => void openDetail(c.id)}
                     >
                       Ver
@@ -535,11 +563,18 @@ export function ConvocatoriasPage() {
         <section
           className="card stack-md convocatoria-detail"
           style={{ marginTop: 18 }}
+          aria-labelledby="convocatoria-detalle-title"
         >
           <div className="section-inline">
             <div>
               <p className="eyebrow">Detalle · VIE-{detail.id}</p>
-              <h2>{detail.nombre}</h2>
+              <h2
+                id="convocatoria-detalle-title"
+                ref={detailTitleRef}
+                tabIndex={-1}
+              >
+                {detail.nombre}
+              </h2>
               <p>{detail.descripcion || "Sin descripción"}</p>
             </div>
             <button

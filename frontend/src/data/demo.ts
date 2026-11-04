@@ -63,10 +63,10 @@ export const HOME_BY_ROLE: Record<RoleId, HomeSummary> = {
     description:
       "Evaluá con la rúbrica oficial, registrá una nota independiente y justificá la revisión humana.",
     stats: [
-      ["Pendientes", "3"],
-      ["En progreso", "2"],
-      ["Completadas", "12"],
-      ["Consolidación pendiente", "1"],
+      ["En bandeja", "3"],
+      ["Recién enviadas", "2"],
+      ["En evaluación", "12"],
+      ["Ya dictaminadas", "1"],
     ],
   },
   consejo_asistente: {

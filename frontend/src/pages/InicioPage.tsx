@@ -2,12 +2,16 @@ import { labelEstado } from "../data/proposalStates";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import {
-  HOME_BY_ROLE,
-  PENDING_TASKS,
-  PRIMARY_CTA,
-} from "../data/demo";
+import { HOME_BY_ROLE, PENDING_TASKS, PRIMARY_CTA } from "../data/demo";
 import { fetchPropuestas, type Propuesta } from "../api/propuestas";
+import {
+  fetchConvocatorias,
+  type Convocatoria,
+} from "../api/convocatorias";
+import {
+  fetchEvaluacionBandeja,
+  type EvaluacionBandejaItem,
+} from "../api/evaluaciones";
 import {
   ProcessTimeline,
   stepFromPropuestaEstado,
@@ -15,17 +19,54 @@ import {
 import { IconChevron } from "../components/icons";
 import type { RoleId } from "../data/roles";
 
-const ADMIN_INSTANCE_ACCESS: [string, string, string][] = [
-  ["VIE - publicación", "1", "convocatorias activas"],
-  ["Investigadores", "5", "propuestas en formulación"],
-  ["Vinculación", "4", "dictámenes PI pendientes"],
-  ["Comité Técnico", "6", "expedientes por revisar"],
-  ["Consejo de Escuela", "2", "avales pendientes"],
-  ["Gestora VIE", "5", "expedientes pendientes"],
-  ["CIE", "3", "resoluciones pendientes"],
-  ["Dirección de Investigación", "2", "notificaciones pendientes"],
+const EVAL_ROLES: RoleId[] = [
+  "vinculacion",
+  "comite_asistente",
+  "comite_evaluador",
+  "consejo_asistente",
+  "consejo",
+  "direccion_escuela",
+  "gestora_vie",
+  "cie",
+  "direccion_investigacion",
 ];
 
+function normEstado(estado: string) {
+  return estado.toLowerCase();
+}
+
+function isPropuestaActiva(p: Propuesta) {
+  const e = normEstado(p.estadoActual);
+  return e !== "aprobada" && e !== "rechazada";
+}
+
+function formatCierreMeta(fechaCierre: string) {
+  const d = fechaCierre.slice(0, 10);
+  const [y, m, day] = d.split("-");
+  if (!y || !m || !day) return `Cierre ${fechaCierre}`;
+  return `Cierre ${day}/${m}/${y}`;
+}
+
+function labelConvocatoriaEstado(estado: string) {
+  const map: Record<string, string> = {
+    borrador: "Borrador",
+    activa: "Publicada",
+    cerrada: "Cerrada",
+    finalizada: "Finalizada",
+  };
+  return map[estado] ?? estado;
+}
+
+function isProximaCierre(c: Convocatoria, today = new Date()) {
+  if (c.estado !== "activa") return false;
+  const cierre = new Date(c.fechaCierre.slice(0, 10));
+  const start = new Date(today);
+  start.setHours(0, 0, 0, 0);
+  const limit = new Date(start);
+  limit.setDate(limit.getDate() + 30);
+  cierre.setHours(0, 0, 0, 0);
+  return cierre >= start && cierre <= limit;
+}
 
 function instancePath(label: string) {
   if (label.includes("Investig")) return "/propuestas";
@@ -33,14 +74,193 @@ function instancePath(label: string) {
   return "/evaluaciones";
 }
 
+function adminInstanceAccess(
+  proposals: Propuesta[],
+  convocatorias: Convocatoria[],
+): [string, string, string][] {
+  const etapa = (n: number) =>
+    String(proposals.filter((p) => p.etapaFlujo === n).length);
+  const borradores = String(
+    proposals.filter((p) => normEstado(p.estadoActual) === "borrador").length,
+  );
+  const activas = String(
+    convocatorias.filter((c) => c.estado === "activa").length,
+  );
+  return [
+    ["VIE - publicación", activas, "convocatorias activas"],
+    ["Investigadores", borradores, "propuestas en formulación"],
+    ["Vinculación", etapa(1), "dictámenes PI pendientes"],
+    ["Comité Técnico", etapa(2), "expedientes por revisar"],
+    ["Consejo de Escuela", etapa(3), "avales pendientes"],
+    ["Gestora VIE", etapa(4), "expedientes pendientes"],
+    ["CIE", etapa(5), "resoluciones pendientes"],
+    ["Dirección de Investigación", etapa(6), "notificaciones pendientes"],
+  ];
+}
+
+function adminStatValue(
+  label: string,
+  proposals: Propuesta[],
+  convocatorias: Convocatoria[],
+): number {
+  const l = label.toLowerCase();
+  if (l.includes("propuesta") && l.includes("activ")) {
+    return proposals.filter(isPropuestaActiva).length;
+  }
+  if (l.includes("convocatoria")) return convocatorias.length;
+  if (l.includes("resolucion")) {
+    return proposals.filter((p) => normEstado(p.estadoActual) === "aprobada")
+      .length;
+  }
+  if (l.includes("accion") && l.includes("pendiente")) {
+    return proposals.filter((p) => {
+      const e = normEstado(p.estadoActual);
+      return e !== "borrador" && e !== "aprobada" && e !== "rechazada";
+    }).length;
+  }
+  return 0;
+}
+
+function adminStatPath(label: string) {
+  const l = label.toLowerCase();
+  if (l.includes("propuesta")) return "/propuestas";
+  if (l.includes("convocatoria")) return "/convocatorias";
+  return "/evaluaciones";
+}
+
+function investigadorStatValue(label: string, proposals: Propuesta[]): number {
+  const l = label.toLowerCase();
+  if (l.includes("borrador")) {
+    return proposals.filter((p) => normEstado(p.estadoActual) === "borrador")
+      .length;
+  }
+  if (l.includes("corrección") || l.includes("correccion")) {
+    return proposals.filter((p) => {
+      const e = normEstado(p.estadoActual);
+      return e === "en_subsanacion" || e.includes("correccion");
+    }).length;
+  }
+  if (l.includes("aprobada")) {
+    return proposals.filter((p) => normEstado(p.estadoActual) === "aprobada")
+      .length;
+  }
+  if (l.includes("rechazada")) {
+    return proposals.filter((p) => normEstado(p.estadoActual) === "rechazada")
+      .length;
+  }
+  if (l.includes("revisión") || l.includes("revision")) {
+    return proposals.filter((p) => {
+      const e = normEstado(p.estadoActual);
+      if (e === "borrador" || e === "aprobada" || e === "rechazada") {
+        return false;
+      }
+      if (e === "en_subsanacion" || e.includes("correccion")) return false;
+      return true;
+    }).length;
+  }
+  return 0;
+}
+
+function investigadorStatPath(label: string) {
+  const l = label.toLowerCase();
+  if (l.includes("borrador")) {
+    return `/propuestas?estado=${encodeURIComponent(labelEstado("borrador"))}`;
+  }
+  if (l.includes("corrección") || l.includes("correccion")) {
+    return `/propuestas?estado=${encodeURIComponent(labelEstado("en_subsanacion"))}`;
+  }
+  if (l.includes("aprobada")) {
+    return `/propuestas?estado=${encodeURIComponent(labelEstado("aprobada"))}`;
+  }
+  if (l.includes("rechazada")) {
+    return `/propuestas?estado=${encodeURIComponent(labelEstado("rechazada"))}`;
+  }
+  return "/propuestas";
+}
+
+function convocatoriaStatValue(label: string, convocatorias: Convocatoria[]) {
+  const l = label.toLowerCase();
+  if (l.includes("activa")) {
+    return convocatorias.filter((c) => c.estado === "activa").length;
+  }
+  if (l.includes("borrador")) {
+    return convocatorias.filter((c) => c.estado === "borrador").length;
+  }
+  if (l.includes("próxima") || l.includes("proxima")) {
+    return convocatorias.filter((c) => isProximaCierre(c)).length;
+  }
+  if (l.includes("finaliz")) {
+    return convocatorias.filter(
+      (c) => c.estado === "cerrada" || c.estado === "finalizada",
+    ).length;
+  }
+  return 0;
+}
+
+function convocatoriaStatPath(label: string) {
+  const l = label.toLowerCase();
+  if (l.includes("activa")) return "/convocatorias?estado=activa";
+  if (l.includes("borrador")) return "/convocatorias?estado=borrador";
+  if (l.includes("próxima") || l.includes("proxima")) {
+    return "/convocatorias?estado=proximas";
+  }
+  if (l.includes("finaliz")) return "/convocatorias?estado=cerrada";
+  return "/convocatorias";
+}
+
+function evalRoleStatValue(label: string, items: EvaluacionBandejaItem[]) {
+  const l = label.toLowerCase();
+  const total = items.length;
+  // En bandeja = total de expedientes visibles para el rol
+  if (l.includes("bandeja") || l.includes("total") || l.includes("recibid")) {
+    return total;
+  }
+  // Recién enviadas = llegaron al flujo pero aún no están en evaluación activa
+  if (l.includes("enviad") || l.includes("recién") || l.includes("recien")) {
+    return items.filter((i) => normEstado(i.estadoActual) === "enviada").length;
+  }
+  // En evaluación = el comité/instancia ya las está trabajando
+  if (
+    l.includes("en evaluación") ||
+    l.includes("en evaluacion") ||
+    l.includes("progreso")
+  ) {
+    return items.filter((i) => normEstado(i.estadoActual) === "en_evaluacion")
+      .length;
+  }
+  // Ya dictaminadas = el comité emitió resultado (pasan a consejo/consolidación)
+  if (l.includes("dictamin") || l.includes("consolida") || l.includes("complet")) {
+    return items.filter((i) =>
+      ["dictaminada", "avalada"].includes(normEstado(i.estadoActual)),
+    ).length;
+  }
+  if (l.includes("pendiente")) return total;
+  if (
+    l.includes("faltante") ||
+    l.includes("devuelt") ||
+    l.includes("corrección") ||
+    l.includes("correccion")
+  ) {
+    return items.filter((i) => normEstado(i.estadoActual) === "en_subsanacion")
+      .length;
+  }
+  return 0;
+}
+
 function AdminHome({
   home,
   proposals,
+  convocatorias,
 }: {
   home: (typeof HOME_BY_ROLE)["admin"];
   proposals: Propuesta[];
+  convocatorias: Convocatoria[];
 }) {
   const navigate = useNavigate();
+  const instanceRows = useMemo(
+    () => adminInstanceAccess(proposals, convocatorias),
+    [proposals, convocatorias],
+  );
 
   const flowLanes = useMemo(() => {
     const count = (pred: (p: Propuesta) => boolean) =>
@@ -57,7 +277,7 @@ function AdminHome({
         count(
           (p) =>
             p.etapaFlujo >= 7 ||
-            ["aprobada", "rechazada"].includes(p.estadoActual.toLowerCase()),
+            ["aprobada", "rechazada"].includes(normEstado(p.estadoActual)),
         ),
       ],
     ] as [string, number][];
@@ -85,13 +305,19 @@ function AdminHome({
         </div>
       </header>
 
-      <p className="field-hint">Los indicadores de estas tarjetas son ejemplos del prototipo; las listas de expedientes se consultan en el servidor.</p>
       <section className="stats-grid stats-grid-five" aria-label="Indicadores">
-        {home.stats.map(([label, value]) => (
-          <article key={label} className="card stat-card">
-            <div className="stat-value">{value}</div>
+        {home.stats.map(([label]) => (
+          <button
+            key={label}
+            type="button"
+            className="card stat-card"
+            onClick={() => navigate(adminStatPath(label))}
+          >
+            <div className="stat-value">
+              {adminStatValue(label, proposals, convocatorias)}
+            </div>
             <div className="stat-label">{label}</div>
-          </article>
+          </button>
         ))}
       </section>
 
@@ -100,7 +326,7 @@ function AdminHome({
           <div className="section-title">
             <div>
               <h2>Distribución de expedientes por etapa</h2>
-              <p>Carga de trabajo simulada por instancia.</p>
+              <p>Carga de trabajo según la etapa institucional del flujo.</p>
             </div>
           </div>
           <div className="flow-lanes">
@@ -123,11 +349,11 @@ function AdminHome({
           <div className="section-title">
             <div>
               <h2>Acceso a instancias</h2>
-              <p>Accesos a instancias; las cifras de estas tarjetas son de ejemplo.</p>
+              <p>Accesos rápidos con carga actual por instancia.</p>
             </div>
           </div>
           <div className="admin-flow-cards">
-            {ADMIN_INSTANCE_ACCESS.map(([label, value, meta]) => (
+            {instanceRows.map(([label, value, meta]) => (
               <button
                 key={label}
                 type="button"
@@ -154,7 +380,7 @@ function AdminHome({
           </div>
         </div>
         <div className="admin-proposal-list">
-          {proposals.slice(0, 6).map((p) => (
+          {proposals.filter(isPropuestaActiva).slice(0, 6).map((p) => (
             <button
               key={p.id}
               type="button"
@@ -173,9 +399,9 @@ function AdminHome({
               <IconChevron size={16} />
             </button>
           ))}
-          {proposals.length === 0 && (
+          {proposals.filter(isPropuestaActiva).length === 0 && (
             <div className="empty-state small">
-              <strong>Sin expedientes cargados</strong>
+              <strong>Sin expedientes activos</strong>
               <span>Los expedientes aparecerán cuando existan propuestas.</span>
             </div>
           )}
@@ -192,6 +418,7 @@ function InvestigadorHome({
   home: (typeof HOME_BY_ROLE)["investigador"];
   proposals: Propuesta[];
 }) {
+  const navigate = useNavigate();
   const recent = proposals.slice(0, 2);
 
   return (
@@ -209,13 +436,19 @@ function InvestigadorHome({
         </div>
       </header>
 
-      <p className="field-hint">Los indicadores de estas tarjetas son ejemplos del prototipo; las listas de expedientes se consultan en el servidor.</p>
       <section className="stats-grid stats-grid-five" aria-label="Indicadores">
-        {home.stats.map(([label, value]) => (
-          <article key={label} className="card stat-card">
-            <div className="stat-value">{value}</div>
+        {home.stats.map(([label]) => (
+          <button
+            key={label}
+            type="button"
+            className="card stat-card"
+            onClick={() => navigate(investigadorStatPath(label))}
+          >
+            <div className="stat-value">
+              {investigadorStatValue(label, proposals)}
+            </div>
             <div className="stat-label">{label}</div>
-          </article>
+          </button>
         ))}
       </section>
 
@@ -285,12 +518,88 @@ function InvestigadorHome({
   );
 }
 
-function RoleHome({ role }: { role: RoleId }) {
+function RoleHome({
+  role,
+  convocatorias,
+  sessionRole,
+}: {
+  role: RoleId;
+  convocatorias: Convocatoria[];
+  sessionRole: RoleId;
+}) {
   const navigate = useNavigate();
   const home = HOME_BY_ROLE[role];
   const cta = PRIMARY_CTA[role];
-  const tasks = PENDING_TASKS[role] ?? [];
   const five = home.stats.length >= 5;
+  const [bandejaItems, setBandejaItems] = useState<EvaluacionBandejaItem[]>(
+    [],
+  );
+
+  const isViePublicacion = role === "vie_publicacion";
+  const isEvalRole = EVAL_ROLES.includes(role);
+
+  useEffect(() => {
+    if (!isEvalRole) {
+      setBandejaItems([]);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const view =
+          sessionRole === "admin" && isEvalRole ? role : undefined;
+        const res = await fetchEvaluacionBandeja(view);
+        if (!cancelled) setBandejaItems(res.items);
+      } catch {
+        if (!cancelled) setBandejaItems([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEvalRole, role, sessionRole]);
+
+  const statEntries = useMemo(() => {
+    return home.stats.map(([label]) => {
+      let value = 0;
+      if (isViePublicacion) {
+        value = convocatoriaStatValue(label, convocatorias);
+      } else if (isEvalRole) {
+        value = evalRoleStatValue(label, bandejaItems);
+      }
+      return { label, value };
+    });
+  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems]);
+
+  const vieTasks = useMemo(() => {
+    if (!isViePublicacion) return [];
+    return [...convocatorias]
+      .sort((a, b) => a.fechaCierre.localeCompare(b.fechaCierre))
+      .slice(0, 5)
+      .map((c) => ({
+        id: c.id,
+        title: c.nombre,
+        status: labelConvocatoriaEstado(c.estado),
+        meta: formatCierreMeta(c.fechaCierre),
+        path: convocatoriaStatPath(
+          c.estado === "borrador"
+            ? "Borradores"
+            : c.estado === "activa"
+              ? "Convocatorias activas"
+              : "Finalizadas",
+        ),
+      }));
+  }, [convocatorias, isViePublicacion]);
+
+  const pendingTasks = PENDING_TASKS[role] ?? [];
+
+  function statNavigate(label: string) {
+    if (isViePublicacion) {
+      navigate(convocatoriaStatPath(label));
+      return;
+    }
+    navigate("/evaluaciones");
+  }
 
   return (
     <>
@@ -311,11 +620,16 @@ function RoleHome({ role }: { role: RoleId }) {
         className={`stats-grid${five ? " stats-grid-five" : ""}`}
         aria-label="Indicadores"
       >
-        {home.stats.map(([label, value]) => (
-          <article key={label} className="card stat-card">
+        {statEntries.map(({ label, value }) => (
+          <button
+            key={label}
+            type="button"
+            className="card stat-card"
+            onClick={() => statNavigate(label)}
+          >
             <div className="stat-value">{value}</div>
             <div className="stat-label">{label}</div>
-          </article>
+          </button>
         ))}
       </section>
 
@@ -331,29 +645,48 @@ function RoleHome({ role }: { role: RoleId }) {
             </div>
           </div>
           <div className="task-list">
-            {tasks.map(([title, status, meta]) => (
-              <button
-                key={title}
-                type="button"
-                className="task-row"
-                onClick={() =>
-                  navigate(
-                    role === "vie_publicacion"
-                      ? "/convocatorias"
-                      : "/evaluaciones",
-                  )
-                }
-              >
-                <div>
-                  <strong>{title}</strong>
-                  <span>{meta}</span>
-                </div>
-                <div className="task-row-end">
-                  <span className="badge badge-primary">{status}</span>
-                  <IconChevron size={16} />
-                </div>
-              </button>
-            ))}
+            {isViePublicacion &&
+              vieTasks.map((task) => (
+                <button
+                  key={task.id}
+                  type="button"
+                  className="task-row"
+                  onClick={() => navigate(task.path)}
+                >
+                  <div>
+                    <strong>{task.title}</strong>
+                    <span>{task.meta}</span>
+                  </div>
+                  <div className="task-row-end">
+                    <span className="badge badge-primary">{task.status}</span>
+                    <IconChevron size={16} />
+                  </div>
+                </button>
+              ))}
+            {!isViePublicacion &&
+              pendingTasks.map(([title, status, meta]) => (
+                <button
+                  key={title}
+                  type="button"
+                  className="task-row"
+                  onClick={() => navigate("/evaluaciones")}
+                >
+                  <div>
+                    <strong>{title}</strong>
+                    <span>{meta}</span>
+                  </div>
+                  <div className="task-row-end">
+                    <span className="badge badge-primary">{status}</span>
+                    <IconChevron size={16} />
+                  </div>
+                </button>
+              ))}
+            {isViePublicacion && vieTasks.length === 0 && (
+              <div className="empty-state small">
+                <strong>Sin convocatorias</strong>
+                <span>Creá una convocatoria desde el acceso principal.</span>
+              </div>
+            )}
           </div>
         </article>
 
@@ -384,9 +717,13 @@ function RoleHome({ role }: { role: RoleId }) {
 export function InicioPage() {
   const { session } = useAuth();
   const [proposals, setProposals] = useState<Propuesta[]>([]);
+  const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
 
   const role = session?.viewRole;
+  const sessionRole = session?.role;
   const needsProposals = role === "investigador" || role === "admin";
+  const needsConvocatorias =
+    role === "admin" || role === "vie_publicacion";
 
   const loadPropuestas = useCallback(async () => {
     if (!needsProposals) {
@@ -400,14 +737,36 @@ export function InicioPage() {
     }
   }, [needsProposals]);
 
+  const loadConvocatorias = useCallback(async () => {
+    if (!needsConvocatorias) {
+      setConvocatorias([]);
+      return;
+    }
+    try {
+      setConvocatorias(await fetchConvocatorias());
+    } catch {
+      setConvocatorias([]);
+    }
+  }, [needsConvocatorias]);
+
   useEffect(() => {
     void loadPropuestas();
   }, [loadPropuestas]);
 
-  if (!session || !role) return null;
+  useEffect(() => {
+    void loadConvocatorias();
+  }, [loadConvocatorias]);
+
+  if (!session || !role || !sessionRole) return null;
 
   if (role === "admin") {
-    return <AdminHome home={HOME_BY_ROLE.admin} proposals={proposals} />;
+    return (
+      <AdminHome
+        home={HOME_BY_ROLE.admin}
+        proposals={proposals}
+        convocatorias={convocatorias}
+      />
+    );
   }
 
   if (role === "investigador") {
@@ -419,5 +778,11 @@ export function InicioPage() {
     );
   }
 
-  return <RoleHome role={role} />;
+  return (
+    <RoleHome
+      role={role}
+      convocatorias={convocatorias}
+      sessionRole={sessionRole}
+    />
+  );
 }

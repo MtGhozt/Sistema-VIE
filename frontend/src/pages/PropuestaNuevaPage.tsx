@@ -14,12 +14,34 @@ import {
 } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
 import { FormWizardStepContent } from "../components/FormWizardStepContent";
+import { WizardLineSteps } from "../components/WizardLineSteps";
 import { useToast } from "../components/toast/ToastContext";
 import {
   DEFAULT_FORM_WIZARD_STATE,
   FORM_WIZARD_STEPS,
   type FormWizardState,
 } from "../data/formWizard";
+import { hydrateFormWizardFromDetalle } from "../data/hydrateFormWizard";
+import { toIan } from "../data/formWizardAdapter";
+import { getFormStepStatus } from "../data/formWizardIan";
+
+const STEP_BLOCK_HINT: Record<number, string> = {
+  0: "Complete identificación, fechas (fin ≥ inicio, años 2000–2100) y las preguntas generales obligatorias.",
+  1: "Complete el resumen (máx. 500 palabras), el abstract y 4 a 6 palabras clave en español.",
+  2: "Registre el equipo TEC con horas válidas y complete los datos de personas externas.",
+  3: "Indique problema, objetivo general y exactamente tres objetivos específicos.",
+  4: "Complete el estado del arte sin superar el límite de palabras.",
+  5: "Describa la metodología del proyecto.",
+  6: "Complete el plan de acción (actividades, participantes y riesgos) dentro de 36 meses.",
+  7: "Indique un presupuesto total mayor que cero, sin montos negativos, y el financiamiento asociado.",
+  8: "Registre los productos académicos comprometidos según la modalidad.",
+  9: "Complete el resguardo de productos.",
+  10: "Complete divulgación y socialización.",
+  11: "Responda los aspectos éticos y justifique según corresponda.",
+  12: "Complete la hoja de ruta.",
+  13: "Incluya las referencias bibliográficas.",
+  14: "Acepte la declaración jurada y firme con el nombre completo.",
+};
 
 export function PropuestaNuevaPage() {
   const { session } = useAuth();
@@ -118,34 +140,7 @@ export function PropuestaNuevaPage() {
         }
         setSubsanacion(d.subsanacion);
         setIdConvocatoria(d.idConvocatoria);
-        setForm((prev) => ({
-          ...prev,
-          trlActual:d.trlEsperado??d.trlActual,trlEsperado:d.trlEsperado,lineas:d.lineas??[],
-          objetivosRegistrados:d.objetivosEspecificos??[],
-          detallesFormulario:d.detallesFormulario??{},
-          titulo: d.titulo,
-          escuela: d.escuelaNombre,
-          modalidad: d.modalidadLabel || prev.modalidad,
-          aspectosEticos: d.aspectosEticos ?? { humanos:false, biodiversidad:false, animales:false, indigenas:false, exencion:"" }, permisos: d.permisos ?? [],
-          compromisos: d.compromisos ?? [],
-          actividades: d.actividades ?? [],
-          equipo: d.equipo ?? [], presupuesto: d.presupuesto ?? [], fuentes: d.fuentes ?? [],
-          declaracion: d.declaracion, resguardoRepositorio: d.resguardoRepositorio, resguardoTecnico: d.resguardoTecnico,
-          resumen: d.resumen ?? "",
-          estadoArte: d.estadoArte ?? "", referencias: d.referencias ?? "", hojaRuta: d.hojaRuta ?? "", divulgacion: d.divulgacion ?? "",
-          inicio: d.fechaInicio?.slice(0,10) ?? "", fin: d.fechaFin?.slice(0,10) ?? "",
-          keywordsEn: d.keywordsEn.join(", "),
-          ...Object.fromEntries((d.preguntasGenerales ?? []).map(q => [`q${q.numero}`, q.respuesta])),
-          q2Proyecto: (d.preguntasGenerales?.find(q => q.numero === 2)?.detalle ?? "").split("\n")[0] ?? "",
-          q2Relacion: (d.preguntasGenerales?.find(q => q.numero === 2)?.detalle ?? "").split("\n").slice(1).join("\n"),
-          q3Detalle: d.preguntasGenerales?.find(q => q.numero === 3)?.detalle ?? "",
-          q8: d.requiereDictamenPi?"Sí":"No",
-          abstract: d.abstractEn ?? "",
-          palabras: d.keywordsEs.join(", "),
-          problema: d.problema ?? "",
-          objetivos: d.objetivoGeneral ?? "",
-          metodologia: d.metodologia ?? "",
-        }));
+        setForm(hydrateFormWizardFromDetalle(d));
         setSaveStatus("Borrador cargado");
       } catch (err) {
         showToast(
@@ -309,27 +304,11 @@ export function PropuestaNuevaPage() {
           >
             <div style={{ width: `${progressPct}%` }} />
           </div>
-          <nav className="wizard-steps" aria-label="Pasos del formulario">
-            {FORM_WIZARD_STEPS.map((label, i) => (
-              <button
-                key={label}
-                type="button"
-                aria-current={i === step ? "step" : undefined}
-                className={
-                  i === step ? "active" : i < step ? "done" : undefined
-                }
-                onClick={() => setStep(i)}
-              >
-                <span>{i + 1}</span>
-                <div>
-                  <strong>
-                    {i + 1}. {label}
-                  </strong>
-                  <small>{i === step ? "Paso actual" : "Sección del formulario"}</small>
-                </div>
-              </button>
-            ))}
-          </nav>
+          <WizardLineSteps
+            steps={FORM_WIZARD_STEPS}
+            step={step}
+            onSelect={setStep}
+          />
         </aside>
 
         <section className="card wizard-card">
@@ -395,11 +374,59 @@ export function PropuestaNuevaPage() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() =>
+                  onClick={() => {
+                    // Documentación (15) y revisión (16) no bloquean el avance
+                    if (step < 15) {
+                      const ian = toIan(form);
+                      const status = getFormStepStatus(
+                        step,
+                        ian,
+                        idConvocatoria !== "",
+                      );
+                      if (status !== "Completa") {
+                        const hint =
+                          STEP_BLOCK_HINT[step] ??
+                          "Complete los campos obligatorios de este paso antes de continuar.";
+                        showToast(
+                          `Paso incompleto: ${FORM_WIZARD_STEPS[step]}. ${hint}`,
+                          "error",
+                        );
+                        return;
+                      }
+                      const yearOk = (iso: string) => {
+                        const y = Number(iso.slice(0, 4));
+                        return y >= 2000 && y <= 2100;
+                      };
+                      if (
+                        step === 0 &&
+                        (!yearOk(form.inicio) ||
+                          !yearOk(form.fin) ||
+                          form.fin < form.inicio)
+                      ) {
+                        showToast(
+                          "Las fechas del proyecto deben ser coherentes (fin ≥ inicio) y estar entre 2000 y 2100.",
+                          "error",
+                        );
+                        return;
+                      }
+                      if (step === 1) {
+                        const words = form.resumen
+                          .trim()
+                          .split(/\s+/)
+                          .filter(Boolean).length;
+                        if (words > 500) {
+                          showToast(
+                            `El resumen supera el máximo de 500 palabras (${words}).`,
+                            "error",
+                          );
+                          return;
+                        }
+                      }
+                    }
                     setStep((s) =>
                       Math.min(FORM_WIZARD_STEPS.length - 1, s + 1),
-                    )
-                  }
+                    );
+                  }}
                 >
                   Siguiente
                 </button>

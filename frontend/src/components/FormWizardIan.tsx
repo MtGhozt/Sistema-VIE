@@ -40,6 +40,8 @@ type Props = {
   convocatorias: Convocatoria[];
   idConvocatoria: number | "";
   setIdConvocatoria: (v: number | "") => void;
+  /** Solo lectura: sin mutaciones; ocultar Agregar/Quitar. */
+  readOnly?: boolean;
 };
 
 function yesNoValue(value: string): YesNo | "" {
@@ -126,20 +128,18 @@ function YesNoRow({
   extra?: ReactNode;
   disabled?:boolean;
 }) {
-  // Sin `name` compartido los dos radios no son un grupo real: no navegan con
-  // las flechas ni se anuncian como "1 de 2".
-  const groupName = useId();
+  // Checkbox exclusivo (mismo patrón que el formulario oficial VIE)
   return (
     <div className="stack-md">
-      <div className="choice-row" style={{ marginLeft: 0 }}>
+      <div className="choice-row" style={{ marginLeft: 0 }} role="group">
         {(["No", "Sí"] as YesNo[]).map((opt) => (
           <label
             key={opt}
             className={`radio-choice${value === opt ? " selected" : ""}`}
           >
             <input
-              type="radio"
-              disabled={disabled} name={groupName}
+              type="checkbox"
+              disabled={disabled}
               checked={value === opt}
               onChange={() => onChange(opt)}
             />
@@ -157,16 +157,21 @@ export function FormWizardIan({
   bloquearIdentificacion=false, documentos, lineas, onIdentificacion,
   step,
   form,
-  patch,
+  patch: patchProp,
   convocatorias,
   idConvocatoria,
   setIdConvocatoria,
+  readOnly = false,
 }: Props) {
   const q6GroupName = useId();
   const [catalogos,setCatalogos]=useState<{modalidades:{codigo:string;nombre:string}[];lineas:{id_linea_investigacion:number;nombre:string}[]}>({modalidades:[],lineas:[]});
   const [error,setError]=useState('');
+  const [collapsedActivities, setCollapsedActivities] = useState<
+    Record<string, boolean>
+  >({});
   useEffect(()=>{let mounted=true;apiJson<typeof catalogos>('/api/catalogos').then(c=>{if(mounted)setCatalogos(c);}).catch(e=>{if(mounted)setError(e.message);});return()=>{mounted=false;};},[]);
   const BUDGET_YEARS=form.presupuestoAnual.map(p=>p.anio);
+  const patch = readOnly ? (() => {}) as typeof patchProp : patchProp;
 
   function patchTeamTec(id: string, partial: Partial<TeamTecDraft>) {
     patch({
@@ -375,19 +380,25 @@ export function FormWizardIan({
               </select>
             </label>
             <label className="field">
-              <span className="field-label">Fecha de inicio</span>
+              <span className="field-label">Fecha de inicio (día/mes/año)</span>
               <input
- aria-label="Fecha de inicio"                type="date"
+                aria-label="Fecha de inicio"
+                type="date"
                 className="input"
+                min="2000-01-01"
+                max="2100-12-31"
                 value={form.inicio}
                 onChange={(e) => patch({ inicio: e.target.value })}
               />
             </label>
             <label className="field">
-              <span className="field-label">Fecha de finalización</span>
+              <span className="field-label">Fecha de finalización (día/mes/año)</span>
               <input
- aria-label="Fecha de finalización"                type="date"
+                aria-label="Fecha de finalización"
+                type="date"
                 className="input"
+                min={form.inicio || "2000-01-01"}
+                max="2100-12-31"
                 value={form.fin}
                 onChange={(e) => patch({ fin: e.target.value })}
               />
@@ -437,14 +448,22 @@ export function FormWizardIan({
                           <span className="field-label">
                             Estado de la gestión
                           </span>
-                          <input
+                          <select
                             aria-label="Estado de la gestión"
                             className="input"
                             value={form.q1Estado}
                             onChange={(e) =>
                               patch({ q1Estado: e.target.value })
                             }
-                          />
+                          >
+                            <option value="">Seleccionar…</option>
+                            <option value="En evaluación">En evaluación</option>
+                            <option value="Aprobada">Aprobada</option>
+                            <option value="Rechazada">Rechazada</option>
+                            <option value="En ejecución">En ejecución</option>
+                            <option value="Finalizada">Finalizada</option>
+                            <option value="Otro">Otro</option>
+                          </select>
                         </label>
                       </div>
                       <label className="field">
@@ -770,6 +789,10 @@ export function FormWizardIan({
   }
 
   if (step === 1) {
+    const resumenWords = form.resumen
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
     return (
       <div className="stack-lg">
         <label className="field">
@@ -781,6 +804,17 @@ export function FormWizardIan({
             value={form.resumen}
             onChange={(e) => patch({ resumen: e.target.value })}
           />
+          <span
+            className="field-hint"
+            style={
+              resumenWords > 500
+                ? { color: "var(--danger, #b00020)" }
+                : undefined
+            }
+          >
+            {resumenWords} / 500 palabras
+            {resumenWords > 500 && " — reduzca el texto antes de continuar"}
+          </span>
         </label>
         <label className="field">
           <span className="field-label">Abstract (English)</span>
@@ -1468,7 +1502,23 @@ export function FormWizardIan({
             >
               <div className="page-heading">
                 <h3 id={`activity-heading-${activity.id}`}>
-                  Actividad {activityIndex + 1}
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    aria-expanded={!collapsedActivities[activity.id]}
+                    onClick={() =>
+                      setCollapsedActivities((prev) => ({
+                        ...prev,
+                        [activity.id]: !prev[activity.id],
+                      }))
+                    }
+                  >
+                    {collapsedActivities[activity.id] ? "▸" : "▾"} Actividad{" "}
+                    {activityIndex + 1}
+                    {activity.actividad.trim()
+                      ? `: ${activity.actividad.trim().slice(0, 48)}`
+                      : ""}
+                  </button>
                 </h3>
                 <button
                   type="button"
@@ -1485,6 +1535,8 @@ export function FormWizardIan({
                   Quitar actividad
                 </button>
               </div>
+              {!collapsedActivities[activity.id] && (
+              <>
               <div className="form-grid">
                 <label className="field">
                   <span className="field-label">Objetivo asociado</span>
@@ -1772,6 +1824,8 @@ export function FormWizardIan({
                   </div>
                 ))}
               </section>
+              </>
+              )}
             </section>
           ))
         )}

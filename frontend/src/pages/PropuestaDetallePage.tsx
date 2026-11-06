@@ -22,6 +22,7 @@ import {
   FORM_WIZARD_STEPS,
   type FormWizardState,
 } from "../data/formWizard";
+import { FORM_META } from "../data/formMeta";
 import { hydrateFormWizardFromDetalle } from "../data/hydrateFormWizard";
 
 export function PropuestaDetallePage() {
@@ -285,6 +286,7 @@ export function PropuestaDetallePage() {
             steps={FORM_WIZARD_STEPS}
             step={step}
             onSelect={setStep}
+            canSelect={() => true}
           />
         </aside>
 
@@ -292,7 +294,7 @@ export function PropuestaDetallePage() {
           <div className="wizard-card-head institutional-form-head">
             <div>
               <span className="eyebrow">
-                Formulario VIE 2027 · Solo lectura · Paso {step + 1} de{" "}
+                {FORM_META.shortLabel} · Solo lectura · Paso {step + 1} de{" "}
                 {FORM_WIZARD_STEPS.length}
               </span>
               <h1 className="sr-only">
@@ -303,7 +305,7 @@ export function PropuestaDetallePage() {
               </h2>
             </div>
             <div className="form-code">
-              <strong>F-VIE-2027</strong>
+              <strong>{FORM_META.code}</strong>
               <span role="status" aria-live="polite">
                 Solo lectura
               </span>

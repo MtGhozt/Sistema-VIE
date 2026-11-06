@@ -60,7 +60,30 @@ Resumen de cambios aplicados sobre `master` para la demo con el profesor: KPIs r
 5. Borrador: Editar abre wizard editable; Guardar borrador sigue presente.
 6. Pasos: pasar el mouse sobre la lista lateral y ver el efecto de raya.
 
+## 8. Tipografía, contadores y sin hardcodes (2026-11-06)
+
+- Escala tipográfica unificada con `--font-size-*` en wizard, labels e inputs (mismo rol = mismo tamaño).
+- `WordBudget`: barra que se rellena + `N / máx. palabras` en resumen, abstract, problema, objetivos, estado del arte, metodología y referencias. Límites en `data/textLimits.ts` (formulario oficial).
+- Inicio (roles de evaluación): pendientes desde bandeja API, no `PENDING_TASKS` de demo.
+- Código de formulario centralizado en `data/formMeta.ts`.
+
+## 9. Checklist demo (2026-11-06)
+
+| Requisito | Estado |
+|-----------|--------|
+| No saltar al siguiente paso sin completar el anterior (botón y sidebar) | Hecho (`canNavigateToStep`) |
+| Fechas fin ≥ inicio, años 2000–2100, pista día/mes/año | Hecho (`dateRules` + `DateField`) |
+| Actividades del plan dentro del horizonte inicio–fin | Hecho |
+| Errores en español y específicos | Hecho / reforzado |
+| Nueva convocatoria sin listar las demás debajo | Hecho |
+| Filtros desplegables en tablas | Hecho (`FilterPanel`) |
+| Textos largos contraíbles en solo lectura | Hecho (`CollapsibleBlock`) |
+| Menú lateral colapsable | Hecho |
+| Datos reales (KPIs / pendientes) | Hecho |
+| Validación por paso | Hecho |
+
 ## Fuera de alcance (consciente)
 
 - No se adoptaron el resto de efectos de React Bits / Uiverse (glitch, cursors, glass, etc.).
 - `ProposalDetailView` permanece en el repo por si hace falta depuración; ya no es la vista principal del detalle.
+- `HOME_BY_ROLE` / copy de demo sigue como plantilla de títulos; los **números** vienen de API.

@@ -4,7 +4,7 @@ import type { Convocatoria } from "../api/convocatorias";
 
 import {
   BASIC_ACADEMIC_PRODUCTS,
-  ESTADO_ARTE_MAX_WORDS,
+  FIELD_WORD_LIMITS,
   FINANCING_TYPES,
   PLAN_RESPONSIBILITIES,
   TECHNOLOGY_ACADEMIC_PRODUCTS,
@@ -27,7 +27,15 @@ import {
   type YesNo,
   TRL_LEVELS,
 } from "../data/formWizardIan";
+import {
+  DATE_YEAR_MAX,
+  DATE_YEAR_MIN,
+  projectDurationMonths,
+} from "../data/dateRules";
 import { formatCRC } from "../data/proposalView";
+import { CollapsibleBlock } from "./CollapsibleBlock";
+import { DateField } from "./DateField";
+import { WordBudget } from "./WordBudget";
 
 type Props = {
   bloquearIdentificacion?:boolean;
@@ -379,30 +387,28 @@ export function FormWizardIan({
                 ))}
               </select>
             </label>
-            <label className="field">
-              <span className="field-label">Fecha de inicio (día/mes/año)</span>
-              <input
-                aria-label="Fecha de inicio"
-                type="date"
-                className="input"
-                min="2000-01-01"
-                max="2100-12-31"
-                value={form.inicio}
-                onChange={(e) => patch({ inicio: e.target.value })}
-              />
-            </label>
-            <label className="field">
-              <span className="field-label">Fecha de finalización (día/mes/año)</span>
-              <input
-                aria-label="Fecha de finalización"
-                type="date"
-                className="input"
-                min={form.inicio || "2000-01-01"}
-                max="2100-12-31"
-                value={form.fin}
-                onChange={(e) => patch({ fin: e.target.value })}
-              />
-            </label>
+            <DateField
+              id="proyecto-inicio"
+              label="Fecha de inicio (día/mes/año)"
+              value={form.inicio}
+              min={`${DATE_YEAR_MIN}-01-01`}
+              max={`${DATE_YEAR_MAX}-12-31`}
+              disabled={bloquearIdentificacion || readOnly}
+              onChange={(iso) => {
+                const next: { inicio: string; fin?: string } = { inicio: iso };
+                if (form.fin && form.fin < iso) next.fin = iso;
+                patch(next);
+              }}
+            />
+            <DateField
+              id="proyecto-fin"
+              label="Fecha de finalización (día/mes/año)"
+              value={form.fin}
+              min={form.inicio || `${DATE_YEAR_MIN}-01-01`}
+              max={`${DATE_YEAR_MAX}-12-31`}
+              disabled={bloquearIdentificacion || readOnly}
+              onChange={(iso) => patch({ fin: iso })}
+            />
           </div>
           <label className="field">
             <span className="field-label">
@@ -789,43 +795,70 @@ export function FormWizardIan({
   }
 
   if (step === 1) {
-    const resumenWords = form.resumen
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean).length;
+    const resumenBlock = (
+      <label className="field">
+        <span className="field-label">
+          Resumen (español · máximo {FIELD_WORD_LIMITS.resumen} palabras)
+        </span>
+        <textarea
+          aria-label={`Resumen (español · máximo ${FIELD_WORD_LIMITS.resumen} palabras)`}
+          className="input textarea"
+          rows={6}
+          value={form.resumen}
+          aria-describedby="wb-resumen"
+          onChange={(e) => patch({ resumen: e.target.value })}
+        />
+        <WordBudget
+          id="wb-resumen"
+          value={form.resumen}
+          maxWords={FIELD_WORD_LIMITS.resumen}
+        />
+      </label>
+    );
+    const abstractBlock = (
+      <label className="field">
+        <span className="field-label">
+          Abstract (English · max. {FIELD_WORD_LIMITS.abstract} words)
+        </span>
+        <textarea
+          aria-label={`Abstract (English · max. ${FIELD_WORD_LIMITS.abstract} words)`}
+          className="input textarea"
+          rows={6}
+          value={form.abstract}
+          aria-describedby="wb-abstract"
+          onChange={(e) => patch({ abstract: e.target.value })}
+        />
+        <WordBudget
+          id="wb-abstract"
+          value={form.abstract}
+          maxWords={FIELD_WORD_LIMITS.abstract}
+        />
+      </label>
+    );
     return (
       <div className="stack-lg">
-        <label className="field">
-          <span className="field-label">Resumen (español · máximo 500 palabras)</span>
-          <textarea
-            aria-label="Resumen (español · máximo 500 palabras)"
-            className="input textarea"
-            rows={6}
-            value={form.resumen}
-            onChange={(e) => patch({ resumen: e.target.value })}
-          />
-          <span
-            className="field-hint"
-            style={
-              resumenWords > 500
-                ? { color: "var(--danger, #b00020)" }
-                : undefined
-            }
+        {readOnly ? (
+          <CollapsibleBlock
+            title="Resumen (español)"
+            defaultOpen={false}
+            preview={form.resumen.slice(0, 160) || "Sin texto"}
           >
-            {resumenWords} / 500 palabras
-            {resumenWords > 500 && " — reduzca el texto antes de continuar"}
-          </span>
-        </label>
-        <label className="field">
-          <span className="field-label">Abstract (English)</span>
-          <textarea
-            aria-label="Abstract (English)"
-            className="input textarea"
-            rows={6}
-            value={form.abstract}
-            onChange={(e) => patch({ abstract: e.target.value })}
-          />
-        </label>
+            {resumenBlock}
+          </CollapsibleBlock>
+        ) : (
+          resumenBlock
+        )}
+        {readOnly ? (
+          <CollapsibleBlock
+            title="Abstract (English)"
+            defaultOpen={false}
+            preview={form.abstract.slice(0, 160) || "Sin texto"}
+          >
+            {abstractBlock}
+          </CollapsibleBlock>
+        ) : (
+          abstractBlock
+        )}
         <label className="field">
           <span className="field-label">Palabras clave</span>
           <input
@@ -1301,13 +1334,22 @@ export function FormWizardIan({
     return (
       <div className="stack-lg">
         <label className="field">
-          <span className="field-label">Planteamiento del problema</span>
+          <span className="field-label">
+            Planteamiento del problema (máx. 1 página ·{" "}
+            {FIELD_WORD_LIMITS.problema} palabras)
+          </span>
           <textarea
             aria-label="Planteamiento del problema"
             className="input textarea"
             rows={5}
             value={form.problema}
+            aria-describedby="wb-problema"
             onChange={(e) => patch({ problema: e.target.value })}
+          />
+          <WordBudget
+            id="wb-problema"
+            value={form.problema}
+            maxWords={FIELD_WORD_LIMITS.problema}
           />
         </label>
 
@@ -1318,7 +1360,13 @@ export function FormWizardIan({
             className="input textarea"
             rows={3}
             value={form.objetivoGeneral}
+            aria-describedby="wb-objetivo-general"
             onChange={(e) => patch({ objetivoGeneral: e.target.value })}
+          />
+          <WordBudget
+            id="wb-objetivo-general"
+            value={form.objetivoGeneral}
+            maxWords={FIELD_WORD_LIMITS.objetivoGeneral}
           />
         </label>
         <section
@@ -1347,6 +1395,7 @@ export function FormWizardIan({
                 className="input textarea"
                 rows={2}
                 value={objective.descripcion}
+                aria-describedby={`wb-obj-${objective.id}`}
                 onChange={(event) =>
                   patch({
                     objetivosEspecificos: form.objetivosEspecificos.map(
@@ -1358,6 +1407,11 @@ export function FormWizardIan({
                   })
                 }
               />
+              <WordBudget
+                id={`wb-obj-${objective.id}`}
+                value={objective.descripcion}
+                maxWords={FIELD_WORD_LIMITS.objetivoEspecifico}
+              />
             </label>
           ))}
         </section>
@@ -1366,12 +1420,8 @@ export function FormWizardIan({
   }
 
   if (step === 4) {
-    const wordCount = form.estadoArte
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean).length;
-    return (
-      <div className="stack-lg">
+    const estadoArteBody = (
+      <>
         <p className="body-copy">
           Analizá teorías actualizadas, investigaciones, antecedentes y
           metodologías previas nacionales e internacionales. Explicá el aporte
@@ -1381,39 +1431,49 @@ export function FormWizardIan({
           provenir de revistas indexadas en Scopus o Web of Science.
         </p>
         <label className="field">
-          <span className="field-label">Estado del arte (máximo 2 páginas)</span>
+          <span className="field-label">
+            Estado del arte (máximo 2 páginas ·{" "}
+            {FIELD_WORD_LIMITS.estadoArte} palabras)
+          </span>
           <textarea
             className="input textarea"
             rows={12}
-            aria-label="Estado del arte" value={form.estadoArte}
-            aria-describedby="estado-arte-guidance estado-arte-count"
+            aria-label="Estado del arte"
+            value={form.estadoArte}
+            aria-describedby="estado-arte-guidance wb-estado-arte"
             onChange={(event) => patch({ estadoArte: event.target.value })}
           />
         </label>
         <p id="estado-arte-guidance" className="field-hint">
-          Para orientar la extensión en este campo de texto, el límite es de{" "}
-          {ESTADO_ARTE_MAX_WORDS} palabras (aproximación a dos páginas; la
-          cantidad real por página depende del formato).
+          Orientación: {FIELD_WORD_LIMITS.estadoArte} palabras ≈ dos páginas
+          (la cantidad real depende del formato).
         </p>
-        <p
-          id="estado-arte-count"
-          className={
-            wordCount > ESTADO_ARTE_MAX_WORDS
-              ? "field-error-text"
-              : "field-hint"
-          }
-          aria-live="polite"
-        >
-          {wordCount} / {ESTADO_ARTE_MAX_WORDS} palabras
-          {wordCount > ESTADO_ARTE_MAX_WORDS &&
-            " — extensión orientativa superada; revise el formato de dos páginas"}
-        </p>
+        <WordBudget
+          id="wb-estado-arte"
+          value={form.estadoArte}
+          maxWords={FIELD_WORD_LIMITS.estadoArte}
+        />
+      </>
+    );
+    return (
+      <div className="stack-lg">
+        {readOnly ? (
+          <CollapsibleBlock
+            title="Estado del arte"
+            defaultOpen={false}
+            preview={form.estadoArte.slice(0, 160) || "Sin texto"}
+          >
+            {estadoArteBody}
+          </CollapsibleBlock>
+        ) : (
+          estadoArteBody
+        )}
       </div>
     );
   }
 
   if (step === 5) {
-    return (
+    const metodologiaBody = (
       <label className="field">
         <span className="field-label">Metodología</span>
         <textarea
@@ -1421,9 +1481,26 @@ export function FormWizardIan({
           className="input textarea"
           rows={8}
           value={form.metodologia}
+          aria-describedby="wb-metodologia"
           onChange={(e) => patch({ metodologia: e.target.value })}
         />
+        <WordBudget
+          id="wb-metodologia"
+          value={form.metodologia}
+          maxWords={FIELD_WORD_LIMITS.metodologia}
+        />
       </label>
+    );
+    return readOnly ? (
+      <CollapsibleBlock
+        title="Metodología"
+        defaultOpen={false}
+        preview={form.metodologia.slice(0, 160) || "Sin texto"}
+      >
+        {metodologiaBody}
+      </CollapsibleBlock>
+    ) : (
+      metodologiaBody
     );
   }
 
@@ -1440,14 +1517,21 @@ export function FormWizardIan({
         iniciales: member.iniciales,
       })),
     ];
+    const horizonMonths = projectDurationMonths(form.inicio, form.fin);
+    const planMax = Math.max(1, horizonMonths || 36);
 
     return (
       <div className="stack-xl">
         <p className="body-copy">
           Registrá las actividades y riesgos del proyecto. Incluí giras,
-          informes de avance y pasantías cuando corresponda. El periodo admite
-          hasta 36 meses; cada actividad debe tener al menos una persona
-          responsable y un riesgo con su medida de mitigación.
+          informes de avance y pasantías cuando corresponda. El mes 1 corresponde
+          al inicio del proyecto
+          {horizonMonths > 0
+            ? ` (${horizonMonths} mes${horizonMonths === 1 ? "" : "es"} entre inicio y fin)`
+            : ""}
+          ; ninguna actividad puede salir de ese rango. Cada actividad debe tener
+          al menos una persona responsable y un riesgo con su medida de
+          mitigación.
         </p>
         <div className="page-heading">
           <div>
@@ -1566,13 +1650,15 @@ export function FormWizardIan({
                   </select>
                 </label>
                 <label className="field">
-                  <span className="field-label">Mes de inicio</span>
+                  <span className="field-label">
+                    Mes de inicio (1–{planMax} del proyecto)
+                  </span>
                   <input
                     aria-label={`Mes de inicio, actividad ${activityIndex + 1}`}
                     className="input"
                     type="number"
                     min="1"
-                    max="36"
+                    max={planMax}
                     step="1"
                     value={activity.mesInicio}
                     onChange={(event) =>
@@ -1583,13 +1669,15 @@ export function FormWizardIan({
                   />
                 </label>
                 <label className="field">
-                  <span className="field-label">Duración (meses)</span>
+                  <span className="field-label">
+                    Duración (meses · máx. {planMax} en total del proyecto)
+                  </span>
                   <input
                     aria-label={`Duración en meses, actividad ${activityIndex + 1}`}
                     className="input"
                     type="number"
                     min="0.01"
-                    max="36"
+                    max={planMax}
                     step="0.01"
                     value={activity.duracionMeses}
                     onChange={(event) =>
@@ -3047,7 +3135,13 @@ export function FormWizardIan({
           className="input textarea"
           rows={10}
           value={form.referencias}
+          aria-describedby="wb-referencias"
           onChange={(e) => patch({ referencias: e.target.value })}
+        />
+        <WordBudget
+          id="wb-referencias"
+          value={form.referencias}
+          maxWords={FIELD_WORD_LIMITS.referencias}
         />
       </label>
     );

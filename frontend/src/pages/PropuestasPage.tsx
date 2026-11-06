@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { fetchPropuestas, type Propuesta } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
+import { FilterPanel } from "../components/FilterPanel";
 import { useToast } from "../components/toast/ToastContext";
 
 
@@ -110,21 +111,13 @@ export function PropuestasPage() {
         )}
       </header>
 
-      <section className="card filter-card" style={{ marginBottom: 18 }}>
-        <div className="filter-card-title">
-          <strong>Filtros de búsqueda</strong>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            disabled={!query && estado === "Todos"}
-            onClick={() => {
-              setQuery("");
-              setEstado("Todos");
-            }}
-          >
-            Limpiar
-          </button>
-        </div>
+      <FilterPanel
+        clearDisabled={!query && estado === "Todos"}
+        onClear={() => {
+          setQuery("");
+          setEstado("Todos");
+        }}
+      >
         <div className="form-grid two-col">
           <label className="field" htmlFor="prop-filtro-q">
             <span className="field-label">Buscar</span>
@@ -152,7 +145,7 @@ export function PropuestasPage() {
             </select>
           </label>
         </div>
-      </section>
+      </FilterPanel>
 
       <section className="card">
         <div className="section-inline" style={{ marginBottom: 12 }}>

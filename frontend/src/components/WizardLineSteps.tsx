@@ -11,6 +11,9 @@ type Props = {
   steps: readonly string[];
   step: number;
   onSelect: (index: number) => void;
+  /** false = paso futuro bloqueado hasta completar anteriores */
+  canSelect?: (index: number) => boolean;
+  onBlockedSelect?: (index: number) => void;
 };
 
 /** Radio de influencia del cursor (px). Con 17 pasos se mantiene contenido. */
@@ -29,7 +32,13 @@ function easeOut(t: number) {
  * Navegación de pasos estilo «line sidebar»: raya lateral + leve desplazamiento
  * por proximidad del cursor. Sin librerías; respeta prefers-reduced-motion.
  */
-export function WizardLineSteps({ steps, step, onSelect }: Props) {
+export function WizardLineSteps({
+  steps,
+  step,
+  onSelect,
+  canSelect,
+  onBlockedSelect,
+}: Props) {
   const navRef = useRef<HTMLElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [prox, setProx] = useState<number[]>(() => steps.map(() => 0));
@@ -101,12 +110,15 @@ export function WizardLineSteps({ steps, step, onSelect }: Props) {
             ? TICK_MAX
             : TICK_BASE + p * (TICK_MAX - TICK_BASE);
         const shift = isActive ? MAX_SHIFT * 0.45 : p * MAX_SHIFT;
+        const allowed = canSelect ? canSelect(i) : true;
         const status =
           isActive
             ? "Paso actual"
             : isDone
               ? "Completado"
-              : "Sección del formulario";
+              : allowed
+                ? "Sección del formulario"
+                : "Complete el paso anterior";
 
         return (
           <button
@@ -116,10 +128,20 @@ export function WizardLineSteps({ steps, step, onSelect }: Props) {
               itemRefs.current[i] = el;
             }}
             aria-current={isActive ? "step" : undefined}
-            className={
-              isActive ? "active" : isDone ? "done" : undefined
-            }
-            onClick={() => onSelect(i)}
+            aria-disabled={!allowed}
+            className={[
+              isActive ? "active" : isDone ? "done" : undefined,
+              !allowed ? "blocked" : undefined,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            onClick={() => {
+              if (!allowed) {
+                onBlockedSelect?.(i);
+                return;
+              }
+              onSelect(i);
+            }}
             style={
               {
                 "--wl-shift": `${shift}px`,

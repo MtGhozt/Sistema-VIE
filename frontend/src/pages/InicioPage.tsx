@@ -1,8 +1,8 @@
-import { labelEstado } from "../data/proposalStates";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { HOME_BY_ROLE, PENDING_TASKS, PRIMARY_CTA } from "../data/demo";
+import { HOME_BY_ROLE, PRIMARY_CTA } from "../data/demo";
+import { labelEstado } from "../data/proposalStates";
 import { fetchPropuestas, type Propuesta } from "../api/propuestas";
 import {
   fetchConvocatorias,
@@ -591,7 +591,24 @@ function RoleHome({
       }));
   }, [convocatorias, isViePublicacion]);
 
-  const pendingTasks = PENDING_TASKS[role] ?? [];
+  /** Pendientes reales desde bandeja API (sin lista demo alambrada). */
+  const pendingTasks = useMemo(() => {
+    if (isViePublicacion || !isEvalRole) return [];
+    return [...bandejaItems]
+      .sort((a, b) => {
+        const fa = a.fechaEnvio ?? "";
+        const fb = b.fechaEnvio ?? "";
+        return fb.localeCompare(fa);
+      })
+      .slice(0, 5)
+      .map((item) => ({
+        id: item.id,
+        title: item.titulo,
+        status: item.estadoLabel || labelEstado(item.estadoActual),
+        meta: `${item.codigo} · ${item.escuela}`,
+        path: `/evaluaciones?propuesta=${item.id}`,
+      }));
+  }, [isViePublicacion, isEvalRole, bandejaItems]);
 
   function statNavigate(label: string) {
     if (isViePublicacion) {
@@ -664,19 +681,19 @@ function RoleHome({
                 </button>
               ))}
             {!isViePublicacion &&
-              pendingTasks.map(([title, status, meta]) => (
+              pendingTasks.map((task) => (
                 <button
-                  key={title}
+                  key={task.id}
                   type="button"
                   className="task-row"
-                  onClick={() => navigate("/evaluaciones")}
+                  onClick={() => navigate(task.path)}
                 >
                   <div>
-                    <strong>{title}</strong>
-                    <span>{meta}</span>
+                    <strong>{task.title}</strong>
+                    <span>{task.meta}</span>
                   </div>
                   <div className="task-row-end">
-                    <span className="badge badge-primary">{status}</span>
+                    <span className="badge badge-primary">{task.status}</span>
                     <IconChevron size={16} />
                   </div>
                 </button>
@@ -685,6 +702,12 @@ function RoleHome({
               <div className="empty-state small">
                 <strong>Sin convocatorias</strong>
                 <span>Creá una convocatoria desde el acceso principal.</span>
+              </div>
+            )}
+            {!isViePublicacion && isEvalRole && pendingTasks.length === 0 && (
+              <div className="empty-state small">
+                <strong>Sin pendientes</strong>
+                <span>No hay expedientes en su bandeja en este momento.</span>
               </div>
             )}
           </div>

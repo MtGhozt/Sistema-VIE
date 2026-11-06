@@ -254,9 +254,20 @@ export type GraphicResource = {
   altText: string;
 };
 
+import {
+  activityFitsProject,
+  isValidProjectDateRange,
+  projectDurationMonths,
+} from "./dateRules";
+import { FIELD_WORD_LIMITS, countWords } from "./textLimits";
+
 /** Longitud mínima sugerida para una descripción útil (rúbrica a11y). */
 export const ALT_TEXT_MIN_CHARS = 40;
-export const ESTADO_ARTE_MAX_WORDS = 1000;
+export {
+  ESTADO_ARTE_MAX_WORDS,
+  FIELD_WORD_LIMITS,
+  countWords,
+} from "./textLimits";
 
 export type FormWizardState = {
   titulo: string;
@@ -571,7 +582,7 @@ export function getFormStepStatus(
       complete =
         hasConvocatoria &&
         hasText(form.titulo, form.modalidad, form.inicio, form.fin, form.escuela) &&
-        new Date(form.fin) >= new Date(form.inicio) &&
+        isValidProjectDateRange(form.inicio, form.fin) &&
         questionsComplete;
       break;
     }
@@ -583,7 +594,9 @@ export function getFormStepStatus(
       complete =
         hasText(form.resumen, form.abstract, form.palabras) &&
         keywordCount >= 4 &&
-        keywordCount <= 6;
+        keywordCount <= 6 &&
+        countWords(form.resumen) <= FIELD_WORD_LIMITS.resumen &&
+        countWords(form.abstract) <= FIELD_WORD_LIMITS.abstract;
       break;
     }
     case 2:
@@ -613,21 +626,30 @@ export function getFormStepStatus(
     case 3:
       complete =
         hasText(form.problema, form.objetivoGeneral) &&
+        countWords(form.problema) <= FIELD_WORD_LIMITS.problema &&
+        countWords(form.objetivoGeneral) <= FIELD_WORD_LIMITS.objetivoGeneral &&
         form.objetivosEspecificos.length === 3 &&
-        form.objetivosEspecificos.every((objective) =>
-          objective.descripcion.trim(),
+        form.objetivosEspecificos.every(
+          (objective) =>
+            objective.descripcion.trim() &&
+            countWords(objective.descripcion) <=
+              FIELD_WORD_LIMITS.objetivoEspecifico,
         );
       break;
     case 4:
       complete =
         hasText(form.estadoArte) &&
-        form.estadoArte.trim().split(/\s+/).length <= ESTADO_ARTE_MAX_WORDS;
+        countWords(form.estadoArte) <= FIELD_WORD_LIMITS.estadoArte;
       break;
     case 5:
-      complete = hasText(form.metodologia);
-      break;
-    case 6:
       complete =
+        hasText(form.metodologia) &&
+        countWords(form.metodologia) <= FIELD_WORD_LIMITS.metodologia;
+      break;
+    case 6: {
+      const horizon = projectDurationMonths(form.inicio, form.fin);
+      complete =
+        horizon > 0 &&
         form.planAccion.length > 0 &&
         form.planAccion.every((activity) => {
           const monthStart = Number(activity.mesInicio);
@@ -635,11 +657,14 @@ export function getFormStepStatus(
           return (
             Boolean(activity.objetivoNumero) &&
             hasText(activity.actividad, activity.resultadoEsperado) &&
-            Number.isInteger(monthStart) &&
+            Number.isFinite(monthStart) &&
             Number.isFinite(duration) &&
-            monthStart >= 1 &&
-            duration > 0 &&
-            monthStart + duration - 1 <= 36 &&
+            activityFitsProject(
+              monthStart,
+              duration,
+              form.inicio,
+              form.fin,
+            ) &&
             activity.participantes.length > 0 &&
             activity.participantes.every(
               (participant) =>
@@ -653,6 +678,7 @@ export function getFormStepStatus(
           );
         });
       break;
+    }
     case 7:
       complete =
         form.presupuestoAnual.some(

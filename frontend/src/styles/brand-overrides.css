@@ -249,6 +249,64 @@
   margin-left: auto;
 }
 
+.filter-toggle {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+.filter-toggle-hint {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--ink-55, rgba(23, 33, 43, 0.55));
+  font-weight: 500;
+}
+
+.wizard-line-steps button.blocked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.collapsible-block {
+  border: 1px solid var(--ink-08, rgba(23, 33, 43, 0.08));
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--white, #fff);
+}
+
+.collapsible-block-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 650;
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--ink, #17212b);
+  cursor: pointer;
+  text-align: left;
+  padding: 4px 0;
+}
+
+.collapsible-block-preview {
+  margin: 8px 0 0;
+  font-size: var(--font-size-sm, 0.875rem);
+  line-height: 1.4;
+}
+
+.collapsible-block-body {
+  margin-top: 12px;
+}
+
+.date-field-hint {
+  display: block;
+  margin-top: 6px;
+}
+
 /* Expediente = wizard en solo lectura: ocultar Agregar/Quitar; conservar colapsar (btn-ghost) */
 fieldset.wizard-readonly[disabled] > .btn-secondary,
 fieldset.wizard-readonly[disabled] .btn-secondary,
@@ -400,7 +458,7 @@ fieldset.wizard-readonly[disabled] .radio-choice {
 }
 
 .wizard-line-index {
-  font-size: 11px !important;
+  font-size: var(--font-size-xs, 0.75rem) !important;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--ink-55, rgba(23, 33, 43, 0.55));
@@ -417,13 +475,13 @@ fieldset.wizard-readonly[disabled] .radio-choice {
 }
 
 .wizard-line-copy strong {
-  font-size: 12.5px !important;
+  font-size: var(--font-size-sm, 0.875rem) !important;
   line-height: 1.3 !important;
   font-weight: 650;
 }
 
 .wizard-line-copy small {
-  font-size: 11px !important;
+  font-size: var(--font-size-xs, 0.75rem) !important;
   margin-top: 1px;
 }
 
@@ -803,6 +861,61 @@ fieldset.wizard-readonly[disabled] .radio-choice {
 
 .stat-label {
   font-size: var(--font-size-sm);
+}
+
+/* Contador de palabras con barra que se rellena */
+.word-budget {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.word-budget-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ink-08, rgba(23, 33, 43, 0.08));
+  overflow: hidden;
+}
+
+.word-budget-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue, #0b4f8a);
+  transition: width 160ms ease;
+}
+
+.word-budget-over .word-budget-fill {
+  background: var(--danger, #b00020);
+}
+
+.word-budget-label {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--ink-55, rgba(23, 33, 43, 0.55));
+}
+
+.word-budget-over .word-budget-label {
+  color: var(--danger, #b00020);
+  font-weight: 600;
+}
+
+/* Inputs / labels / body: misma familia y escala por rol */
+.input,
+.textarea,
+select.input,
+.btn {
+  font-family: inherit;
+}
+
+.field-label,
+label.field > span:first-child {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.input,
+textarea.input,
+select.input {
+  font-size: var(--font-size-md);
 }
 
 button.stat-card {

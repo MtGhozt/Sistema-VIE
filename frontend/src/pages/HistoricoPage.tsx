@@ -8,6 +8,7 @@ import {
   type HistoricoOpciones,
 } from "../api/historico";
 import { ApiError } from "../api/client";
+import { FilterPanel } from "../components/FilterPanel";
 import { ProcessTimeline } from "../components/ProcessTimeline";
 import { SimpleModal } from "../components/evaluation/SimpleModal";
 const EMPTY_OPTIONS: HistoricoOpciones = {
@@ -179,18 +180,10 @@ export function HistoricoPage() {
         </div>
       </header>
 
-      <section className="card filter-card">
-        <div className="filter-card-title">
-          <strong>Filtros de búsqueda</strong>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => setFiltros(EMPTY_HISTORICO_FILTROS)}
-            disabled={activos === 0}
-          >
-            Limpiar{activos > 0 ? ` (${activos})` : ""}
-          </button>
-        </div>
+      <FilterPanel
+        clearDisabled={activos === 0}
+        onClear={() => setFiltros(EMPTY_HISTORICO_FILTROS)}
+      >
         <div className="form-grid five-col">
           <label className="field" htmlFor="filtro-escuela">
             <span className="field-label">Escuela / Dependencia</span>
@@ -267,7 +260,7 @@ export function HistoricoPage() {
             </select>
           </label>
         </div>
-      </section>
+      </FilterPanel>
 
       <section className="card" aria-busy={loading}>
         <div className="results-head">

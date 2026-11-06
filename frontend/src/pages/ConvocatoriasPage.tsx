@@ -19,10 +19,9 @@ import {
   type ConvocatoriaHito,
 } from "../api/convocatorias";
 import { useAuth } from "../auth/AuthContext";
+import { FilterPanel } from "../components/FilterPanel";
 import { useToast } from "../components/toast/ToastContext";
-
-const YEAR_MIN = 2000;
-const YEAR_MAX = 2100;
+import { DATE_YEAR_MAX as YEAR_MAX, DATE_YEAR_MIN as YEAR_MIN } from "../data/dateRules";
 
 function yearOf(iso: string) {
   const y = Number(iso.slice(0, 4));
@@ -576,25 +575,16 @@ export function ConvocatoriasPage() {
 
       {!(showForm && editingId == null) && (
       <>
-      <section className="card filter-card" style={{ marginBottom: 18 }}>
-        <div className="filter-card-title">
-          <strong>Filtros de búsqueda</strong>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            disabled={
-              !query &&
-              (!estadoFiltro || estadoFiltro === "todas")
-            }
-            onClick={() => {
-              setQuery("");
-              setEstadoFiltro("todas");
-              setSearchParams({});
-            }}
-          >
-            Limpiar
-          </button>
-        </div>
+      <FilterPanel
+        clearDisabled={
+          !query && (!estadoFiltro || estadoFiltro === "todas")
+        }
+        onClear={() => {
+          setQuery("");
+          setEstadoFiltro("todas");
+          setSearchParams({});
+        }}
+      >
         <div className="form-grid two-col">
           <label className="field" htmlFor="conv-filtro-q">
             <span className="field-label">Buscar</span>
@@ -627,7 +617,7 @@ export function ConvocatoriasPage() {
             </select>
           </label>
         </div>
-      </section>
+      </FilterPanel>
 
       <section className="card convocatorias-list">
         <div className="section-inline" style={{ marginBottom: 12 }}>

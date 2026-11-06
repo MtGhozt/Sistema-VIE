@@ -21,18 +21,22 @@ import {
   FORM_WIZARD_STEPS,
   type FormWizardState,
 } from "../data/formWizard";
+import { FORM_META } from "../data/formMeta";
 import { hydrateFormWizardFromDetalle } from "../data/hydrateFormWizard";
 import { toIan } from "../data/formWizardAdapter";
 import { getFormStepStatus } from "../data/formWizardIan";
+import { isValidProjectDateRange } from "../data/dateRules";
+import { FIELD_WORD_LIMITS, countWords } from "../data/textLimits";
+import { canNavigateToStep } from "../data/wizardNavigation";
 
 const STEP_BLOCK_HINT: Record<number, string> = {
-  0: "Complete identificación, fechas (fin ≥ inicio, años 2000–2100) y las preguntas generales obligatorias.",
+  0: "Complete identificación, fechas (finalización ≥ inicio, años 2000–2100, día/mes/año) y las preguntas generales obligatorias.",
   1: "Complete el resumen (máx. 500 palabras), el abstract y 4 a 6 palabras clave en español.",
   2: "Registre el equipo TEC con horas válidas y complete los datos de personas externas.",
   3: "Indique problema, objetivo general y exactamente tres objetivos específicos.",
   4: "Complete el estado del arte sin superar el límite de palabras.",
   5: "Describa la metodología del proyecto.",
-  6: "Complete el plan de acción (actividades, participantes y riesgos) dentro de 36 meses.",
+  6: "Complete el plan de acción: cada actividad debe caber entre el inicio y el fin del proyecto (meses correlativos).",
   7: "Indique un presupuesto total mayor que cero, sin montos negativos, y el financiamiento asociado.",
   8: "Registre los productos académicos comprometidos según la modalidad.",
   9: "Complete el resguardo de productos.",
@@ -227,9 +231,9 @@ export function PropuestaNuevaPage() {
     if (!canCreate) {reportFailure('Ingresá como investigador para enviar propuestas','enviar');return;}
     if (!form.titulo.trim() || idConvocatoria === '') {reportFailure('Complete el nombre del proyecto y seleccione una convocatoria antes de enviar.','enviar');return;}
     if(!form.abstract.trim()){reportFailure('Resumen y palabras clave: complete el abstract en inglés. Las keywords EN son opcionales.','enviar');return;}
-    const count = form.resumen.trim().split(/\s+/u).filter(Boolean).length;
+    const count = countWords(form.resumen);
     const terms = form.palabras.split(',').map(w => w.trim()).filter(Boolean);
-    if(count>500){reportFailure(`Resumen: contiene ${count} palabras y el máximo permitido es 500. Reduzca su extensión.`,'enviar');return;}
+    if(count>FIELD_WORD_LIMITS.resumen){reportFailure(`Resumen: contiene ${count} palabras y el máximo permitido es ${FIELD_WORD_LIMITS.resumen}. Reduzca su extensión.`,'enviar');return;}
     if(terms.length<4||terms.length>6){reportFailure(`Palabras clave en español: se requieren de 4 a 6 términos; actualmente hay ${terms.length}.`,'enviar');return;}
     if (!form.declaracion) {reportFailure('Declaración jurada: debe aceptar el compromiso antes de enviar.','enviar');return;}
     setSaving(true);
@@ -307,6 +311,20 @@ export function PropuestaNuevaPage() {
           <WizardLineSteps
             steps={FORM_WIZARD_STEPS}
             step={step}
+            canSelect={(i) =>
+              canNavigateToStep(
+                i,
+                step,
+                toIan(form),
+                idConvocatoria !== "",
+              )
+            }
+            onBlockedSelect={() =>
+              showToast(
+                "Complete el paso actual (y los anteriores) antes de avanzar a una etapa siguiente.",
+                "error",
+              )
+            }
             onSelect={setStep}
           />
         </aside>
@@ -315,7 +333,7 @@ export function PropuestaNuevaPage() {
           <div className="wizard-card-head institutional-form-head">
             <div>
               <span className="eyebrow">
-                Formulario VIE 2027 · Paso {step + 1} de{" "}
+                {FORM_META.shortLabel} · Paso {step + 1} de{" "}
                 {FORM_WIZARD_STEPS.length}
               </span>
               <h1 className="sr-only">
@@ -326,7 +344,7 @@ export function PropuestaNuevaPage() {
               </h2>
             </div>
             <div className="form-code">
-              <strong>F-VIE-2027</strong>
+              <strong>{FORM_META.code}</strong>
               <span role="status" aria-live="polite">
                 {saveStatus}
               </span>
@@ -393,30 +411,21 @@ export function PropuestaNuevaPage() {
                         );
                         return;
                       }
-                      const yearOk = (iso: string) => {
-                        const y = Number(iso.slice(0, 4));
-                        return y >= 2000 && y <= 2100;
-                      };
                       if (
                         step === 0 &&
-                        (!yearOk(form.inicio) ||
-                          !yearOk(form.fin) ||
-                          form.fin < form.inicio)
+                        !isValidProjectDateRange(form.inicio, form.fin)
                       ) {
                         showToast(
-                          "Las fechas del proyecto deben ser coherentes (fin ≥ inicio) y estar entre 2000 y 2100.",
+                          "Fechas inválidas: la finalización debe ser igual o posterior al inicio, en formato día/mes/año, con años entre 2000 y 2100.",
                           "error",
                         );
                         return;
                       }
                       if (step === 1) {
-                        const words = form.resumen
-                          .trim()
-                          .split(/\s+/)
-                          .filter(Boolean).length;
-                        if (words > 500) {
+                        const words = countWords(form.resumen);
+                        if (words > FIELD_WORD_LIMITS.resumen) {
                           showToast(
-                            `El resumen supera el máximo de 500 palabras (${words}).`,
+                            `El resumen supera el máximo de ${FIELD_WORD_LIMITS.resumen} palabras (${words}).`,
                             "error",
                           );
                           return;

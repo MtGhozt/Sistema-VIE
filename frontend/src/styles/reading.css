@@ -2,6 +2,8 @@
 body { font-size: 1rem; }
 .field-label, .data-table td, .data-table th, .btn, .case-summary p,
 .case-meta strong, .criterion-head strong, .notification-copy p { font-size: .875rem; line-height: 1.5; }
+.case-team-list { margin: 0.35rem 0 0; padding-left: 1.1rem; }
+.case-team-list li { margin: 0.2rem 0; font-size: 0.875rem; line-height: 1.45; }
 .field-hint, .form-code span, .form-code strong, .case-meta span,
 .criterion-head > div span, .rubric-section-head span, .evaluator-grid > div > span,
 .notification-copy > span, .notif-popover-item p, .notif-popover-item span,

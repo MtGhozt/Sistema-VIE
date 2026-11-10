@@ -1100,8 +1100,13 @@ export function DireccionEscuelaPanel({
           </div>
         </div>
         <div className="action-stack">
-          <button type="button" className="btn btn-secondary" disabled title="Generación de archivo pendiente en este prototipo">
-            Vista previa del memorando (IC-467)
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled
+            title="Fuera de alcance del prototipo: no se genera PDF automático de oficios"
+          >
+            PDF del memorando · fuera de alcance
           </button>
           <button
             type="button"
@@ -1226,8 +1231,13 @@ export function DireccionInvestigacionPanel({
           </div>
         </div>
         <div className="action-stack">
-          <button type="button" className="btn btn-secondary" disabled title="Generación de archivo pendiente en este prototipo">
-            Vista previa / imprimir CIE-453
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled
+            title="Fuera de alcance del prototipo: no se genera PDF automático de resoluciones"
+          >
+            PDF de resolución · fuera de alcance
           </button>
           <button
             type="button"

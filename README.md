@@ -165,6 +165,8 @@ Los acuerdos implementados están en [DECISIONES-D01-D04.md](correcciones/DECISI
 | `docs/` | Fuentes oficiales, casos de uso, diseño y referencias. |
 
 - [Plan de correcciones](correcciones/PLAN-DE-CORRECCIONES.md) y [bitácora](correcciones/IMPLEMENTACION.md).
+- [Prioridad post-auditoría (2026-11-09)](correcciones/PRIORIDAD-POST-AUDITORIA.md) y [guion de demo V01](correcciones/GUIION-DEMO-V01.md).
+- [Estado de revisión](correcciones/ESTADO-DE-REVISION.md) · [validación del flujo](correcciones/VALIDACION-DEL-FLUJO.md).
 - [Casos de uso](docs/casos-de-uso/CASOS-DE-USO.md).
 - [Continuidad](CONTINUIDAD.md) y [plan maestro](PLAN-MAESTRO.md).
 - [Accesibilidad](docs/a11y/INFORME-WCAG.md): las pruebas pendientes no equivalen a certificación WCAG completa.

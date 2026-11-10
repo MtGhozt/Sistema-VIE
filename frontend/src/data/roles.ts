@@ -70,22 +70,6 @@ export const ROLES: RoleDef[] = [
   { id: "admin", label: "Super Administrador", short: "Super Admin" },
 ];
 
-/** Persona demo por rol: [nombre, cargo corto] */
-export const PERSONAS: Record<RoleId, [string, string]> = {
-  investigador: ["María Rodríguez", "Investigadora"],
-  vie_publicacion: ["Laura Solano", "VIE — Publicación"],
-  vinculacion: ["Sofía Vargas", "Centro de Vinculación"],
-  comite_asistente: ["Andrés Salazar", "Asistente Comité"],
-  comite_evaluador: ["Carlos Jiménez", "Evaluador Comité"],
-  consejo_asistente: ["Paola Mora", "Asistente Consejo"],
-  consejo: ["Consejo de Profesores", "Consejo de Escuela"],
-  direccion_escuela: ["Dirección de Escuela", "Dirección"],
-  gestora_vie: ["Ana Quesada", "Gestora VIE"],
-  cie: ["Consejo de Investigación", "CIE"],
-  direccion_investigacion: ["Dirección de Investigación", "VIE"],
-  admin: ["Steadman Murillo", "Super Administrador"],
-};
-
 export const NAV_ITEMS: { to: NavKey; label: string; icon: string }[] = [
   { to: "/inicio", label: "Inicio", icon: "home" },
   { to: "/convocatorias", label: "Convocatorias", icon: "megaphone" },

@@ -19,7 +19,7 @@
 |---|---|---|---|---|
 | Uso de alto contraste | 7% | 🔴 ~40 reglas bajo 4.5:1 | 🟢 todos los textos ≥ 4.5:1, contornos ≥ 3:1 | Tokens de tinta + variantes accesibles del rojo y ámbar TEC |
 | Navegación por teclado | 7% | 🔴 sin `:focus-visible`, 4 `outline:0`, modales sin trampa | 🟢 anillo global, foco atrapado en modales, fondo `inert`, `Escape`, skip-link | `a11y.css` + `SimpleModal` |
-| Descripción de imágenes/videos | 7% | 🟢 mayormente bien | 🟢 igual + iconos decorativos marcados | `aria-hidden` en el check del checklist |
+| Descripción de imágenes/videos | 7% | 🟢 mayormente bien | 🟢 logo/`aria-hidden`; **media del wizard fuera de alcance** (PDF/DOCX/XLSX) | Ver §4.2 actualizado 2026-11-09 |
 | Lector de pantalla | 7% | 🔴 toasts no anunciados, diálogos sin nombre, `<h1>` ausente, SPA sin avisos de ruta | 🟢 live regions permanentes, rutas anunciadas + título + foco, tablas con caption/scope, nombres contextuales | Cambios en 22 componentes/páginas + `RouteAnnouncer` |
 
 ---
@@ -182,10 +182,11 @@ como «1 de 2». Ahora cada `YesNoRow` genera un `name` con `useId()`.
 
 ### 3.5 Pestañas con teclado
 
-`ProposalDetailView` — las 6 pestañas del detalle ahora implementan el
-patrón APG completo: `role="tablist"` / `role="tab"` / `role="tabpanel"`,
-`aria-selected`, `aria-controls`, `aria-labelledby`, `tabIndex` roving y
-navegación con `←` `→` `Home` `End`.
+Histórico (2026-10): `ProposalDetailView` implementó el patrón APG de
+pestañas (`tablist` / `tab` / `tabpanel`, flechas, Home/End). **2026-11-09:**
+ese componente se retiró; el detalle vivo es el wizard en solo lectura
+(`PropuestaDetallePage` / `FormWizardIan`) y el expediente de evaluación es
+`CaseFile` (datos de API, no plantilla demo).
 
 ---
 
@@ -199,15 +200,21 @@ navegación con `←` `→` `Home` `End`.
 - El check del checklist (`CheckIcon`) lleva `aria-hidden="true"`.
 - Barras de progreso: `role="progressbar"` con `aria-valuenow` / `aria-valuetext`.
 
-### 4.2 Recursos gráficos del wizard (rúbrica: alt text editable)
+### 4.2 Documentación del wizard (actualizado 2026-11-09)
 
-Paso **Documentación** del formulario (`FormWizardStepContent`, step 15):
+**Cambio de alcance:** imágenes y videos **no** forman parte del prototipo
+entregable. El paso Documentación usa `DocumentosPanel` con carga real de
+**PDF / DOCX / XLSX** (≤ 10 MiB, versionado, descarga autorizada).
 
-- Se pueden **agregar imágenes y videos** (`accept="image/*"` / `video/*`).
-- Cada recurso exige un **texto alternativo editable** (y modificable después).
-- Aviso si la descripción tiene menos de 40 caracteres (`ALT_TEXT_MIN_CHARS`).
-- Estado en `FormWizardState.recursosGraficos` (prototipo; no sube binarios al
-  servidor — sí demuestra el control de descripción alternativa).
+Implicación para la rúbrica de «descripción de imágenes/videos» (7%):
+
+- Cumplimiento sobre **medios presentes en la UI**: logo TEC con `alt` textual;
+  iconos decorativos con `aria-hidden`.
+- El control de alt text editable para galería de imagen/video **ya no aplica**
+  porque esos controles se retiraron a propósito (exclusión documentada en
+  `COSAS-A-DISCUTIR.md` / README). No se debe demostrar como feature viva.
+- Si el evaluador pregunta por ese 7%: responder con logo + iconos + exclusión
+  explícita de media; no abrir un flujo de alt text que ya no existe.
 
 ---
 
@@ -320,7 +327,7 @@ el `main` del shell.
 ### 5.8 Tablas con semántica completa
 
 En `PropuestasPage`, `HistoricoPage`, `ConvocatoriasPage`,
-`AdministracionPage`, `ProposalDetailView` y en las tablas del wizard:
+`AdministracionPage`, `CaseFile` y en las tablas del wizard:
 
 - Cada tabla tiene `<caption>` (visible solo para lector) o `aria-label`.
 - Todos los `<th>` tienen `scope="col"`.
@@ -374,7 +381,7 @@ consulta (`PropuestasPage`, `HistoricoPage`, `ConvocatoriasPage`,
 |---|---|
 | `htmlFor` en **todos** los labels del wizard (17 pasos) | Se hizo en login, histórico, rúbrica y alt text de recursos. El resto usa label implícito (válido). |
 | `h1` visible en el wizard | Se optó por `sr-only` para no romper el layout validado contra el prototipo HTML. |
-| Subir binarios de imagen/video al backend | Fuera de alcance del prototipo; el control de alt text sí está en la UI. |
+| Subir binarios de imagen/video al backend | Fuera de alcance; Documentación = PDF/DOCX/XLSX reales. No hay UI de alt text para media. |
 | Pruebas automatizadas (axe-core / Playwright) | Candidato natural; aún no hay harness de e2e en el repo. |
 
 ### 6.1 Checklist manual con lector de pantalla (NVDA / Narrator)
@@ -387,8 +394,8 @@ consulta (`PropuestasPage`, `HistoricoPage`, `ConvocatoriasPage`,
 5. Propuestas / Histórico: con la tecla de tablas del lector, cada tabla
    anuncia su caption y los encabezados; con la tecla de enlaces, cada título
    se anuncia como enlace («Ver propuesta …»).
-6. Wizard · Documentación: agregar imagen, oír el label «Texto alternativo»,
-   editar y oír el `role="status"` de longitud.
+6. Wizard · Documentación: subir un PDF/DOCX/XLSX, oír el estado de carga y
+   comprobar descarga; no hay paso de imagen/video.
 7. Evaluaciones · modal de aval: justificación obligatoria anunciada; Confirmar
    deshabilitado hasta escribir; con el modal abierto no se puede tabular al
    fondo.

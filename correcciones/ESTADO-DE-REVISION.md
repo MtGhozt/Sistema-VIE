@@ -1,6 +1,8 @@
 # Estado de revisión · 2 de noviembre de 2026
 
 > **Integración posterior · 3 de noviembre:** formulario y convocatorias de Ian incorporados según el alcance autorizado. Ver [MERGE-IAN.md](MERGE-IAN.md) para adaptaciones, evidencia y aceptación manual.
+>
+> **Post-auditoría · 9 de noviembre:** CaseFile enriquecido con detalle real de propuesta; limpieza de adapters/demo muertos; docs alineados. Prioridad y checklist: [PRIORIDAD-POST-AUDITORIA.md](PRIORIDAD-POST-AUDITORIA.md). Guion de aceptación humana: [GUIION-DEMO-V01.md](GUIION-DEMO-V01.md).
 
 **Alcance implementado:** D01–D11 conforme a las indicaciones del usuario. Las funciones y sus límites están en [D01–D04](DECISIONES-D01-D04.md) y [D05–D11](DECISIONES-D05-D11.md). **No equivale a aceptación institucional ni del usuario.**
 

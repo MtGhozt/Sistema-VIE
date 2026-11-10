@@ -85,5 +85,5 @@ Resumen de cambios aplicados sobre `master` para la demo con el profesor: KPIs r
 ## Fuera de alcance (consciente)
 
 - No se adoptaron el resto de efectos de React Bits / Uiverse (glitch, cursors, glass, etc.).
-- `ProposalDetailView` permanece en el repo por si hace falta depuración; ya no es la vista principal del detalle.
+- `ProposalDetailView` se eliminó el 2026-11-09 (código muerto). El detalle vivo es el wizard en solo lectura; el expediente de evaluación es `CaseFile`.
 - `HOME_BY_ROLE` / copy de demo sigue como plantilla de títulos; los **números** vienen de API.

@@ -3,9 +3,11 @@
 > **Actualización de correcciones · 2026-10-31:** [estado técnico, evidencias y decisiones pendientes](correcciones/ESTADO-DE-REVISION.md). Instalación y limpieza por `instalar.sh` / `desinstalar.sh`; uso actualizado en README. El resto de este documento conserva contexto anterior y no sustituye ese seguimiento.
 >
 > **UI demo · 2026-11-04:** detalle = wizard en solo lectura, KPIs reales, filtros, line sidebar de pasos. Ver [docs/ui-demo-noviembre-2026.md](docs/ui-demo-noviembre-2026.md).
+>
+> **Post-auditoría · 2026-11-09:** CU2 (equipo, plan, presupuesto, adjuntos) y CU3/CU4 están **persistidos** (D01–D11 + MERGE-IAN). CaseFile de Evaluaciones carga el detalle real vía API. Prioridad de cierre: [correcciones/PRIORIDAD-POST-AUDITORIA.md](correcciones/PRIORIDAD-POST-AUDITORIA.md). Este resumen corto no sustituye ESTADO-DE-REVISION ni MERGE-IAN.
 
 
-Última actualización: 2026-11-04 (detalle RO + line sidebar + KPIs/filtros)
+Última actualización: 2026-11-09 (auditoría + CaseFile enriquecido; docs alineados)
 
 ## Lectura para el equipo
 
@@ -59,7 +61,7 @@ Paridad visual/flujo del prototipo HTML recuperada en:
 | Área | Qué | Notas |
 |------|-----|-------|
 | Inicio admin / investigador | `InicioPage` | Admin: acceso por instancia + carriles de flujo; investigador: recientes + timeline |
-| Detalle propuesta | `ProposalDetailView` + tabs | Demo `PROP-*` y API numérica; admin ve bloque transversal |
+| Detalle propuesta | `PropuestaDetallePage` (wizard RO 17 pasos) | API numérica; CaseFile en Evaluaciones con detalle enriquecido |
 | Wizard 17 pasos | `formWizard` + `FormWizardStepContent` + `PropuestaNuevaPage` | Sidebar con scroll contenido (`.wizard-sidebar`) |
 | Evaluaciones por rol | `EvaluacionesPage` + `EvaluationRolePanels` | **CU3/CU4 persistidos** vía `/api/evaluaciones/*` (bandeja + acciones) |
 | **Histórico (CU5)** | `HistoricoPage` | **Datos desde Postgres** con filtros combinables por escuela, investigadora, línea, estado y año |
@@ -89,29 +91,32 @@ Paridad visual/flujo del prototipo HTML recuperada en:
 - Marca TEC (sidebar azul, logos oficiales)
 - API **CU1** convocatorias y **CU2** propuestas (bloque inicial)
 
-**CU2 — persistencia real vs UI:**
+**CU2 — persistencia real (actualizado 2026-11-09):**
 
-- API guarda bloque inicial **más** `problema`, `objetivo_general`, `metodologia` (columnas ya en `propuesta`).
-- Equipo/horas tipificadas, plan de riesgos, presupuesto anual y adjuntos = UI local/demo (pasos restantes del wizard).
+- API guarda bloque narrativo (`problema`, `objetivo_general`, `metodologia`, …) **y**
+  equipo/horas tipificadas, plan/riesgos, presupuesto anual, productos, ética, complementos Ian
+  (`formulario_detalle`) y adjuntos PDF/DOCX/XLSX versionados.
+- Wizard de redacción: `FormWizardIan` + hidratación desde `GET /propuestas/:id`.
+- Edición solo en `borrador` o secciones autorizadas en `en_subsanacion`.
 
-**CU3 / CU4 — persistencia real (2026-10-29):**
+**CU3 / CU4 — persistencia real (2026-10-29 → 2026-11-09):**
 
 - `GET /api/evaluaciones/bandeja` — expedientes no-borrador filtrados por rol/etapa.
 - `POST /api/evaluaciones/propuestas/:id/acciones` — `{ action, payload }` escribe en
   `dictamen_pi`, `revision_expediente`, `observacion`, `resultado_comite`,
   `aval_consejo`, `resolucion_cie`, `comunicacion_institucional`, `notificacion`
   y avanza `estado_actual` + `etapa_flujo` + `propuesta_historial_estado`.
-- Acciones clave del flujo demostrable: `pi` → `committee-score` → `council-approve|reject`
-  → `send-cie` → `cie-approve|reject` → `notify-resolution` (histórico refleja el estado final).
-- UI: si la bandeja API tiene ítems, persiste; si está vacía para el rol, cae a demo local
-  (toast sin escritura) para no romper la paridad HTML.
+- Rúbricas oficiales de 100 puntos; tres evaluadores independientes + consolidación;
+  puntajes en `evaluacion` / `evaluacion_puntaje`.
+- CaseFile en Evaluaciones carga el expediente completo desde la API (no plantilla demo).
+- UI: bandeja vacía = mensaje de vacío; **ya no** se inventan expedientes locales.
 
 **Huecos conocidos (no inventar features ahora):**
 
-- Documento 4 (formulario oficial) sin mapeo campo-a-campo completo
-- Impresión / generación de oficios PDF (números de oficio sí se registran en BD)
-- Rúbricas = subset por modalidad; puntajes criterio-a-criterio aún no en `evaluacion_puntaje`
-- Subida real de binarios imagen/video al servidor (el alt text en UI sí está)
+- Revisión humana campo-a-campo del formulario oficial (aceptación V02 / I07)
+- Impresión / generación automática de oficios PDF (números de oficio sí se registran; botones etiquetados «fuera de alcance»)
+- Imágenes/videos fuera de alcance (solo PDF/DOCX/XLSX)
+- Aceptación humana V01–V06 aún pendiente del equipo
 
 **a11y rúbrica (2026-10-29):** toggle alto contraste · alt text editable en
 recursos del wizard · checklist NVDA en `docs/a11y/INFORME-WCAG.md`.
@@ -122,6 +127,7 @@ recursos del wizard · checklist NVDA en `docs/a11y/INFORME-WCAG.md`.
 
 | Fecha | Qué | Pendiente |
 |-------|-----|-----------|
+| 2026-11-09 | **Post-auditoría:** CaseFile enriquecido desde `GET /propuestas/:id`; limpieza de adapters/demo muertos; eliminado `ProposalDetailView`; docs CONTINUIDAD + WCAG + guion V01 | Firma humana V01–V06 |
 | 2026-10-29 | **CU3/CU4 API + UI**: bandeja y acciones persistidas; flujo investigador→evaluador→histórico demostrable | `evaluacion_puntaje` fino; oficios PDF |
 | 2026-10-29 | **CU2 ampliación**: problema / objetivo general / metodología en create+patch | equipo, plan, presupuesto en tablas hijas |
 | 2026-10-29 | **CU2 enviar desde UI**: wizard «Enviar a revisión» + detalle de borrador llaman `POST /propuestas/:id/enviar` | — |
@@ -149,9 +155,9 @@ recursos del wizard · checklist NVDA en `docs/a11y/INFORME-WCAG.md`.
 1. ~~Definir 5 CUs~~ / ~~Q1–Q4~~ / ~~Fase 0 cimientos~~ / ~~frontend multiarchivo sin API~~
 2. ~~Login demo ↔ API~~ · ~~**CU1 convocatoria**~~ · ~~**CU2** formular/enviar (bloque inicial)~~ · ~~parity UI HTML~~ · ~~**a11y WCAG AA**~~ · ~~**CU5 histórico con datos reales**~~
 3. ~~**CU3/CU4** persistencia (dictamen, aval, resolución) + avance de estado~~
-4. ~~a11y rúbrica: toggle alto contraste, alt text, checklist lector~~
-5. Persistir resto del wizard CU2 (equipo/horas, plan, presupuesto) + oficios/PDF + rúbrica xlsx → `evaluacion_puntaje`.
-6. Verificación presencial con NVDA en la demo de clase.
+4. ~~a11y rúbrica: toggle alto contraste, checklist lector~~ · ~~wizard completo persistido (Ian + D01–D11)~~ · ~~CaseFile con detalle API~~
+5. Firma humana V01–V06 + NVDA presencial (ver [correcciones/GUIION-DEMO-V01.md](correcciones/GUIION-DEMO-V01.md)).
+6. Opcional / diferido: seed de adjuntos, UNIQUE evaluación, `propuesta_asignacion`, PDF oficios.
 
 ## Referencias rápidas
 
@@ -161,4 +167,5 @@ recursos del wizard · checklist NVDA en `docs/a11y/INFORME-WCAG.md`.
 - BD (docs): `docs/database/` · SQL: `database/`
 - **UI referencia:** `docs/prototipo-html-referencia/Fondos-VIE-Prototipo.html`
 - **App:** desde la raíz `pnpm dev`
-- Claves UI: `frontend/src/pages/InicioPage.tsx`, `PropuestaDetallePage.tsx`, `PropuestaNuevaPage.tsx`, `EvaluacionesPage.tsx`, `HistoricoPage.tsx`, `components/ProposalDetailView.tsx`, `components/evaluation/`, `data/formWizard.ts`
+- Claves UI: `frontend/src/pages/InicioPage.tsx`, `PropuestaDetallePage.tsx`, `PropuestaNuevaPage.tsx`, `EvaluacionesPage.tsx`, `HistoricoPage.tsx`, `components/evaluation/CaseFile.tsx`, `data/formWizardIan.ts`
+- Prioridad post-auditoría: `correcciones/PRIORIDAD-POST-AUDITORIA.md` · Guion V01: `correcciones/GUIION-DEMO-V01.md`

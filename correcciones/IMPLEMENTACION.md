@@ -86,3 +86,14 @@ Se conserva la base de correcciones y se integra selectivamente `a605b81`: borra
 ## Mensajes de guardado y envío · 3 de noviembre de 2026
 
 Por solicitud del usuario se incorpora un aviso persistente con el motivo concreto del fallo, sección afectada y estado del borrador. Se detallan duplicados de términos y límites existentes del esquema; se evita crear otra propuesta cuando guardar funciona y enviar falla. [Sustento, pruebas y revisión manual](ERRORES-DEL-FORMULARIO.md).
+
+## Post-auditoría · 9 de noviembre de 2026
+
+Tras la auditoría integral del prototipo se cerró la iteración priorizada en [PRIORIDAD-POST-AUDITORIA.md](PRIORIDAD-POST-AUDITORIA.md):
+
+| Cambio | Sustento | Comprobación |
+| --- | --- | --- |
+| CaseFile enriquecido desde `GET /propuestas/:id` (`mergeDetalleIntoCase`) | CU4: evaluador debe ver narrativa, equipo, plan y presupuesto reales | Typecheck front; UI en vivo en Evaluaciones; smoke 18/18 |
+| Retiro de `ProposalDetailView` y adapters demo engañosos | Evitar plantillas confundidas con datos vivos | Grep sin usos; detalle = wizard RO |
+| Docs CONTINUIDAD / WCAG / README / ESTADO | Alinear defensa y rúbrica a11y al alcance real | Enlaces cruzados a guion V01 |
+| [GUIION-DEMO-V01.md](GUIION-DEMO-V01.md) | Checklist ejecutable para firma humana V01–V06 | Pendiente del equipo |

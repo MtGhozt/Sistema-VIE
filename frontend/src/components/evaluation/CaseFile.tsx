@@ -1,57 +1,174 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { fetchPropuesta, type PropuestaDetalle } from "../../api/propuestas";
+import type { DemoProposal } from "../../data/demo";
+import { formatCRC } from "../../data/proposalView";
+import { mergeDetalleIntoCase } from "../../data/evalProposal";
 import { ProcessTimeline } from "../ProcessTimeline";
 import { IconFile } from "../icons";
-import type { DemoProposal } from "../../data/demo";
 
 function formatColones(n: number) {
-  return `₡${new Intl.NumberFormat("es-CR").format(n)}`;
+  return formatCRC(n);
 }
 
-/** Expediente lateral del prototipo HTML (`kt`). */
+/** Expediente lateral: metadatos de bandeja + detalle real desde la API. */
 export function CaseFile({ proposal }: { proposal: DemoProposal }) {
-  const years = proposal.presupuestoAnual ?? [];
+  const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [loading, setLoading] = useState(Boolean(proposal.numericId));
+
+  useEffect(() => {
+    if (!proposal.numericId) {
+      setDetail(null);
+      setLoadError("");
+      setLoading(false);
+      return;
+    }
+    let active = true;
+    setLoading(true);
+    setLoadError("");
+    void fetchPropuesta(proposal.numericId)
+      .then((d) => {
+        if (active) setDetail(d);
+      })
+      .catch((err) => {
+        if (active) {
+          setDetail(null);
+          setLoadError(
+            err instanceof Error
+              ? err.message
+              : "No se pudo cargar el expediente completo",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [proposal.numericId]);
+
+  const view = detail ? mergeDetalleIntoCase(proposal, detail) : proposal;
+  const years = view.presupuestoAnual ?? [];
+  const plan = view.plan ?? [];
+  const team = view.teamTec ?? [];
 
   return (
     <div className="case-file">
       <div className="case-file-head">
         <div>
-          <span className="eyebrow">{proposal.id}</span>
-          <h2>{proposal.titulo}</h2>
+          <span className="eyebrow">{view.id}</span>
+          <h2>{view.titulo}</h2>
         </div>
-        <span className="badge badge-primary">{proposal.estado}</span>
+        <span className="badge badge-primary">{view.estado}</span>
       </div>
 
       <ProcessTimeline
-        currentStep={proposal.etapa}
-        piRequired={proposal.piRequired}
-          piAcreditada={proposal.piAcreditada}
+        currentStep={view.etapa}
+        piRequired={view.piRequired}
+        piAcreditada={view.piAcreditada}
         completed={
-          proposal.estado === "Aprobada" || proposal.estado === "Rechazada"
+          view.estado === "Aprobada" || view.estado === "Rechazada"
         }
       />
 
       <div className="case-meta">
         <div>
           <span>Investigadora</span>
-          <strong>{proposal.investigadora}</strong>
+          <strong>{view.investigadora}</strong>
         </div>
         <div>
           <span>Escuela</span>
-          <strong>{proposal.escuela}</strong>
+          <strong>{view.escuela}</strong>
         </div>
         <div>
           <span>Modalidad</span>
-          <strong>{proposal.modalidad}</strong>
+          <strong>{view.modalidad}</strong>
         </div>
         <div>
           <span>Presupuesto VIE</span>
-          <strong>{proposal.presupuesto}</strong>
+          <strong>{view.presupuesto}</strong>
         </div>
       </div>
 
+      {loading && (
+        <p className="field-hint" role="status">
+          Cargando expediente completo…
+        </p>
+      )}
+      {loadError && (
+        <p className="field-hint" role="alert">
+          {loadError}. Se muestran solo los datos de la bandeja.
+        </p>
+      )}
+
       <div className="case-summary">
         <strong>Resumen</strong>
-        <p>{proposal.resumen}</p>
+        <p>{view.resumen || "Sin resumen registrado."}</p>
       </div>
+
+      {(detail?.problema || detail?.objetivoGeneral || detail?.metodologia) && (
+        <div className="case-summary">
+          <strong>Contenido técnico</strong>
+          {detail?.problema && (
+            <p>
+              <span className="field-hint">Problema · </span>
+              {detail.problema.slice(0, 480)}
+              {detail.problema.length > 480 ? "…" : ""}
+            </p>
+          )}
+          {detail?.objetivoGeneral && (
+            <p>
+              <span className="field-hint">Objetivo general · </span>
+              {detail.objetivoGeneral.slice(0, 320)}
+              {detail.objetivoGeneral.length > 320 ? "…" : ""}
+            </p>
+          )}
+          {detail?.metodologia && (
+            <p>
+              <span className="field-hint">Metodología · </span>
+              {detail.metodologia.slice(0, 480)}
+              {detail.metodologia.length > 480 ? "…" : ""}
+            </p>
+          )}
+        </div>
+      )}
+
+      {team.length > 0 && (
+        <div className="case-summary">
+          <strong>Equipo ({team.length})</strong>
+          <ul className="case-team-list">
+            {team.slice(0, 8).map((m) => (
+              <li key={`${m.nombre}-${m.rol}`}>
+                {m.nombre}
+                {m.rol ? ` · ${m.rol}` : ""}
+                {m.horas && m.horas !== "—" ? ` · ${m.horas}` : ""}
+              </li>
+            ))}
+          </ul>
+          {team.length > 8 && (
+            <p className="field-hint">+{team.length - 8} integrantes más en el expediente.</p>
+          )}
+        </div>
+      )}
+
+      {plan.length > 0 && (
+        <div className="case-summary">
+          <strong>Plan de acción ({plan.length} actividades)</strong>
+          <ul className="case-team-list">
+            {plan.slice(0, 5).map((row, i) => (
+              <li key={`${row.objetivo}-${row.actividad}-${i}`}>
+                {row.objetivo}: {row.actividad}
+                {row.riesgo ? ` · Riesgo: ${row.riesgo}` : ""}
+              </li>
+            ))}
+          </ul>
+          {plan.length > 5 && (
+            <p className="field-hint">+{plan.length - 5} actividades más en el expediente.</p>
+          )}
+        </div>
+      )}
 
       {years.length > 0 && (
         <div className="case-budget-years">
@@ -68,7 +185,10 @@ export function CaseFile({ proposal }: { proposal: DemoProposal }) {
 
       <div className="case-docs">
         <strong>Expediente</strong>
-        {proposal.documentos.map((doc) => (
+        {view.documentos.length === 0 && (
+          <p className="field-hint">Sin oficios ni adjuntos listados aún.</p>
+        )}
+        {view.documentos.map((doc) => (
           <div key={doc.nombre}>
             <IconFile size={15} />
             <span>{doc.nombre}</span>
@@ -84,6 +204,14 @@ export function CaseFile({ proposal }: { proposal: DemoProposal }) {
           </div>
         ))}
       </div>
+
+      {proposal.numericId != null && (
+        <p className="field-hint" style={{ marginTop: "0.75rem" }}>
+          <Link to={`/propuestas/${proposal.numericId}`}>
+            Abrir expediente completo (solo lectura)
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

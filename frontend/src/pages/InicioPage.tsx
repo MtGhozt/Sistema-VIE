@@ -8,6 +8,7 @@ import {
   fetchConvocatorias,
   type Convocatoria,
 } from "../api/convocatorias";
+import { apiJson } from "../api/client";
 import {
   fetchEvaluacionBandeja,
   type EvaluacionBandejaItem,
@@ -102,8 +103,10 @@ function adminStatValue(
   label: string,
   proposals: Propuesta[],
   convocatorias: Convocatoria[],
+  userCount: number,
 ): number {
   const l = label.toLowerCase();
+  if (l.includes("usuario")) return userCount;
   if (l.includes("propuesta") && l.includes("activ")) {
     return proposals.filter(isPropuestaActiva).length;
   }
@@ -123,6 +126,7 @@ function adminStatValue(
 
 function adminStatPath(label: string) {
   const l = label.toLowerCase();
+  if (l.includes("usuario")) return "/administracion";
   if (l.includes("propuesta")) return "/propuestas";
   if (l.includes("convocatoria")) return "/convocatorias";
   return "/evaluaciones";
@@ -257,6 +261,21 @@ function AdminHome({
   convocatorias: Convocatoria[];
 }) {
   const navigate = useNavigate();
+  const [userCount, setUserCount] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const rows = await apiJson<{ id: number }[]>("/api/admin/usuarios");
+        if (!cancelled) setUserCount(rows.length);
+      } catch {
+        if (!cancelled) setUserCount(0);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const instanceRows = useMemo(
     () => adminInstanceAccess(proposals, convocatorias),
     [proposals, convocatorias],
@@ -314,7 +333,7 @@ function AdminHome({
             onClick={() => navigate(adminStatPath(label))}
           >
             <div className="stat-value">
-              {adminStatValue(label, proposals, convocatorias)}
+              {adminStatValue(label, proposals, convocatorias, userCount)}
             </div>
             <div className="stat-label">{label}</div>
           </button>

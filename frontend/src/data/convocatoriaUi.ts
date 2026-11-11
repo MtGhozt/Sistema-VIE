@@ -54,6 +54,11 @@ export function validateDraft(f: ConvDraft) {
         add(prefix + '-responsable', `Responsable de actividad ${i + 1}`, 'Indique quién es responsable de esta actividad.');
     else if (h.responsable.length > 120)
         add(prefix + '-responsable', `Responsable de actividad ${i + 1}`, 'El responsable admite hasta 120 caracteres.'); const a = date(prefix + '-inicio', `Inicio de actividad ${i + 1}`, h.inicio), b = date(prefix + '-fin', `Fin de actividad ${i + 1}`, h.fin); if (a && b && b < a)
-        add(prefix + '-fin', `Fin de actividad ${i + 1}`, 'El fin de la actividad no puede ser anterior a su inicio.'); });
+        add(prefix + '-fin', `Fin de actividad ${i + 1}`, 'El fin de la actividad no puede ser anterior a su inicio.');
+      for(const [field,label,value] of [[prefix+'-inicio',`Inicio de actividad ${i+1}`,a],[prefix+'-fin',`Fin de actividad ${i+1}`,b]]){
+        if(value&&start&&value<start)add(field!,label!,`La actividad no puede comenzar ni terminar antes de la apertura (${dateLabel(start)}).`);
+        if(value&&end&&value>end)add(field!,label!,`La actividad no puede comenzar ni terminar después del cierre de la convocatoria (${dateLabel(end)}).`);
+      }
+    });
     return issues;
 }

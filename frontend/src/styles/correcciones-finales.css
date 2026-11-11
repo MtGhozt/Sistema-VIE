@@ -49,3 +49,6 @@
  .app-shell.sidebar-collapsed .sidebar .nav-item-label,.app-shell.sidebar-collapsed .sidebar .brand-copy { max-width: none; opacity: 1; transform: none; pointer-events: auto; white-space: normal; }
  .app-shell.sidebar-collapsed .sidebar .nav-item { justify-content: flex-start; gap: 8px; }
 }
+.date-control { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; }
+.date-control input { min-width: 0; width: 100%; }
+.date-control .btn { padding-inline: 10px; }

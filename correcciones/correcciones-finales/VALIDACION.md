@@ -2,6 +2,8 @@
 
 **Fecha local:** 11 de noviembre de 2026. **Base del trabajo:** `master`, desde `6b8a6db`. La aceptación manual continúa pendiente.
 
+> **Ajuste posterior:** la validación vigente de presupuesto, calendario y límites de actividades está en [AJUSTES-CREAR-CONVOCATORIA.md](AJUSTES-CREAR-CONVOCATORIA.md). Las capturas y resultados siguientes corresponden a la entrega inicial.
+
 ## Ejecuciones finales
 
 | Comprobación | Resultado | Evidencia |

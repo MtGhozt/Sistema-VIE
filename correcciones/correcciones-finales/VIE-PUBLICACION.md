@@ -9,10 +9,10 @@
 | VF03 | Listado, edición y detalle aparecen mezclados, con IDs técnicos como `VIE-…`. | Rutas propias para listado, creación, edición y revisión; se muestran nombres y datos relevantes. Los IDs se usan internamente y en las rutas. |
 | VF04 | Inicio: “Pendientes prioritarios” toma las cinco fechas más antiguas, aunque sean borradores o convocatorias cerradas/vencidas. | “Convocatorias próximas a cerrar”: publicadas con cierre entre hoy y los próximos 30 días, ordenadas por fecha. Fecha local de Costa Rica, incluido el día del cierre. Cada elemento abre su revisión. |
 | VF05 | Acciones: guardar, publicar y cerrar carecen de confirmación clara y estable. | Guardar muestra confirmación persistente. Publicar, cerrar, reactivar y eliminar tienen diálogo previo, cancelación y resultado explícito. Un error mantiene su motivo disponible; no se anuncia éxito si falla la API. |
-| VF06 | Fechas: presentación variable, componentes nativos dependientes del navegador y cronograma pequeño. | Captura y presentación `DD-MM-AAAA`; comprobación de fechas reales. Fechas legibles de al menos 16 px; revisión con responsables y fechas de cada actividad. Las notificaciones conservan también hora local. |
+| VF06 | Fechas: presentación variable, componentes nativos dependientes del navegador y cronograma pequeño. | Control nativo con escritura asistida, calendario y pista día/mes/año; revisión en `DD-MM-AAAA` y comprobación de fechas reales. Fechas legibles de al menos 16 px; revisión con responsables y fechas de cada actividad. Las notificaciones conservan también hora local. |
 | VF07 | Avance: datos previamente guardados podían publicarse sin revisar su coherencia actual. | Validación antes de abrir la confirmación y nueva comprobación en la transacción de publicación de la API. Incluye fechas, nombre, presupuesto y actividades existentes. |
-| VF08 | Calendario: el formulario limita todas las actividades al período de recepción. | Se valida fin ≥ inicio de cada actividad; se permiten etapas posteriores al cierre de recepción, conforme al cronograma oficial y al seed. |
-| VF09 | Presupuesto: `step=1000` puede rechazar montos válidos mediante mensajes nativos. | Captura decimal con punto o coma; límites y errores comprensibles, sin imponer múltiplos de mil. La API recibe un número. |
+| VF08 | Calendario: el formulario limita todas las actividades al período de recepción. | Según la indicación posterior del usuario, se valida apertura ≤ inicio ≤ fin ≤ cierre de convocatoria, en interfaz y API. Esta regla sustituye la interpretación inicial que permitía actividades posteriores. |
+| VF09 | Presupuesto: `step=1000` puede rechazar montos válidos mediante mensajes nativos. | Captura decimal con punto o coma; límites y errores comprensibles, sin imponer múltiplos de mil. La API recibe un número. El rótulo no dice “opcional”; la ayuda distingue presupuesto no definido de cero. |
 | VF10 | Móvil: una regla más específica del menú mantiene su altura en una pantalla completa. | Menú compacto y adaptable; la convocatoria deja de quedar bajo una pantalla vacía de navegación. |
 | VF11 | Errores de servicio sin JSON: se puede mostrar `Service Unavailable` u otro estado HTTP en inglés. | Mensajes de respaldo en español y explicación de fallos de conexión. Se conservan los motivos específicos de la API. |
 
@@ -26,7 +26,9 @@
 - Histórico: `/historico`.
 - Notificaciones: `/notificaciones`.
 
-Las restricciones de rol, borradores y borrado con propuestas asociadas se conservan. Las fechas se envían a la API como ISO; el cambio de presentación no modifica el esquema de la base de datos.
+Las restricciones de rol, borradores y borrado con propuestas asociadas se conservan. Ver [ajustes posteriores](AJUSTES-CREAR-CONVOCATORIA.md) para la validación actual sin imágenes.
+
+Las fechas se envían a la API como ISO; el cambio de presentación no modifica el esquema de la base de datos.
 
 ## Sustento documental y límites
 

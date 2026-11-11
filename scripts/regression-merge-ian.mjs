@@ -11,8 +11,8 @@ async function shot(page,name){await page.screenshot({path:path.join(output,name
 try{
  await mkdir(output,{recursive:true});env=await testEnvironment({ui:true});browser=await chromium.launch({headless:true});
  await check('Convocatorias API: cronograma aislado y borrado de borrador sin propuestas',async()=>{
- draft=await api('vie_publicacion','/convocatorias','POST',{nombre:'Merge Ian '+run,fechaApertura:'2027-01-01',fechaCierre:'2027-03-01',hitos:[{nombre:'Revisión posterior al cierre',responsable:'Comité',fechaInicio:'2027-04-01',fechaFin:'2027-05-01'}]},201);
- await api('vie_publicacion',`/convocatorias/${draft.id}`,'PATCH',{hitos:[{nombre:'Actividad editada',responsable:'VIE',fechaInicio:'2027-04-02',fechaFin:'2027-05-01'}]});assert.equal((await api('vie_publicacion',`/convocatorias/${draft.id}`)).hitos[0].nombre,'Actividad editada');await api('vie_publicacion',`/convocatorias/${draft.id}`,'PATCH',{fechaCierre:'2026-01-01'},400);await api('vie_publicacion',`/convocatorias/${draft.id}`,'PATCH',{hitos:[null]},400);
+ draft=await api('vie_publicacion','/convocatorias','POST',{nombre:'Merge Ian '+run,fechaApertura:'2027-01-01',fechaCierre:'2027-03-01',hitos:[{nombre:'Actividad dentro del período',responsable:'Comité',fechaInicio:'2027-02-01',fechaFin:'2027-02-15'}]},201);
+ await api('vie_publicacion',`/convocatorias/${draft.id}`,'PATCH',{hitos:[{nombre:'Actividad editada',responsable:'VIE',fechaInicio:'2027-02-02',fechaFin:'2027-02-15'}]});assert.equal((await api('vie_publicacion',`/convocatorias/${draft.id}`)).hitos[0].nombre,'Actividad editada');await api('vie_publicacion',`/convocatorias/${draft.id}`,'PATCH',{fechaCierre:'2026-01-01'},400);await api('vie_publicacion',`/convocatorias/${draft.id}`,'PATCH',{hitos:[null]},400);
  await api('investigador',`/convocatorias/${draft.id}`,'DELETE',undefined,403);
  });
  await check('Convocatorias UI: editar actividad, guardar, reabrir y eliminar borrador',async()=>{

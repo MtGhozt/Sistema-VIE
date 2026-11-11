@@ -2,6 +2,8 @@
 
 **Primera revisión: VIE — Publicación · 11 de noviembre de 2026.**
 
+**Ajustes posteriores a la revisión manual:** [presupuesto, calendario y límites de actividades](AJUSTES-CREAR-CONVOCATORIA.md). Las validaciones nuevas generan reportes de texto, sin imágenes.
+
 Esta carpeta reúne los problemas reportados, su sustento, las correcciones y la evidencia de ejecución. La revisión avanza por perfil y pantalla; esta entrega no certifica toda la usabilidad ni la accesibilidad del proyecto.
 
 | Documento | Contenido |

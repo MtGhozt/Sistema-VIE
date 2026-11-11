@@ -75,6 +75,20 @@ async function lockDraft(id:number,execute:typeof query){
  if(found.rows[0].estado!=='borrador')throw new HttpError(409,'Solo se edita el cronograma de una convocatoria en borrador');
 }
 
+/** Regla vigente: las actividades pertenecen al período de su convocatoria. */
+async function validarCronograma(id:number,execute:typeof query){
+ const result=await execute<ConvocatoriaRow>('SELECT * FROM convocatoria WHERE id_convocatoria=$1',[id]);const c=result.rows[0];
+ if(!c)throw new HttpError(404,'Convocatoria no encontrada');
+ const start=asDateOnly(c.fecha_apertura),end=asDateOnly(c.fecha_cierre);
+ const activities=await execute<HitoRow>('SELECT * FROM convocatoria_hito WHERE id_convocatoria=$1 ORDER BY orden,id_hito',[id]);
+ for(const [i,h] of activities.rows.entries()){
+  const a=asDateOnly(h.fecha_inicio),b=asDateOnly(h.fecha_fin);
+  if(!h.nombre.trim()||!h.responsable.trim()||!validDate(a)||!validDate(b)||b<a)throw new HttpError(400,`Actividad ${i+1}: necesita nombre, responsable y fechas coherentes.`);
+  if(a<start||b<start)throw new HttpError(400,`Actividad ${i+1}: no puede comenzar ni terminar antes de la apertura de la convocatoria (${start.split('-').reverse().join('/')}).`);
+  if(a>end||b>end)throw new HttpError(400,`Actividad ${i+1}: no puede comenzar ni terminar después del cierre de la convocatoria (${end.split('-').reverse().join('/')}).`);
+ }
+}
+
 /** Verificar el registro efectivo dentro de la transacción antes de publicarlo. */
 async function validarPublicacion(id:number,execute:typeof query){
  const result=await execute<ConvocatoriaRow>('SELECT * FROM convocatoria WHERE id_convocatoria=$1',[id]);const c=result.rows[0];
@@ -82,8 +96,7 @@ async function validarPublicacion(id:number,execute:typeof query){
  const start=asDateOnly(c.fecha_apertura),end=asDateOnly(c.fecha_cierre);
  if(!validDate(start)||!validDate(end)||end<start)throw new HttpError(400,'Antes de publicar, corrija la apertura y el cierre de recepción. El cierre no puede ser anterior a la apertura.');
  if(!parsePresupuesto(c.presupuesto_estimado).valid)throw new HttpError(400,'Antes de publicar, corrija el presupuesto estimado: debe ser un monto no negativo.');
- const activities=await execute<HitoRow>('SELECT * FROM convocatoria_hito WHERE id_convocatoria=$1 ORDER BY orden,id_hito',[id]);
- for(const [i,h] of activities.rows.entries()){if(!h.nombre.trim()||!h.responsable.trim()||!validDate(asDateOnly(h.fecha_inicio))||!validDate(asDateOnly(h.fecha_fin))||asDateOnly(h.fecha_fin)<asDateOnly(h.fecha_inicio))throw new HttpError(400,`Antes de publicar, corrija la actividad ${i+1}: necesita nombre, responsable y fechas coherentes.`);}
+ await validarCronograma(id,execute);
 }
 
 function mapConvocatoria(row: ConvocatoriaRow) {
@@ -210,6 +223,7 @@ convocatoriasRouter.post(
     const created=await transaction(async execute=>{
       const inserted=await execute<ConvocatoriaRow>(`INSERT INTO convocatoria(nombre,descripcion,fecha_apertura,fecha_cierre,presupuesto_estimado,estado,id_publicada_por,fecha_publicacion) VALUES($1,$2,$3::date,$4::date,$5,$6,$7,$8) RETURNING *,0::int AS propuestas_count`,[nombre,descripcion,fechaApertura,fechaCierre,presupuesto,estado,publicar?userId:null,publicar?new Date().toISOString():null]);
       await saveHitos(inserted.rows[0].id_convocatoria,req.body?.hitos,execute);
+      await validarCronograma(inserted.rows[0].id_convocatoria,execute);
       if(publicar)await validarPublicacion(inserted.rows[0].id_convocatoria,execute);
       return inserted.rows[0];
     });
@@ -321,6 +335,7 @@ convocatoriasRouter.patch(
 
     }
     await saveHitos(id,req.body?.hitos,execute);
+    if(['nombre','descripcion','fechaApertura','fechaCierre','presupuestoEstimado','hitos'].some(k=>req.body[k]!==undefined))await validarCronograma(id,execute);
     if(req.body.estado==='activa')await validarPublicacion(id,execute);
     const result = await execute<ConvocatoriaRow>(
       `
@@ -388,6 +403,7 @@ convocatoriasRouter.post(
       `,
       [id, nombre, responsable, fechaInicio, fechaFin, orden],
     );
+    await validarCronograma(id,execute);
     return mapHito(result.rows[0]);
     });
     res.status(201).json(saved);

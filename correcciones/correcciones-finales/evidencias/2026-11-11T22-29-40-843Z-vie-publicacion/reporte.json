@@ -1,0 +1,60 @@
+{
+  "run": "2026-11-11T22-29-40-843Z",
+  "fechaLocal": "2026-11-11",
+  "scope": "VIE Publicación: acceso, inicio, listado, creación, edición, revisión, acciones, histórico y notificaciones; Chromium en locale en-US; API propia y PostgreSQL aislado.",
+  "fixtures": [
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88
+  ],
+  "results": [
+    {
+      "name": "Acceso: mensajes propios en español con navegador en inglés",
+      "status": "PASA"
+    },
+    {
+      "name": "Crear: pantalla propia, campos señalados y validación de fechas antes de guardar",
+      "status": "FALLA",
+      "detail": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('status').filter({ hasText: 'El borrador de convocatoria se guardó correctamente.' })\nExpected: visible\nError: strict mode violation: getByRole('status').filter({ hasText: 'El borrador de convocatoria se guardó correctamente.' }) resolved to 2 elements:\n    1) <div role=\"status\" class=\"feedback-success\">El borrador de convocatoria se guardó correctamen…</div> aka getByRole('main', { name: 'Contenido principal' }).getByText('El borrador de convocatoria')\n    2) <div role=\"status\" class=\"toast success\">…</div> aka getByText('El borrador de convocatoria se guardó correctamente.×')\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('status').filter({ hasText: 'El borrador de convocatoria se guardó correctamente.' }) with timeout 5000ms\n  - waiting for getByRole('status').filter({ hasText: 'El borrador de convocatoria se guardó correctamente.' })\n"
+    },
+    {
+      "name": "Edición y recarga: conserva actividades e identificadores internos sin mostrarlos",
+      "status": "PASA"
+    },
+    {
+      "name": "Revisión móvil: fechas legibles DD-MM-AAAA y cronograma sin desbordar",
+      "status": "PASA"
+    },
+    {
+      "name": "Publicar/cerrar/eliminar: confirmaciones reales, cancelación y mensajes de éxito",
+      "status": "PASA"
+    },
+    {
+      "name": "Filtros independientes: limpiar o plegar uno conserva el otro",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: prioridades de cierre reales, incluye hoy en Costa Rica y excluye vencidas/borradores/cerradas",
+      "status": "PASA"
+    },
+    {
+      "name": "API: publicar vuelve a validar el cronograma almacenado y revierte una transición inválida",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico y notificaciones: filtros separados, fechas y pantallas accesibles al rol",
+      "status": "PASA"
+    },
+    {
+      "name": "Fallo de servidor: respuesta sin JSON no muestra Service Unavailable en inglés",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

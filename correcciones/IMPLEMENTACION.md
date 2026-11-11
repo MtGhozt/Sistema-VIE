@@ -97,3 +97,7 @@ Tras la auditoría integral del prototipo se cerró la iteración priorizada en 
 | Retiro de `ProposalDetailView` y adapters demo engañosos | Evitar plantillas confundidas con datos vivos | Grep sin usos; detalle = wizard RO |
 | Docs CONTINUIDAD / WCAG / README / ESTADO | Alinear defensa y rúbrica a11y al alcance real | Enlaces cruzados a guion V01 |
 | [GUIION-DEMO-V01.md](GUIION-DEMO-V01.md) | Checklist ejecutable para firma humana V01–V06 | Pendiente del equipo |
+
+## Correcciones finales · VIE Publicación · 11 de noviembre de 2026
+
+Solicitud del usuario: revisar mensajes en español, filtros separados, pantallas de convocatoria sin IDs visibles, prioridades de cierre, confirmaciones, formato de fechas y legibilidad. Se implementan rutas propias, validación por campo y en publicación API, revisión adaptable, filtros independientes y fechas locales. [Hallazgos y sustento](correcciones-finales/VIE-PUBLICACION.md); [validación y límites](correcciones-finales/VALIDACION.md). Se conservan pendientes las casillas de aceptación manual y se registran por separado dos pruebas heredadas del investigador incompatibles con la navegación/etiquetado actuales.

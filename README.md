@@ -187,3 +187,5 @@ Configure `GEMINI_API_KEY` en `backend/.env` (nunca en el frontend). El modelo p
 Las tres cuentas demo son `comite_evaluador@tec.ac.cr`, `comite_evaluador2@tec.ac.cr` y `comite_evaluador3@tec.ac.cr` (contraseña inicial `prototipo2026`). Seleccionar el rol Comité · Evaluador y cambiar el correo para usar cada cuenta. Después de tres entregas, la asistencia confirma el dictamen; una sola nota no adelanta el expediente.
 
 El rechazo del Consejo se comunica al investigador como **aval rechazado**, sin fabricar una resolución CIE. El investigador solicita reconsideración y el Consejo autoriza un nuevo ciclo con fundamento; la decisión anterior permanece auditada. Admin no puede saltarse estas precondiciones.
+
+La revisión final por pantallas comienza con **VIE Publicación**. Consulte [correcciones finales](correcciones/correcciones-finales/README.md) para hallazgos, evidencia y aceptación manual. Su batería específica se ejecuta con `pnpm regression:vie-final` y `TEST_DATABASE_URL` de pruebas. El informe identifica por separado las dos regresiones heredadas del investigador pendientes de adaptar.

@@ -1,0 +1,61 @@
+{
+  "run": "2026-11-11T22-25-28-399Z",
+  "fechaLocal": "2026-11-11",
+  "scope": "VIE Publicación: acceso, inicio, listado, creación, edición, revisión, acciones, histórico y notificaciones; Chromium en locale en-US; API propia y PostgreSQL aislado.",
+  "fixtures": [
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69
+  ],
+  "results": [
+    {
+      "name": "Acceso: mensajes propios en español con navegador en inglés",
+      "status": "PASA"
+    },
+    {
+      "name": "Crear: pantalla propia, campos señalados y validación de fechas antes de guardar",
+      "status": "PASA"
+    },
+    {
+      "name": "Edición y recarga: conserva actividades e identificadores internos sin mostrarlos",
+      "status": "FALLA",
+      "detail": "expect(locator).toBeVisible() failed\n\nLocator: getByText('Los cambios del borrador se guardaron correctamente.', { exact: true })\nExpected: visible\nError: strict mode violation: getByText('Los cambios del borrador se guardaron correctamente.', { exact: true }) resolved to 2 elements:\n    1) <div role=\"status\" class=\"feedback-success\">Los cambios del borrador se guardaron correctamen…</div> aka getByRole('main', { name: 'Contenido principal' }).getByText('Los cambios del borrador se')\n    2) <span>Los cambios del borrador se guardaron correctamen…</span> aka locator('span').filter({ hasText: 'Los cambios del borrador se' })\n\nCall log:\n  - Expect \"toBeVisible\" getByText('Los cambios del borrador se guardaron correctamente.', { exact: true }) with timeout 5000ms\n  - waiting for getByText('Los cambios del borrador se guardaron correctamente.', { exact: true })\n"
+    },
+    {
+      "name": "Revisión móvil: fechas legibles DD-MM-AAAA y cronograma sin desbordar",
+      "status": "PASA"
+    },
+    {
+      "name": "Publicar/cerrar/eliminar: confirmaciones reales, cancelación y mensajes de éxito",
+      "status": "PASA"
+    },
+    {
+      "name": "Filtros independientes: limpiar o plegar uno conserva el otro",
+      "status": "FALLA",
+      "detail": "locator.check: Clicking the checkbox did not change its state\nCall log:\n\u001b[2m  - waiting for getByRole('radio', { name: 'Borradores', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input type=\"radio\" value=\"borrador\" name=\"conv-state\"/>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n\u001b[2m    - click action done\u001b[22m\n\u001b[2m    - waiting for scheduled navigations to finish\u001b[22m\n\u001b[2m    - navigations have finished\u001b[22m\n"
+    },
+    {
+      "name": "Inicio: prioridades de cierre reales, incluye hoy en Costa Rica y excluye vencidas/borradores/cerradas",
+      "status": "PASA"
+    },
+    {
+      "name": "API: publicar vuelve a validar el cronograma almacenado y revierte una transición inválida",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico y notificaciones: filtros separados, fechas y pantallas accesibles al rol",
+      "status": "PASA"
+    },
+    {
+      "name": "Fallo de servidor: respuesta sin JSON no muestra Service Unavailable en inglés",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

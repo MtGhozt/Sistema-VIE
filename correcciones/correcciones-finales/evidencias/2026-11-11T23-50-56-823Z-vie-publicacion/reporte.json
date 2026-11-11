@@ -1,0 +1,15 @@
+{
+  "run": "2026-11-11T23-50-56-823Z",
+  "fechaEscenarioCR": "2026-11-11",
+  "capturas": false,
+  "scope": "VIE Publicación: acceso, inicio, listado, creación, edición, revisión, acciones, histórico y notificaciones; Chromium en locale en-US; API propia y PostgreSQL aislado.",
+  "fixtures": [],
+  "results": [
+    {
+      "name": "Entorno",
+      "status": "FALLA",
+      "detail": "connect EPERM 127.0.0.1:55432 - Local (undefined:undefined)"
+    }
+  ],
+  "errors": []
+}

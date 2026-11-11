@@ -16,3 +16,5 @@ Esta carpeta reúne los problemas reportados, su sustento, las correcciones y la
 **Estados:** implementado ≠ validado automáticamente ≠ aceptado por el usuario. Las casillas de aceptación manual permanecen pendientes.
 
 La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos documentos corresponden a Costa Rica.
+
+- [Formato fijo DD/MM/YYYY y filtros como el histórico](FECHAS-Y-FILTROS-CONVOCATORIAS.md).

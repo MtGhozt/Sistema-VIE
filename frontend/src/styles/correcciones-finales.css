@@ -52,3 +52,6 @@
 .date-control { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; }
 .date-control input { min-width: 0; width: 100%; }
 .date-control .btn { padding-inline: 10px; }
+
+.calendar-picker-control { position: relative; }
+.calendar-picker-native { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }

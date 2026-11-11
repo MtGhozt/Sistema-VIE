@@ -160,7 +160,7 @@ export const PRIMARY_CTA: Record<
   RoleId,
   { label: string; path: string }
 > = {
-  vie_publicacion: { label: "Nueva convocatoria", path: "/convocatorias" },
+  vie_publicacion: { label: "Nueva convocatoria", path: "/convocatorias/nueva" },
   investigador: { label: "Crear propuesta", path: "/propuestas/nueva" },
   vinculacion: { label: "Revisar dictámenes", path: "/evaluaciones" },
   comite_asistente: { label: "Revisar expedientes", path: "/evaluaciones" },

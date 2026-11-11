@@ -1,811 +1,149 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type FormEvent,
-} from "react";
-import { useSearchParams } from "react-router-dom";
-import { ApiError } from "../api/client";
-import {
-  createConvocatoria,
-  deleteConvocatoria,
-  fetchConvocatoria,
-  fetchConvocatorias,
-  patchConvocatoria,
-  type Convocatoria,
-  type ConvocatoriaDetalle,
-  type ConvocatoriaHitoInput,
-  type ConvocatoriaHito,
-} from "../api/convocatorias";
-import { useAuth } from "../auth/AuthContext";
-import { FilterPanel } from "../components/FilterPanel";
-import { useToast } from "../components/toast/ToastContext";
-import { DATE_YEAR_MAX as YEAR_MAX, DATE_YEAR_MIN as YEAR_MIN } from "../data/dateRules";
-
-function yearOf(iso: string) {
-  const y = Number(iso.slice(0, 4));
-  return Number.isFinite(y) ? y : NaN;
-}
-
-function datesInAllowedRange(inicio: string, fin: string) {
-  const yi = yearOf(inicio);
-  const yf = yearOf(fin);
-  return (
-    yi >= YEAR_MIN &&
-    yi <= YEAR_MAX &&
-    yf >= YEAR_MIN &&
-    yf <= YEAR_MAX &&
-    fin >= inicio
-  );
-}
-
-function isProximaCierre(c: Convocatoria, today = new Date()) {
-  if (c.estado !== "activa") return false;
-  const cierre = new Date(c.fechaCierre.slice(0, 10));
-  const start = new Date(today);
-  start.setHours(0, 0, 0, 0);
-  const limit = new Date(start);
-  limit.setDate(limit.getDate() + 30);
-  cierre.setHours(0, 0, 0, 0);
-  return cierre >= start && cierre <= limit;
-}
-
-function formatDate(value: string | null | undefined) {
-  if (!value) return "—";
-  const d = value.slice(0, 10);
-  const [y, m, day] = d.split("-");
-  if (!y || !m || !day) return d;
-  return `${day}/${m}/${y}`;
-}
-
-function labelEstado(estado: string) {
-  const map: Record<string, string> = {
-    borrador: "Borrador",
-    activa: "Publicada",
-    cerrada: "Cerrada",
-    finalizada: "Finalizada",
-  };
-  return map[estado] ?? estado;
-}
-
-function emptyHito(): ConvocatoriaHitoInput {
-  return {
-    nombre: "",
-    responsable: "",
-    fechaInicio: "",
-    fechaFin: "",
-  };
-}
-
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { createConvocatoria, deleteConvocatoria, fetchConvocatoria, fetchConvocatorias, patchConvocatoria, type Convocatoria, type ConvocatoriaDetalle } from '../api/convocatorias';
+import { useAuth } from '../auth/AuthContext';
+import { SimpleModal } from '../components/evaluation/SimpleModal';
+import { FilterGroup } from '../components/FilterGroup';
+import { closingSoon, dateFromInput, dateLabel, emptyDraft, estadoLabel, fromDetail, newActivity, validateDraft, type ConvDraft, type FieldIssue } from '../data/convocatoriaUi';
+type Action = 'publicar' | 'cerrar' | 'reactivar' | 'eliminar';
+const actionText: Record<Action, string> = { publicar: 'Publicar convocatoria', cerrar: 'Cerrar convocatoria', reactivar: 'Reactivar convocatoria', eliminar: 'Eliminar borrador' };
+const confirmations: Record<Action, string> = { publicar: 'La convocatoria será visible como publicada. Verifique sus fechas y cronograma antes de confirmar.', cerrar: 'Se cerrará la convocatoria. Sus propuestas y su historial se conservan.', reactivar: 'La convocatoria volverá al estado publicada con las fechas de recepción registradas.', eliminar: 'Se eliminarán este borrador y su cronograma. Esta acción no se puede deshacer. No se eliminan convocatorias con propuestas asociadas.' };
+function focusField(id: string) { const node = document.getElementById(id); const details = node?.closest('details'); if (details)
+    details.open = true; node?.focus(); node?.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+function Field({ id, label, error, children }: {
+    id: string;
+    label: string;
+    error?: string;
+    children: ReactNode;
+}) { return <div className="field"><label className="field-label" htmlFor={id}>{label}</label>{children}{error && <p id={id + '-error'} className="field-error-text">{error}</p>}</div>; }
 export function ConvocatoriasPage() {
-  const { session, isAdminSession } = useAuth();
-  const { showToast } = useToast();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const canPublish =
-    session?.role === "vie_publicacion" ||
-    session?.role === "admin" ||
-    (isAdminSession && session?.viewRole === "vie_publicacion");
-
-  const [rows, setRows] = useState<Convocatoria[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [detail, setDetail] = useState<ConvocatoriaDetalle | null>(null);
-  const [query, setQuery] = useState("");
-  const estadoParam = searchParams.get("estado") ?? "";
-  const [estadoFiltro, setEstadoFiltro] = useState(estadoParam || "todas");
-
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [apertura, setApertura] = useState("");
-  const [cierre, setCierre] = useState("");
-  const [presupuesto, setPresupuesto] = useState("");
-  const [hitos, setHitos] = useState<ConvocatoriaHitoInput[]>([emptyHito()]);
-  const [scheduleOpen, setScheduleOpen] = useState(true);
-
-  useEffect(() => {
-    if (estadoParam) setEstadoFiltro(estadoParam);
-  }, [estadoParam]);
-
-  const loadList = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchConvocatorias();
-      setRows(data);
-    } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : "No se pudieron cargar convocatorias";
-      setError(msg);
-      showToast(msg, "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [showToast]);
-
-  useEffect(() => {
-    void loadList();
-  }, [loadList]);
-
-  const filteredRows = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return rows.filter((c) => {
-      const hay =
-        !q ||
-        `${c.nombre} ${c.descripcion ?? ""} VIE-${c.id}`
-          .toLowerCase()
-          .includes(q);
-      const est = estadoFiltro.toLowerCase();
-      let matchEstado = true;
-      if (est && est !== "todas") {
-        if (est === "proximas" || est === "próximas") matchEstado = isProximaCierre(c);
-        else if (est === "activa" || est === "publicada")
-          matchEstado = c.estado === "activa";
-        else if (est === "finalizada" || est === "finalizadas" || est === "cerrada")
-          matchEstado = c.estado === "cerrada" || c.estado === "finalizada";
-        else if (est === "borrador" || est === "borradores")
-          matchEstado = c.estado === "borrador";
-        else matchEstado = c.estado === est;
-      }
-      return hay && matchEstado;
-    });
-  }, [rows, query, estadoFiltro]);
-
-  function resetForm() {
-    setNombre("");
-    setDescripcion("");
-    setApertura("");
-    setCierre("");
-    setPresupuesto("");
-    setHitos([emptyHito()]);
-    setEditingId(null);
-    setShowForm(false);
-    setDetail(null);
-  }
-
-  function updateHito(index: number, update: Partial<ConvocatoriaHitoInput>) {
-    setHitos((current) =>
-      current.map((hito, i) => (i === index ? { ...hito, ...update } : hito)),
-    );
-  }
-
-  function startEditing(convocatoria: ConvocatoriaDetalle) {
-    setNombre(convocatoria.nombre);
-    setDescripcion(convocatoria.descripcion ?? "");
-    setApertura(convocatoria.fechaApertura);
-    setCierre(convocatoria.fechaCierre);
-    setPresupuesto(
-      convocatoria.presupuestoEstimado == null
-        ? ""
-        : String(convocatoria.presupuestoEstimado),
-    );
-    setHitos(
-      convocatoria.hitos.length > 0
-        ? convocatoria.hitos.map(
-            ({ nombre, responsable, fechaInicio, fechaFin }) => ({
-              nombre,
-              responsable,
-              fechaInicio,
-              fechaFin,
-            }),
-          )
-        : [emptyHito()],
-    );
-    setEditingId(convocatoria.id);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function openDetail(id: number) {
-    setDetail(null);
-    try {
-      setDetail(await fetchConvocatoria(id));
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "No se pudo cargar el detalle";
-      setError(msg);
-      showToast(msg, "error");
-    }
-  }
-
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!nombre.trim() || !apertura || !cierre) return;
-    if (!datesInAllowedRange(apertura, cierre)) {
-      const msg =
-        "Las fechas de apertura y cierre deben ser coherentes (cierre ≥ apertura) y estar entre los años 2000 y 2100.";
-      setError(msg);
-      showToast(msg, "error");
-      return;
-    }
-    if (presupuesto !== "" && Number(presupuesto) < 0) {
-      const msg = "El presupuesto estimado no puede ser negativo.";
-      setError(msg);
-      showToast(msg, "error");
-      return;
-    }
-    if (
-      hitos.some(
-        (hito) =>
-          !hito.nombre.trim() ||
-          !hito.responsable.trim() ||
-          !hito.fechaInicio ||
-          !hito.fechaFin ||
-          !datesInAllowedRange(hito.fechaInicio, hito.fechaFin) ||
-          hito.fechaInicio < apertura ||
-          hito.fechaFin > cierre,
-      )
-    ) {
-      const msg =
-        "Cada actividad debe tener datos completos, fin ≥ inicio (años 2000–2100) y fechas dentro del rango de la convocatoria.";
-      setError(msg);
-      showToast(msg, "error");
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      const input = {
-        nombre: nombre.trim(),
-        descripcion:
-          descripcion.trim() || (editingId != null ? null : undefined),
-        fechaApertura: apertura,
-        fechaCierre: cierre,
-        presupuestoEstimado: presupuesto
-          ? Number(presupuesto)
-          : null,
-        hitos: hitos.map((hito) => ({
-          nombre: hito.nombre.trim(),
-          responsable: hito.responsable.trim(),
-          fechaInicio: hito.fechaInicio,
-          fechaFin: hito.fechaFin,
-        })),
-      };
-      if (editingId != null) {
-        await patchConvocatoria(editingId, input);
-        showToast("Borrador de convocatoria actualizado", "success");
-      } else {
-        const created = await createConvocatoria({
-          ...input,
-          estado: "borrador",
-        });
-        showToast("Borrador de convocatoria guardado", "success");
-        await loadList();
-        resetForm();
-        await openDetail(created.id);
-        return;
-      }
-      const updatedId = editingId;
-      await loadList();
-      resetForm();
-      if (updatedId != null) await openDetail(updatedId);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al guardar";
-      setError(msg);
-      showToast(msg, "error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function changeEstado(
-    id: number,
-    estado: "activa" | "cerrada" | "borrador",
-  ) {
-    setSaving(true);
-    setError(null);
-    try {
-      await patchConvocatoria(id, { estado });
-      const messages = {
-        activa: "Convocatoria publicada",
-        cerrada: "Convocatoria cerrada",
-        borrador: "Convocatoria vuelta a borrador",
-      } as const;
-      showToast(messages[estado], "success");
-      await loadList();
-      if (detail?.id === id) await openDetail(id);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al actualizar";
-      setError(msg);
-      showToast(msg, "error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function removeDraft(id: number) {
-    if (!window.confirm("¿Desea eliminar este borrador de convocatoria?")) {
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      await deleteConvocatoria(id);
-      if (editingId === id) resetForm();
-      if (detail?.id === id) setDetail(null);
-      showToast("Borrador de convocatoria eliminado", "success");
-      await loadList();
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Error al eliminar borrador";
-      setError(msg);
-      showToast(msg, "error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <>
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">VIE · Publicación</p>
-          <h1>Gestión de convocatorias</h1>
-          <p>
-            Publique, administre el cronograma y consulte convocatorias vigentes
-            e históricas (roles VIE Publicación / admin).
-          </p>
-        </div>
-        {canPublish && (
-          <div className="page-actions">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => {
-                setDetail(null);
-                if (showForm && editingId == null) {
-                  resetForm();
-                } else {
-                  resetForm();
-                  setShowForm(true);
-                }
-              }}
-            >
-              Nueva convocatoria
-            </button>
-          </div>
-        )}
-      </header>
-
-      {/* Región live siempre montada: si el mensaje llega con el nodo, el
-          lector de pantalla puede no anunciarlo (WCAG 4.1.3). */}
-      <div role="alert" aria-live="assertive">
-        {error && (
-          <p className="field-error-text" style={{ marginBottom: 12 }}>
-            {error}
-          </p>
-        )}
-      </div>
-
-      {showForm && canPublish && (
-        <form
-          className="card stack-md"
-          style={{ marginBottom: 18 }}
-          onSubmit={onSubmit}
-        >
-          <h2>{editingId == null ? "Nueva convocatoria" : "Editar borrador"}</h2>
-          <p>
-            {editingId == null
-              ? "Se guarda como borrador. Agregue las actividades, responsables y fechas del cronograma."
-              : "Actualice los datos y el cronograma antes de publicar."}
-          </p>
-          <div className="form-grid two-col">
-            <label className="field" style={{ gridColumn: "1 / -1" }}>
-              <span className="field-label">Nombre</span>
-              <input
-                className="input"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                required
-              />
-            </label>
-            <label className="field" style={{ gridColumn: "1 / -1" }}>
-              <span className="field-label">Descripción</span>
-              <textarea
-                className="input textarea"
-                rows={3}
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-              />
-            </label>
-            <label className="field">
-              <span className="field-label">Apertura (día/mes/año)</span>
-              <input
-                className="input"
-                type="date"
-                min={`${YEAR_MIN}-01-01`}
-                max={`${YEAR_MAX}-12-31`}
-                value={apertura}
-                onChange={(e) => setApertura(e.target.value)}
-                required
-              />
-            </label>
-            <label className="field">
-              <span className="field-label">Cierre (día/mes/año)</span>
-              <input
-                className="input"
-                type="date"
-                min={apertura || `${YEAR_MIN}-01-01`}
-                max={`${YEAR_MAX}-12-31`}
-                value={cierre}
-                onChange={(e) => setCierre(e.target.value)}
-                required
-              />
-            </label>
-            <label className="field">
-              <span className="field-label">Presupuesto estimado (₡)</span>
-              <input
-                className="input"
-                type="number"
-                min={0}
-                max={999999999999.99}
-                step={1000}
-                value={presupuesto}
-                onChange={(e) => setPresupuesto(e.target.value)}
-              />
-            </label>
-          </div>
-          <div className="stack-md convocatoria-schedule-editor">
-            <div className="section-inline">
-              <div>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  aria-expanded={scheduleOpen}
-                  onClick={() => setScheduleOpen((o) => !o)}
-                >
-                  {scheduleOpen ? "▾" : "▸"} Cronograma de actividades
-                </button>
-                <p className="muted">
-                  Ingrese una actividad, su responsable y el rango de fechas.
-                </p>
-              </div>
-              {scheduleOpen && (
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setHitos((current) => [...current, emptyHito()])}
-                >
-                  Agregar actividad
-                </button>
-              )}
-            </div>
-            {scheduleOpen &&
-              hitos.map((hito, index) => (
-              <div className="schedule-box" key={index}>
-                <div className="form-grid two-col">
-                  <label className="field" style={{ gridColumn: "1 / -1" }}>
-                    <span className="field-label">Actividad</span>
-                    <input
-                      className="input"
-                      maxLength={200}
-                      value={hito.nombre}
-                      onChange={(e) => updateHito(index, { nombre: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label className="field" style={{ gridColumn: "1 / -1" }}>
-                    <span className="field-label">Responsable</span>
-                    <input
-                      className="input"
-                      maxLength={120}
-                      value={hito.responsable}
-                      onChange={(e) =>
-                        updateHito(index, { responsable: e.target.value })
-                      }
-                      required
-                    />
-                  </label>
-                  <label className="field">
-                    <span className="field-label">Fecha de inicio</span>
-                    <input
-                      className="input"
-                      type="date"
-                      min={apertura || `${YEAR_MIN}-01-01`}
-                      max={cierre || `${YEAR_MAX}-12-31`}
-                      value={hito.fechaInicio}
-                      onChange={(e) =>
-                        updateHito(index, { fechaInicio: e.target.value })
-                      }
-                      required
-                    />
-                  </label>
-                  <label className="field">
-                    <span className="field-label">Fecha de fin</span>
-                    <input
-                      className="input"
-                      type="date"
-                      min={hito.fechaInicio || apertura || `${YEAR_MIN}-01-01`}
-                      max={cierre || `${YEAR_MAX}-12-31`}
-                      value={hito.fechaFin}
-                      onChange={(e) =>
-                        updateHito(index, { fechaFin: e.target.value })
-                      }
-                      required
-                    />
-                  </label>
-                  {hitos.length > 1 && (
-                    <div className="page-actions" style={{ gridColumn: "1 / -1" }}>
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        onClick={() =>
-                          setHitos((current) =>
-                            current.filter((_, i) => i !== index),
-                          )
-                        }
-                      >
-                        Eliminar actividad
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="page-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={resetForm}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={saving}
-            >
-              {saving
-                ? "Guardando…"
-                : editingId == null
-                  ? "Guardar borrador"
-                  : "Guardar cambios"}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {!(showForm && editingId == null) && (
-      <>
-      <FilterPanel
-        clearDisabled={
-          !query && (!estadoFiltro || estadoFiltro === "todas")
+    const { session } = useAuth();
+    const canPublish = session?.role === 'vie_publicacion' || session?.role === 'admin';
+    const { id } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [search, setSearch] = useSearchParams();
+    const mode = location.pathname.endsWith('/nueva') ? 'create' : location.pathname.endsWith('/editar') ? 'edit' : id ? 'detail' : 'list';
+    const [rows, setRows] = useState<Convocatoria[]>([]), [detail, setDetail] = useState<ConvocatoriaDetalle | null>(null), [form, setForm] = useState<ConvDraft>(emptyDraft), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [issues, setIssues] = useState<FieldIssue[]>([]), [attempted, setAttempted] = useState(false), [action, setAction] = useState<Action | null>(null);
+    const summary = useRef<HTMLDivElement>(null);
+    const notice = (location.state as {
+        notice?: string;
+    } | null)?.notice;
+    useEffect(() => {
+        let active = true;
+        setLoading(true);
+        setError('');
+        setIssues([]);
+        setAttempted(false);
+        setAction(null);
+        setDetail(null);
+        if (mode === 'create') {
+            setForm(emptyDraft());
+            setLoading(false);
+            return () => { active = false; };
         }
-        onClear={() => {
-          setQuery("");
-          setEstadoFiltro("todas");
-          setSearchParams({});
-        }}
-      >
-        <div className="form-grid two-col">
-          <label className="field" htmlFor="conv-filtro-q">
-            <span className="field-label">Buscar</span>
-            <input
-              id="conv-filtro-q"
-              className="input"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Nombre, descripción o ID…"
-            />
-          </label>
-          <label className="field" htmlFor="conv-filtro-estado">
-            <span className="field-label">Estado</span>
-            <select
-              id="conv-filtro-estado"
-              className="input"
-              value={estadoFiltro || "todas"}
-              onChange={(e) => {
-                const v = e.target.value;
-                setEstadoFiltro(v);
-                if (!v || v === "todas") setSearchParams({});
-                else setSearchParams({ estado: v });
-              }}
-            >
-              <option value="todas">Todas</option>
-              <option value="activa">Publicadas / activas</option>
-              <option value="borrador">Borradores</option>
-              <option value="proximas">Próximas a cerrar</option>
-              <option value="cerrada">Finalizadas / cerradas</option>
-            </select>
-          </label>
-        </div>
-      </FilterPanel>
-
-      <section className="card convocatorias-list">
-        <div className="section-inline" style={{ marginBottom: 12 }}>
-          <strong>
-            {loading
-              ? "Cargando…"
-              : `${filteredRows.length} resultado${filteredRows.length === 1 ? "" : "s"}`}
-          </strong>
-          <span className="muted">Los filtros pueden combinarse</span>
-        </div>
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Convocatoria</th>
-                <th>Apertura</th>
-                <th>Cierre</th>
-                <th>Estado</th>
-                <th>Propuestas</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan={7}>Cargando…</td>
-                </tr>
-              )}
-              {!loading && filteredRows.length === 0 && (
-                <tr>
-                  <td colSpan={7}>
-                    {rows.length === 0
-                      ? "No hay convocatorias registradas."
-                      : "Ninguna convocatoria coincide con los filtros."}
-                  </td>
-                </tr>
-              )}
-              {filteredRows.map((c) => (
-                <tr key={c.id} className="clickable">
-                  <td>VIE-{c.id}</td>
-                  <td className="table-primary">
-                    <strong>{c.nombre}</strong>
-                    {c.descripcion && <span>{c.descripcion.slice(0, 80)}</span>}
-                  </td>
-                  <td>{formatDate(c.fechaApertura)}</td>
-                  <td>{formatDate(c.fechaCierre)}</td>
-                  <td>
-                    <span className="badge badge-primary">
-                      {labelEstado(c.estado)}
-                    </span>
-                  </td>
-                  <td>{c.propuestasCount}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => void openDetail(c.id)}
-                    >
-                      Ver
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      </>
-      )}
-
-      {detail && !showForm && (
-        <section
-          className="card stack-md convocatoria-detail"
-          style={{ marginTop: 18 }}
-        >
-          <div className="section-inline">
-            <div>
-              <p className="eyebrow">Detalle · VIE-{detail.id}</p>
-              <h2>{detail.nombre}</h2>
-              <p>{detail.descripcion || "Sin descripción"}</p>
-            </div>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setDetail(null)}
-            >
-              Cerrar
-            </button>
-          </div>
-
-          <div className="detail-grid">
-            <div>
-              <span>Estado</span>
-              <strong>{labelEstado(detail.estado)}</strong>
-            </div>
-            <div>
-              <span>Apertura</span>
-              <strong>{formatDate(detail.fechaApertura)}</strong>
-            </div>
-            <div>
-              <span>Cierre</span>
-              <strong>{formatDate(detail.fechaCierre)}</strong>
-            </div>
-            <div>
-              <span>Presupuesto estimado</span>
-              <strong>
-                {detail.presupuestoEstimado != null
-                  ? `₡${detail.presupuestoEstimado.toLocaleString("es-CR")}`
-                  : "—"}
-              </strong>
-            </div>
-          </div>
-
-          {canPublish && (
-            <div className="action-row">
-              {detail.estado === "borrador" && (
-                <>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    disabled={saving}
-                    onClick={() => startEditing(detail)}
-                  >
-                    Editar borrador
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    disabled={saving}
-                    onClick={() => void removeDraft(detail.id)}
-                  >
-                    Eliminar borrador
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    disabled={saving}
-                    onClick={() => void changeEstado(detail.id, "activa")}
-                  >
-                    Publicar
-                  </button>
-                </>
-              )}
-              {detail.estado === "activa" && (
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  disabled={saving}
-                  onClick={() => void changeEstado(detail.id, "cerrada")}
-                >
-                  Cerrar convocatoria
-                </button>
-              )}
-              {detail.estado === "cerrada" && (
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  disabled={saving}
-                  onClick={() => void changeEstado(detail.id, "activa")}
-                >
-                  Reactivar
-                </button>
-              )}
-            </div>
-          )}
-
-          <div>
-            <h3>Cronograma (hitos)</h3>
-            {detail.hitos.length === 0 ? (
-              <p className="muted">Sin hitos registrados.</p>
-            ) : (
-              <div className="schedule-box">
-                {detail.hitos.map((h: ConvocatoriaHito) => (
-                  <div key={h.id} className="schedule-row">
-                    <span>
-                      <strong>{h.nombre}</strong> · {h.responsable}
-                    </span>
-                    <span>
-                      {formatDate(h.fechaInicio)} – {formatDate(h.fechaFin)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-    </>
-  );
+        const load = async () => { try {
+            if (mode === 'list') {
+                const data = await fetchConvocatorias();
+                if (active)
+                    setRows(data);
+            }
+            else {
+                const data = await fetchConvocatoria(Number(id));
+                if (active) {
+                    setDetail(data);
+                    setForm(fromDetail(data));
+                }
+            }
+        }
+        catch (e) {
+            if (active)
+                setError(e instanceof Error ? e.message : 'No se pudo cargar la convocatoria.');
+        }
+        finally {
+            if (active)
+                setLoading(false);
+        } };
+        void load();
+        return () => { active = false; };
+    }, [mode, id]);
+    function patch(partial: Partial<ConvDraft>) { const next = { ...form, ...partial }; setForm(next); if (attempted)
+        setIssues(validateDraft(next)); }
+    function validate(draft = form) { const errors = validateDraft(draft); setIssues(errors); setAttempted(true); if (errors.length)
+        requestAnimationFrame(() => { if (mode === 'create' || mode === 'edit')
+            focusField(errors[0].field);
+        else
+            summary.current?.focus(); }); return !errors.length; }
+    function control(id: string) { return { id, 'aria-invalid': issues.some(e => e.field === id) || undefined, 'aria-describedby': issues.some(e => e.field === id) ? id + '-error' : undefined, className: 'input' }; }
+    function input(id: string, label: string, value: string, onChange: (s: string) => void, opts: {
+        multiline?: boolean;
+        date?: boolean;
+        money?: boolean;
+        maxLength?: number;
+    } = {}) { const err = issues.find(e => e.field === id)?.message; return <Field id={id} label={label} error={err}>{opts.multiline ? <textarea {...control(id)} rows={4} value={value} onChange={e => onChange(e.target.value)}/> : <input {...control(id)} type="text" inputMode={opts.date ? 'numeric' : opts.money ? 'decimal' : undefined} placeholder={opts.date ? 'DD-MM-AAAA' : undefined} maxLength={opts.maxLength} value={value} onChange={e => onChange(e.target.value)}/>}</Field>; }
+    async function save(e: FormEvent) { e.preventDefault(); if (!validate())
+        return; setBusy(true); setError(''); try {
+        const payload = { nombre: form.nombre.trim(), descripcion: form.descripcion.trim() || null, fechaApertura: dateFromInput(form.apertura)!, fechaCierre: dateFromInput(form.cierre)!, presupuestoEstimado: form.presupuesto.trim() === '' ? null : Number(form.presupuesto.replace(',', '.')), hitos: form.hitos.map(h => ({ id: h.id, nombre: h.nombre.trim(), responsable: h.responsable.trim(), fechaInicio: dateFromInput(h.inicio)!, fechaFin: dateFromInput(h.fin)! })) };
+        const saved = mode === 'edit' ? await patchConvocatoria(Number(id), payload) : await createConvocatoria({ ...payload, estado: 'borrador' });
+        const notice = mode === 'edit' ? 'Los cambios del borrador se guardaron correctamente.' : 'El borrador de convocatoria se guardó correctamente.';
+        navigate(`/convocatorias/${saved.id}`, { state: { notice } });
+    }
+    catch (e) {
+        setError(e instanceof Error ? e.message : 'No se pudo guardar el borrador.');
+    }
+    finally {
+        setBusy(false);
+    } }
+    function ask(next: Action) { setError(''); if ((next === 'publicar' || next === 'reactivar') && detail && !validate(fromDetail(detail)))
+        return; setAction(next); }
+    async function confirm() { if (!detail || !action || busy)
+        return; setBusy(true); setError(''); try {
+        if (action === 'eliminar') {
+            await deleteConvocatoria(detail.id);
+            navigate('/convocatorias', { state: { notice: 'El borrador se eliminó correctamente.' } });
+        }
+        else {
+            const estado = action === 'cerrar' ? 'cerrada' : 'activa';
+            await patchConvocatoria(detail.id, { estado });
+            setDetail(await fetchConvocatoria(detail.id));
+            navigate(`/convocatorias/${detail.id}`, { replace: true, state: { notice: action === 'cerrar' ? 'La convocatoria se cerró correctamente.' : action === 'reactivar' ? 'La convocatoria se reactivó correctamente.' : 'La convocatoria se publicó correctamente.' } });
+        }
+        setAction(null);
+    }
+    catch (e) {
+        setError(e instanceof Error ? e.message : 'No se pudo completar la acción.');
+    }
+    finally {
+        setBusy(false);
+    } }
+    const [query, setQuery] = useState(search.get('q') ?? '');
+    const [status, setStatus] = useState(search.get('estado') ?? 'todas');
+    useEffect(() => { setQuery(search.get('q') ?? ''); setStatus(search.get('estado') ?? 'todas'); }, [search]);
+    function filter(key: string, value: string) { const q = key === 'q' ? value : query; const st = key === 'estado' ? value : status; setQuery(q); setStatus(st || 'todas'); const p = new URLSearchParams(); if (q)
+        p.set('q', q); if (st && st !== 'todas')
+        p.set('estado', st); setSearch(p, { replace: true }); }
+    const filtered = rows.filter(c => (!query || `${c.nombre} ${c.descripcion ?? ''}`.toLocaleLowerCase('es').includes(query.toLocaleLowerCase('es'))) && (status === 'todas' || status === 'proximas' && closingSoon(c) || status === 'cerrada' && ['cerrada', 'finalizada'].includes(c.estado) || c.estado === status));
+    if ((mode === 'create' || mode === 'edit') && !canPublish)
+        return <section className="card"><h1>Acceso restringido</h1><p role="alert">La edición de convocatorias requiere VIE Publicación o Super Administrador.</p><Link to="/convocatorias">Volver a convocatorias</Link></section>;
+    const editingAllowed = mode !== 'edit' || detail?.estado === 'borrador';
+    return <div className="convocatorias-workspace">
+  <nav className="breadcrumbs" aria-label="Ubicación"><Link to="/inicio">Inicio</Link><span>/</span>{mode === 'list' ? <span>Convocatorias</span> : <><Link to="/convocatorias">Convocatorias</Link><span>/</span><span>{mode === 'create' ? 'Nueva convocatoria' : mode === 'edit' ? 'Editar borrador' : 'Revisar convocatoria'}</span></>}</nav>
+  <header className="page-header"><div><p className="eyebrow">Gestión de convocatorias</p><h1>{mode === 'list' ? 'Convocatorias' : mode === 'create' ? 'Nueva convocatoria' : mode === 'edit' ? 'Editar borrador' : detail?.nombre ?? 'Revisar convocatoria'}</h1><p>{mode === 'list' ? 'Consulte las convocatorias y aplique cada filtro por separado.' : mode === 'detail' ? 'Revise las fechas, responsables y actividades antes de realizar una acción.' : 'Complete los datos y el cronograma. Las fechas se escriben como día-mes-año.'}</p></div>{mode === 'list' && canPublish && <Link className="btn btn-primary" to="/convocatorias/nueva">Nueva convocatoria</Link>}</header>
+  {notice && <div className="feedback-success" role="status">{notice}</div>}
+  {error && !action && <div role="alert" className="feedback-error">{error}</div>}
+  {issues.length > 0 && <div ref={summary} tabIndex={-1} role="alert" className="feedback-error"><h2>Revise los campos indicados antes de continuar</h2><ul>{issues.map(e => <li key={e.field}>{mode === 'detail' ? <span>{e.label}: {e.message}</span> : <button type="button" onClick={() => focusField(e.field)}>{e.label}: {e.message}</button>}</li>)}</ul>{mode === 'detail' && detail?.estado === 'borrador' && <Link to={`/convocatorias/${id}/editar`}>Corregir el borrador</Link>}</div>}
+  {loading ? <p role="status">Cargando convocatorias…</p> : <>
+   {(mode === 'create' || mode === 'edit') && (editingAllowed ? <form className="card stack-xl convocatoria-form" noValidate onSubmit={save} aria-label="Datos de la convocatoria"><fieldset disabled={busy}><legend>Datos de la convocatoria</legend><div className="form-grid two-col">{input('nombre', 'Nombre', form.nombre, v => patch({ nombre: v }))}{input('presupuesto', 'Presupuesto estimado (₡, opcional)', form.presupuesto, v => patch({ presupuesto: v }), { money: true })}{input('apertura', 'Apertura (DD-MM-AAAA)', form.apertura, v => patch({ apertura: v }), { date: true })}{input('cierre', 'Cierre de recepción (DD-MM-AAAA)', form.cierre, v => patch({ cierre: v }), { date: true })}</div>{input('descripcion', 'Descripción (opcional)', form.descripcion, v => patch({ descripcion: v }), { multiline: true })}</fieldset>
+    <details className="convocatoria-schedule-editor" open><summary>Cronograma de actividades</summary><p>Las etapas de evaluación pueden continuar después del cierre de recepción.</p>{form.hitos.map((h, i) => <fieldset disabled={busy} className="schedule-edit-card" key={h.key}><legend>Actividad {i + 1}</legend><div className="form-grid two-col">{input(`actividad-${h.key}-nombre`, 'Actividad', h.nombre, v => patch({ hitos: form.hitos.map(x => x.key === h.key ? { ...x, nombre: v } : x) }))}{input(`actividad-${h.key}-responsable`, 'Responsable', h.responsable, v => patch({ hitos: form.hitos.map(x => x.key === h.key ? { ...x, responsable: v } : x) }))}{input(`actividad-${h.key}-inicio`, 'Fecha de inicio (DD-MM-AAAA)', h.inicio, v => patch({ hitos: form.hitos.map(x => x.key === h.key ? { ...x, inicio: v } : x) }), { date: true })}{input(`actividad-${h.key}-fin`, 'Fecha de fin (DD-MM-AAAA)', h.fin, v => patch({ hitos: form.hitos.map(x => x.key === h.key ? { ...x, fin: v } : x) }), { date: true })}</div><button className="btn btn-ghost" type="button" disabled={form.hitos.length === 1} onClick={() => patch({ hitos: form.hitos.filter(x => x.key !== h.key) })}>Quitar actividad {i + 1}</button></fieldset>)}<button className="btn btn-secondary" disabled={busy} type="button" onClick={() => patch({ hitos: [...form.hitos, newActivity()] })}>Agregar actividad</button></details>
+    <div className="page-actions"><Link className="btn btn-secondary" to={mode === 'edit' ? `/convocatorias/${id}` : '/convocatorias'}>Cancelar</Link><button type="submit" className="btn btn-primary" disabled={busy}>{busy ? 'Guardando…' : mode === 'edit' ? 'Guardar cambios' : 'Guardar borrador'}</button></div></form> : <section className="card"><p role="alert">Solo se pueden editar convocatorias en borrador.</p><Link to={`/convocatorias/${id}`}>Revisar convocatoria</Link></section>)}
+   {mode === 'list' && <><div className="independent-filters" aria-label="Filtros de convocatorias"><FilterGroup title="Buscar convocatoria" active={Boolean(query)} onClear={() => filter('q', '')}><label className="field" htmlFor="conv-search">Nombre o descripción</label><input className="input" id="conv-search" value={query} onChange={e => filter('q', e.target.value)}/></FilterGroup><FilterGroup title="Estado de convocatoria" active={status !== 'todas'} onClear={() => filter('estado', 'todas')}><fieldset><legend className="sr-only">Estado de convocatoria</legend><ul className="filter-options">{[['todas', 'Todas'], ['activa', 'Publicadas'], ['borrador', 'Borradores'], ['proximas', 'Próximas a cerrar (30 días)'], ['cerrada', 'Cerradas y finalizadas']].map(([v, label]) => <li key={v}><label><input type="radio" name="conv-state" value={v} checked={status === v} onChange={() => filter('estado', v)}/>{label}</label></li>)}</ul></fieldset></FilterGroup></div>
+   <section className="card convocatoria-list"><p role="status">{filtered.length} {filtered.length === 1 ? 'convocatoria encontrada' : 'convocatorias encontradas'}</p><div className="table-wrap"><table className="data-table"><thead><tr><th>Convocatoria</th><th>Apertura</th><th>Cierre de recepción</th><th>Estado</th><th>Propuestas</th><th>Revisión</th></tr></thead><tbody>{filtered.map(c => <tr key={c.id}><td className="table-primary"><strong>{c.nombre}</strong><span>{c.descripcion?.slice(0, 120)}</span></td><td><time dateTime={c.fechaApertura}>{dateLabel(c.fechaApertura)}</time></td><td><time dateTime={c.fechaCierre}>{dateLabel(c.fechaCierre)}</time></td><td><span className={`conv-state conv-state-${c.estado}`}>{estadoLabel(c.estado)}</span></td><td>{c.propuestasCount}</td><td><Link to={`/convocatorias/${c.id}`} className="btn btn-secondary" aria-label={`Revisar ${c.nombre}`}>Revisar</Link></td></tr>)}</tbody></table></div>{filtered.length === 0 && <p className="empty-state">No hay convocatorias que coincidan con estos filtros.</p>}</section></>}
+   {mode === 'detail' && detail && <><section className="card stack-md convocatoria-review" aria-label="Revisión de convocatoria"><span className={`conv-state conv-state-${detail.estado}`}>{estadoLabel(detail.estado)}</span><h2>Datos de la convocatoria</h2><p>{detail.descripcion || 'Sin descripción registrada.'}</p><dl className="convocation-facts"><div><dt>Apertura</dt><dd><time dateTime={detail.fechaApertura}>{dateLabel(detail.fechaApertura)}</time></dd></div><div><dt>Cierre de recepción</dt><dd><time dateTime={detail.fechaCierre}>{dateLabel(detail.fechaCierre)}</time></dd></div><div><dt>Presupuesto estimado</dt><dd>{detail.presupuestoEstimado === null ? 'No registrado' : new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC' }).format(detail.presupuestoEstimado)}</dd></div><div><dt>Propuestas asociadas</dt><dd>{detail.propuestasCount}</dd></div></dl>{canPublish && <div className="page-actions">{detail.estado === 'borrador' && <><Link className="btn btn-secondary" to={`/convocatorias/${id}/editar`}>Editar borrador</Link><button type="button" className="btn btn-primary" onClick={() => ask('publicar')}>Publicar</button><button type="button" className="btn btn-danger" disabled={detail.propuestasCount > 0} onClick={() => ask('eliminar')}>Eliminar borrador</button>{detail.propuestasCount > 0 && <p>No se puede eliminar: hay propuestas asociadas.</p>}</>}{detail.estado === 'activa' && <button type="button" className="btn btn-danger" onClick={() => ask('cerrar')}>Cerrar convocatoria</button>}{detail.estado === 'cerrada' && <button type="button" className="btn btn-secondary" onClick={() => ask('reactivar')}>Reactivar</button>}</div>}</section>
+   <section className="card convocatoria-review"><h2>Cronograma y responsables</h2><ol className="review-schedule">{detail.hitos.map((h, i) => <li key={h.id}><h3>{i + 1}. {h.nombre}</h3><p><strong>Responsable:</strong> {h.responsable}</p><dl><div><dt>Inicio</dt><dd><time dateTime={h.fechaInicio}>{dateLabel(h.fechaInicio)}</time></dd></div><div><dt>Fin</dt><dd><time dateTime={h.fechaFin}>{dateLabel(h.fechaFin)}</time></dd></div></dl></li>)}</ol>{detail.hitos.length === 0 && <p>No hay actividades registradas.</p>}</section></>}
+  </>}
+  <SimpleModal open={Boolean(action)} title={action ? actionText[action] : ''} onClose={() => { if (!busy) {
+        setAction(null);
+        setError('');
+    } }} footer={<><button className="btn btn-secondary" type="button" disabled={busy} onClick={() => { setAction(null); setError(''); }}>Cancelar</button><button className={`btn ${action === 'eliminar' ? 'btn-danger' : 'btn-primary'}`} disabled={busy} type="button" onClick={() => void confirm()}>{busy ? 'Procesando…' : 'Confirmar'}</button></>}><p>{detail?.nombre}</p><p>{action && confirmations[action]}</p>{error && <p role="alert" className="feedback-error">{error}</p>}</SimpleModal>
+ </div>;
 }

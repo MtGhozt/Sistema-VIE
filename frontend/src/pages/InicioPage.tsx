@@ -1,3 +1,4 @@
+import {closingSoon,dateLabel} from "../data/convocatoriaUi";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -42,10 +43,7 @@ function isPropuestaActiva(p: Propuesta) {
 }
 
 function formatCierreMeta(fechaCierre: string) {
-  const d = fechaCierre.slice(0, 10);
-  const [y, m, day] = d.split("-");
-  if (!y || !m || !day) return `Cierre ${fechaCierre}`;
-  return `Cierre ${day}/${m}/${y}`;
+  return `Cierre ${dateLabel(fechaCierre)}`;
 }
 
 function labelConvocatoriaEstado(estado: string) {
@@ -59,14 +57,7 @@ function labelConvocatoriaEstado(estado: string) {
 }
 
 function isProximaCierre(c: Convocatoria, today = new Date()) {
-  if (c.estado !== "activa") return false;
-  const cierre = new Date(c.fechaCierre.slice(0, 10));
-  const start = new Date(today);
-  start.setHours(0, 0, 0, 0);
-  const limit = new Date(start);
-  limit.setDate(limit.getDate() + 30);
-  cierre.setHours(0, 0, 0, 0);
-  return cierre >= start && cierre <= limit;
+  return closingSoon(c,today);
 }
 
 function instancePath(label: string) {
@@ -592,7 +583,7 @@ function RoleHome({
 
   const vieTasks = useMemo(() => {
     if (!isViePublicacion) return [];
-    return [...convocatorias]
+    return convocatorias.filter(c=>closingSoon(c))
       .sort((a, b) => a.fechaCierre.localeCompare(b.fechaCierre))
       .slice(0, 5)
       .map((c) => ({
@@ -600,13 +591,7 @@ function RoleHome({
         title: c.nombre,
         status: labelConvocatoriaEstado(c.estado),
         meta: formatCierreMeta(c.fechaCierre),
-        path: convocatoriaStatPath(
-          c.estado === "borrador"
-            ? "Borradores"
-            : c.estado === "activa"
-              ? "Convocatorias activas"
-              : "Finalizadas",
-        ),
+        path: `/convocatorias/${c.id}`,
       }));
   }, [convocatorias, isViePublicacion]);
 
@@ -673,10 +658,9 @@ function RoleHome({
         <article className="card">
           <div className="section-title">
             <div>
-              <h2>Pendientes prioritarios</h2>
+              <h2>{isViePublicacion?"Convocatorias próximas a cerrar":"Pendientes prioritarios"}</h2>
               <p>
-                Tareas que requieren atención según la responsabilidad
-                institucional actual.
+                {isViePublicacion?"Publicadas con cierre en los próximos 30 días, de la fecha más cercana a la más lejana.":"Tareas que requieren atención según la responsabilidad institucional actual."}
               </p>
             </div>
           </div>
@@ -719,8 +703,8 @@ function RoleHome({
               ))}
             {isViePublicacion && vieTasks.length === 0 && (
               <div className="empty-state small">
-                <strong>Sin convocatorias</strong>
-                <span>Creá una convocatoria desde el acceso principal.</span>
+                <strong>No hay cierres próximos</strong>
+                <span>Ninguna convocatoria publicada cierra en los próximos 30 días.</span>
               </div>
             )}
             {!isViePublicacion && isEvalRole && pendingTasks.length === 0 && (

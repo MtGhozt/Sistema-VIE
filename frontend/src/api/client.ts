@@ -36,7 +36,8 @@ export async function apiJson<T>(
   }
 
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url, { ...init, headers });
+  let res:Response;
+  try{res=await fetch(url,{...init,headers});}catch{throw new ApiError('No se pudo confirmar la respuesta del servidor. Revise su conexión y vuelva a intentarlo.',0);}
 
   if (res.status === 204) {
     return undefined as T;
@@ -55,7 +56,7 @@ export async function apiJson<T>(
       "error" in body &&
       typeof (body as { error: unknown }).error === "string"
         ? (body as { error: string }).error
-        : res.statusText || `HTTP ${res.status}`;
+        : ({400:'La solicitud contiene datos no válidos.',401:'Inicie sesión para continuar.',403:'No tiene permiso para realizar esta acción.',404:'No se encontró la información solicitada.',409:'Los datos entran en conflicto con un registro existente. Recargue y revise la información.',413:'La información enviada supera el tamaño permitido.'}[res.status]??'El servidor no pudo completar la solicitud. Vuelva a intentarlo en unos momentos.');
     throw new ApiError(msg, res.status);
   }
   return body as T;

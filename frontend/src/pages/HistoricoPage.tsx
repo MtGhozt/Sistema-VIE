@@ -1,3 +1,5 @@
+import { FilterGroup } from "../components/FilterGroup";
+import {dateLabel} from "../data/convocatoriaUi";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -22,15 +24,7 @@ function yearOf(iso: string | null) {
   return iso ? Number(iso.slice(0, 4)) : null;
 }
 
-function formatDate(iso: string | null) {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("es-CR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+function formatDate(iso: string | null) { return dateLabel(iso);
 }
 
 function HistoricoModal({
@@ -184,8 +178,9 @@ export function HistoricoPage() {
         clearDisabled={activos === 0}
         onClear={() => setFiltros(EMPTY_HISTORICO_FILTROS)}
       >
-        <div className="form-grid five-col">
-          <label className="field" htmlFor="filtro-escuela">
+        <div className="independent-filters">
+          <FilterGroup title="Escuela / Dependencia" active={Boolean(filtros.escuela)} onClear={()=>set("escuela","")}>
+<label className="field" htmlFor="filtro-escuela">
             <span className="field-label">Escuela / Dependencia</span>
             <select
               id="filtro-escuela"
@@ -201,7 +196,9 @@ export function HistoricoPage() {
               ))}
             </select>
           </label>
-          <label className="field" htmlFor="filtro-investigadora">
+</FilterGroup>
+          <FilterGroup title="Persona investigadora" active={Boolean(filtros.investigadora)} onClear={()=>set("investigadora","")}>
+<label className="field" htmlFor="filtro-investigadora">
             <span className="field-label">Persona investigadora</span>
             <input
               id="filtro-investigadora"
@@ -211,7 +208,9 @@ export function HistoricoPage() {
               placeholder="Nombre o apellido"
             />
           </label>
-          <label className="field" htmlFor="filtro-linea">
+</FilterGroup>
+          <FilterGroup title="Línea / Temática" active={Boolean(filtros.linea)} onClear={()=>set("linea","")}>
+<label className="field" htmlFor="filtro-linea">
             <span className="field-label">Línea / Temática</span>
             <select
               id="filtro-linea"
@@ -227,7 +226,9 @@ export function HistoricoPage() {
               ))}
             </select>
           </label>
-          <label className="field" htmlFor="filtro-estado">
+</FilterGroup>
+          <FilterGroup title="Estado" active={Boolean(filtros.estado)} onClear={()=>set("estado","")}>
+<label className="field" htmlFor="filtro-estado">
             <span className="field-label">Estado</span>
             <select
               id="filtro-estado"
@@ -243,7 +244,9 @@ export function HistoricoPage() {
               ))}
             </select>
           </label>
-          <label className="field" htmlFor="filtro-anio">
+</FilterGroup>
+          <FilterGroup title="Año" active={Boolean(filtros.anio)} onClear={()=>set("anio","")}>
+<label className="field" htmlFor="filtro-anio">
             <span className="field-label">Año</span>
             <select
               id="filtro-anio"
@@ -259,6 +262,7 @@ export function HistoricoPage() {
               ))}
             </select>
           </label>
+</FilterGroup>
         </div>
       </FilterPanel>
 

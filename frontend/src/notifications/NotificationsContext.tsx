@@ -1,3 +1,4 @@
+import {timestampLabel} from "../data/convocatoriaUi";
 import {
   createContext,
   useCallback,
@@ -48,7 +49,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       pending = true;
       try {
         const rows = await apiJson<NotificationItem[]>("/api/notificaciones");
-        if (active) setData({ userId, items: rows.map(n => ({ ...n, when: new Date(n.when).toLocaleString("es-CR", { timeZone: "America/Costa_Rica" }) })), error: null });
+        if (active) setData({ userId, items: rows.map(n => ({ ...n, when: timestampLabel(n.when) })), error: null });
       } catch (err) {
         if (active) setData(prev => ({ userId, items: prev.userId === userId ? prev.items : [], error: err instanceof Error ? err.message : "No se pudieron consultar avisos" }));
       } finally { pending = false; }

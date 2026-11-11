@@ -28,6 +28,7 @@ export function LoginPage() {
   const [role, setRole] = useState<RoleId>("investigador");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [fieldErrors,setFieldErrors]=useState<Record<string,string>>({});
   const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,6 +70,8 @@ export function LoginPage() {
     return <Navigate to="/inicio" replace />;
   }
 
+  function clearField(id:string){setFieldErrors(prev=>{const next={...prev};delete next[id];return next;});setLoginError(null);}
+
   function onRoleChange(next: string) {
     if (!isRoleId(next)) return;
     setRole(next);
@@ -80,6 +83,12 @@ export function LoginPage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoginError(null);
+    const errors:Record<string,string>={};
+    if(!email.trim())errors['login-correo']='Escriba su correo institucional.';
+    else if((document.getElementById('login-correo') as HTMLInputElement)?.validity.typeMismatch)errors['login-correo']='Escriba un correo válido, por ejemplo nombre@tec.ac.cr.';
+    if(!password)errors['login-contrasena']='Escriba su contraseña.';
+    setFieldErrors(errors);
+    if(Object.keys(errors).length){setLoginError('Revise el correo y la contraseña indicados.');requestAnimationFrame(()=>document.getElementById(Object.keys(errors)[0])?.focus());return;}
     setSubmitting(true);
     localStorage.setItem(LAST_LOGIN_ROLE_KEY, role);
     try {
@@ -135,7 +144,7 @@ export function LoginPage() {
       </div>
 
       <main className="login-form-panel" id="contenido" tabIndex={-1}>
-        <form className="login-form" onSubmit={onSubmit}>
+        <form className="login-form" noValidate onSubmit={onSubmit}>
           <div className="login-form-title">
             <span className="eyebrow">Acceso institucional</span>
             <h2>Iniciar sesión</h2>
@@ -150,14 +159,13 @@ export function LoginPage() {
           <div role="alert" aria-live="assertive">
             {apiOk === false && (
               <p className="field-error-text">
-                No hay conexión con la API. Desde la raíz:{" "}
-                <code>pnpm db:up</code> y <code>pnpm dev</code>.
+                El servicio de acceso no está disponible. Intente de nuevo en unos momentos.
               </p>
             )}
           </div>
           <div role="status" aria-live="polite">
             {apiOk === true && (
-              <p className="field-hint">API conectada · acceso por credenciales</p>
+              <p className="field-hint">Servicio disponible · acceso institucional</p>
             )}
           </div>
 
@@ -167,26 +175,29 @@ export function LoginPage() {
               <IconMail size={17} />
               <input
                 id="login-correo"
+                aria-invalid={Boolean(fieldErrors["login-correo"])} aria-describedby={fieldErrors["login-correo"]?"login-correo-error":undefined}
                 className="input"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {setEmail(e.target.value);clearField("login-correo");}}
                 required
                 autoComplete="username"
               />
             </div>
           </label>
 
+          {fieldErrors["login-correo"]&&<p id="login-correo-error" className="field-error-text">{fieldErrors["login-correo"]}</p>}
           <label className="field" htmlFor="login-contrasena">
             <span className="field-label">Contraseña</span>
             <div className="input-icon-wrap">
               <IconLock size={17} />
               <input
                 id="login-contrasena"
+                aria-invalid={Boolean(fieldErrors["login-contrasena"])} aria-describedby={fieldErrors["login-contrasena"]?"login-contrasena-error":undefined}
                 className="input"
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {setPassword(e.target.value);clearField("login-contrasena");}}
                 required
                 autoComplete="current-password"
               />
@@ -202,6 +213,7 @@ export function LoginPage() {
               </button>
             </div>
           </label>
+          {fieldErrors["login-contrasena"]&&<p id="login-contrasena-error" className="field-error-text">{fieldErrors["login-contrasena"]}</p>}
 
           <div className="prototype-role-box">
             <div>

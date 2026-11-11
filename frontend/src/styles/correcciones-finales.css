@@ -1,0 +1,51 @@
+/* Correcciones finales: señalización textual y visual; nunca solo color. */
+.input[aria-invalid="true"] { border: 2px solid #a61b1b; background: #fff6f5; animation: field-attention .65s ease-out; }
+.field-error-text { color: #a61b1b; font-size: 1rem; line-height: 1.5; }
+.feedback-error,.feedback-success { padding: 18px; margin-bottom: 20px; border-radius: 10px; font-size: 1rem; overflow-wrap: anywhere; }
+.feedback-error { border: 2px solid #a61b1b; background: #fff6f5; color: #741313; }
+.feedback-error h2 { font-size: 1.1rem; }
+.feedback-error button { background: none; border: 0; color: inherit; text-align: left; padding: 5px; text-decoration: underline; cursor: pointer; }
+.feedback-success { border: 2px solid #236144; background: #edf9f2; color: #19482f; }
+.independent-filters { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,250px),1fr)); gap: 16px; margin: 18px 0; }
+.filter-group { border: 1px solid var(--ink-55); border-radius: 10px; background: var(--white,#fff); min-width: 0; }
+.filter-group summary { padding: 16px; font-weight: 700; cursor: pointer; list-style-position: inside; }
+.filter-group summary::marker { color: var(--blue); }
+.filter-group > div { padding: 0 16px 16px; }
+.filter-group summary .badge { margin-left: 10px; }
+.filter-options { list-style: none; padding: 0; margin: 0; }
+.filter-options label { display: flex; gap: 12px; align-items: center; padding: 10px 0; cursor: pointer; }
+.filter-options input { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--blue); }
+.convocatorias-workspace fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+.convocatoria-form > fieldset > legend,.schedule-edit-card legend { font-weight: 700; font-size: 1.15rem; padding: 12px 0; }
+.convocatoria-form .input { font-size: 1rem; }
+.convocatorias-workspace .convocatoria-schedule-editor summary { cursor: pointer; font-size: 1.2rem; font-weight: 700; padding: 16px 0; }
+.convocatorias-workspace .schedule-edit-card { background: #f2f6fc; padding: 18px; border-radius: 10px; margin: 16px 0; }
+.convocatoria-list th,.convocatoria-list td { font-size: 1rem; }
+.convocatoria-list time { white-space: nowrap; font-size: 1rem; font-weight: 600; }
+.convocation-facts { display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap: 24px; }
+.convocation-facts dt,.review-schedule dt { color: var(--ink-75); font-size: 1rem; }
+.convocation-facts dd,.review-schedule dd { margin: 6px 0 0; font-size: 1.15rem; font-weight: 600; }
+.review-schedule { list-style: none; padding: 0; display: grid; gap: 20px; }
+.review-schedule li { padding: 20px; background: #f2f6fc; border-left: 4px solid var(--blue); border-radius: 8px; overflow-wrap: anywhere; }
+.review-schedule h3 { font-size: 1.15rem; }
+.review-schedule dl { display: flex; flex-wrap: wrap; gap: 24px; }
+.conv-state { display: inline-block; padding: 6px 12px; border-radius: 16px; font-size: 1rem; font-weight: 600; }
+.conv-state-borrador { background: #fff2cb; color: #634400; }
+.conv-state-activa { background: #dff4e6; color: #154b2c; }
+.conv-state-cerrada,.conv-state-finalizada { background: #e9edf2; color: #303b47; }
+@keyframes field-attention { from { box-shadow: 0 0 0 5px #a61b1b40; } to { box-shadow: none; } }
+@media (prefers-reduced-motion:reduce) { .input[aria-invalid="true"] { animation: none; } }
+@media (forced-colors:active) { .feedback-error,.feedback-success,.input[aria-invalid="true"] { border-color: Highlight; } }
+@media (max-width:600px) { .convocation-facts { grid-template-columns: 1fr; } .convocatoria-review { padding: 18px; } .convocatoria-form .page-actions > * { width: 100%; text-align: center; } }
+.convocatoria-review .conv-state { justify-self: start; align-self: start; }
+.convocatorias-workspace > .card { margin-bottom: 20px; }
+@media (max-width:800px) {
+ .app-shell,.app-shell.sidebar-collapsed { grid-template-columns: minmax(0,1fr); }
+ .app-shell .sidebar,.app-shell.sidebar-collapsed .sidebar { position: static; height: auto; min-height: 0; max-height: none; overflow: visible; padding: 14px; }
+ .app-shell .sidebar-nav { flex-direction: row; flex-wrap: wrap; padding-top: 12px; gap: 6px; }
+ .app-shell .sidebar-nav .nav-item { width: auto; flex: 0 1 auto; padding: 8px 10px; }
+ .app-shell .sidebar-rail,.app-shell .sidebar-trigger { display: none; }
+ .app-shell.sidebar-collapsed .sidebar .tec-logo-oficial { width: 160px; transform: none; }
+ .app-shell.sidebar-collapsed .sidebar .nav-item-label,.app-shell.sidebar-collapsed .sidebar .brand-copy { max-width: none; opacity: 1; transform: none; pointer-events: auto; white-space: normal; }
+ .app-shell.sidebar-collapsed .sidebar .nav-item { justify-content: flex-start; gap: 8px; }
+}

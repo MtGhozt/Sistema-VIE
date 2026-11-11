@@ -41,6 +41,9 @@ export default function App() {
       >
         <Route path="/inicio" element={<InicioPage />} />
         <Route path="/convocatorias" element={<ConvocatoriasPage />} />
+        <Route path="/convocatorias/nueva" element={<ConvocatoriasPage />} />
+        <Route path="/convocatorias/:id" element={<ConvocatoriasPage />} />
+        <Route path="/convocatorias/:id/editar" element={<ConvocatoriasPage />} />
         <Route path="/propuestas" element={<PropuestasPage />} />
         <Route path="/propuestas/nueva" element={<PropuestaNuevaPage />} />
         <Route path="/propuestas/:id" element={<PropuestaDetallePage />} />

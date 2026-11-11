@@ -14,6 +14,7 @@ import "./index.css";
 // Última capa: correcciones de accesibilidad (WCAG). Debe ir al final para ganar la cascada.
 import "./styles/a11y.css";
 import "./styles/reading.css";
+import "./styles/correcciones-finales.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

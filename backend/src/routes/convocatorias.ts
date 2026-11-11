@@ -35,7 +35,7 @@ function parsePresupuesto(value: unknown): PresupuestoResult {
 
 function sendInvalidPresupuesto(res: Response) {
   res.status(400).json({
-    error: "presupuestoEstimado debe ser un número entre 0 y 999999999999.99",
+    error: "El presupuesto estimado debe ser un monto no negativo de hasta ₡999 999 999 999,99.",
   });
 }
 
@@ -73,6 +73,17 @@ async function lockDraft(id:number,execute:typeof query){
  const found=await execute<{estado:string}>('SELECT estado FROM convocatoria WHERE id_convocatoria=$1 FOR UPDATE',[id]);
  if(!found.rows[0])throw new HttpError(404,'Convocatoria no encontrada');
  if(found.rows[0].estado!=='borrador')throw new HttpError(409,'Solo se edita el cronograma de una convocatoria en borrador');
+}
+
+/** Verificar el registro efectivo dentro de la transacción antes de publicarlo. */
+async function validarPublicacion(id:number,execute:typeof query){
+ const result=await execute<ConvocatoriaRow>('SELECT * FROM convocatoria WHERE id_convocatoria=$1',[id]);const c=result.rows[0];
+ if(!c?.nombre.trim()||c.nombre.length>200)throw new HttpError(400,'Antes de publicar, revise el nombre de la convocatoria (de 1 a 200 caracteres).');
+ const start=asDateOnly(c.fecha_apertura),end=asDateOnly(c.fecha_cierre);
+ if(!validDate(start)||!validDate(end)||end<start)throw new HttpError(400,'Antes de publicar, corrija la apertura y el cierre de recepción. El cierre no puede ser anterior a la apertura.');
+ if(!parsePresupuesto(c.presupuesto_estimado).valid)throw new HttpError(400,'Antes de publicar, corrija el presupuesto estimado: debe ser un monto no negativo.');
+ const activities=await execute<HitoRow>('SELECT * FROM convocatoria_hito WHERE id_convocatoria=$1 ORDER BY orden,id_hito',[id]);
+ for(const [i,h] of activities.rows.entries()){if(!h.nombre.trim()||!h.responsable.trim()||!validDate(asDateOnly(h.fecha_inicio))||!validDate(asDateOnly(h.fecha_fin))||asDateOnly(h.fecha_fin)<asDateOnly(h.fecha_inicio))throw new HttpError(400,`Antes de publicar, corrija la actividad ${i+1}: necesita nombre, responsable y fechas coherentes.`);}
 }
 
 function mapConvocatoria(row: ConvocatoriaRow) {
@@ -128,7 +139,7 @@ convocatoriasRouter.get(
   asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
-      res.status(400).json({ error: "id inválido" });
+      res.status(400).json({ error: "No se pudo identificar la convocatoria solicitada." });
       return;
     }
     const result = await query<ConvocatoriaRow>(
@@ -183,13 +194,13 @@ convocatoriasRouter.post(
 
     if (!nombre || !fechaApertura || !fechaCierre) {
       res.status(400).json({
-        error: "nombre, fechaApertura y fechaCierre son obligatorios",
+        error: "Complete el nombre, la fecha de apertura y la fecha de cierre de recepción.",
       });
       return;
     }
     if(!validDate(fechaApertura)||!validDate(fechaCierre))throw new HttpError(400,"Fechas de convocatoria inválidas");
     if (fechaCierre < fechaApertura) {
-      res.status(400).json({ error: "fechaCierre debe ser >= fechaApertura" });
+      res.status(400).json({ error: "El cierre de recepción no puede ser anterior a la apertura." });
       return;
     }
 
@@ -199,6 +210,7 @@ convocatoriasRouter.post(
     const created=await transaction(async execute=>{
       const inserted=await execute<ConvocatoriaRow>(`INSERT INTO convocatoria(nombre,descripcion,fecha_apertura,fecha_cierre,presupuesto_estimado,estado,id_publicada_por,fecha_publicacion) VALUES($1,$2,$3::date,$4::date,$5,$6,$7,$8) RETURNING *,0::int AS propuestas_count`,[nombre,descripcion,fechaApertura,fechaCierre,presupuesto,estado,publicar?userId:null,publicar?new Date().toISOString():null]);
       await saveHitos(inserted.rows[0].id_convocatoria,req.body?.hitos,execute);
+      if(publicar)await validarPublicacion(inserted.rows[0].id_convocatoria,execute);
       return inserted.rows[0];
     });
 
@@ -222,7 +234,7 @@ convocatoriasRouter.patch(
   asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) {
-      res.status(400).json({ error: "id inválido" });
+      res.status(400).json({ error: "No se pudo identificar la convocatoria solicitada." });
       return;
     }
 
@@ -247,7 +259,7 @@ convocatoriasRouter.patch(
     if (req.body?.nombre !== undefined) {
       const nombre = String(req.body.nombre).trim();
       if (!nombre) {
-        res.status(400).json({ error: "nombre vacío" });
+        res.status(400).json({ error: "Escriba el nombre de la convocatoria." });
         return;
       }
       set("nombre", nombre);
@@ -277,7 +289,7 @@ convocatoriasRouter.patch(
     if (req.body?.estado !== undefined) {
       const estado = String(req.body.estado).trim().toLowerCase();
       if (!ESTADOS.has(estado)) {
-        res.status(400).json({ error: "estado inválido" });
+        res.status(400).json({ error: "El estado solicitado para la convocatoria no es válido." });
         return;
       }
       set("estado", estado);
@@ -309,6 +321,7 @@ convocatoriasRouter.patch(
 
     }
     await saveHitos(id,req.body?.hitos,execute);
+    if(req.body.estado==='activa')await validarPublicacion(id,execute);
     const result = await execute<ConvocatoriaRow>(
       `
       SELECT c.*,

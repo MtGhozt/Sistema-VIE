@@ -9,7 +9,10 @@ export async function saveHitos(id:number,raw:unknown,execute:typeof query){
     if(r.id&&retained.includes(Number(r.id)))throw new HttpError(400,"Actividad repetida");
     const validDate=(value:unknown)=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
     if(!String(r.nombre??'').trim()||!validDate(r.fechaInicio)||!validDate(r.fechaFin)||r.fechaFin<r.fechaInicio)throw new HttpError(400,"Indique nombre y fechas coherentes para cada hito");
-    const values=[r.nombre.trim(),String(r.responsable??'VIE').trim()||'VIE',r.fechaInicio,r.fechaFin,index+1];
+    const responsable=String(r.responsable??'VIE').trim();
+    if(!responsable||responsable.length>120)throw new HttpError(400,`Actividad ${index+1}: indique un responsable de hasta 120 caracteres.`);
+    if(String(r.nombre).trim().length>200)throw new HttpError(400,`Actividad ${index+1}: el nombre admite hasta 200 caracteres.`);
+    const values=[r.nombre.trim(),responsable,r.fechaInicio,r.fechaFin,index+1];
     if(r.id){
       const saved=await execute<{id_hito:number}>("UPDATE convocatoria_hito SET nombre=$1,responsable=$2,fecha_inicio=$3,fecha_fin=$4,orden=$5 WHERE id_hito=$6 AND id_convocatoria=$7 RETURNING id_hito",[...values,r.id,id]);
       if(!saved.rows[0])throw new HttpError(400,"Hito ajeno a la convocatoria");retained.push(saved.rows[0].id_hito);

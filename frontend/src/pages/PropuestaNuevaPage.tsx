@@ -87,7 +87,7 @@ export function PropuestaNuevaPage() {
   },[step]);
 
   function reportFailure(reason:unknown,operation:'guardar'|'enviar',saved?:PropuestaDetalle){
-    const network=reason instanceof TypeError&&/fetch|network|load failed/i.test(reason.message);
+    const network=reason instanceof ApiError&&reason.status===0||reason instanceof TypeError&&/fetch|network|load failed/i.test(reason.message);
     const message=network?'No se pudo confirmar la respuesta del servidor. Revise la conexión y compruebe el expediente antes de reintentar.':reason instanceof Error?reason.message:String(reason||'Ocurrió un error inesperado. Vuelva a intentarlo.');
     const conflict=reason instanceof ApiError&&reason.status===409;
     const title=saved?'El borrador se guardó, pero no se pudo enviar':`${conflict?'Conflicto':'Error'} al ${operation==='guardar'?'guardar el borrador':'enviar la propuesta'}`;

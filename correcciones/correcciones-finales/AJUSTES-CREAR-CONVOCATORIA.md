@@ -6,7 +6,7 @@
 
 | Tema | Corrección |
 | --- | --- |
-| Presupuesto | El campo se llama **Presupuesto estimado (₡)**, sin “opcional”. La ayuda explica que es el monto total previsto: vacío se guarda como **no definido (`NULL`)**; escribir `0` representa **₡0**. No se transforma un dato desconocido en cero. |
+| Presupuesto | El campo se llama **Presupuesto estimado (₡)**, sin “opcional”. **Histórico de esta nota:** vacío → `NULL` y `0` → ₡0. **Vigente ahora:** presupuesto **obligatorio** al guardar (cero o monto); vacío = error «Indefinido». Ver [VIGENCIA-PRESUPUESTO-Y-ACTIVIDADES.md](VIGENCIA-PRESUPUESTO-Y-ACTIVIDADES.md). |
 | Fechas | Se recupera el componente **DateField** ya utilizado en el proyecto: control nativo de fecha, escritura por segmentos y calendario. Se añade el botón **Calendario**, una pista fija día/mes/año y los errores en español. La API conserva las fechas en ISO. |
 | Próximas a cerrar | Publicadas que cierran **hoy o dentro de 30 días**, incluidos ambos extremos. Las vencidas y las que cierran en 31 días quedan fuera. |
 | Actividades | Inicio y fin deben quedar **entre la apertura y el cierre de la convocatoria**, inclusive. Además, el fin de una actividad no puede ser anterior a su inicio. Se comprueba al crear, editar, agregar una actividad y publicar/reactivar. |

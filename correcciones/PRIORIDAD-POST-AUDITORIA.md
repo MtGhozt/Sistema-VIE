@@ -2,7 +2,7 @@
 
 Síntesis operativa de la auditoría integral del prototipo (secciones A–J, conversación Cursor 2026-11-09). Alcance de esta iteración: lo que desbloquea la defensa y elimina riesgos de percepción, sin ampliar el producto fuera de la rúbrica.
 
-**Documentos hermanos:** [GUIION-DEMO-V01.md](GUIION-DEMO-V01.md) · [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md) · [CONTINUIDAD.md](../CONTINUIDAD.md)
+**Documentos hermanos:** [GUIION-DEMO-V01.md](GUIION-DEMO-V01.md) · [ESTADO-DE-REVISION.md](ESTADO-DE-REVISION.md) · [CONTINUIDAD.md](../CONTINUIDAD.md) · [correcciones-finales/README.md](correcciones-finales/README.md) (VIE Publicación · 11-nov; aceptación humana en [REVISION-MANUAL.md](correcciones-finales/REVISION-MANUAL.md))
 
 ## Orden acordado
 

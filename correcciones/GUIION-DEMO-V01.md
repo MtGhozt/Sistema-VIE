@@ -61,3 +61,11 @@ Registrar resultado y carpeta en `correcciones/evidencias/`.
 - [ ] V06 aceptación en docs de decisiones  
 
 **Responsable:** ____________________ · **Fecha:** ____________________
+
+## Anexo opcional · VIE Publicación
+
+No sustituye V01–V06. Si hay tiempo con el rol `vie_publicacion@tec.ac.cr`:
+
+1. Seguir [correcciones-finales/REVISION-MANUAL.md](correcciones-finales/REVISION-MANUAL.md).
+2. Evidencia automática: `pnpm build` y luego  
+   `TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:vie-final`.

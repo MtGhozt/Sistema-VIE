@@ -23,7 +23,8 @@
     "brand": "node scripts/build-brand-assets.mjs",
     "brand:preview": "node scripts/extract-logotec.mjs",
     "regression:merge-ian": "node scripts/regression-merge-ian.mjs",
-    "regression:vie-final": "node scripts/regression-vie-final.mjs"
+    "regression:vie-final": "node scripts/regression-vie-final.mjs",
+    "regression:convocatoria-requisitos": "node scripts/regression-convocatoria-requisitos.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.10",

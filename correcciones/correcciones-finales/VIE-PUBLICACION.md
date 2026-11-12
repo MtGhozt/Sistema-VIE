@@ -35,7 +35,7 @@ Las fechas se envían a la API como ISO; el cambio de presentación no modifica 
 - [Análisis de personas](../../docs/etapa1/Analisis-de-Personas-Fondos-VIE.md): P1 necesita editor de convocatoria y cronograma, estado de publicación y consulta vigente/histórica.
 - [Cronograma oficial](../../docs/oficiales-vie/markdown/03-Cronograma-Convocatoria-2027.md): distingue recepción, evaluación, aprobación y comunicación; estas etapas tienen fechas diferentes.
 - [Esquema](../../database/DisennoDB.sql): límites existentes de nombre, responsable y presupuesto.
-- [Integración previa](../MERGE-IAN.md): conservar actividades posteriores al cierre y las demás correcciones acordadas.
+- [Integración previa](../MERGE-IAN.md): base de convocatorias/cronograma. **Regla vigente (11-nov):** actividades dentro de apertura–cierre ([AJUSTES](AJUSTES-CREAR-CONVOCATORIA.md) / [VIGENCIA](VIGENCIA-PRESUPUESTO-Y-ACTIVIDADES.md)); ya no se permiten actividades posteriores al cierre.
 
 Los documentos no establecen una fórmula para priorizar por cantidad de propuestas. Se conserva la ventana de 30 días ya usada en “Próximas a cerrar”, ahora explícita y correctamente aplicada. Cualquier prioridad institucional adicional se registra en [COSAS-A-DISCUTIR.md](COSAS-A-DISCUTIR.md).
 

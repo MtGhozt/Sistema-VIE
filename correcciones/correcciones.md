@@ -90,11 +90,9 @@ Por ello, que el CIE vea avisos de ejemplo destinados a otras instancias tiene u
 
 **Dictamen:** confirmado en código; limitación declarada del prototipo · **P1**.
 
-El paso Documentación conserva nombre y descripción alternativa en memoria; no envía el archivo. [ProposalDetailView.tsx](../frontend/src/components/ProposalDetailView.tsx) y [CaseFile.tsx](../frontend/src/components/evaluation/CaseFile.tsx) muestran nombres y estados, sin enlaces de apertura o descarga.
+**Estado 2026-11-09:** la carga real de PDF/DOCX/XLSX quedó implementada (D05–D11). El detalle vivo es el wizard en solo lectura (`PropuestaDetallePage`); el expediente de evaluación es [CaseFile.tsx](../frontend/src/components/evaluation/CaseFile.tsx) con descarga autorizada. `ProposalDetailView` se retiró.
 
-[CONTINUIDAD.md](../CONTINUIDAD.md) reconoce la falta de subida de binarios. Es una limitación conocida, pero impide revisar adjuntos reales.
-
-**Aceptación:** si se implementa la carga, conservar archivo y metadatos, validar permisos y permitir consulta posterior desde el expediente. Mientras se mantenga como simulación, indicarlo claramente y evitar afirmar que hay documentos realmente adjuntos.
+**Aceptación:** verificar apertura/descarga desde investigador y evaluador autorizado; otro usuario no accede. Imágenes/videos y PDF automático de oficios siguen fuera de alcance.
 
 ## Persona investigadora coordinadora
 

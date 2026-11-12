@@ -36,6 +36,7 @@ export function PropuestaDetallePage() {
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [idConvocatoria, setIdConvocatoria] = useState<number | "">("");
   const [step, setStep] = useState(0);
+  const [fontSize,setFontSize]=useState(16);
   const [loading, setLoading] = useState(true);
   const [reconsideracion, setReconsideracion] = useState("");
   const [sending, setSending] = useState(false);
@@ -282,12 +283,12 @@ export function PropuestaDetallePage() {
           >
             <div style={{ width: `${progressPct}%` }} />
           </div>
-          <WizardLineSteps
+          <details className="wizard-index" open><summary>Secciones del formulario</summary><WizardLineSteps
             steps={FORM_WIZARD_STEPS}
             step={step}
             onSelect={setStep}
             canSelect={() => true}
-          />
+          /></details>
         </aside>
 
         <section className="card wizard-card">
@@ -312,7 +313,8 @@ export function PropuestaDetallePage() {
             </div>
           </div>
 
-          <div className="wizard-body">
+          <div className="action-row" aria-label="Tamaño del texto"><button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
+          <div className="wizard-body" style={{fontSize}}>
             <FormWizardStepContent
               readOnly
               step={step}

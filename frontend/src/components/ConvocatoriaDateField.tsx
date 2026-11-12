@@ -1,4 +1,5 @@
-import {useRef} from 'react';
+import {ProposalFieldErrors} from './ProposalFieldContext';
+import {useRef,useContext} from 'react';
 import {dateFromInput} from '../data/convocatoriaUi';
 
 /** Texto en orden fijo DD/MM/YYYY; el calendario solo intercambia valores ISO. */
@@ -6,6 +7,7 @@ export function ConvocatoriaDateField({id,label,value,onChange,min='2000-01-01',
   id:string;label:string;value:string;onChange:(value:string)=>void;
   min?:string;max?:string;error?:string;disabled?:boolean;
 }) {
+  const fieldErrors=useContext(ProposalFieldErrors);error=error??fieldErrors[label];
   const calendar=useRef<HTMLInputElement>(null);
   const iso=dateFromInput(value)??'';
   return <div className="field">

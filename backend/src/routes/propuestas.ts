@@ -498,6 +498,7 @@ propuestasRouter.post(
     if (!content.rows[0]?.declaracion_aceptada) throw new HttpError(400,"Debe aceptar la declaración jurada antes de enviar");
     if(!content.rows[0].abstract_en?.trim())throw new HttpError(400,"El abstract en inglés es obligatorio al enviar; keywords EN son opcionales");
     if((await execute("SELECT 1 FROM propuesta_participante pp JOIN propuesta_participante_hora h ON h.id_participante=pp.id_participante WHERE pp.id_propuesta=$1 AND h.tipo_hora='CONS' AND h.cantidad_horas>0 AND COALESCE(trim(pp.titular_cons),'')='' LIMIT 1",[id])).rowCount)throw new HttpError(400,'Identifique la persona titular de las horas CONS');
+    if(!content.rows[0].resumen?.trim())throw new HttpError(400,"Resumen en español: complete el resumen antes de enviar la propuesta.");
     const wordCount = (content.rows[0]?.resumen ?? "").trim().split(/\s+/u).filter(Boolean).length;
     const terms = await loadKeywords(id,execute);
     if (wordCount > 500 || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {
@@ -507,14 +508,14 @@ propuestasRouter.post(
     if(content.rows[0].estado_actual==="en_subsanacion") {
       const correction=await cargarSubsanacion(id,execute);
       if(!correction) throw new HttpError(409,"No existe una devolución activa");
-      if(!String(req.body?.respuesta??"").trim()) throw new HttpError(400,"Explique cómo atendió las observaciones");
+      if(!String(req.body?.respuesta??correction.respuesta??"").trim()) throw new HttpError(400,"Explique cómo atendió las observaciones");
       if(correction.secciones.some(code=>!seccionesSubsanacion.find(s=>s.codigo===code)?.campos.some(field=>correction.campos_atendidos.includes(field)))) throw new HttpError(409,"Debe guardar las correcciones de todas las secciones indicadas");
       await execute(`INSERT INTO observacion_respuesta(id_observacion,id_usuario,respuesta,fecha_respuesta)
         SELECT o.id_observacion,$2,$3,NOW() FROM observacion o JOIN propuesta_subsanacion s ON s.id_propuesta=o.id_propuesta AND s.instancia=o.etapa
-        WHERE s.id_subsanacion=$1 AND o.fecha_creacion>=s.fecha_devolucion`,[correction.id_subsanacion,req.demoAuth!.userId,String(req.body.respuesta).trim()]);
-      await execute("UPDATE propuesta_subsanacion SET fecha_reenvio=NOW(),respuesta=$2 WHERE id_subsanacion=$1",[correction.id_subsanacion,String(req.body.respuesta).trim()]);
+        WHERE s.id_subsanacion=$1 AND o.fecha_creacion>=s.fecha_devolucion`,[correction.id_subsanacion,req.demoAuth!.userId,String(req.body?.respuesta??correction.respuesta??"").trim()]);
+      await execute("UPDATE propuesta_subsanacion SET fecha_reenvio=NOW(),respuesta=$2 WHERE id_subsanacion=$1",[correction.id_subsanacion,String(req.body?.respuesta??correction.respuesta??"").trim()]);
       await execute("UPDATE propuesta SET estado_actual=$2,etapa_flujo=$3 WHERE id_propuesta=$1",[id,correction.estado_retorno,correction.etapa_retorno]);
-      await execute("INSERT INTO propuesta_historial_estado(id_propuesta,estado_anterior,estado_nuevo,id_usuario,fecha_hora,observacion) VALUES($1,'en_subsanacion',$2,$3,NOW(),$4)",[id,correction.estado_retorno,req.demoAuth!.userId,`Reenvío a ${correction.instancia}: ${String(req.body.respuesta).trim()}`]);
+      await execute("INSERT INTO propuesta_historial_estado(id_propuesta,estado_anterior,estado_nuevo,id_usuario,fecha_hora,observacion) VALUES($1,'en_subsanacion',$2,$3,NOW(),$4)",[id,correction.estado_retorno,req.demoAuth!.userId,`Reenvío a ${correction.instancia}: ${String(req.body?.respuesta??correction.respuesta??"").trim()}`]);
       const detail=await execute<PropuestaRow>(`${BASE_SELECT} WHERE p.id_propuesta=$1`,[id]);
       return {...mapPropuesta(detail.rows[0]),...await loadKeywords(id,execute)};
     }

@@ -51,7 +51,7 @@ export type Propuesta = {
 export type PropuestaDetalle = Propuesta & Partial<Pick<DemoProposal, "teamTec" | "teamExternal" | "presupuestoAnual" | "productos" | "observaciones" | "timeline" | "documentos">> & {
   objetivosEspecificos?:{id:number;numero:number;descripcion:string}[];
   detallesFormulario?:Record<string,Record<string,unknown>>;
-  subsanacion?: {instancia:string;motivo:string;secciones:string[];campos_atendidos:string[]}|null;
+  subsanacion?: {instancia:string;motivo:string;secciones:string[];respuesta?:string|null;campos_atendidos:string[]}|null;
   aspectosEticos?: AspectosEticos | null;
   permisos?: PermisoInput[];
   compromisos?: CompromisoInput[];
@@ -65,6 +65,7 @@ export type PropuestaDetalle = Propuesta & Partial<Pick<DemoProposal, "teamTec" 
 };
 
 export type PropuestaInput = {
+  respuestaSubsanacion?:string;
   titulo: string;
   idConvocatoria: number;
   modalidad: string;

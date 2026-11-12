@@ -170,6 +170,7 @@ function investigadorStatPath(label: string) {
   if (l.includes("rechazada")) {
     return `/propuestas?estado=${encodeURIComponent(labelEstado("rechazada"))}`;
   }
+  if(l.includes("revisión")||l.includes("revision"))return "/propuestas?estado=en_revision";
   return "/propuestas";
 }
 

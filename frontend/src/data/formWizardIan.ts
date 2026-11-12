@@ -615,8 +615,8 @@ export function getFormStepStatus(
             member.horas.every(
               (hours) =>
                 Boolean(hours.tipo) &&
-                Number.isFinite(Number(hours.cantidad)) &&
-                Number(hours.cantidad) > 0,
+                Number.isInteger(Number(hours.cantidad)) &&
+                hours.cantidad.trim()!=="" && Number(hours.cantidad) >= 0,
             ),
         ) &&
         form.teamExternal.every((member) =>
@@ -831,10 +831,10 @@ export function getFormStepStatus(
       complete =
         declaration.acepta &&
         declaration.nombreCompleto.trim().length > 0 &&
-        declaration.cedula.trim().length > 0 &&
+        /^[1-9]-\d{4}-\d{4}$/.test(declaration.cedula.trim()) &&
         declaration.firma.trim() === declaration.nombreCompleto.trim() &&
         declaration.nombreCompleto.length <= 150 &&
-        declaration.cedula.length <= 20;
+        declaration.cedula.length <= 11;
       break;
     }
     case 15:

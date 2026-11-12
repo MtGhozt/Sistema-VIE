@@ -1,3 +1,6 @@
+import {ProposalFieldErrors} from "../components/ProposalFieldContext";
+import {proposalIssues,type ProposalIssue} from "../data/proposalIssues";
+import {todayCR} from "../data/convocatoriaUi";
 import {DocumentosPanel} from "../components/DocumentosPanel";
 import {downloadFile,apiJson} from "../api/client";
 import seccionesSubsanacion from "../../../shared/subsanacion-secciones.json";
@@ -24,28 +27,8 @@ import {
 import { FORM_META } from "../data/formMeta";
 import { hydrateFormWizardFromDetalle } from "../data/hydrateFormWizard";
 import { toIan } from "../data/formWizardAdapter";
-import { getFormStepStatus } from "../data/formWizardIan";
-import { isValidProjectDateRange } from "../data/dateRules";
 import { FIELD_WORD_LIMITS, countWords } from "../data/textLimits";
 import { canNavigateToStep } from "../data/wizardNavigation";
-
-const STEP_BLOCK_HINT: Record<number, string> = {
-  0: "Complete identificación, fechas (finalización ≥ inicio, años 2000–2100, día/mes/año) y las preguntas generales obligatorias.",
-  1: "Complete el resumen (máx. 500 palabras), el abstract y 4 a 6 palabras clave en español.",
-  2: "Registre el equipo TEC con horas válidas y complete los datos de personas externas.",
-  3: "Indique problema, objetivo general y exactamente tres objetivos específicos.",
-  4: "Complete el estado del arte sin superar el límite de palabras.",
-  5: "Describa la metodología del proyecto.",
-  6: "Complete el plan de acción: cada actividad debe caber entre el inicio y el fin del proyecto (meses correlativos).",
-  7: "Indique un presupuesto total mayor que cero, sin montos negativos, y el financiamiento asociado.",
-  8: "Registre los productos académicos comprometidos según la modalidad.",
-  9: "Complete el resguardo de productos.",
-  10: "Complete divulgación y socialización.",
-  11: "Responda los aspectos éticos y justifique según corresponda.",
-  12: "Complete la hoja de ruta.",
-  13: "Incluya las referencias bibliográficas.",
-  14: "Acepte la declaración jurada y firme con el nombre completo.",
-};
 
 export function PropuestaNuevaPage() {
   const { session } = useAuth();
@@ -61,6 +44,9 @@ export function PropuestaNuevaPage() {
 
   const [subsanacion,setSubsanacion]=useState<PropuestaDetalle["subsanacion"]>(null);
   const [respuesta,setRespuesta]=useState("");
+  const [checkedSteps,setCheckedSteps]=useState<Record<number,boolean>>({});
+  const [fontSize,setFontSize]=useState(16);
+  const validationPanel=useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormWizardState>(DEFAULT_FORM_WIZARD_STATE);
   const [saveStatus, setSaveStatus] = useState(
@@ -96,6 +82,14 @@ export function PropuestaNuevaPage() {
     showToast(message,'error');
   }
 
+  const ian=toIan(form);
+  const allIssues=Object.entries(checkedSteps).flatMap(([s,full])=>proposalIssues(Number(s),ian,idConvocatoria!=="",!full));
+  const fieldErrors=Object.fromEntries(allIssues.filter(i=>i.step===step).map(i=>[i.label,i.message]));
+  const allowedSteps=subsanacion?seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=>s.paso):null;
+  const stepStates=FORM_WIZARD_STEPS.map((_,s)=>allIssues.some(i=>i.step===s)?'error':s<15&&proposalIssues(s,ian,idConvocatoria!=="").length===0?'complete':'pending');
+  function goToIssue(issue:ProposalIssue){setStep(issue.step);requestAnimationFrame(()=>{const controls=Array.from(document.querySelectorAll<HTMLElement>('.wizard-body input,.wizard-body textarea,.wizard-body select,[data-proposal-label]'));const target=controls.find(e=>e.getAttribute('aria-label')===issue.label||e.dataset.proposalLabel===issue.label);target?.focus();target?.scrollIntoView({block:'center'});});}
+  function showIssues(items:ProposalIssue[],full=true){if(!items.length)return false;setCheckedSteps(prev=>({...prev,...Object.fromEntries(items.map(i=>[i.step,full]))}));setStep(items[0].step);requestAnimationFrame(()=>validationPanel.current?.focus());return true;}
+  function attemptStep(target:number){if(allowedSteps){setStep(target);return;}const issues=Array.from({length:target},(_,s)=>proposalIssues(s,toIan(form),idConvocatoria!=="")).flat();if(!showIssues(issues))setStep(target);}
   const progressPct = Math.round(((step + 1) / FORM_WIZARD_STEPS.length) * 100);
 
   useEffect(()=>{
@@ -111,11 +105,11 @@ export function PropuestaNuevaPage() {
     void (async () => {
       try {
         const rows = await fetchConvocatorias();
-        const activas = rows.filter((c) => c.estado === "activa");
-        setConvocatorias(activas.length > 0 ? activas : rows);
+        const activas = rows.filter((c) => c.estado === "activa"&&c.fechaApertura<=todayCR()&&c.fechaCierre>=todayCR());
+        setConvocatorias(isEditing?rows:activas);
         if (!isEditing) {
           if (activas[0]) setIdConvocatoria(activas[0].id);
-          else if (rows[0]) setIdConvocatoria(rows[0].id);
+
         }
       } catch (err) {
         showToast(
@@ -143,9 +137,11 @@ export function PropuestaNuevaPage() {
           return;
         }
         setSubsanacion(d.subsanacion);
+        setRespuesta(d.subsanacion?.respuesta??'');
+        if(d.subsanacion){const targets=seccionesSubsanacion.filter(s=>d.subsanacion?.secciones.includes(s.codigo));setStep(current=>targets.some(s=>s.paso===current)?current:targets[0]?.paso??0);}
         setIdConvocatoria(d.idConvocatoria);
         setForm(hydrateFormWizardFromDetalle(d));
-        setSaveStatus("Borrador cargado");
+        setSaveStatus(reload>0?(d.subsanacion?'Correcciones guardadas en el servidor':'Borrador guardado en el servidor'):'Borrador cargado');
       } catch (err) {
         showToast(
           err instanceof ApiError ? err.message : "No se pudo cargar el borrador",
@@ -196,7 +192,7 @@ export function PropuestaNuevaPage() {
       if(subsanacion) {
         const allowed=seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).flatMap(s=>s.campos);
         const changes=Object.fromEntries(Object.entries(payload).filter(([key])=>allowed.includes(key)));
-        return Object.keys(changes).length?patchPropuesta(editId,changes):fetchPropuesta(editId);
+        return patchPropuesta(editId,{...changes,respuestaSubsanacion:respuesta});
       }
       return patchPropuesta(editId,payload);
     }
@@ -209,7 +205,8 @@ export function PropuestaNuevaPage() {
   async function onSave(exit=false) {
     setFailure(null);
     if (!canCreate) {reportFailure('Ingresá como investigador para crear propuestas','guardar');return;}
-    if (!form.titulo.trim() || idConvocatoria === '') {reportFailure('Complete el nombre del proyecto y seleccione una convocatoria antes de guardar.','guardar');return;}
+    const draftErrors=(allowedSteps??Array.from({length:15},(_,i)=>i)).flatMap(s=>proposalIssues(s,toIan(form),idConvocatoria!=='',true));
+    if(showIssues(draftErrors,false))return;
     setSaving(true);
     setSaveStatus('Guardando…');
     try {
@@ -229,13 +226,15 @@ export function PropuestaNuevaPage() {
   async function onEnviar() {
     setFailure(null);
     if (!canCreate) {reportFailure('Ingresá como investigador para enviar propuestas','enviar');return;}
+    if(showIssues((allowedSteps??Array.from({length:15},(_,i)=>i)).flatMap(s=>proposalIssues(s,toIan(form),idConvocatoria!==''))))return;
+    if(subsanacion&&!respuesta.trim()){reportFailure('Explique cómo atendió las observaciones antes de reenviar.','enviar');return;}
     if (!form.titulo.trim() || idConvocatoria === '') {reportFailure('Complete el nombre del proyecto y seleccione una convocatoria antes de enviar.','enviar');return;}
-    if(!form.abstract.trim()){reportFailure('Resumen y palabras clave: complete el abstract en inglés. Las keywords EN son opcionales.','enviar');return;}
+    if(!subsanacion&&!form.abstract.trim()){reportFailure('Resumen y palabras clave: complete el abstract en inglés. Las keywords EN son opcionales.','enviar');return;}
     const count = countWords(form.resumen);
     const terms = form.palabras.split(',').map(w => w.trim()).filter(Boolean);
-    if(count>FIELD_WORD_LIMITS.resumen){reportFailure(`Resumen: contiene ${count} palabras y el máximo permitido es ${FIELD_WORD_LIMITS.resumen}. Reduzca su extensión.`,'enviar');return;}
-    if(terms.length<4||terms.length>6){reportFailure(`Palabras clave en español: se requieren de 4 a 6 términos; actualmente hay ${terms.length}.`,'enviar');return;}
-    if (!form.declaracion) {reportFailure('Declaración jurada: debe aceptar el compromiso antes de enviar.','enviar');return;}
+    if(!subsanacion&&count>FIELD_WORD_LIMITS.resumen){reportFailure(`Resumen: contiene ${count} palabras y el máximo permitido es ${FIELD_WORD_LIMITS.resumen}. Reduzca su extensión.`,'enviar');return;}
+    if(!subsanacion&&(terms.length<4||terms.length>6)){reportFailure(`Palabras clave en español: se requieren de 4 a 6 términos; actualmente hay ${terms.length}.`,'enviar');return;}
+    if (!subsanacion&&!form.declaracion) {reportFailure('Declaración jurada: debe aceptar el compromiso antes de enviar.','enviar');return;}
     setSaving(true);
     setSaveStatus('Guardando antes de enviar…');
     let saved:PropuestaDetalle|undefined;
@@ -291,6 +290,10 @@ export function PropuestaNuevaPage() {
         {failure.savedCode&&<p>El expediente <strong>{failure.savedCode}</strong> conserva el borrador. Corrija lo indicado y vuelva a intentar el envío.</p>}
         <p>Los datos ingresados permanecen en el formulario. Este aviso corresponde al último intento.</p>
       </div>}
+      {allIssues.length>0&&<div className="card feedback-error stack-md" ref={validationPanel} role="alert" tabIndex={-1}>
+        <h2>Revise los campos indicados</h2><p>Corrija estos datos antes de continuar. La información escrita se conserva.</p>
+        <ul>{allIssues.map((issue,i)=><li key={`${issue.step}-${issue.label}-${i}`}><button className="btn btn-ghost" type="button" onClick={()=>goToIssue(issue)}>{FORM_WIZARD_STEPS[issue.step]} · {issue.label}: {issue.message}</button></li>)}</ul>
+      </div>}
       <div className="wizard-layout wizard-layout-wide">
         <aside className="wizard-sidebar">
           <div className="wizard-progress-head">
@@ -308,25 +311,21 @@ export function PropuestaNuevaPage() {
           >
             <div style={{ width: `${progressPct}%` }} />
           </div>
-          <WizardLineSteps
+          <details className="wizard-index" open><summary>Secciones del formulario</summary><WizardLineSteps
             steps={FORM_WIZARD_STEPS}
+            states={stepStates} markedSteps={allowedSteps??undefined}
             step={step}
             canSelect={(i) =>
-              canNavigateToStep(
+              Boolean(subsanacion)||canNavigateToStep(
                 i,
                 step,
                 toIan(form),
                 idConvocatoria !== "",
               )
             }
-            onBlockedSelect={() =>
-              showToast(
-                "Complete el paso actual (y los anteriores) antes de avanzar a una etapa siguiente.",
-                "error",
-              )
-            }
-            onSelect={setStep}
-          />
+            onBlockedSelect={attemptStep}
+            onSelect={target=>target>step?attemptStep(target):setStep(target)}
+          /></details>
         </aside>
 
         <section className="card wizard-card">
@@ -351,13 +350,15 @@ export function PropuestaNuevaPage() {
             </div>
           </div>
 
-          {subsanacion && <div className="stack-md" role="note"><p><strong>Subsanación para {subsanacion.instancia}:</strong> {subsanacion.motivo}</p><p>Edite únicamente: {seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=>s.etiqueta).join(", ")}.</p>
-            <label className="field"><span className="field-label">Respuesta a las observaciones</span><textarea aria-label="Respuesta a las observaciones" className="input textarea" value={respuesta} onChange={e=>setRespuesta(e.target.value)} required /></label></div>}
-          <fieldset disabled={Boolean(subsanacion)&&!seccionesSubsanacion.some(s=>s.paso===step&&subsanacion?.secciones.includes(s.codigo))} style={{border:0,padding:0,margin:0,minWidth:0}}>
+          <div className="action-row" aria-label="Tamaño del texto"><button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
+          {subsanacion && <div className="stack-md correction-guide" role="note"><p><strong>Subsanación para {subsanacion.instancia}:</strong> {subsanacion.motivo}</p><p>Las secciones señaladas en rojo requieren corrección. Las demás se consultan en solo lectura.</p><div className="action-row">{seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=><button key={s.codigo} type="button" className="btn btn-secondary" onClick={()=>setStep(s.paso)}>{s.etiqueta}</button>)}</div><p>Edite únicamente: {seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=>s.etiqueta).join(", ")}.</p>
+            <label className="field"><span className="field-label">Respuesta a las observaciones</span><textarea aria-label="Respuesta a las observaciones" className="input textarea" maxLength={5000} value={respuesta} onChange={e=>setRespuesta(e.target.value)} required /></label></div>}
+          <fieldset style={{border:0,padding:0,margin:0,minWidth:0}}>
           {(step===7||step===15)&&<div className="action-row"><button type="button" className="btn btn-secondary" onClick={()=>void downloadFile('/api/plantillas/presupuesto','Presupuesto-VIE-2027.xlsx').catch(e=>showToast(e.message,'error'))}>Descargar plantilla oficial de presupuesto</button></div>}
-          <div className="wizard-body">
+          <ProposalFieldErrors.Provider value={fieldErrors}><div className="wizard-body" style={{fontSize}}>
             <FormWizardStepContent
               bloquearIdentificacion={Boolean(subsanacion)}
+              readOnly={Boolean(subsanacion)&&step!==16&&!allowedSteps?.includes(step)}
               documentos={isEditing?<DocumentosPanel id={editId} editable/>:undefined}
               step={step}
               form={form}
@@ -366,7 +367,7 @@ export function PropuestaNuevaPage() {
               idConvocatoria={idConvocatoria}
               setIdConvocatoria={subsanacion?()=>{}:setIdConvocatoria}
             />
-          </div>
+          </div></ProposalFieldErrors.Provider>
 
           </fieldset>
           {isEditing&&<Link className="btn btn-ghost" aria-disabled={saving} onClick={e=>{if(saving)e.preventDefault();}} to={`/propuestas/${editId}`}>Ver expediente guardado</Link>}
@@ -393,45 +394,7 @@ export function PropuestaNuevaPage() {
                   type="button"
                   className="btn btn-primary"
                   onClick={() => {
-                    // Documentación (15) y revisión (16) no bloquean el avance
-                    if (step < 15) {
-                      const ian = toIan(form);
-                      const status = getFormStepStatus(
-                        step,
-                        ian,
-                        idConvocatoria !== "",
-                      );
-                      if (status !== "Completa") {
-                        const hint =
-                          STEP_BLOCK_HINT[step] ??
-                          "Complete los campos obligatorios de este paso antes de continuar.";
-                        showToast(
-                          `Paso incompleto: ${FORM_WIZARD_STEPS[step]}. ${hint}`,
-                          "error",
-                        );
-                        return;
-                      }
-                      if (
-                        step === 0 &&
-                        !isValidProjectDateRange(form.inicio, form.fin)
-                      ) {
-                        showToast(
-                          "Fechas inválidas: la finalización debe ser igual o posterior al inicio, en formato día/mes/año, con años entre 2000 y 2100.",
-                          "error",
-                        );
-                        return;
-                      }
-                      if (step === 1) {
-                        const words = countWords(form.resumen);
-                        if (words > FIELD_WORD_LIMITS.resumen) {
-                          showToast(
-                            `El resumen supera el máximo de ${FIELD_WORD_LIMITS.resumen} palabras (${words}).`,
-                            "error",
-                          );
-                          return;
-                        }
-                      }
-                    }
+                    if(step<15&&(!allowedSteps||allowedSteps.includes(step))){const issues=proposalIssues(step,toIan(form),idConvocatoria!=="");if(showIssues(issues))return;setCheckedSteps(prev=>({...prev,[step]:true}));}
                     setStep((s) =>
                       Math.min(FORM_WIZARD_STEPS.length - 1, s + 1),
                     );

@@ -1,5 +1,6 @@
 import type { query } from "./db.js";
 import { HttpError } from "./middleware/HttpError.js";
+const money=(v:number)=>Number.isFinite(v)&&v>=0&&v<=999999999999.99&&Number(v.toFixed(2))===v;
 export async function savePresupuesto(id: number, body: Record<string, unknown>, execute: typeof query) {
   if (body.presupuesto !== undefined) {
     if (!Array.isArray(body.presupuesto)) throw new HttpError(400,"Presupuesto inválido");
@@ -10,7 +11,7 @@ export async function savePresupuesto(id: number, body: Record<string, unknown>,
     let total = 0;
     for (const r of body.presupuesto) {
       const year=Number(r.anio), op=Number(r.operativo), dur=Number(r.duraderos);
-      if (!Number.isInteger(year) || years.has(year) || !Number.isFinite(op) || !Number.isFinite(dur) || op<0 || dur<0) throw new HttpError(400,"Presupuesto: año repetido o montos inválidos (no se permiten valores negativos)");
+      if (!Number.isInteger(year) || years.has(year) || !money(op)||!money(dur)) throw new HttpError(400,"Presupuesto: año repetido o montos inválidos (no se permiten valores negativos, más de dos decimales ni montos superiores a ₡999 999 999 999,99)");
       if (dur>0 && year!==first) throw new HttpError(400,"Los bienes duraderos deben formularse para el primer año de ejecución");
       years.add(year);
       total += op + dur;
@@ -24,7 +25,7 @@ export async function savePresupuesto(id: number, body: Record<string, unknown>,
     if (!Array.isArray(body.fuentes)) throw new HttpError(400,"Fuentes inválidas");
     await execute("DELETE FROM propuesta_financiamiento WHERE id_propuesta=$1",[id]);
     for (const r of body.fuentes) {
-      if (!['externo','contrapartida','cofinanciamiento'].includes(r.tipo) || !Number.isInteger(Number(r.anio)) || !Number.isFinite(Number(r.monto)) || Number(r.monto)<0) throw new HttpError(400,"Fuente o monto inválido");
+      if (!['externo','contrapartida','cofinanciamiento'].includes(r.tipo) || !Number.isInteger(Number(r.anio)) || !money(Number(r.monto))) throw new HttpError(400,"Fuente o monto inválido");
       await execute("INSERT INTO propuesta_financiamiento(id_propuesta,tipo,anio,monto,numero_oficio) VALUES($1,$2,$3,$4,$5)",[id,r.tipo,r.anio,r.monto,r.oficio||null]);
     }
   }

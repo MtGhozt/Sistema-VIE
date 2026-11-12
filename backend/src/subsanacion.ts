@@ -5,7 +5,7 @@ import { HttpError } from "./middleware/HttpError.js";
 export const seccionesSubsanacion = JSON.parse(readFileSync(new URL("../../shared/subsanacion-secciones.json", import.meta.url), "utf8")) as { codigo: string; etiqueta: string; paso: number; campos: string[] }[];
 
 export async function cargarSubsanacion(id: number, execute: typeof query = query) {
-  const r = await execute<{id_subsanacion: number; instancia: string; rol_destino: string; estado_retorno: string; etapa_retorno: number; secciones: string[]; campos_atendidos: string[]; motivo: string}>("SELECT * FROM propuesta_subsanacion WHERE id_propuesta=$1 AND fecha_reenvio IS NULL", [id]);
+  const r = await execute<{id_subsanacion: number; instancia: string; rol_destino: string; estado_retorno: string; etapa_retorno: number; secciones: string[]; campos_atendidos: string[]; respuesta:string|null; motivo: string}>("SELECT * FROM propuesta_subsanacion WHERE id_propuesta=$1 AND fecha_reenvio IS NULL", [id]);
   return r.rows[0] ?? null;
 }
 
@@ -16,8 +16,9 @@ export async function validarEdicionSubsanacion(id: number, body: Record<string,
   // La necesidad de PI queda congelada al enviar, incluso si se corrigen preguntas generales.
   if(body.documentos!==undefined)throw new HttpError(400,"Los documentos se corrigen mediante carga o retiro de archivos, no enviando metadatos vacíos");
   if(body.modalidad!==undefined){const same=await execute('SELECT 1 FROM propuesta p LEFT JOIN modalidad_catalogo mc ON mc.codigo=p.modalidad WHERE p.id_propuesta=$1 AND (p.modalidad=$2 OR mc.nombre=$2)',[id,String(body.modalidad)]);if(!same.rowCount)throw new HttpError(409,'La modalidad no cambia en subsanación: conserva la rúbrica y las decisiones previas');}
-  const keys = Object.keys(body);
-  if (!keys.length || keys.some(k => !allowed.includes(k))) throw new HttpError(400, "Solo puede modificar las secciones indicadas en la devolución");
+  const keys = Object.keys(body).filter(k=>k!=='respuestaSubsanacion');
+  if(body.respuestaSubsanacion!==undefined){if(typeof body.respuestaSubsanacion!=='string'||body.respuestaSubsanacion.length>5000)throw new HttpError(400,'La respuesta a observaciones admite hasta 5000 caracteres.');await execute('UPDATE propuesta_subsanacion SET respuesta=$2 WHERE id_subsanacion=$1',[correction.id_subsanacion,body.respuestaSubsanacion]);}
+  if ((!keys.length&&body.respuestaSubsanacion===undefined) || keys.some(k => !allowed.includes(k))) throw new HttpError(400, "Solo puede modificar las secciones indicadas en la devolución");
   if (Array.isArray(body.preguntasGenerales)) {
     const answers = body.preguntasGenerales.filter(q => Number(q?.numero) === 8);
     const stored = await execute<{requiere_dictamen_pi:boolean}>("SELECT requiere_dictamen_pi FROM propuesta WHERE id_propuesta=$1",[id]);

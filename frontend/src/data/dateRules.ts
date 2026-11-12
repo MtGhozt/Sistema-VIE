@@ -7,7 +7,7 @@ export const PLAN_MAX_MONTHS = 36;
 export function parseIsoDate(iso: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   const d = new Date(`${iso}T12:00:00`);
-  return Number.isNaN(d.getTime()) ? null : d;
+  return Number.isNaN(d.getTime()) || d.toISOString().slice(0,10)!==iso ? null : d;
 }
 
 export function yearOfIso(iso: string): number | null {
@@ -38,11 +38,9 @@ export function projectDurationMonths(inicio: string, fin: string): number {
   const a = parseIsoDate(inicio);
   const b = parseIsoDate(fin);
   if (!a || !b || b < a) return 0;
-  const months =
-    (b.getFullYear() - a.getFullYear()) * 12 +
-    (b.getMonth() - a.getMonth()) +
-    1;
-  return Math.min(PLAN_MAX_MONTHS, Math.max(0, months));
+  // El formulario oficial expresa los días / 30 y redondea a centésimas (2 días = 0,07).
+  const days=Math.round((b.getTime()-a.getTime())/86400000)+1;
+  return Math.min(PLAN_MAX_MONTHS,Number((days/30).toFixed(2)));
 }
 
 /** Una actividad (mes inicio + duración) cabe en el horizonte del proyecto. */
@@ -55,9 +53,9 @@ export function activityFitsProject(
   if (!Number.isFinite(mesInicio) || !Number.isFinite(duracionMeses)) {
     return false;
   }
-  if (mesInicio < 1 || duracionMeses < 0.01) return false;
+  if (!Number.isInteger(mesInicio) || mesInicio < 1 || duracionMeses < 0.01) return false;
   const horizon = projectDurationMonths(inicio, fin);
-  if (horizon < 1) return false;
+  if (horizon <= 0) return false;
   const endMonth = mesInicio + duracionMeses - 1;
   return endMonth <= horizon + 1e-9;
 }

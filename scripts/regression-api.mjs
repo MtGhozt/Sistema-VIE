@@ -84,7 +84,7 @@ try {
   });
   await check('Declaración explícita y límites oficiales al enviar',async()=>{
     const id=await draft();await patch(id,{keywordsEs:'uno,dos,tres,cuatro'});await call(`/propuestas/${id}/enviar`,'investigador','POST',undefined,400);
-    await patch(id,{declaracion:true,resumen:Array(501).fill('palabra').join(' ')});await call(`/propuestas/${id}/enviar`,'investigador','POST',undefined,400);
+    await patch(id,{declaracion:true,resumen:Array(501).fill('palabra').join(' ')},400);assert.equal((await detail(id)).declaracion,false);await patch(id,{declaracion:true});await call(`/propuestas/${id}/enviar`,'investigador','POST',undefined,400);
     for (const n of [3,7]) {await patch(id,{resumen:'Resumen',keywordsEs:Array.from({length:n},(_,i)=>`termino${i}`).join(',')});await call(`/propuestas/${id}/enviar`,'investigador','POST',undefined,400);}
     await patch(id,{resumen:Array(500).fill('palabra').join(' '),keywordsEs:'uno,dos,tres,cuatro'});const sent=await call(`/propuestas/${id}/enviar`,'investigador','POST');assert.equal(sent.estadoActual,'enviada');
   });
@@ -103,7 +103,7 @@ try {
     const result=await env.pool.query('SELECT calificacion_promedio,recomendacion FROM resultado_comite WHERE id_propuesta=$1',[id]);assert.notEqual(Number(result.rows[0].calificacion_promedio),99);assert.equal(result.rows[0].recomendacion,'no_recomienda');
   });
   await check('Envío concurrente produce un solo evento de historial',async()=>{
-    const id=await draft();await patch(id,{declaracion:true,keywordsEs:'uno,dos,tres,cuatro'});
+    const id=await draft();await patch(id,{declaracion:true,resumen:'Resumen para prueba concurrente',keywordsEs:'uno,dos,tres,cuatro'});
     const u=sessions.get('investigador');
     const responses=await Promise.all([1,2].map(()=>fetch(`${env.api}/propuestas/${id}/enviar`,{method:'POST',headers:{'X-Demo-User-Id':String(u.id),'X-Demo-Role':u.roleCode}})));
     assert.equal(responses.filter(r=>r.status===200).length,1);assert.ok(responses.every(r=>[200,400,409].includes(r.status)));
@@ -126,7 +126,7 @@ try {
     await action(id,'gestora_vie','send-cie');
   });
   await check('Dos devoluciones conservan ciclos independientes',async()=>{
-    const id=await draft();await patch(id,{declaracion:true,keywordsEs:'uno,dos,tres,cuatro'});await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);await stageFixture(id);
+    const id=await draft();await patch(id,{declaracion:true,resumen:'Resumen para prueba concurrente',keywordsEs:'uno,dos,tres,cuatro'});await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);await stageFixture(id);
     await action(id,'comite_asistente','return',{texto:'Primera devolución',secciones:['resumen']});
     await patch(id,{resumen:'Corrección uno'});await call(`/propuestas/${id}/enviar`,'investigador','POST',{respuesta:'Atendida primera devolución'});
     await action(id,'comite_asistente','return',{texto:'Segunda devolución',secciones:['resumen']});

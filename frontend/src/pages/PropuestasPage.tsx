@@ -1,3 +1,4 @@
+import {FilterGroup} from "../components/FilterGroup";
 import { labelEstado, STAGE_LABELS } from "../data/proposalStates";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -13,7 +14,7 @@ export function PropuestasPage() {
   const { session, isAdminSession } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams,setSearchParams] = useSearchParams();
   const role = session?.viewRole;
   const isAdminView = isAdminSession && role === "admin";
   const canCreate =
@@ -22,14 +23,14 @@ export function PropuestasPage() {
   const [rows, setRows] = useState<Propuesta[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(searchParams.get("q")??"");
   const estadoFromUrl = searchParams.get("estado");
   const [estado, setEstado] = useState(estadoFromUrl || "Todos");
   const lastToast = useRef<string | null>(null);
 
   useEffect(() => {
-    if (estadoFromUrl) setEstado(estadoFromUrl);
-  }, [estadoFromUrl]);
+    setEstado(estadoFromUrl??"Todos");setQuery(searchParams.get("q")??"");
+  }, [estadoFromUrl,searchParams]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,12 +59,13 @@ export function PropuestasPage() {
   }, [load]);
 
   const estados = useMemo(
-    () => ["Todos", ...new Set(rows.map((r) => labelEstado(r.estadoActual)))],
-    [rows],
+    () => ["Todos", ...new Set([...rows.map((r) => labelEstado(r.estadoActual)),...(estadoFromUrl?[estadoFromUrl]:[])])],
+    [rows,estadoFromUrl],
   );
 
   const matchesEstado = useCallback((estadoActual: string, filter: string) => {
     if (filter === "Todos") return true;
+    if(filter==="en_revision")return !["borrador","en_subsanacion","aprobada","rechazada"].includes(estadoActual);
     const code = estadoActual.toLowerCase();
     const label = labelEstado(estadoActual);
     return (
@@ -113,37 +115,34 @@ export function PropuestasPage() {
 
       <FilterPanel
         clearDisabled={!query && estado === "Todos"}
-        onClear={() => {
-          setQuery("");
-          setEstado("Todos");
-        }}
+        onClear={() => setSearchParams({})}
       >
-        <div className="form-grid two-col">
-          <label className="field" htmlFor="prop-filtro-q">
+        <div className="independent-filters">
+          <FilterGroup title="Buscar propuesta" active={Boolean(query)} onClear={()=>{const p=new URLSearchParams(searchParams);p.delete("q");setSearchParams(p);}}><label className="field" htmlFor="prop-filtro-q">
             <span className="field-label">Buscar</span>
             <input
               id="prop-filtro-q"
               className="input"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={e=>{const p=new URLSearchParams(searchParams);p.set("q",e.target.value);setSearchParams(p,{replace:true});}}
               placeholder="Título, código, escuela o investigador…"
             />
           </label>
-          <label className="field" htmlFor="prop-filtro-estado">
+          </FilterGroup><FilterGroup title="Estado" active={estado!=="Todos"} onClear={()=>{const p=new URLSearchParams(searchParams);p.delete("estado");setSearchParams(p);}}><label className="field" htmlFor="prop-filtro-estado">
             <span className="field-label">Estado</span>
             <select
               id="prop-filtro-estado"
               className="input"
               value={estado}
-              onChange={(e) => setEstado(e.target.value)}
+              onChange={e=>{const p=new URLSearchParams(searchParams);p.set("estado",e.target.value);setSearchParams(p,{replace:true});}}
             >
               {estados.map((e) => (
                 <option key={e} value={e}>
-                  {e}
+                  {e==="en_revision"?"En revisión":e}
                 </option>
               ))}
             </select>
-          </label>
+          </label></FilterGroup>
         </div>
       </FilterPanel>
 

@@ -15,6 +15,8 @@ export async function saveEquipo(id: number, raw: unknown, execute: typeof query
       if (!user.rows[0] || row.tipo !== "funcionario_tec") throw new HttpError(400, "Persona TEC inválida");
       nombre = user.rows[0].nombre; instancia = user.rows[0].escuela ?? instancia;
     }
+    if(nombre.length>150||instancia.length>200)throw new HttpError(400,'Nombre o institución excede el límite de 150/200 caracteres.');
+    const period=String(row.periodo??'');if(period.includes(' / ')){const [a,b]=period.split(' / ').map((v:string)=>{const m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:'';});if(!a||!b||!Number.isFinite(Date.parse(a))||!Number.isFinite(Date.parse(b))||new Date(a).toISOString().slice(0,10)!==a||new Date(b).toISOString().slice(0,10)!==b||b<a)throw new HttpError(400,'Período de nombramiento: indique fechas reales y fin igual o posterior al inicio.');}
     if (!nombre) throw new HttpError(400, "Cada participante requiere un nombre");
     const values = [nombre, row.orcid || null, instancia || null, row.rol || null, row.periodo || null, row.tipo, userId];
     let participant: number;
@@ -34,7 +36,7 @@ export async function saveEquipo(id: number, raw: unknown, execute: typeof query
     const kinds = new Set<string>();
     await execute("DELETE FROM propuesta_participante_hora WHERE id_participante=$1", [participant]);
     for (const h of row.horas) {
-      if (!TIPOS_HORA.has(h.tipo) || kinds.has(h.tipo) || !Number.isFinite(Number(h.cantidad)) || Number(h.cantidad) < 0) throw new HttpError(400, "Tipo/cantidad de horas inválidos o repetidos");
+      if (!TIPOS_HORA.has(h.tipo) || kinds.has(h.tipo) || !Number.isInteger(Number(h.cantidad)) || Number(h.cantidad) < 0) throw new HttpError(400, "Tipo/cantidad de horas inválidos o repetidos: indique horas enteras no negativas");
       kinds.add(h.tipo);
       await execute("INSERT INTO propuesta_participante_hora(id_participante,tipo_hora,cantidad_horas) VALUES($1,$2,$3)", [participant,h.tipo,h.cantidad]);
     }

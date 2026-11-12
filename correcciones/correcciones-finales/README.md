@@ -20,3 +20,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [Formato fijo DD/MM/YYYY y filtros como el histórico](FECHAS-Y-FILTROS-CONVOCATORIAS.md).
 
 - [Reglas vigentes de fechas, presupuesto obligatorio y mínimo de actividades](VIGENCIA-PRESUPUESTO-Y-ACTIVIDADES.md).
+
+- **VIE-Publicación aceptado por el usuario.** Siguiente revisión: [Persona Investigadora Coordinadora](PERSONA-INVESTIGADORA-COORDINADORA.md), pendiente de aceptación manual.

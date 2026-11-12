@@ -1,3 +1,4 @@
+import {validarTextosPropuesta,horizonteProyecto} from "./propuestaLimites.js";
 import {camposComplementarios,validarComplemento} from "./formularioComplementos.js";
 import { saveProductos } from "./propuestaProductos.js";
 import { savePlan } from "./propuestaPlan.js";
@@ -16,6 +17,7 @@ export const CAMPOS_TEXTO = {
   estadoArte: "estado_arte", hojaRuta: "hoja_ruta", referencias: "referencias", divulgacion: "divulgacion",
 } as const;
 export async function savePropuestaCampos(id: number, body: Record<string, unknown>, execute: typeof query) {
+  validarTextosPropuesta(body);
   await enSeccion("Compromisos de productos",()=>saveProductos(id, body.compromisos, execute));
   await enSeccion("Aspectos éticos",()=>saveEtica(id, body, execute));
   await enSeccion("Presupuesto y financiamiento",()=>savePresupuesto(id, body, execute));
@@ -46,6 +48,7 @@ export async function savePropuestaCampos(id: number, body: Record<string, unkno
     if (body[api] !== undefined) { values.push(body[api] == null ? null : String(body[api]).trim()); fields.push(`${column}=$${values.length}`); }
   }
   for (const [api, column] of [["fechaInicio", "fecha_inicio"], ["fechaFin", "fecha_finalizacion"]]) {
+    if(body[api]&&(!/^\d{4}-\d{2}-\d{2}$/.test(String(body[api]))||!Number.isFinite(Date.parse(String(body[api])))||new Date(String(body[api])).toISOString().slice(0,10)!==String(body[api])||String(body[api])<'2000-01-01'||String(body[api])>'2100-12-31'))throw new HttpError(400,`${api}: indique una fecha real con año entre 2000 y 2100.`);
     if (body[api] !== undefined) { values.push(body[api] || null); fields.push(`${column}=$${values.length}`); }
   }
   for (const [api,column] of [["declaracion", "declaracion_aceptada"], ["resguardoRepositorio", "resguardo_repositorio"], ["resguardoTecnico", "resguardo_tecnico"]]) {
@@ -74,4 +77,13 @@ export async function savePropuestaCampos(id: number, body: Record<string, unkno
         [id,n,`q${n}`,raw.respuesta, raw.detalle == null ? null : String(raw.detalle)]);
     }
   }
+  const dates=await execute<{inicio:Date|string|null;fin:Date|string|null}>('SELECT fecha_inicio AS inicio,fecha_finalizacion AS fin FROM propuesta WHERE id_propuesta=$1',[id]);
+  const iso=(v:Date|string)=>v instanceof Date?v.toISOString().slice(0,10):String(v).slice(0,10);
+  const d=dates.rows[0];if(d?.inicio&&d.fin){
+    const start=iso(d.inicio),end=iso(d.fin),horizon=horizonteProyecto(start,end);
+    if(!horizon)throw new HttpError(400,'Fechas del proyecto: la finalización no puede ser anterior al inicio.');
+    const outside=await execute('SELECT 1 FROM actividad_plan WHERE id_propuesta=$1 AND mes_inicio+duracion_meses-1>$2::numeric LIMIT 1',[id,horizon]);
+    if(outside.rowCount)throw new HttpError(400,'Plan de acción: una actividad excede la duración real del proyecto; para actividades diarias use días ÷ 30.');
+  }
+
 }

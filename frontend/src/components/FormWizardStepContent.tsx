@@ -1,4 +1,6 @@
-import { ComplementosFormulario } from "./ComplementosFormulario";
+import {CollapsibleBlock} from "./CollapsibleBlock";
+import {ProposalReadOnly} from "./ProposalFieldContext";
+import {FORM_WIZARD_STEPS} from "../data/formWizard";
 import type { ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
 import type { FormWizardState } from "../data/formWizard";
@@ -7,6 +9,7 @@ import { FormWizardIan } from "./FormWizardIan";
 
 export function FormWizardStepContent(props: {
   bloquearIdentificacion?: boolean;
+  expandReadOnly?:boolean;
   documentos?: ReactNode;
   step: number;
   form: FormWizardState;
@@ -23,31 +26,19 @@ export function FormWizardStepContent(props: {
 
   if (props.step === 16) {
     return (
-      <div className="stack-md">
+      <div className="stack-md proposal-review-sections">
         <h3>Revisión antes del envío</h3>
-        <p>{props.form.titulo}</p>
-        <p>
-          Modalidad: {props.form.modalidad}. Resumen: {props.form.resumen}
-        </p>
-        <p>Objetivo general: {props.form.objetivos}</p>
-        <p>
-          Equipo: {props.form.equipo.length} personas. Plan:{" "}
-          {props.form.actividades.length} actividades.
-        </p>
-        <p>
-          {readOnly
-            ? "Consulta en solo lectura del expediente guardado."
-            : "Revise también los datos normalizados y documentos en «Ver expediente guardado». El servidor valida los requisitos al enviar."}
-        </p>
-        <ComplementosFormulario detalles={props.form.detallesFormulario} />
+        <p>Abra cada sección para revisar sus datos. Los controles se muestran en solo lectura.</p>
+        {FORM_WIZARD_STEPS.slice(0,16).map((title,step)=><CollapsibleBlock key={title} title={`${String(step+1).padStart(2,'0')} · ${title}`} defaultOpen={false}>
+          <FormWizardStepContent {...props} step={step} readOnly expandReadOnly/>
+        </CollapsibleBlock>)}
       </div>
     );
   }
 
   return (
     <>
-      <fieldset
-        disabled={readOnly}
+      <ProposalReadOnly.Provider value={readOnly}><fieldset
         className={readOnly ? "wizard-readonly" : undefined}
         style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
         aria-label={readOnly ? "Formulario en solo lectura" : undefined}
@@ -65,9 +56,9 @@ export function FormWizardStepContent(props: {
           convocatorias={props.convocatorias}
           idConvocatoria={props.idConvocatoria}
           setIdConvocatoria={setIdConvocatoria}
-          readOnly={readOnly}
+          readOnly={readOnly} expandReadOnly={props.expandReadOnly}
         />
-      </fieldset>
+      </fieldset></ProposalReadOnly.Provider>
       {/* Fuera del fieldset disabled para permitir descargas en solo lectura */}
       {readOnly && props.step === 15 && props.documentos}
     </>

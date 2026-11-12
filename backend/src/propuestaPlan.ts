@@ -7,6 +7,8 @@ export async function savePlan(id: number, raw: unknown, execute: typeof query) 
   for (const r of raw) {
     if (!String(r.objetivo??'').trim() || !String(r.actividad??'').trim() || !Array.isArray(r.riesgos) || !Array.isArray(r.participantes)) throw new HttpError(400,"Complete objetivo y descripción de cada actividad");
     if (!Number.isInteger(Number(r.inicio)) || Number(r.inicio)<1 || !Number.isFinite(Number(r.duracion)) || Number(r.duracion)<=0) throw new HttpError(400,"Mes de inicio y duración deben ser positivos");
+    for(const field of ['objetivo','actividad','resultado'])if(String(r[field]??'').length>5000)throw new HttpError(400,`${field}: admite como máximo 5000 caracteres.`);
+    if(r.riesgos.some((risk:Record<string,unknown>)=>['riesgo','mitigacion'].some(k=>String(risk[k]??'').length>5000)||String(risk.responsable??'').length>150))throw new HttpError(400,'Riesgos: máximo 5000 caracteres en riesgo/mitigación y 150 en responsable.');
     if(r.asignaciones!==undefined){
       if(!Array.isArray(r.asignaciones)||r.asignaciones.some((a:{idParticipante:number;responsabilidad:string})=>!r.participantes.includes(a.idParticipante)||!['Ejecuta','Supervisa','Participa'].includes(a.responsabilidad))||new Set(r.asignaciones.map((a:{idParticipante:number})=>a.idParticipante)).size!==r.asignaciones.length)throw new HttpError(400,'Asignaciones individuales inválidas');
     }

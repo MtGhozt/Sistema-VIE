@@ -1,5 +1,9 @@
+import {ProposalFieldErrors} from "./ProposalFieldContext";
+import {FormInput,FormSelect,LimitedTextarea} from "./ProposalFieldControls";
+import {ConvocatoriaDateField} from "./ConvocatoriaDateField";
+import {dateFromInput,dateLabel} from "../data/convocatoriaUi";
 import {apiJson} from "../api/client";
-import { useEffect, useState, useId, type ReactNode } from "react";
+import { useEffect, useState, useId, useContext, type ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
 
 import {
@@ -34,11 +38,12 @@ import {
 } from "../data/dateRules";
 import { formatCRC } from "../data/proposalView";
 import { CollapsibleBlock } from "./CollapsibleBlock";
-import { DateField } from "./DateField";
+
 import { WordBudget } from "./WordBudget";
 
 type Props = {
   bloquearIdentificacion?:boolean;
+  expandReadOnly?:boolean;
   documentos?:ReactNode;
   lineas:number[];
   onIdentificacion:(p:{lineas?:number[]})=>void;
@@ -51,11 +56,6 @@ type Props = {
   /** Solo lectura: sin mutaciones; ocultar Agregar/Quitar. */
   readOnly?: boolean;
 };
-
-function yesNoValue(value: string): YesNo | "" {
-  if (value === "Sí" || value === "No") return value;
-  return "";
-}
 
 function ambitoValue(value: string): AmbitoInstrumento {
   if (value === "nacional" || value === "internacional") return value;
@@ -112,15 +112,17 @@ function QuestionBlock({
   children: ReactNode;
 }) {
   const questionId = useId();
+  const issue=useContext(ProposalFieldErrors)[`Pregunta ${number}`];
   return (
     // El bloque completo se anuncia como grupo con el nombre de la pregunta,
     // para que un lector de pantalla anuncie el contexto antes del control.
-    <div className="question-block" role="group" aria-labelledby={questionId}>
+    <div className="question-block" role="group" aria-labelledby={questionId} aria-invalid={Boolean(issue)} data-proposal-label={`Pregunta ${number}`} tabIndex={-1}>
       <div className="question-title">
         <span>{number}</span>
         <p id={questionId}>{question}</p>
       </div>
       {children}
+      {issue&&<p className="field-error-text">{issue}</p>}
     </div>
   );
 }
@@ -129,24 +131,26 @@ function YesNoRow({
   value,
   onChange,
   extra,
-  disabled=false,
+  disabled=false, label,
 }: {
   value: YesNo;
   onChange: (v: YesNo) => void;
   extra?: ReactNode;
   disabled?:boolean;
+  label?:string;
 }) {
-  // Checkbox exclusivo (mismo patrón que el formulario oficial VIE)
+  const groupName=useId();
+  const issue=useContext(ProposalFieldErrors)[label??''];
   return (
     <div className="stack-md">
-      <div className="choice-row" style={{ marginLeft: 0 }} role="group">
+      <div className="choice-row" style={{ marginLeft: 0 }} role="group" aria-label={label} aria-invalid={Boolean(issue)} data-proposal-label={label} tabIndex={-1}>
         {(["No", "Sí"] as YesNo[]).map((opt) => (
           <label
             key={opt}
             className={`radio-choice${value === opt ? " selected" : ""}`}
           >
-            <input
-              type="checkbox"
+            <FormInput
+              type="radio" name={groupName}
               disabled={disabled}
               checked={value === opt}
               onChange={() => onChange(opt)}
@@ -156,6 +160,7 @@ function YesNoRow({
           </label>
         ))}
       </div>
+      {issue&&<p className="field-error-text">{issue}</p>}
       {extra}
     </div>
   );
@@ -169,7 +174,7 @@ export function FormWizardIan({
   convocatorias,
   idConvocatoria,
   setIdConvocatoria,
-  readOnly = false,
+  readOnly = false, expandReadOnly=false,
 }: Props) {
   const q6GroupName = useId();
   const [catalogos,setCatalogos]=useState<{modalidades:{codigo:string;nombre:string}[];lineas:{id_linea_investigacion:number;nombre:string}[]}>({modalidades:[],lineas:[]});
@@ -315,7 +320,7 @@ export function FormWizardIan({
                 className="research-line-option"
                 key={linea.id_linea_investigacion}
               >
-                <input
+                <FormInput
                   type="checkbox"
                   checked={lineas.includes(linea.id_linea_investigacion)}
                   onChange={(event) =>
@@ -340,7 +345,7 @@ export function FormWizardIan({
           </div>
           <label className="field">
             <span className="field-label">Convocatoria</span>
-            <select
+            <FormSelect
               aria-label="Convocatoria"
               className="input"
               disabled={bloquearIdentificacion} value={idConvocatoria}
@@ -358,13 +363,13 @@ export function FormWizardIan({
                   {c.nombre}
                 </option>
               ))}
-            </select>
+            </FormSelect>
           </label>
           <div className="form-grid two-col">
             <label className="field">
               <span className="field-label">Nombre del proyecto</span>
-              <input
-                aria-label="Nombre del proyecto"
+              <FormInput
+                aria-label="Nombre del proyecto" maxLength={500}
                 className="input"
                 value={form.titulo}
                 onChange={(e) => patch({ titulo: e.target.value })}
@@ -372,7 +377,7 @@ export function FormWizardIan({
             </label>
             <label className="field">
               <span className="field-label">Modalidad</span>
-              <select
+              <FormSelect
                 aria-label="Modalidad"
                 className="input"
                 disabled={bloquearIdentificacion} value={form.modalidad}
@@ -385,36 +390,32 @@ export function FormWizardIan({
                     {m}
                   </option>
                 ))}
-              </select>
+              </FormSelect>
             </label>
-            <DateField
+            <ConvocatoriaDateField
               id="proyecto-inicio"
               label="Fecha de inicio (día/mes/año)"
-              value={form.inicio}
+              value={/^\d{4}-/.test(form.inicio)?dateLabel(form.inicio):form.inicio}
               min={`${DATE_YEAR_MIN}-01-01`}
               max={`${DATE_YEAR_MAX}-12-31`}
-              disabled={bloquearIdentificacion || readOnly}
-              onChange={(iso) => {
-                const next: { inicio: string; fin?: string } = { inicio: iso };
-                if (form.fin && form.fin < iso) next.fin = iso;
-                patch(next);
-              }}
+              disabled={readOnly}
+              onChange={value=>patch({inicio:dateFromInput(value)??value})}
             />
-            <DateField
+            <ConvocatoriaDateField
               id="proyecto-fin"
               label="Fecha de finalización (día/mes/año)"
-              value={form.fin}
-              min={form.inicio || `${DATE_YEAR_MIN}-01-01`}
+              value={/^\d{4}-/.test(form.fin)?dateLabel(form.fin):form.fin}
+              min={/^\d{4}-\d{2}-\d{2}$/.test(form.inicio)?form.inicio:`${DATE_YEAR_MIN}-01-01`}
               max={`${DATE_YEAR_MAX}-12-31`}
-              disabled={bloquearIdentificacion || readOnly}
-              onChange={(iso) => patch({ fin: iso })}
+              disabled={readOnly}
+              onChange={(iso) => patch({ fin: dateFromInput(iso)??iso })}
             />
           </div>
           <label className="field">
             <span className="field-label">
               Dependencia académica coordinadora
             </span>
-            <input
+            <FormInput
               aria-label="Dependencia académica coordinadora"
               className="input"
               value={form.escuela} readOnly
@@ -441,7 +442,7 @@ export function FormWizardIan({
                       <div className="form-grid two-col">
                         <label className="field">
                           <span className="field-label">Entidad</span>
-                          <input
+                          <FormInput
                             aria-label="Entidad"
                             className="input"
                             value={form.q1Entidad}
@@ -454,7 +455,7 @@ export function FormWizardIan({
                           <span className="field-label">
                             Estado de la gestión
                           </span>
-                          <select
+                          <FormSelect
                             aria-label="Estado de la gestión"
                             className="input"
                             value={form.q1Estado}
@@ -469,28 +470,12 @@ export function FormWizardIan({
                             <option value="En ejecución">En ejecución</option>
                             <option value="Finalizada">Finalizada</option>
                             <option value="Otro">Otro</option>
-                          </select>
+                          </FormSelect>
                         </label>
                       </div>
-                      <label className="field">
-                        <span className="field-label">
-                          ¿Existe compromiso de contrapartida institucional?
-                        </span>
-                        <select
-                          aria-label="¿Existe compromiso de contrapartida institucional?"
-                          className="input"
-                          value={form.q1Contrapartida}
-                          onChange={(e) =>
-                            patch({
-                              q1Contrapartida: yesNoValue(e.target.value),
-                            })
-                          }
-                        >
-                          <option value="">Seleccionar…</option>
-                          <option value="Sí">Sí</option>
-                          <option value="No">No</option>
-                        </select>
-                      </label>
+                      <div className="field"><span className="field-label">¿Existe compromiso de contrapartida institucional?</span>
+                        <YesNoRow label="¿Existe compromiso de contrapartida institucional?" value={form.q1Contrapartida} onChange={q1Contrapartida=>patch({q1Contrapartida})}/>
+                      </div>
                     </div>
                   ) : null
                 }
@@ -510,7 +495,7 @@ export function FormWizardIan({
                         <span className="field-label">
                           Nombre del proyecto relacionado
                         </span>
-                        <input
+                        <FormInput
                           aria-label="Nombre del proyecto relacionado"
                           className="input"
                           value={form.q2Proyecto}
@@ -521,7 +506,7 @@ export function FormWizardIan({
                       </label>
                       <label className="field">
                         <span className="field-label">Tipo de relación</span>
-                        <input
+                        <FormInput
                           aria-label="Tipo de relación"
                           className="input"
                           value={form.q2Relacion}
@@ -548,7 +533,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Problema y documento de referencia
                       </span>
-                      <textarea
+                      <LimitedTextarea
                         aria-label="Problema y documento de referencia"
                         className="input textarea"
                         rows={3}
@@ -573,7 +558,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Ámbito del instrumento a gestionar
                       </span>
-                      <select
+                      <FormSelect
                         aria-label="Ámbito del instrumento a gestionar"
                         className="input"
                         value={form.q4Ambito}
@@ -588,7 +573,7 @@ export function FormWizardIan({
                         <option value="internacional">
                           Convenio Internacional
                         </option>
-                      </select>
+                      </FormSelect>
                     </label>
                   ) : null
                 }
@@ -607,7 +592,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Nombre completo del convenio
                       </span>
-                      <input
+                      <FormInput
                         aria-label="Nombre completo del convenio"
                         className="input"
                         value={form.q5Convenio}
@@ -632,7 +617,7 @@ export function FormWizardIan({
                         key={opt}
                         className={`radio-choice${form.q6 === opt ? " selected" : ""}`}
                       >
-                        <input
+                        <FormInput
                           type="radio"
                           name={q6GroupName}
                           checked={form.q6 === opt}
@@ -650,7 +635,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Nombre de la persona candidata
                       </span>
-                      <input
+                      <FormInput
                         aria-label="Nombre de la persona candidata"
                         className="input"
                         value={form.q6Persona}
@@ -661,7 +646,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Programa y grado académico a obtener
                       </span>
-                      <input
+                      <FormInput
                         aria-label="Programa y grado académico a obtener"
                         className="input"
                         value={form.q6Programa}
@@ -672,7 +657,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Universidad que acredita el grado
                       </span>
-                      <input
+                      <FormInput
                         aria-label="Universidad que acredita el grado"
                         className="input"
                         value={form.q6Universidad}
@@ -698,7 +683,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Tipo de información y fuente de la restricción
                       </span>
-                      <textarea
+                      <LimitedTextarea
                         aria-label="Tipo de información y fuente de la restricción"
                         className="input textarea"
                         rows={3}
@@ -723,7 +708,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Número de oficio del dictamen del Centro de Vinculación
                       </span>
-                      <input
+                      <FormInput
                         aria-label="Número de oficio del dictamen del Centro de Vinculación"
                         className="input"
                         value={form.q8Oficio}
@@ -747,7 +732,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Tipo de innovación predominante
                       </span>
-                      <select
+                      <FormSelect
                         aria-label="Tipo de innovación predominante"
                         className="input"
                         value={form.q9Tipo}
@@ -758,7 +743,7 @@ export function FormWizardIan({
                         <option value="">Seleccionar…</option>
                         <option value="Proceso">Proceso</option>
                         <option value="Producto">Producto</option>
-                      </select>
+                      </FormSelect>
                     </label>
                   ) : null
                 }
@@ -771,7 +756,7 @@ export function FormWizardIan({
                   nivel de madurez tecnológica (TRL) que mejor lo describe según
                   el siguiente cuadro:
                 </span>
-                <select
+                <FormSelect
                   aria-label="Nivel de madurez tecnológica (TRL) esperado"
                   className="input"
                   value={form.trlEsperado}
@@ -785,7 +770,7 @@ export function FormWizardIan({
                       {nivel.value}: {nivel.label}
                     </option>
                   ))}
-                </select>
+                </FormSelect>
               </label>
             ) : null}
           </div>
@@ -800,7 +785,7 @@ export function FormWizardIan({
         <span className="field-label">
           Resumen (español · máximo {FIELD_WORD_LIMITS.resumen} palabras)
         </span>
-        <textarea
+        <LimitedTextarea
           aria-label={`Resumen (español · máximo ${FIELD_WORD_LIMITS.resumen} palabras)`}
           className="input textarea"
           rows={6}
@@ -820,7 +805,7 @@ export function FormWizardIan({
         <span className="field-label">
           Abstract (English · max. {FIELD_WORD_LIMITS.abstract} words)
         </span>
-        <textarea
+        <LimitedTextarea
           aria-label={`Abstract (English · max. ${FIELD_WORD_LIMITS.abstract} words)`}
           className="input textarea"
           rows={6}
@@ -840,7 +825,7 @@ export function FormWizardIan({
         {readOnly ? (
           <CollapsibleBlock
             title="Resumen (español)"
-            defaultOpen={false}
+            defaultOpen={expandReadOnly}
             preview={form.resumen.slice(0, 160) || "Sin texto"}
           >
             {resumenBlock}
@@ -851,7 +836,7 @@ export function FormWizardIan({
         {readOnly ? (
           <CollapsibleBlock
             title="Abstract (English)"
-            defaultOpen={false}
+            defaultOpen={expandReadOnly}
             preview={form.abstract.slice(0, 160) || "Sin texto"}
           >
             {abstractBlock}
@@ -861,7 +846,7 @@ export function FormWizardIan({
         )}
         <label className="field">
           <span className="field-label">Palabras clave</span>
-          <input
+          <FormInput
             aria-label="Palabras clave"
             className="input"
             value={form.palabras}
@@ -871,12 +856,12 @@ export function FormWizardIan({
         </label>
         <label className="field">
           <span className="field-label">Keywords EN (opcionales)</span>
-          <input
+          <FormInput
             aria-label="Keywords EN (opcionales)"
             className="input"
             value={form.keywords}
             onChange={(e) => patch({ keywords: e.target.value })}
-            placeholder="Separate with commas"
+            placeholder="Separadas por comas (inglés)"
           />
         </label>
       </div>
@@ -951,7 +936,7 @@ export function FormWizardIan({
                   <div className="team-member-fields team-tec-fields">
                     <label className="team-member-field">
                       <span className="field-label">Nombre y apellidos</span>
-                      <input
+                      <FormInput
                         className="input"
                         value={member.nombre}
                         maxLength={150}
@@ -965,7 +950,7 @@ export function FormWizardIan({
                     </label>
                     <label className="team-member-field">
                       <span className="field-label">Iniciales</span>
-                      <input
+                      <FormInput
                         className="input"
                         value={member.iniciales}
                         maxLength={10}
@@ -979,7 +964,7 @@ export function FormWizardIan({
                     </label>
                     <label className="team-member-field">
                       <span className="field-label">ID ORCID *</span>
-                      <input
+                      <FormInput
                         className="input"
                         value={member.orcid}
                         maxLength={19}
@@ -995,7 +980,7 @@ export function FormWizardIan({
                     </label>
                     <label className="team-member-field">
                       <span className="field-label">Instancia académica</span>
-                      <input
+                      <FormInput
                         className="input"
                         value={member.instancia}
                         maxLength={200}
@@ -1009,7 +994,7 @@ export function FormWizardIan({
                     </label>
                     <label className="team-member-field">
                       <span className="field-label">Condición (rol) *</span>
-                      <select
+                      <FormSelect
                         className="input"
                         value={member.rol}
                         aria-required="true"
@@ -1028,7 +1013,7 @@ export function FormWizardIan({
                             {role}
                           </option>
                         ))}
-                      </select>
+                      </FormSelect>
                     </label>
                     <div className="team-member-field team-hours-field">
                       <span className="field-label">
@@ -1049,7 +1034,7 @@ export function FormWizardIan({
                             >
                               Tipo de horas, persona TEC {memberIndex + 1}
                             </label>
-                            <select
+                            <FormSelect
                               id={`${member.id}-hours-type-${hourIndex}`}
                               className="input"
                               value={hours.tipo}
@@ -1078,20 +1063,20 @@ export function FormWizardIan({
                                   {type}
                                 </option>
                               ))}
-                            </select>
+                            </FormSelect>
                             <label
                               className="sr-only"
                               htmlFor={`${member.id}-hours-amount-${hourIndex}`}
                             >
                               Cantidad de horas, persona TEC {memberIndex + 1}
                             </label>
-                            <input
+                            <FormInput
                               id={`${member.id}-hours-amount-${hourIndex}`}
                               className="input"
                               type="number"
-                              min="0.01"
-                              max="999.99"
-                              step="0.01"
+                              min="0"
+                              max="999"
+                              step="1"
                               value={hours.cantidad}
                               aria-label={`Cantidad de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
                               onChange={(event) =>
@@ -1135,31 +1120,21 @@ export function FormWizardIan({
                         </button>
                       </div>
                     </div>
+                    <div className="team-member-field stack-sm">
+                      <span className="field-label">Período de nombramiento</span>
+                      {member.periodo&&!member.periodo.includes(' / ')&&<p className="field-hint">Período anterior: {member.periodo}. Indique las fechas para actualizarlo.</p>}
+                      <ConvocatoriaDateField id={`${member.id}-periodo-inicio`} label={`Inicio de nombramiento, persona TEC ${memberIndex+1}`} value={member.periodo.includes(' / ')?member.periodo.split(' / ')[0]:''} onChange={v=>patchTeamTec(member.id,{periodo:`${v} / ${member.periodo.split(' / ')[1]??''}`})}/>
+                      <ConvocatoriaDateField id={`${member.id}-periodo-fin`} label={`Fin de nombramiento, persona TEC ${memberIndex+1}`} value={member.periodo.includes(' / ')?member.periodo.split(' / ')[1]:''} min={dateFromInput(member.periodo.split(' / ')[0])??undefined} onChange={v=>patchTeamTec(member.id,{periodo:`${member.periodo.includes(' / ')?member.periodo.split(' / ')[0]:''} / ${v}`})}/>
+                    </div>
                     <label className="team-member-field">
+                      <span className="field-hint">CONS: horas del régimen de Investigador Consolidado. Indique quién aporta estas horas; complete solo si asignó horas CONS.</span>
                       <span className="field-label">
-                        Periodo de nombramiento
+                        Dependencia o persona que aporta horas CONS (si aplica)
                       </span>
-                      <input
-                        className="input"
-                        value={member.periodo}
-                        maxLength={60}
-                        placeholder="Ej. ene. 2027 - dic. 2027"
-                        aria-label={`Periodo de nombramiento, persona TEC ${memberIndex + 1}`}
-                        onChange={(event) =>
-                          patchTeamTec(member.id, {
-                            periodo: event.target.value,
-                          })
-                        }
-                      />
-                    </label>
-                    <label className="team-member-field">
-                      <span className="field-label">
-                        Titular de horas CONS (si aplica)
-                      </span>
-                      <input
+                      <FormInput
                         aria-label={`Titular de horas CONS, persona TEC ${memberIndex + 1}`}
                         className="input"
-                        value={member.titularCons ?? ""}
+                        maxLength={150} disabled={!member.horas.some(h=>h.tipo==="CONS")} value={member.titularCons ?? ""}
                         onChange={(event) =>
                           patchTeamTec(member.id, {
                             titularCons: event.target.value,
@@ -1232,7 +1207,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Nombre completo del colaborador externo
                       </span>
-                      <input
+                      <FormInput
                         className="input"
                         value={member.nombre}
                         maxLength={150}
@@ -1250,7 +1225,7 @@ export function FormWizardIan({
                     </label>
                     <label className="team-member-field">
                       <span className="field-label">Iniciales</span>
-                      <input
+                      <FormInput
                         className="input"
                         value={member.iniciales}
                         maxLength={10}
@@ -1271,7 +1246,7 @@ export function FormWizardIan({
                     </label>
                     <label className="team-member-field">
                       <span className="field-label">ID ORCID *</span>
-                      <input
+                      <FormInput
                         className="input"
                         value={member.orcid}
                         maxLength={19}
@@ -1296,7 +1271,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Institución o empresa que representa
                       </span>
-                      <input
+                      <FormInput
                         className="input"
                         value={member.institucion}
                         maxLength={200}
@@ -1338,7 +1313,7 @@ export function FormWizardIan({
             Planteamiento del problema (máx. 1 página ·{" "}
             {FIELD_WORD_LIMITS.problema} palabras)
           </span>
-          <textarea
+          <LimitedTextarea
             aria-label="Planteamiento del problema"
             className="input textarea"
             rows={5}
@@ -1355,7 +1330,7 @@ export function FormWizardIan({
 
         <label className="field">
           <span className="field-label">Objetivo general</span>
-          <textarea
+          <LimitedTextarea
             aria-label="Objetivo general"
             className="input textarea"
             rows={3}
@@ -1389,7 +1364,7 @@ export function FormWizardIan({
               <span className="field-label">
                 Objetivo específico {index + 1}
               </span>
-              <textarea
+              <LimitedTextarea
                 id={`specific-objective-${objective.id}`}
                 aria-label={`Objetivo específico ${index + 1}`}
                 className="input textarea"
@@ -1435,7 +1410,7 @@ export function FormWizardIan({
             Estado del arte (máximo 2 páginas ·{" "}
             {FIELD_WORD_LIMITS.estadoArte} palabras)
           </span>
-          <textarea
+          <LimitedTextarea
             className="input textarea"
             rows={12}
             aria-label="Estado del arte"
@@ -1460,7 +1435,7 @@ export function FormWizardIan({
         {readOnly ? (
           <CollapsibleBlock
             title="Estado del arte"
-            defaultOpen={false}
+            defaultOpen={expandReadOnly}
             preview={form.estadoArte.slice(0, 160) || "Sin texto"}
           >
             {estadoArteBody}
@@ -1476,7 +1451,7 @@ export function FormWizardIan({
     const metodologiaBody = (
       <label className="field">
         <span className="field-label">Metodología</span>
-        <textarea
+        <LimitedTextarea
           aria-label="Metodología"
           className="input textarea"
           rows={8}
@@ -1494,7 +1469,7 @@ export function FormWizardIan({
     return readOnly ? (
       <CollapsibleBlock
         title="Metodología"
-        defaultOpen={false}
+        defaultOpen={expandReadOnly}
         preview={form.metodologia.slice(0, 160) || "Sin texto"}
       >
         {metodologiaBody}
@@ -1518,7 +1493,7 @@ export function FormWizardIan({
       })),
     ];
     const horizonMonths = projectDurationMonths(form.inicio, form.fin);
-    const planMax = Math.max(1, horizonMonths || 36);
+    const planMax = horizonMonths || 36;
 
     return (
       <div className="stack-xl">
@@ -1624,7 +1599,7 @@ export function FormWizardIan({
               <div className="form-grid">
                 <label className="field">
                   <span className="field-label">Objetivo asociado</span>
-                  <select
+                  <FormSelect
                     aria-label={`Objetivo asociado, actividad ${activityIndex + 1}`}
                     className="input"
                     value={activity.objetivoNumero}
@@ -1647,18 +1622,18 @@ export function FormWizardIan({
                           : ""}
                       </option>
                     ))}
-                  </select>
+                  </FormSelect>
                 </label>
                 <label className="field">
                   <span className="field-label">
-                    Mes de inicio (1–{planMax} del proyecto)
+                    Mes de inicio (1–{Math.ceil(planMax)} del proyecto)
                   </span>
-                  <input
+                  <FormInput
                     aria-label={`Mes de inicio, actividad ${activityIndex + 1}`}
                     className="input"
                     type="number"
                     min="1"
-                    max={planMax}
+                    max={Math.ceil(planMax)}
                     step="1"
                     value={activity.mesInicio}
                     onChange={(event) =>
@@ -1670,9 +1645,9 @@ export function FormWizardIan({
                 </label>
                 <label className="field">
                   <span className="field-label">
-                    Duración (meses · máx. {planMax} en total del proyecto)
+                    Duración (meses; días ÷ 30 · máx. {planMax})
                   </span>
-                  <input
+                  <FormInput
                     aria-label={`Duración en meses, actividad ${activityIndex + 1}`}
                     className="input"
                     type="number"
@@ -1691,11 +1666,11 @@ export function FormWizardIan({
               <div className="form-grid">
                 <label className="field">
                   <span className="field-label">Actividad</span>
-                  <textarea
+                  <LimitedTextarea
                     aria-label={`Descripción de la actividad ${activityIndex + 1}`}
                     className="input textarea"
                     rows={3}
-                    value={activity.actividad}
+                    maxLength={5000} value={activity.actividad}
                     onChange={(event) =>
                       patchPlanActivity(activity.id, {
                         actividad: event.target.value,
@@ -1705,11 +1680,11 @@ export function FormWizardIan({
                 </label>
                 <label className="field">
                   <span className="field-label">Resultado esperado</span>
-                  <textarea
+                  <LimitedTextarea
                     aria-label={`Resultado esperado, actividad ${activityIndex + 1}`}
                     className="input textarea"
                     rows={3}
-                    value={activity.resultadoEsperado}
+                    maxLength={5000} value={activity.resultadoEsperado}
                     onChange={(event) =>
                       patchPlanActivity(activity.id, {
                         resultadoEsperado: event.target.value,
@@ -1749,7 +1724,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Persona participante {assignmentIndex + 1}
                       </span>
-                      <select
+                      <FormSelect
                         className="input"
                         value={assignment.teamMemberId}
                         onChange={(event) =>
@@ -1767,11 +1742,11 @@ export function FormWizardIan({
                               : " — agregá sus iniciales en etapa 3"}
                           </option>
                         ))}
-                      </select>
+                      </FormSelect>
                     </label>
                     <label className="field">
                       <span className="field-label">Responsabilidad</span>
-                      <select
+                      <FormSelect
                         aria-label={`Responsabilidad, participante ${assignmentIndex + 1} de la actividad ${activityIndex + 1}`}
                         className="input"
                         value={assignment.responsabilidad}
@@ -1791,7 +1766,7 @@ export function FormWizardIan({
                             {responsibility}
                           </option>
                         ))}
-                      </select>
+                      </FormSelect>
                     </label>
                     <button
                       type="button"
@@ -1864,11 +1839,11 @@ export function FormWizardIan({
                     <div className="form-grid">
                       <label className="field">
                         <span className="field-label">Riesgo identificado</span>
-                        <textarea
+                        <LimitedTextarea
                           aria-label={`Riesgo identificado, riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
                           className="input textarea"
                           rows={2}
-                          value={risk.riesgo}
+                          maxLength={5000} value={risk.riesgo}
                           onChange={(event) =>
                             patchPlanRisk(activity.id, risk.id, {
                               riesgo: event.target.value,
@@ -1880,11 +1855,11 @@ export function FormWizardIan({
                         <span className="field-label">
                           Medidas de mitigación
                         </span>
-                        <textarea
+                        <LimitedTextarea
                           aria-label={`Medidas de mitigación, riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
                           className="input textarea"
                           rows={2}
-                          value={risk.mitigacion}
+                          maxLength={5000} value={risk.mitigacion}
                           onChange={(event) =>
                             patchPlanRisk(activity.id, risk.id, {
                               mitigacion: event.target.value,
@@ -1897,7 +1872,7 @@ export function FormWizardIan({
                       <span className="field-label">
                         Responsable de la gestión del riesgo
                       </span>
-                      <input
+                      <FormInput
                         aria-label={`Responsable de la gestión del riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
                         className="input"
                         value={risk.responsable}
@@ -1967,8 +1942,8 @@ export function FormWizardIan({
                       <label className="sr-only" htmlFor={`budget-operativo-${row.anio}`}>
                         Presupuesto operativo {row.anio}
                       </label>
-                      <input
-                        id={`budget-operativo-${row.anio}`}
+                      <FormInput
+                        id={`budget-operativo-${row.anio}`} aria-label={`Presupuesto operativo ${row.anio}`}
                         className="input"
                         type="number"
                         min="0"
@@ -1991,8 +1966,8 @@ export function FormWizardIan({
                       <label className="sr-only" htmlFor={`budget-durable-${row.anio}`}>
                         Presupuesto de bienes duraderos {row.anio}
                       </label>
-                      <input
-                        id={`budget-durable-${row.anio}`}
+                      <FormInput
+                        id={`budget-durable-${row.anio}`} aria-label={`Presupuesto de bienes duraderos ${row.anio}`}
                         className="input"
                         type="number"
                         min="0"
@@ -2077,7 +2052,7 @@ export function FormWizardIan({
                             {FINANCING_TYPES[sourceIndex].label}, año{" "}
                             {BUDGET_YEARS[index]}
                           </label>
-                          <input
+                          <FormInput
                             id={`financing-${source.tipo}-${yearKey}`}
                             className="input"
                             type="number"
@@ -2110,8 +2085,8 @@ export function FormWizardIan({
                         Oficio y entidad emisora:{" "}
                         {FINANCING_TYPES[sourceIndex].label}
                       </label>
-                      <input
-                        id={`financing-oficio-${source.tipo}`}
+                      <FormInput
+                        id={`financing-oficio-${source.tipo}`} aria-label={`Oficio y entidad emisora: ${source.tipo}`}
                         className="input"
                         maxLength={60}
                         value={source.oficio}
@@ -2308,7 +2283,7 @@ export function FormWizardIan({
                         >
                           Cantidad de opciones académicas {index + 1}
                         </label>
-                        <input
+                        <FormInput
                           id={`academic-quantity-${product.id}`}
                           className="input"
                           type="number"
@@ -2330,7 +2305,7 @@ export function FormWizardIan({
                         >
                           Opción de producto académico {index + 1}
                         </label>
-                        <select
+                        <FormSelect
                           id={`academic-option-${product.id}`}
                           className="input"
                           value={product.codigoOpcion}
@@ -2349,7 +2324,7 @@ export function FormWizardIan({
                               {option.label}
                             </option>
                           ))}
-                        </select>
+                        </FormSelect>
                       </td>
                       <td>
                         <label
@@ -2358,7 +2333,7 @@ export function FormWizardIan({
                         >
                           Objetivo específico del producto {index + 1}
                         </label>
-                        <select
+                        <FormSelect
                           id={`academic-objective-${product.id}`}
                           className="input"
                           value={product.objetivoNumero}
@@ -2387,7 +2362,7 @@ export function FormWizardIan({
                                   : ""}
                               </option>
                             ))}
-                        </select>
+                        </FormSelect>
                       </td>
                       <td>
                         <button
@@ -2479,7 +2454,7 @@ export function FormWizardIan({
                           >
                             Cantidad del activo {index + 1}
                           </label>
-                          <input
+                          <FormInput
                             id={`asset-quantity-${asset.id}`}
                             className="input"
                             type="number"
@@ -2501,7 +2476,7 @@ export function FormWizardIan({
                           >
                             Tipo de activo {index + 1}
                           </label>
-                          <select
+                          <FormSelect
                             id={`asset-option-${asset.id}`}
                             className="input"
                             value={asset.codigoOpcion}
@@ -2521,7 +2496,7 @@ export function FormWizardIan({
                                 {option.label}
                               </option>
                             ))}
-                          </select>
+                          </FormSelect>
                         </td>
                         <td>
                           <label
@@ -2530,7 +2505,7 @@ export function FormWizardIan({
                           >
                             Consecutivo del dictamen técnico {index + 1}
                           </label>
-                          <input
+                          <FormInput
                             id={`asset-dictamen-${asset.id}`}
                             className="input"
                             maxLength={40}
@@ -2591,7 +2566,7 @@ export function FormWizardIan({
                   <span className="field-label">
                     Producto adicional {index + 1}
                   </span>
-                  <textarea
+                  <LimitedTextarea
                     className="input textarea"
                     rows={2}
                     maxLength={500}
@@ -2667,7 +2642,7 @@ export function FormWizardIan({
                 className={`radio-choice${form.resguardoProductos.depositoRepositorio === answer ? " selected" : ""}`}
                 key={answer}
               >
-                <input
+                <FormInput
                   type="radio"
                   name="safeguard-repository"
                   value={answer}
@@ -2700,7 +2675,7 @@ export function FormWizardIan({
                 className={`radio-choice${form.resguardoProductos.desarrollaSoftwareBaseDatos === answer ? " selected" : ""}`}
                 key={answer}
               >
-                <input
+                <FormInput
                   type="radio"
                   name="safeguard-software-applicability"
                   value={answer}
@@ -2740,7 +2715,7 @@ export function FormWizardIan({
                   className={`radio-choice${form.resguardoProductos.entregaRespaldoSoftware === answer ? " selected" : ""}`}
                   key={answer}
                 >
-                  <input
+                  <FormInput
                     type="radio"
                     name="safeguard-software-commitment"
                     value={answer}
@@ -2797,7 +2772,7 @@ export function FormWizardIan({
             Eventos previstos y población meta: congresos, charlas técnicas,
             actividades con docentes o estudiantes, entre otros.
           </span>
-          <textarea
+          <LimitedTextarea
             className="input textarea"
             rows={4}
             maxLength={5000}
@@ -2817,7 +2792,7 @@ export function FormWizardIan({
           <span className="field-hint">
             Detallá canales como Investiga.TEC, sitios web, redes TEC u Orión.
           </span>
-          <textarea
+          <LimitedTextarea
             className="input textarea"
             rows={3}
             maxLength={5000}
@@ -2838,7 +2813,7 @@ export function FormWizardIan({
             Charlas a comunidades, talleres con personas beneficiarias o
             presentaciones a entes externos.
           </span>
-          <textarea
+          <LimitedTextarea
             className="input textarea"
             rows={3}
             maxLength={5000}
@@ -2859,7 +2834,7 @@ export function FormWizardIan({
             Medios que se pretende gestionar, por ejemplo radio, televisión o
             prensa nacional.
           </span>
-          <textarea
+          <LimitedTextarea
             className="input textarea"
             rows={3}
             maxLength={5000}
@@ -2934,7 +2909,7 @@ export function FormWizardIan({
                   className={`radio-choice${ethics[key] === answer ? " selected" : ""}`}
                   key={answer}
                 >
-                  <input
+                  <FormInput
                     type="radio"
                     name={`ethics-${key}`}
                     value={answer}
@@ -2958,7 +2933,7 @@ export function FormWizardIan({
                 <span className="field-label">
                   Consulta previa y consentimiento libre e informado
                 </span>
-                <textarea
+                <LimitedTextarea
                   aria-label="Consulta previa y consentimiento libre e informado"
                   className="input textarea"
                   rows={3}
@@ -2986,7 +2961,7 @@ export function FormWizardIan({
               Explicá por qué la propuesta no requiere aval de un comité ético
               ni ente regulatorio.
             </span>
-            <textarea
+            <LimitedTextarea
               aria-label="Justificación de exención ética"
               className="input textarea"
               rows={4}
@@ -3020,7 +2995,7 @@ export function FormWizardIan({
                   className={`radio-choice${ethics.entesRegulatorios.includes(value) ? " selected" : ""}`}
                   key={value}
                 >
-                  <input
+                  <FormInput
                     type="checkbox"
                     checked={ethics.entesRegulatorios.includes(value)}
                     onChange={(event) =>
@@ -3044,7 +3019,7 @@ export function FormWizardIan({
             {ethics.entesRegulatorios.includes("otro") && (
               <label className="field">
                 <span className="field-label">Especifique el otro ente</span>
-                <input
+                <FormInput
                   aria-label="Especifique el otro ente"
                   className="input"
                   maxLength={200}
@@ -3064,7 +3039,7 @@ export function FormWizardIan({
               <span className="field-label">
                 Nombre o número del comité/ente y estado del trámite del aval
               </span>
-              <textarea
+              <LimitedTextarea
                 aria-label="Nombre o número del comité/ente y estado del trámite del aval"
                 className="input textarea"
                 rows={3}
@@ -3106,7 +3081,7 @@ export function FormWizardIan({
         ].map(([key, label]) => (
           <label className="field" key={key}>
             <span className="field-label">{label}</span>
-            <textarea
+            <LimitedTextarea
               className="input textarea"
               rows={key === "objetivoEstrategico" ? 4 : 3}
               maxLength={5000}
@@ -3130,7 +3105,7 @@ export function FormWizardIan({
     return (
       <label className="field">
         <span className="field-label">Referencias</span>
-        <textarea
+        <LimitedTextarea
           aria-label="Referencias"
           className="input textarea"
           rows={10}
@@ -3188,7 +3163,7 @@ export function FormWizardIan({
         </section>
         <label className="field">
           <span className="field-label">Nombre completo de la persona coordinadora</span>
-          <input
+          <FormInput
             aria-label="Nombre completo de la persona coordinadora"
             className="input"
             maxLength={150}
@@ -3205,16 +3180,16 @@ export function FormWizardIan({
         </label>
         <label className="field">
           <span className="field-label">Número de cédula</span>
-          <input
+          <FormInput
             aria-label="Número de cédula"
             className="input"
-            maxLength={20}
+            maxLength={11} inputMode="numeric" placeholder="X-XXXX-XXXX"
             value={declaration.cedula}
             onChange={(event) =>
               patch({
                 declaracionJurada: {
                   ...declaration,
-                  cedula: event.target.value,
+                  cedula: (()=>{const d=event.target.value.replace(/\D/g,'').slice(0,9);return [d.slice(0,1),d.slice(1,5),d.slice(5)].filter(Boolean).join('-');})(),
                 },
               })
             }
@@ -3224,7 +3199,7 @@ export function FormWizardIan({
           <span className="field-label">
             Firma de la persona investigadora coordinadora
           </span>
-          <input
+          <FormInput
             aria-label="Firma de la persona investigadora coordinadora"
             className="input"
             maxLength={150}
@@ -3247,7 +3222,7 @@ export function FormWizardIan({
         <label
           className={`radio-choice${declaration.acepta ? " selected" : ""}`}
         >
-          <input
+          <FormInput
             type="checkbox"
             checked={declaration.acepta}
             onChange={(event) =>

@@ -19,4 +19,13 @@ export function validarComplemento(name:string,value:unknown){
   for(const [key,child] of Object.entries(v)){if(['__proto__','prototype','constructor'].includes(key))throw new HttpError(400,'Clave complementaria inválida');visit(child,depth+1);}
  }
  visit(value,0);
+ const raw=value as Record<string,unknown>;
+ if(name==='formularioDeclaracion'){
+  const d=raw.declaracionJurada as {cedula?:string}|undefined;
+  if(d?.cedula&&!/^[1-9]-\d{4}-\d{4}$/.test(d.cedula))throw new HttpError(400,'Número de cédula: use X-XXXX-XXXX, nueve dígitos y primer dígito distinto de cero.');
+ }
+ if(['formularioDivulgacion','formularioHojaRuta','formularioEtica'].includes(name)){
+  const visitBounded=(v:unknown)=>{if(typeof v==='string'&&v.length>5000)throw new HttpError(400,'Cada campo de divulgación, hoja de ruta o ética admite hasta 5000 caracteres.');if(v&&typeof v==='object')Object.values(v).forEach(visitBounded);};visitBounded(value);
+ }
+ if(name==='formularioObjetivos'&&Array.isArray(raw.objetivosEspecificos)&&raw.objetivosEspecificos.some((o:{descripcion?:string})=>String(o.descripcion??'').trim().split(/\s+/u).filter(Boolean).length>120))throw new HttpError(400,'Cada objetivo específico admite hasta 120 palabras en el formulario.');
 }

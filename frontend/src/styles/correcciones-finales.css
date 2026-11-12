@@ -55,3 +55,18 @@
 
 .calendar-picker-control { position: relative; }
 .calendar-picker-native { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.wizard-line-steps button.step-complete .wizard-line-index { color: #17643c; background: #ddf2e5; }
+.wizard-line-steps button.step-error .wizard-line-index,
+.wizard-line-steps button.step-correction .wizard-line-index { color: #9c2431; background: #fce4e6; }
+.wizard-line-steps button.step-error strong,
+.wizard-line-steps button.step-correction strong { text-decoration: underline; text-decoration-color: #b92f40; }
+.correction-guide { border-left: 4px solid #b92f40; padding: 14px; background: #fff5f5; }
+.wizard-readonly button:not([aria-expanded]) { display: none; }
+.wizard-body .input,.wizard-body p,.wizard-body .field-label { font-size: inherit; }
+.proposal-review-sections .collapsible-block { border: 1px solid var(--border,#ccd2d8); border-radius: 8px; padding: 12px; }
+.radio-choice .radio-dot { pointer-events: none; }
+.radio-choice { scroll-margin-top: 95px; }
+.radio-choice input { scroll-margin-top: 100px; }
+.wizard-index > summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
+.question-block[aria-invalid="true"] { border-left: 3px solid #b92f40; padding-left: 12px; }

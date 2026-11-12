@@ -9,6 +9,8 @@ import {
 
 type Props = {
   steps: readonly string[];
+  states?: string[];
+  markedSteps?:number[];
   step: number;
   onSelect: (index: number) => void;
   /** false = paso futuro bloqueado hasta completar anteriores */
@@ -37,7 +39,7 @@ export function WizardLineSteps({
   step,
   onSelect,
   canSelect,
-  onBlockedSelect,
+  onBlockedSelect, states, markedSteps,
 }: Props) {
   const navRef = useRef<HTMLElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -104,7 +106,9 @@ export function WizardLineSteps({
       {steps.map((label, i) => {
         const p = prox[i] ?? 0;
         const isActive = i === step;
-        const isDone = i < step;
+        const isDone = states?states[i]==='complete':i<step;
+        const isError=states?.[i]==='error';
+        const correction=markedSteps?.includes(i);
         const tick =
           isActive || isDone
             ? TICK_MAX
@@ -112,7 +116,7 @@ export function WizardLineSteps({
         const shift = isActive ? MAX_SHIFT * 0.45 : p * MAX_SHIFT;
         const allowed = canSelect ? canSelect(i) : true;
         const status =
-          isActive
+          isError ? "Revise los errores" : correction ? "Requiere corrección" : isActive
             ? "Paso actual"
             : isDone
               ? "Completado"
@@ -132,6 +136,7 @@ export function WizardLineSteps({
             className={[
               isActive ? "active" : isDone ? "done" : undefined,
               !allowed ? "blocked" : undefined,
+              isError?"step-error":undefined, isDone?"step-complete":undefined,correction?"step-correction":undefined,
             ]
               .filter(Boolean)
               .join(" ")}

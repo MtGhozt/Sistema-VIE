@@ -1,6 +1,6 @@
 # Persona Investigadora Coordinadora · revisión final
 
-**Estado:** implementado y validado técnicamente; pendiente del intercambio de pruebas y aceptación del usuario. **VIE-Publicación:** aceptado por el usuario antes de iniciar esta revisión. No se extiende esa aceptación a este rol.
+**Estado:** aceptado por el usuario el 12/11/2026; solo se reabre ante nuevos errores. **VIE-Publicación:** aceptado por el usuario antes de iniciar esta revisión. No se extiende esa aceptación a este rol.
 
 ## Hallazgos y sustento
 
@@ -46,14 +46,14 @@
 
 ## Validación manual del usuario
 
-- [ ] Crear un borrador; revisar fechas, errores, colores y navegación.
-- [ ] Editar equipo externo y nombramientos; guardar y recargar.
-- [ ] Probar horas enteras, negativas y decimales; revisar explicación CONS.
-- [ ] Probar actividad de 0,07 y rechazar una actividad excesiva en un proyecto de pocos días.
-- [ ] Revisar límites, barras azules y opciones de productos.
-- [ ] Abrir/cerrar secciones del expediente y de revisión final; cambiar tamaño de letra.
-- [ ] Corregir problema/objetivos de una devolución, guardar respuesta, recargar y reenviar a la misma instancia.
-- [ ] Ejecutar cargador voluntario; revisar borrador, evaluación, aval y resoluciones simuladas.
+- [x] Crear un borrador; revisar fechas, errores, colores y navegación.
+- [x] Editar equipo externo y nombramientos; guardar y recargar.
+- [x] Probar horas enteras, negativas y decimales; revisar explicación CONS.
+- [x] Probar actividad de 0,07 y rechazar una actividad excesiva en un proyecto de pocos días.
+- [x] Revisar límites, barras azules y opciones de productos.
+- [x] Abrir/cerrar secciones del expediente y de revisión final; cambiar tamaño de letra.
+- [x] Corregir problema/objetivos de una devolución, guardar respuesta, recargar y reenviar a la misma instancia.
+- [x] Ejecutar cargador voluntario; revisar borrador, evaluación, aval y resoluciones simuladas.
 
 ## Validación técnica y evidencias
 
@@ -82,3 +82,7 @@ Se reutiliza la columna `propuesta_subsanacion.respuesta` para guardar el texto 
 ## Segunda ronda · 12/11/2026
 
 [Ajustes de índice, equipo, calendarios y confirmación de correcciones](AJUSTES-INDICE-EQUIPO-Y-PRODUCTOS.md). Aclara nombramiento obligatorio al avanzar/enviar, CONS editable y azul para corrección guardada. Sustituye la deshabilitación del campo CONS descrita en la primera entrega.
+
+## Aceptación del perfil
+
+**12/11/2026:** el usuario completó la revisión manual y dio por listo el perfil Persona Investigadora Coordinadora. Se reabre únicamente si se detecta un error posterior. Esta aceptación incluye la segunda ronda de índice, equipo y productos; no implica aceptación de los perfiles siguientes.

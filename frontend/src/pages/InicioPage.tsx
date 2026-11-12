@@ -1,3 +1,4 @@
+import {fetchResumenVinculacion,estadosPi,type ResumenVinculacion} from "../api/vinculacion";
 import {closingSoon,dateLabel} from "../data/convocatoriaUi";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -547,10 +548,14 @@ function RoleHome({
   );
 
   const isViePublicacion = role === "vie_publicacion";
+  const isVinculacion=role==='vinculacion';
+  const [piSummary,setPiSummary]=useState<ResumenVinculacion|null>(null);
+  const [piError,setPiError]=useState('');const [piRetry,setPiRetry]=useState(0);
+  useEffect(()=>{if(!isVinculacion)return;let active=true;setPiSummary(null);setPiError('');fetchResumenVinculacion().then(data=>{if(active)setPiSummary(data);}).catch(e=>{if(active)setPiError(e.message);});return()=>{active=false;};},[isVinculacion,piRetry,sessionRole]);
   const isEvalRole = EVAL_ROLES.includes(role);
 
   useEffect(() => {
-    if (!isEvalRole) {
+    if (!isEvalRole||isVinculacion) {
       setBandejaItems([]);
       return;
     }
@@ -568,11 +573,12 @@ function RoleHome({
     return () => {
       cancelled = true;
     };
-  }, [isEvalRole, role, sessionRole]);
+  }, [isEvalRole, role, sessionRole,isVinculacion]);
 
   const statEntries = useMemo(() => {
     return home.stats.map(([label]) => {
-      let value = 0;
+      let value:number|string = 0;
+      if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;return {label,value:piError?"—":piSummary&&state?piSummary.conteos[state]:"…"};}
       if (isViePublicacion) {
         value = convocatoriaStatValue(label, convocatorias);
       } else if (isEvalRole) {
@@ -580,7 +586,7 @@ function RoleHome({
       }
       return { label, value };
     });
-  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems]);
+  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems,isVinculacion,piSummary,piError]);
 
   const vieTasks = useMemo(() => {
     if (!isViePublicacion) return [];
@@ -598,6 +604,7 @@ function RoleHome({
 
   /** Pendientes reales desde bandeja API (sin lista demo alambrada). */
   const pendingTasks = useMemo(() => {
+    if(isVinculacion)return (piSummary?.pendientes??[]).map(item=>({id:item.id,title:item.titulo,status:item.estadoPiLabel??'',meta:`${item.codigo} · Enviada ${dateLabel(item.fechaEnvio).replaceAll('-','/')} · ${item.escuela}`,path:`/historico/${encodeURIComponent(item.codigo)}`}));
     if (isViePublicacion || !isEvalRole) return [];
     return [...bandejaItems]
       .sort((a, b) => {
@@ -613,9 +620,10 @@ function RoleHome({
         meta: `${item.codigo} · ${item.escuela}`,
         path: `/evaluaciones?propuesta=${item.id}`,
       }));
-  }, [isViePublicacion, isEvalRole, bandejaItems]);
+  }, [isViePublicacion, isEvalRole, bandejaItems,isVinculacion,piSummary]);
 
   function statNavigate(label: string) {
+    if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;navigate('/historico'+(state?'?pi='+state:''));return;}
     if (isViePublicacion) {
       navigate(convocatoriaStatPath(label));
       return;
@@ -632,8 +640,8 @@ function RoleHome({
           <p>{home.description}</p>
         </div>
         <div className="page-actions">
-          <Link to={cta.path} className="btn btn-primary">
-            {cta.label}
+          <Link to={isVinculacion?"/historico?pi=pendiente":cta.path} className="btn btn-primary">
+            {isVinculacion?"Consultar expedientes PI":cta.label}
           </Link>
         </div>
       </header>
@@ -655,17 +663,18 @@ function RoleHome({
         ))}
       </section>
 
+      {isVinculacion&&piError&&<div className="card feedback-error" role="alert">No se pudieron consultar los registros de PI: {piError}<button className="btn btn-secondary" onClick={()=>setPiRetry(v=>v+1)}>Reintentar consulta</button></div>}
       <div className="dashboard-grid">
         <article className="card">
           <div className="section-title">
             <div>
-              <h2>{isViePublicacion?"Convocatorias próximas a cerrar":"Pendientes prioritarios"}</h2>
+              <h2>{isViePublicacion?"Convocatorias próximas a cerrar":isVinculacion?"Pendientes de PI más antiguos":"Pendientes prioritarios"}</h2>
               <p>
-                {isViePublicacion?"Publicadas con cierre en los próximos 30 días, de la fecha más cercana a la más lejana.":"Tareas que requieren atención según la responsabilidad institucional actual."}
+                {isVinculacion?piSummary?.criterio??"Ordenados por mayor antigüedad desde el envío.":isViePublicacion?"Publicadas con cierre en los próximos 30 días, de la fecha más cercana a la más lejana.":"Tareas que requieren atención según la responsabilidad institucional actual."}
               </p>
             </div>
           </div>
-          <div className="task-list">
+          <div className="task-list">{isVinculacion&&!piSummary&&!piError&&<p role="status">Consultando pendientes de PI…</p>}
             {isViePublicacion &&
               vieTasks.map((task) => (
                 <button
@@ -708,7 +717,7 @@ function RoleHome({
                 <span>Ninguna convocatoria publicada cierra en los próximos 30 días.</span>
               </div>
             )}
-            {!isViePublicacion && isEvalRole && pendingTasks.length === 0 && (
+            {!isViePublicacion && isEvalRole && pendingTasks.length === 0 && (!isVinculacion||Boolean(piSummary)) && (
               <div className="empty-state small">
                 <strong>Sin pendientes</strong>
                 <span>No hay expedientes en su bandeja en este momento.</span>
@@ -732,7 +741,7 @@ function RoleHome({
             <IconChevron size={17} />
           </button>
           <button type="button" onClick={() => navigate(cta.path)}>
-            <span>{cta.label}</span>
+            <span>{isVinculacion?"Consultar expedientes PI":cta.label}</span>
             <IconChevron size={17} />
           </button>
         </article>

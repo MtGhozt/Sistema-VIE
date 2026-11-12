@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate,useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import {
   fetchEvaluacionBandeja,
@@ -132,6 +132,7 @@ type BandejaEntry = {
 export function EvaluacionesPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
+  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");
   const { showToast } = useToast();
   const [bandeja, setBandeja] = useState<BandejaEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState("");
@@ -147,12 +148,14 @@ export function EvaluacionesPage() {
     setLoading(true);
     setBandejaNote(null);
     try {
-      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined);
+      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested);
       const entries: BandejaEntry[] = res.items.map((item) => ({
         key: item.codigo, numericId: item.id, demo: bandejaToDemoProposal(item), api: item,
       }));
       setBandeja(entries);
-      setSelectedKey((prev) => entries.some((e) => e.key === prev) ? prev : (entries[0]?.key ?? ""));
+      const target=requested?entries.find(e=>String(e.numericId)===requested||e.key===requested):undefined;
+      if(requested&&!target){setSelectedKey('');setBandejaNote('El expediente solicitado no está disponible para evaluar en esta bandeja. Consulte su registro en el histórico.');}
+      else setSelectedKey(prev=>target?.key??(entries.some(e=>e.key===prev)?prev:entries[0]?.key??''));
     } catch (err) {
       setBandeja([]);
       setSelectedKey("");
@@ -161,14 +164,14 @@ export function EvaluacionesPage() {
     } finally {
       setLoading(false);
     }
-  }, [session, role]);
+  }, [session, role,requested]);
 
   useEffect(() => {
     void loadBandeja();
   }, [loadBandeja, role]);
 
   const selected = useMemo(
-    () => bandeja.find((e) => e.key === selectedKey) ?? bandeja[0],
+    () => bandeja.find((e) => e.key === selectedKey),
     [bandeja, selectedKey],
   );
 
@@ -208,6 +211,9 @@ export function EvaluacionesPage() {
         payload,
       );
       showToast(res.message || ACTION_TOAST[action] || "Acción registrada.", "success");
+      if(role==='vinculacion'&&['pi','pi-not-required'].includes(action)){
+        navigate(`/historico/${encodeURIComponent(selected.key)}`,{state:{returnTo:'/historico?pi='+(action==='pi'?'emitido':'no_requerido')}});return true;
+      }
       if (res.propuesta) {
         const mapped = bandejaToDemoProposal(res.propuesta);
         setBandeja((prev) =>
@@ -298,7 +304,7 @@ export function EvaluacionesPage() {
         <h1 className="sr-only">{title}</h1>
         <strong>{bandejaNote ? "No se pudo consultar la bandeja" : "No hay propuestas disponibles"}</strong>
         {bandejaNote && <p role="alert">{bandejaNote}</p>}
-        <button type="button" className="btn btn-secondary" onClick={() => void loadBandeja()}>Actualizar bandeja</button>
+        <button type="button" className="btn btn-secondary" onClick={() => void loadBandeja()}>Actualizar bandeja</button>{role==="vinculacion"&&<Link className="btn btn-secondary" to="/historico">Consultar histórico de PI</Link>}
         <p className="muted">
           Cuando una investigadora envíe una propuesta, aparecerá aquí según la
           etapa del flujo.
@@ -336,7 +342,7 @@ export function EvaluacionesPage() {
               <select
                 className="input"
                 value={selected.key}
-                onChange={(e) => setSelectedKey(e.target.value)}
+                onChange={e=>{setSelectedKey(e.target.value);const item=bandeja.find(p=>p.key===e.target.value);if(item){const params=new URLSearchParams(search);params.set("propuesta",String(item.numericId));setSearch(params,{replace:true});}}}
                 aria-label="Expediente activo"
                 disabled={busy}
               >
@@ -375,7 +381,7 @@ export function EvaluacionesPage() {
                 <select
                   className="input"
                   value={selected.key}
-                  onChange={(e) => setSelectedKey(e.target.value)}
+                  onChange={e=>{setSelectedKey(e.target.value);const item=bandeja.find(p=>p.key===e.target.value);if(item){const params=new URLSearchParams(search);params.set("propuesta",String(item.numericId));setSearch(params,{replace:true});}}}
                   aria-label="Expediente activo"
                   disabled={busy}
                 >

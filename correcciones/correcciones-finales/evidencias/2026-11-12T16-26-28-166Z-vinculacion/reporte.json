@@ -1,0 +1,81 @@
+{
+  "run": "2026-11-12T16-26-28-166Z",
+  "capturas": false,
+  "fixtures": [
+    1383,
+    1384,
+    1385,
+    1386,
+    1387,
+    1388,
+    1389
+  ],
+  "results": [
+    {
+      "name": "En revisión es un registro persistido, idempotente y sin avanzar el circuito",
+      "status": "PASA"
+    },
+    {
+      "name": "Estados PI distinguen declaración, certificación, revisión y dictamen emitido",
+      "status": "PASA"
+    },
+    {
+      "name": "Indicadores y filtros usan el mismo ámbito y todos los registros, sin límite de bandeja",
+      "status": "PASA"
+    },
+    {
+      "name": "Permisos: borradores y otra escuela no se muestran; otros roles no inician PI",
+      "status": "PASA"
+    },
+    {
+      "name": "Registros emitidos/certificados no se reabren",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades: pendientes reales más antiguos; excluye decisiones PI cerradas",
+      "status": "PASA"
+    },
+    {
+      "name": "Cuatro tarjetas llevan al histórico filtrado y muestran conteos reales",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades de Inicio muestran la razón y abren el expediente consultado",
+      "status": "PASA"
+    },
+    {
+      "name": "Filtros desplegables de PI se conservan al recargar y limpiar individualmente",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico abre pantalla completa sin diálogo, con contenido de propuesta y registro PI",
+      "status": "PASA"
+    },
+    {
+      "name": "Lectura: ampliar ancho y letra, cambiar sección y consultar en móvil",
+      "status": "FALLA",
+      "detail": "{\"width\":459,\"viewport\":390,\"overflow\":[{\"tag\":\"DIV\",\"cls\":\"page-actions\",\"width\":293.0625},{\"tag\":\"A\",\"cls\":\"btn btn-primary\",\"width\":205.296875}]}"
+    },
+    {
+      "name": "Enlace a Evaluaciones selecciona el ID correcto y no incluye expediente lateral pequeño",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio explícito de revisión persiste sin emitir y sin perder el formulario al comenzar",
+      "status": "PASA"
+    },
+    {
+      "name": "Emisión vuelve a la consulta completa y actualiza histórico y conteo",
+      "status": "PASA"
+    },
+    {
+      "name": "Enlace inválido/cerrado no selecciona por defecto otro expediente",
+      "status": "PASA"
+    },
+    {
+      "name": "Fallo de consulta informa error sin inventar pendientes ni conteos",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

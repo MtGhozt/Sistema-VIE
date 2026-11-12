@@ -86,3 +86,26 @@
 .correction-guide .correction-saved { background: #dfeeff; color: #124a7d; border: 1px solid #85b6e4; }
 .correction-guide .correction-pending { background: #fbe5e7; color: #8c2031; border: 1px solid #d59ca5; }
 @media(max-width:600px) { .appointment-dates { grid-template-columns: minmax(0,1fr); } }
+
+.pi-evaluation-workspace { display: grid; gap: 20px; max-width: 1200px; margin-inline: auto; }
+.pi-review-link { display: grid; gap: 12px; justify-items: start; }
+.pi-record-review { margin-block: 20px; font-size: 1rem; }
+.pi-record-fields { display: grid; gap: 18px; }
+.pi-record-fields dt { font-weight: 700; margin-bottom: 6px; }
+.pi-record-fields dd { margin: 0; overflow-wrap: anywhere; }
+.preserve-lines { white-space: pre-wrap; overflow-wrap: anywhere; }
+.expediente-expanded { grid-template-columns: minmax(0,1fr) !important; }
+.expediente-expanded > .wizard-sidebar { display: none !important; }
+.pi-expediente,.pi-expediente .wizard-card,.pi-expediente .proposal-status-head > div { min-width: 0; }
+.pi-expediente .proposal-status-head strong { overflow-wrap: anywhere; }
+.pi-expediente .action-row { flex-wrap: wrap; }
+.pi-expediente .action-row > * { min-width: 0; max-width: 100%; }
+.pi-expediente select { min-width: 0; max-width: 100%; }
+.pi-expediente .page-actions { min-width: 0; flex-wrap: wrap; }
+.pi-expediente .page-actions > * { min-width: 0; max-width: 100%; white-space: normal; }
+.pi-evaluation-workspace .field-label { font-size: 1rem; }
+@media(max-width:600px) {
+ .pi-expediente .page-header { flex-direction: column; align-items: stretch; }
+ .pi-expediente .page-header > div { min-width: 0; }
+ .pi-expediente .proposal-status-head { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+}

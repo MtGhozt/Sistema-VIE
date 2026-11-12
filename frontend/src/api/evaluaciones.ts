@@ -86,8 +86,9 @@ export function postEvaluacionIA(idPropuesta: number) {
   );
 }
 
-export function fetchEvaluacionBandeja(view?: string) {
-  return apiJson<EvaluacionBandejaResponse>(`/api/evaluaciones/bandeja${view ? `?vista=${encodeURIComponent(view)}` : ""}`);
+export function fetchEvaluacionBandeja(view?: string, propuesta?:string|null) {
+  const params=new URLSearchParams();if(view)params.set("vista",view);if(propuesta)params.set("propuesta",propuesta);
+  return apiJson<EvaluacionBandejaResponse>(`/api/evaluaciones/bandeja${params.size?"?"+params.toString():""}`);
 }
 
 export function postEvaluacionAccion(

@@ -1,6 +1,6 @@
 # Investigador · índice, equipo y confirmación de correcciones
 
-**Fecha:** 12/11/2026. Segunda ronda de observaciones del usuario. Pendiente de aceptación manual; no cambia la aceptación de VIE-Publicación.
+**Fecha:** 12/11/2026. Segunda ronda aceptada por el usuario el 12/11/2026; no cambia la aceptación de VIE-Publicación.
 
 ## Cambios y fundamento
 
@@ -55,11 +55,11 @@ Se conservan los intentos anteriores como trazabilidad: uno no pudo conectar por
 
 ## Revisión manual
 
-- [ ] Avanzar entre pasos; ver botones verdes, actual blanco y progreso por completitud.
-- [ ] Hacer scroll hasta Documentación/Revisión con mouse y teclado.
-- [ ] Editar CONS y comprobar su guardado, sin confundirlo con obligatoriedad para otros tipos de horas.
-- [ ] Probar ambos calendarios del nombramiento y un fin anterior al inicio.
-- [ ] Guardar iniciales y nombramiento, recargar y comprobarlos.
-- [ ] Corregir una de dos secciones solicitadas: una azul y la otra roja; volver a editar la azul y comprobar que retorna a rojo.
-- [ ] Intentar guardar una corrección inválida: conservar los datos previos y mostrar el error.
-- [ ] Revisar opciones de productos y el requisito de publicación de la opción 2 tecnológica.
+- [x] Avanzar entre pasos; ver botones verdes, actual blanco y progreso por completitud.
+- [x] Hacer scroll hasta Documentación/Revisión con mouse y teclado.
+- [x] Editar CONS y comprobar su guardado, sin confundirlo con obligatoriedad para otros tipos de horas.
+- [x] Probar ambos calendarios del nombramiento y un fin anterior al inicio.
+- [x] Guardar iniciales y nombramiento, recargar y comprobarlos.
+- [x] Corregir una de dos secciones solicitadas: una azul y la otra roja; volver a editar la azul y comprobar que retorna a rojo.
+- [x] Intentar guardar una corrección inválida: conservar los datos previos y mostrar el error.
+- [x] Revisar opciones de productos y el requisito de publicación de la opción 2 tecnológica.

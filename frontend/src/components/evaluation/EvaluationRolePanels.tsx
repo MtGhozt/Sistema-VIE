@@ -1,3 +1,6 @@
+import {Link} from "react-router-dom";
+import {ConvocatoriaDateField} from "../ConvocatoriaDateField";
+import {dateFromInput,dateLabel} from "../../data/convocatoriaUi";
 import {ConsejoReconsideracion} from "./ConsejoReconsideracion";
 import {ComiteConsolidado} from "./ComiteConsolidado";
 import seccionesSubsanacion from "../../../../shared/subsanacion-secciones.json";
@@ -66,6 +69,8 @@ export function VinculacionPanel({
   const [form, setForm] = useState({
     potencial:"",tipoActivo:"",tipoPI:"",innovacion:"",novedad:"",titularidad:"",divulgacion:"",confidencialidad:"",analisis:"",recomendaciones:"",oficio:"",fecha:"",
   });
+  const [enRevision,setEnRevision]=useState(false);
+  const [dateError,setDateError]=useState("");
   const [piEstado,setPiEstado]=useState<string|null>(null);
   const [fundamento,setFundamento]=useState("");
   const [loading, setLoading] = useState(Boolean(proposal.numericId));
@@ -73,7 +78,7 @@ export function VinculacionPanel({
   useEffect(()=>{
     if(!proposal.numericId)return;
     let active=true;
-    void apiJson<{form:typeof form|null;estado:string|null;fundamentoNoRequerido:string|null}>(`/api/evaluaciones/propuestas/${proposal.numericId}/pi`).then(data=>{if(active){if(data.form)setForm(data.form);setPiEstado(data.estado);setFundamento(data.fundamentoNoRequerido??"");}})
+    void apiJson<{form:typeof form|null;estado:string|null;fundamentoNoRequerido:string|null;enRevision?:boolean}>(`/api/evaluaciones/propuestas/${proposal.numericId}/pi`).then(data=>{if(active){if(data.form)setForm(data.form);setPiEstado(data.estado);setEnRevision(Boolean(data.enRevision));setFundamento(data.fundamentoNoRequerido??"");}})
       .catch(err=>{if(active)setLoadError(err instanceof Error?err.message:"No se pudo recuperar el dictamen");})
       .finally(()=>{if(active)setLoading(false);});
     return ()=>{active=false;};
@@ -83,8 +88,8 @@ export function VinculacionPanel({
     setForm((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div className="split-review pi-review-layout">
-      <CaseFile proposal={proposal} />
+    <div className="pi-evaluation-workspace">
+      <div className="card pi-review-link"><h2>{proposal.titulo}</h2><p>Consulte el expediente completo en una pantalla de lectura. Aquí se registra únicamente la revisión de PI.</p><Link className="btn btn-secondary" to={`/historico/${encodeURIComponent(proposal.id)}`}>Revisar expediente completo</Link></div>
       <article className="card review-panel">
         <PanelIntro
           title="Dictamen técnico de Propiedad Intelectual"
@@ -102,6 +107,8 @@ export function VinculacionPanel({
         </div>
         {loadError && <p role="alert">{loadError}</p>}
         {loading && <p role="status">Recuperando dictamen…</p>}
+        {!["emitido","no_requerido"].includes(piEstado??"")&&<p role="status">{enRevision?"En revisión de PI":"Pendiente de revisión de PI"}</p>}
+        {!enRevision&&!loading&&!loadError&&!["emitido","no_requerido"].includes(piEstado??"")&&<button type="button" className="btn btn-secondary" onClick={async()=>{if(await onAction("pi-start"))setEnRevision(true);}}>Iniciar revisión de PI</button>}
         {piEstado && <p role="status">Registro PI: {piEstado}. Las decisiones emitidas no se sobrescriben.</p>}
         <fieldset className="stack-md" disabled={loading||Boolean(loadError)||["emitido","no_requerido"].includes(piEstado??"")} style={{border:0,padding:0,margin:0,minWidth:0}}>
           {!proposal.piRequired ? <div className="stack-md"><p>La propuesta declara que no requiere dictamen. Vinculación debe certificarlo antes de que el expediente avance.</p><label className="field"><span className="field-label">Fundamento de PI no requerido</span><textarea aria-label="Fundamento de PI no requerido" className="input textarea" value={fundamento} onChange={e=>setFundamento(e.target.value)}/></label><button type="button" className="btn btn-primary" disabled={!fundamento.trim()} onClick={async()=>{if(await onAction("pi-not-required",{fundamento}))setPiEstado("no_requerido");}}>Certificar PI no requerido</button></div> : <>
@@ -174,7 +181,7 @@ export function VinculacionPanel({
             <label key={key} className="field">
               <span className="field-label">{label}</span>
               <textarea
-                className="input textarea"
+                aria-label={label} className="input textarea"
                 rows={rows}
                 value={form[key]}
                 onChange={(e) => set(key, e.target.value)}
@@ -184,26 +191,19 @@ export function VinculacionPanel({
           <div className="form-grid two-col">
             <label className="field">
               <span className="field-label">Número de oficio</span>
-              <input
+              <input aria-label="Número de oficio"
                 className="input"
                 value={form.oficio}
                 onChange={(e) => set("oficio", e.target.value)}
               />
             </label>
-            <label className="field">
-              <span className="field-label">Fecha</span>
-              <input
-                className="input"
-                type="date"
-                value={form.fecha}
-                onChange={(e) => set("fecha", e.target.value)}
-              />
-            </label>
+            <ConvocatoriaDateField id="fecha-pi" label="Fecha del dictamen (día/mes/año)" value={/^\d{4}-/.test(form.fecha)?dateLabel(form.fecha):form.fecha} onChange={v=>{set('fecha',dateFromInput(v)??v);setDateError('');}} error={dateError}/>
+
           </div>
           <button
             type="button"
             className="btn btn-primary"
-            onClick={async () => {if(await onAction("pi", form))setPiEstado("emitido");}}
+            onClick={async () => {if(form.fecha&&!/^\d{4}-\d{2}-\d{2}$/.test(form.fecha)){setDateError("Indique una fecha real en DD/MM/YYYY.");return;}if(await onAction("pi", form))setPiEstado("emitido");}}
           >
             Emitir y registrar dictamen
           </button></>}

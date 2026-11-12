@@ -1,3 +1,5 @@
+import {ESTADO_PI_SQL,ESTADOS_PI} from "../estadoPi.js";
+import {HttpError} from "../middleware/HttpError.js";
 import { alcancePropuestas } from "../alcancePropuestas.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
@@ -43,6 +45,7 @@ const MODALIDAD_LABEL: Record<string, string> = {
 type HistoricoRow = {
   id_propuesta: number;
   codigo: string;
+  estado_pi:keyof typeof ESTADOS_PI;
   titulo: string;
   modalidad: string;modalidad_nombre:string|null;
   estado_actual: string;
@@ -63,6 +66,7 @@ const SELECT_BASE = `
   SELECT
     p.id_propuesta,
     p.codigo,
+    ${ESTADO_PI_SQL} AS estado_pi,
     p.titulo,
     p.modalidad,mc.nombre AS modalidad_nombre,
     p.estado_actual,
@@ -107,6 +111,7 @@ function buildWhere(filters: {
   linea: string;
   estado: string;
   anio: string;
+  pi:string;
 }) {
   const clauses: string[] = [];
   const values: unknown[] = [];
@@ -143,6 +148,7 @@ function buildWhere(filters: {
       `%${filters.linea}%`,
     );
   }
+  if(filters.pi){push(`(${ESTADO_PI_SQL}) = ?`,filters.pi);clauses.push("p.estado_actual<>'borrador'");}
   if (filters.estado) {
     push("p.estado_actual = ?", filters.estado);
   }
@@ -171,6 +177,7 @@ function mapRow(row: HistoricoRow) {
 
   return {
     id: row.id_propuesta,
+    estadoPi:row.estado_pi,estadoPiLabel:ESTADOS_PI[row.estado_pi],
     codigo: row.codigo,
     titulo: row.titulo,
     modalidad: row.modalidad,
@@ -200,8 +207,10 @@ historicoRouter.get(
       linea: String(q.linea ?? "").trim(),
       estado: String(q.estado ?? "").trim(),
       anio: String(q.anio ?? "").trim(),
+      pi:String(q.pi??"").trim(),
     };
 
+    if(filtros.pi&&!Object.hasOwn(ESTADOS_PI,filtros.pi))throw new HttpError(400,"Seleccione un estado de PI válido.");
     const { where, values } = buildWhere(filtros);
     const scope = alcancePropuestas(req.demoAuth!,values.length+1);
     where.push(scope.sql);
@@ -229,6 +238,7 @@ historicoRouter.get(
       total: rows.rows.length,
       filtrosAplicados: filtros,
       opciones: {
+        estadosPi:Object.entries(ESTADOS_PI).map(([valor,label])=>({valor,label})),
         escuelas: escuelas.rows,
         lineas: lineas.rows.map((l) => l.nombre),
         estados: estados.rows.map((e) => ({
@@ -240,3 +250,12 @@ historicoRouter.get(
     });
   }),
 );
+
+/** Indicadores de Vinculación: mismo estado y ámbito que el histórico, sin LIMIT de bandeja. */
+historicoRouter.get('/vinculacion/resumen',requireDemoAuth,asyncHandler(async(req,res)=>{
+ if(!['vinculacion','admin'].includes(req.demoAuth!.role??''))throw new HttpError(403,'Solo Vinculación o administración consulta estos indicadores.');
+ const scope=alcancePropuestas(req.demoAuth!);
+ const counts=await query<{estado:keyof typeof ESTADOS_PI;cantidad:string}>(`SELECT (${ESTADO_PI_SQL}) AS estado,count(*) AS cantidad FROM propuesta p LEFT JOIN dictamen_pi dpi ON dpi.id_propuesta=p.id_propuesta WHERE ${scope.sql} AND p.estado_actual<>'borrador' GROUP BY 1`,scope.params);
+ const pendientes=await query<HistoricoRow>(`${SELECT_BASE} WHERE ${scope.sql} AND p.estado_actual IN ('enviada','en_evaluacion','dictaminada','avalada') AND p.etapa_flujo BETWEEN 1 AND 5 AND (${ESTADO_PI_SQL}) IN ('pendiente','en_revision') ORDER BY p.fecha_envio ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params);
+ res.json({conteos:Object.fromEntries(Object.keys(ESTADOS_PI).map(key=>[key,Number(counts.rows.find(r=>r.estado===key)?.cantidad??0)])),pendientes:pendientes.rows.map(mapRow),criterio:'Pendientes de PI con mayor antigüedad desde el envío; no incluye expedientes cerrados ni en subsanación.'});
+}));

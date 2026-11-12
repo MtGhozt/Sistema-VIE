@@ -1,3 +1,4 @@
+import {VinculacionResumen} from "../components/evaluation/VinculacionResumen";
 import {toIan} from "../data/formWizardAdapter";
 import {proposalIssues} from "../data/proposalIssues";
 import seccionesSubsanacion from "../../../shared/subsanacion-secciones.json";
@@ -9,7 +10,7 @@ import { WizardLineSteps } from "../components/WizardLineSteps";
 import { apiJson } from "../api/client";
 import { labelEstado } from "../data/proposalStates";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams,useLocation } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { fetchConvocatorias, type Convocatoria } from "../api/convocatorias";
 import {
@@ -29,10 +30,16 @@ import { FORM_META } from "../data/formMeta";
 import { hydrateFormWizardFromDetalle } from "../data/hydrateFormWizard";
 
 export function PropuestaDetallePage() {
-  const { id } = useParams();
-  const proposalId = Number(id);
+  const { id,codigo } = useParams();
+  const reference=id??codigo;
+  const proposalId = Number(reference);
+  const location=useLocation();
   const navigate = useNavigate();
   const { session } = useAuth();
+  const isVinculacion=session?.viewRole==="vinculacion";
+  const [expandedReading,setExpandedReading]=useState(false);
+  const savedReturn=(location.state as {returnTo?:string}|null)?.returnTo;
+  const backTo=isVinculacion?(savedReturn&&/^\/historico(?:\?|$)/.test(savedReturn)?savedReturn:"/historico"):"/propuestas";
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [form, setForm] = useState<FormWizardState>(DEFAULT_FORM_WIZARD_STATE);
@@ -47,7 +54,7 @@ export function PropuestaDetallePage() {
   const previousStep = useRef(step);
 
   const canEditRole =
-    session?.role === "investigador" || session?.role === "admin";
+    !isVinculacion&&(session?.role === "investigador" || session?.role === "admin");
 
   async function onEnviarBorrador() {
     if (!detail || detail.estadoActual !== "borrador") return;
@@ -90,7 +97,7 @@ export function PropuestaDetallePage() {
         const target =
           Number.isSafeInteger(proposalId) && proposalId > 0
             ? proposalId
-            : (await fetchPropuestas()).find((p) => p.codigo === id)?.id;
+            : (await fetchPropuestas()).find((p) => p.codigo === reference)?.id;
         if (!target) throw new Error("Expediente no disponible en su ámbito");
         const d = await fetchPropuesta(target);
         setDetail(d);
@@ -102,12 +109,12 @@ export function PropuestaDetallePage() {
           err instanceof ApiError ? err.message : "No se pudo cargar",
           "error",
         );
-        navigate("/propuestas", { replace: true });
+        navigate(backTo, { replace: true });
       } finally {
         setLoading(false);
       }
     })();
-  }, [id, proposalId, navigate, showToast]);
+  }, [reference, proposalId, navigate, showToast,backTo]);
 
   if (loading || !detail) {
     return (
@@ -140,9 +147,9 @@ export function PropuestaDetallePage() {
   );
 
   return (
-    <>
+    <div className={isVinculacion?"pi-expediente":undefined}>
       <div className="breadcrumbs">
-        <Link to="/propuestas">Propuestas</Link>
+        <Link to={backTo}>{isVinculacion?"Histórico":"Propuestas"}</Link>
         <span>/</span>
         <span>{detail.codigo}</span>
       </div>
@@ -156,9 +163,10 @@ export function PropuestaDetallePage() {
           </p>
         </div>
         <div className="page-actions">
-          <Link to="/propuestas" className="btn btn-secondary">
+          <Link to={backTo} className="btn btn-secondary">
             Volver
           </Link>
+          {isVinculacion&&!detail.piAcreditada&&detail.etapaFlujo>=1&&detail.etapaFlujo<=5&&["enviada","en_evaluacion","dictaminada","avalada"].includes(detail.estadoActual)&&<Link className="btn btn-primary" to={`/evaluaciones?propuesta=${detail.id}`}>Realizar evaluación de PI</Link>}
           {canEdit && (isDraft || isCorrection) && (
             <Link
               to={`/propuestas/nueva?edit=${detail.id}`}
@@ -260,7 +268,7 @@ export function PropuestaDetallePage() {
             <strong>
               {detail.requiereDictamenPi
                 ? "Requiere dictamen"
-                : "No requerida"}
+                : detail.piAcreditada?"No requerido certificado":"No requerido declarado; pendiente de certificación"}
             </strong>
           </div>
         </div>
@@ -275,7 +283,8 @@ export function PropuestaDetallePage() {
         />
       </section>
 
-      <div className="wizard-layout wizard-layout-wide">
+      {isVinculacion&&<VinculacionResumen id={detail.id}/>}
+      <div className={`wizard-layout wizard-layout-wide${expandedReading?" expediente-expanded":""}`}>
         <aside className="wizard-sidebar">
           <div className="wizard-progress-head">
             <span>Progreso</span>
@@ -322,7 +331,7 @@ export function PropuestaDetallePage() {
             </div>
           </div>
 
-          <div className="action-row" aria-label="Tamaño del texto"><button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
+          <div className="action-row" aria-label="Tamaño del texto">{isVinculacion&&<><button type="button" className="btn btn-secondary" onClick={()=>setExpandedReading(v=>!v)} aria-pressed={expandedReading}>{expandedReading?"Mostrar índice lateral":"Ampliar área de lectura"}</button><label className="field"><span className="field-label">Sección del expediente</span><select aria-label="Sección del expediente" className="input" value={step} onChange={e=>setStep(Number(e.target.value))}>{FORM_WIZARD_STEPS.map((name,i)=><option key={name} value={i}>{String(i+1).padStart(2,'0')} · {name}</option>)}</select></label></>}<button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
           <div className="wizard-body" style={{fontSize}}>
             <FormWizardStepContent
               readOnly
@@ -377,6 +386,6 @@ export function PropuestaDetallePage() {
             onSaved={() => navigate("/propuestas")}
           />
         )}
-    </>
+    </div>
   );
 }

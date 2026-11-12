@@ -1,0 +1,85 @@
+{
+  "run": "2026-11-12T16-13-19-089Z",
+  "capturas": false,
+  "fixtures": [
+    1337,
+    1338,
+    1339,
+    1340,
+    1341,
+    1342,
+    1343
+  ],
+  "results": [
+    {
+      "name": "En revisión es un registro persistido, idempotente y sin avanzar el circuito",
+      "status": "PASA"
+    },
+    {
+      "name": "Estados PI distinguen declaración, certificación, revisión y dictamen emitido",
+      "status": "PASA"
+    },
+    {
+      "name": "Indicadores y filtros usan el mismo ámbito y todos los registros, sin límite de bandeja",
+      "status": "PASA"
+    },
+    {
+      "name": "Permisos: borradores y otra escuela no se muestran; otros roles no inician PI",
+      "status": "PASA"
+    },
+    {
+      "name": "Registros emitidos/certificados no se reabren",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades: pendientes reales más antiguos; excluye decisiones PI cerradas",
+      "status": "PASA"
+    },
+    {
+      "name": "Cuatro tarjetas llevan al histórico filtrado y muestran conteos reales",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades de Inicio muestran la razón y abren el expediente consultado",
+      "status": "PASA"
+    },
+    {
+      "name": "Filtros desplegables de PI se conservan al recargar y limpiar individualmente",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico abre pantalla completa sin diálogo, con contenido de propuesta y registro PI",
+      "status": "FALLA",
+      "detail": "locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Sección del expediente', { exact: true })\u001b[22m\n"
+    },
+    {
+      "name": "Lectura: ampliar ancho y letra, cambiar sección y consultar en móvil",
+      "status": "FALLA",
+      "detail": "locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Sección del expediente', { exact: true })\u001b[22m\n"
+    },
+    {
+      "name": "Enlace a Evaluaciones selecciona el ID correcto y no incluye expediente lateral pequeño",
+      "status": "FALLA",
+      "detail": "expect(locator).toHaveValue(expected) failed\n\nLocator: getByLabel('Expediente activo', { exact: true })\nExpected: \"PROP-2026-485\"\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveValue\" getByLabel('Expediente activo', { exact: true }) with timeout 5000ms\n  - waiting for getByLabel('Expediente activo', { exact: true })\n"
+    },
+    {
+      "name": "Inicio explícito de revisión persiste sin emitir y sin perder el formulario al comenzar",
+      "status": "FALLA",
+      "detail": "locator.fill: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Análisis técnico', { exact: true })\u001b[22m\n"
+    },
+    {
+      "name": "Emisión vuelve a la consulta completa y actualiza histórico y conteo",
+      "status": "FALLA",
+      "detail": "locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.pi-evaluation-workspace select').first()\u001b[22m\n"
+    },
+    {
+      "name": "Enlace inválido/cerrado no selecciona por defecto otro expediente",
+      "status": "PASA"
+    },
+    {
+      "name": "Fallo de consulta informa error sin inventar pendientes ni conteos",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

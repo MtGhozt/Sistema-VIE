@@ -150,6 +150,7 @@ const ACTION_ROLES: Record<string, Set<string>> = {
   "committee-confirm": new Set(["comite_asistente", "admin"]),
   "request-reconsideration": new Set(["investigador"]),
   "council-reconsider": new Set(["consejo", "admin"]),
+  "pi-start":new Set(["vinculacion","admin"]),
   "committee-ready": new Set(["comite_asistente", "admin"]),
   return: new Set(["comite_asistente", "gestora_vie", "admin"]),
   "pi-not-required": new Set(["vinculacion", "admin"]),
@@ -303,11 +304,16 @@ evaluacionesRouter.get(
     const scope = alcancePropuestas(req.demoAuth!,clause.params.length+1);
     if(authenticatedRole==='comite_evaluador'){scope.params.push(req.demoAuth!.userId);scope.sql+=` AND EXISTS(SELECT 1 FROM comite_miembro cm WHERE cm.id_propuesta=p.id_propuesta AND cm.id_usuario=$${clause.params.length+scope.params.length})`;}
 
+    const requestedProposal=String(req.query.propuesta??'').trim();
+    if(requestedProposal.length>120)throw new HttpError(400,'La referencia del expediente es demasiado extensa.');
+    const params=[...clause.params,...scope.params];
+    let requestedOrder='';
+    if(requestedProposal){params.push(requestedProposal);requestedOrder=`CASE WHEN p.id_propuesta::text=$${params.length} OR p.codigo=$${params.length} THEN 0 ELSE 1 END,`;}
     const result = await query<BandejaRow>(
       `${BANDEJA_SQL}${clause.sql} AND ${scope.sql}
-       ORDER BY p.fecha_envio DESC NULLS LAST, p.id_propuesta DESC
+       ORDER BY ${requestedOrder} p.fecha_envio DESC NULLS LAST, p.id_propuesta DESC
        LIMIT 100`,
-      [...clause.params,...scope.params],
+      params,
     );
     res.json({
       role,
@@ -351,7 +357,8 @@ evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, async
   const row=await query("SELECT * FROM dictamen_pi WHERE id_propuesta=$1",[id]);
   const d=row.rows[0];
   const certification=(await query("SELECT * FROM pi_certificacion_no_requerido WHERE id_propuesta=$1",[id])).rows[0];
-  res.json({estado:proposal.requiere_dictamen_pi?d?.estado??null:certification?"no_requerido":null,fundamentoNoRequerido:certification?.fundamento??null,certificadoPor:certification?.id_certificador??null,fecha:certification?.fecha_certificacion??d?.fecha_dictamen??null,form:d?{
+  const inReview=(await query("SELECT 1 FROM revision_expediente WHERE id_propuesta=$1 AND etapa='pi' AND resultado='en_revision'",[id])).rowCount;
+  res.json({enRevision:Boolean(inReview),estado:proposal.requiere_dictamen_pi?d?.estado??null:certification?"no_requerido":null,fundamentoNoRequerido:certification?.fundamento??null,certificadoPor:certification?.id_certificador??null,fecha:certification?.fecha_certificacion??d?.fecha_dictamen??null,form:d?{
     potencial:d.potencial_proteccion?"Sí":"No",innovacion:d.es_innovador?"Sí":"No",tipoActivo:d.activo_identificable??"",tipoPI:d.mecanismo_pi??"",
     novedad:d.novedad??"",titularidad:d.titularidad??"",divulgacion:d.recomendaciones_divulgacion??"",confidencialidad:d.confidencialidad??"",
     analisis:d.analisis_tecnico??"",recomendaciones:d.recomendaciones_vinculacion??"",oficio:d.numero_oficio??"",fecha:d.fecha_dictamen instanceof Date?d.fecha_dictamen.toISOString().slice(0,10):String(d.fecha_dictamen??'').slice(0,10),
@@ -506,7 +513,7 @@ evaluacionesRouter.post(
           : certification && String(certification.fundamento??"").trim() && certification.id_certificador && certification.fecha_certificacion;
         if(!valid) throw new HttpError(409,locked.rows[0].requiere_dictamen_pi?"Se requiere dictamen PI emitido antes de avanzar":"Falta certificar PI no requerido con fundamento y responsable");
       }
-      const ranges:Record<string,[number,number]>={pi:[1,5],"pi-not-required":[1,5],"committee-confirm":[2,2],"committee-ready":[1,2],"committee-score":[1,2],"send-council":[2,3],"council-approve":[3,3],"council-reject":[3,3],"communicate-aval":[3,4],"vie-checklist":[4,4],"vie-observation":[4,4],"send-cie":[4,4],"cie-approve":[5,5],"cie-reject":[5,5]};
+      const ranges:Record<string,[number,number]>={"pi-start":[1,5],pi:[1,5],"pi-not-required":[1,5],"committee-confirm":[2,2],"committee-ready":[1,2],"committee-score":[1,2],"send-council":[2,3],"council-approve":[3,3],"council-reject":[3,3],"communicate-aval":[3,4],"vie-checklist":[4,4],"vie-observation":[4,4],"send-cie":[4,4],"cie-approve":[5,5],"cie-reject":[5,5]};
       const range=ranges[action];
       if(range&&(propuesta.etapa_flujo<range[0]||propuesta.etapa_flujo>range[1])) throw new HttpError(409,"La acción no corresponde a la instancia actual del expediente");
       const instance=role==="cie" || role==="admin"&&payload.instancia==="cie"?"cie":"comite";
@@ -532,8 +539,15 @@ evaluacionesRouter.post(
           if(!fundamento) throw new HttpError(400,"El fundamento de PI no requerido es obligatorio");
           await client.query("INSERT INTO pi_certificacion_no_requerido(id_propuesta,id_certificador,fundamento) VALUES($1,$2,$3)",[id,userId,fundamento]);
           await advanceEstado(client,{idPropuesta:id,estadoAnterior:prev,estadoNuevo:propuesta.etapa_flujo<=1?"en_evaluacion":prev,etapa:Math.max(propuesta.etapa_flujo,2),userId,observacion:"PI no requerido: certificación registrada por Vinculación"});
+          await client.query("UPDATE revision_expediente SET resultado='completo',fecha_fin=NOW() WHERE id_propuesta=$1 AND etapa='pi' AND resultado='en_revision'",[id]);
           message="PI no requerido certificado con fundamento, fecha y responsable.";
           break;
+        }
+        case 'pi-start': {
+          if(certification||piRecord?.estado==='emitido'||piRecord?.estado==='no_requerido')throw new HttpError(409,'El registro PI está cerrado; no puede reabrirse.');
+          const existing=await client.query("SELECT 1 FROM revision_expediente WHERE id_propuesta=$1 AND etapa='pi' AND resultado='en_revision'",[id]);
+          if(!existing.rowCount)await client.query("INSERT INTO revision_expediente(id_propuesta,etapa,ciclo,id_revisor,resultado,fecha_inicio) SELECT $1,'pi',COALESCE(MAX(ciclo),0)+1,$2,'en_revision',NOW() FROM revision_expediente WHERE id_propuesta=$1 AND etapa='pi'",[id,userId]);
+          message='Revisión de PI iniciada. No se ha emitido dictamen ni certificado el no requerimiento.';break;
         }
         case "pi": {
           if(!locked.rows[0].requiere_dictamen_pi) throw new HttpError(409,"Registre la certificación explícita de PI no requerido");
@@ -593,6 +607,7 @@ evaluacionesRouter.post(
             userId,
             observacion: `Dictamen PI emitido (${oficio})`,
           });
+          await client.query("UPDATE revision_expediente SET resultado='completo',fecha_fin=NOW() WHERE id_propuesta=$1 AND etapa='pi' AND resultado='en_revision'",[id]);
           message = "Dictamen de PI emitido y oficio agregado al expediente.";
           break;
         }

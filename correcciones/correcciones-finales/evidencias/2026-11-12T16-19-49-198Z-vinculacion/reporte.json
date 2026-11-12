@@ -1,0 +1,84 @@
+{
+  "run": "2026-11-12T16-19-49-198Z",
+  "capturas": false,
+  "fixtures": [
+    1369,
+    1370,
+    1371,
+    1372,
+    1373,
+    1374,
+    1375
+  ],
+  "results": [
+    {
+      "name": "En revisión es un registro persistido, idempotente y sin avanzar el circuito",
+      "status": "PASA"
+    },
+    {
+      "name": "Estados PI distinguen declaración, certificación, revisión y dictamen emitido",
+      "status": "PASA"
+    },
+    {
+      "name": "Indicadores y filtros usan el mismo ámbito y todos los registros, sin límite de bandeja",
+      "status": "PASA"
+    },
+    {
+      "name": "Permisos: borradores y otra escuela no se muestran; otros roles no inician PI",
+      "status": "PASA"
+    },
+    {
+      "name": "Registros emitidos/certificados no se reabren",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades: pendientes reales más antiguos; excluye decisiones PI cerradas",
+      "status": "FALLA",
+      "detail": "Expected values to be strictly equal:\n\n1338 !== 1370\n"
+    },
+    {
+      "name": "Cuatro tarjetas llevan al histórico filtrado y muestran conteos reales",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades de Inicio muestran la razón y abren el expediente consultado",
+      "status": "FALLA",
+      "detail": "expect(locator).toContainText(expected) failed\n\nLocator: locator('article').filter({ has: getByRole('heading', { name: 'Pendientes de PI más antiguos', exact: true }) }).locator('.task-row').first()\nExpected substring: \"CV En revisión 2026-11-12T16-19-49-198Z\"\nReceived string:    \"CV En revisión 2026-11-12T16-13-19-089ZPROP-2026-486 · Enviada 01/01/1901 · Escuela de Ingeniería en ComputaciónEn revisión de PI\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"toContainText\" locator('article').filter({ has: getByRole('heading', { name: 'Pendientes de PI más antiguos', exact: true }) }).locator('.task-row').first() with timeout 5000ms\n  - waiting for locator('article').filter({ has: getByRole('heading', { name: 'Pendientes de PI más antiguos', exact: true }) }).locator('.task-row').first()\n    14 × locator resolved to <button type=\"button\" class=\"task-row\">…</button>\n       - unexpected value \"CV En revisión 2026-11-12T16-13-19-089ZPROP-2026-486 · Enviada 01/01/1901 · Escuela de Ingeniería en ComputaciónEn revisión de PI\"\n"
+    },
+    {
+      "name": "Filtros desplegables de PI se conservan al recargar y limpiar individualmente",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico abre pantalla completa sin diálogo, con contenido de propuesta y registro PI",
+      "status": "PASA"
+    },
+    {
+      "name": "Lectura: ampliar ancho y letra, cambiar sección y consultar en móvil",
+      "status": "FALLA",
+      "detail": "The expression evaluated to a falsy value:\n\n  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))\n"
+    },
+    {
+      "name": "Enlace a Evaluaciones selecciona el ID correcto y no incluye expediente lateral pequeño",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio explícito de revisión persiste sin emitir y sin perder el formulario al comenzar",
+      "status": "FALLA",
+      "detail": "expect(locator).toHaveValue(expected) failed\n\nLocator: getByLabel('Análisis técnico', { exact: true })\nExpected: \"Texto iniciado por Vinculación.\"\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveValue\" getByLabel('Análisis técnico', { exact: true }) with timeout 5000ms\n  - waiting for getByLabel('Análisis técnico', { exact: true })\n"
+    },
+    {
+      "name": "Emisión vuelve a la consulta completa y actualiza histórico y conteo",
+      "status": "PASA"
+    },
+    {
+      "name": "Enlace inválido/cerrado no selecciona por defecto otro expediente",
+      "status": "PASA"
+    },
+    {
+      "name": "Fallo de consulta informa error sin inventar pendientes ni conteos",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

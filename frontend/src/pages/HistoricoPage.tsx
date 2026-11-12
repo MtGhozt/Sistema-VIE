@@ -1,7 +1,10 @@
+import {useAuth} from "../auth/AuthContext";
+import {PropuestaDetallePage} from "./PropuestaDetallePage";
+import {estadosPi} from "../api/vinculacion";
 import { FilterGroup } from "../components/FilterGroup";
 import {dateLabel} from "../data/convocatoriaUi";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,useSearchParams,useNavigate } from "react-router-dom";
 import {
   EMPTY_HISTORICO_FILTROS,
   fetchHistorico,
@@ -104,8 +107,11 @@ function HistoricoModal({
 
 export function HistoricoPage() {
   const { codigo } = useParams();
+  const {session}=useAuth();const isVinculacion=session?.viewRole==="vinculacion";
+  const [search,setSearch]=useSearchParams();const navigate=useNavigate();
+  const fromUrl=()=>Object.fromEntries(Object.keys(EMPTY_HISTORICO_FILTROS).map(key=>[key,search.get(key)??''])) as HistoricoFiltros;
   const [filtros, setFiltros] = useState<HistoricoFiltros>(
-    EMPTY_HISTORICO_FILTROS,
+    fromUrl,
   );
   const [items, setItems] = useState<HistoricoItem[]>([]);
   const [opciones, setOpciones] = useState<HistoricoOpciones>(EMPTY_OPTIONS);
@@ -133,6 +139,8 @@ export function HistoricoPage() {
     }
   }, []);
 
+  useEffect(()=>{setFiltros(Object.fromEntries(Object.keys(EMPTY_HISTORICO_FILTROS).map(key=>[key,search.get(key)??''])) as HistoricoFiltros);},[search]);
+
   // La búsqueda por texto se difiere 300 ms para no golpear la API en cada tecla.
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -143,10 +151,10 @@ export function HistoricoPage() {
 
   // Deep-link /historico/:codigo → abre el expediente directamente.
   useEffect(() => {
-    if (!codigo) return;
+    if (!codigo||isVinculacion) return;
     const found = items.find((h) => h.codigo === codigo);
     if (found) setSelected(found);
-  }, [codigo, items]);
+  }, [codigo, items,isVinculacion]);
 
   const activos = useMemo(
     () => Object.values(filtros).filter(Boolean).length,
@@ -157,9 +165,10 @@ export function HistoricoPage() {
     key: K,
     value: HistoricoFiltros[K],
   ) {
-    setFiltros((f) => ({ ...f, [key]: value }));
+    const next=new URLSearchParams(search);if(value)next.set(key,value);else next.delete(key);setSearch(next,{replace:true});
   }
 
+  function openRecord(row:HistoricoItem){if(isVinculacion)navigate(`/historico/${encodeURIComponent(row.codigo)}`,{state:{returnTo:'/historico'+(search.toString()?'?'+search.toString():'')}});else setSelected(row);}
   return (
     <>
       <header className="page-header">
@@ -176,9 +185,9 @@ export function HistoricoPage() {
 
       <FilterPanel
         clearDisabled={activos === 0}
-        onClear={() => setFiltros(EMPTY_HISTORICO_FILTROS)}
+        onClear={() => setSearch({})}
       >
-        <div className="independent-filters">
+        <div className="independent-filters">{isVinculacion&&<FilterGroup title="Estado de PI" active={Boolean(filtros.pi)} onClear={()=>set('pi','')}><label className="field" htmlFor="filtro-pi"><span className="field-label">Estado de PI</span><select aria-label="Estado de PI" id="filtro-pi" className="input" value={filtros.pi} onChange={e=>set('pi',e.target.value)}><option value="">Todos los registros de PI</option>{estadosPi.map(s=><option key={s.valor} value={s.valor}>{s.label}</option>)}</select></label></FilterGroup>}
           <FilterGroup title="Escuela / Dependencia" active={Boolean(filtros.escuela)} onClear={()=>set("escuela","")}>
 <label className="field" htmlFor="filtro-escuela">
             <span className="field-label">Escuela / Dependencia</span>
@@ -305,7 +314,7 @@ export function HistoricoPage() {
                   <th scope="col">Persona investigadora</th>
                   <th scope="col">Línea / Temática</th>
                   <th scope="col">Año</th>
-                  <th scope="col">Estado</th>
+                  <th scope="col">{isVinculacion?"Estado de propuesta":"Estado"}</th>{isVinculacion&&<th scope="col">Estado de PI</th>}
                   <th scope="col">
                     <span className="sr-only">Acciones</span>
                   </th>
@@ -316,17 +325,17 @@ export function HistoricoPage() {
                   <tr
                     key={row.id}
                     className="clickable"
-                    onClick={() => setSelected(row)}
+                    onClick={() => openRecord(row)}
                   >
                     <td>
                       <div className="table-primary">
                         <button
                           type="button"
                           className="table-link"
-                          aria-haspopup="dialog"
+                          aria-haspopup={isVinculacion?undefined:"dialog"}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelected(row);
+                            openRecord(row);
                           }}
                         >
                           {row.titulo}
@@ -353,6 +362,7 @@ export function HistoricoPage() {
                         {row.estadoLabel}
                       </span>
                     </td>
+                    {isVinculacion&&<td><span className="badge">{row.estadoPiLabel}</span></td>}
                     <td>
                       <button
                         type="button"
@@ -360,7 +370,7 @@ export function HistoricoPage() {
                         aria-label={`Ver expediente ${row.codigo}: ${row.titulo}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelected(row);
+                          openRecord(row);
                         }}
                       >
                         Ver expediente
@@ -374,7 +384,7 @@ export function HistoricoPage() {
         )}
       </section>
 
-      {selected && (
+      {selected && !isVinculacion && (
         <HistoricoModal item={selected} onClose={() => setSelected(null)} />
       )}
     </>
@@ -382,5 +392,5 @@ export function HistoricoPage() {
 }
 
 export function HistoricoDetallePage() {
-  return <HistoricoPage />;
+  const {session}=useAuth();return session?.viewRole==="vinculacion"?<PropuestaDetallePage/>:<HistoricoPage/>;
 }

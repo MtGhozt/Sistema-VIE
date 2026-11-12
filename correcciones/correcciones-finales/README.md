@@ -24,3 +24,7 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - **VIE-Publicación aceptado por el usuario.** Siguiente revisión: [Persona Investigadora Coordinadora](PERSONA-INVESTIGADORA-COORDINADORA.md), pendiente de aceptación manual.
 
 - [Segunda ronda del investigador: índice, equipo y confirmación de correcciones](AJUSTES-INDICE-EQUIPO-Y-PRODUCTOS.md).
+
+- **Persona Investigadora Coordinadora aceptada por el usuario el 12/11/2026.** Próxima revisión: Centro de Vinculación.
+
+- [Centro de Vinculación: indicadores, histórico y consulta completa](CENTRO-DE-VINCULACION.md), pendiente de aceptación manual.

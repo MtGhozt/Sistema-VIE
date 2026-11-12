@@ -25,7 +25,8 @@
     "regression:merge-ian": "node scripts/regression-merge-ian.mjs",
     "regression:vie-final": "node scripts/regression-vie-final.mjs",
     "regression:investigador-final": "node scripts/regression-investigador-final.mjs",
-    "regression:investigador-ajustes": "node scripts/regression-investigador-ajustes.mjs"
+    "regression:investigador-ajustes": "node scripts/regression-investigador-ajustes.mjs",
+    "regression:vinculacion-final": "node scripts/regression-vinculacion-final.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.10",

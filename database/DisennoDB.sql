@@ -518,9 +518,9 @@ COMMENT ON TABLE "dictamen_pi" IS 'Dictamen Centro de Vinculación';
 
 COMMENT ON COLUMN "dictamen_pi"."estado" IS 'pendiente | emitido | no_requerido';
 
-COMMENT ON TABLE "revision_expediente" IS 'Ciclos de completitud (Comité asistente o Gestora VIE)';
+COMMENT ON TABLE "revision_expediente" IS 'Revisión operativa PI y ciclos de completitud (Comité asistente o Gestora VIE)';
 
-COMMENT ON COLUMN "revision_expediente"."etapa" IS 'comite | vie';
+COMMENT ON COLUMN "revision_expediente"."etapa" IS 'pi | comite | vie';
 
 COMMENT ON COLUMN "revision_expediente"."resultado" IS 'en_revision | completo | devuelto';
 

@@ -10,33 +10,26 @@ export const convocatoriasRouter = Router();
 const ESTADOS = new Set(["borrador", "activa", "cerrada", "finalizada"]);
 const MAX_PRESUPUESTO = 999_999_999_999.99;
 
-type PresupuestoResult =
-  | { valid: true; value: number | null }
-  | { valid: false };
-
-function parsePresupuesto(value: unknown): PresupuestoResult {
-  if (value === undefined || value === null || value === "") {
-    return { valid: true, value: null };
-  }
-  if (typeof value !== "number" && typeof value !== "string") {
-    return { valid: false };
-  }
-
-  const parsed = typeof value === "string" ? Number(value.trim()) : value;
-  if (
-    !Number.isFinite(parsed) ||
-    parsed < 0 ||
-    parsed > MAX_PRESUPUESTO
-  ) {
-    return { valid: false };
-  }
-  return { valid: true, value: parsed };
+type PresupuestoResult = {valid:true;value:number}|{valid:false;error:string};
+function parsePresupuesto(value:unknown):PresupuestoResult {
+ const fail=(error:string):PresupuestoResult=>({valid:false,error});
+ if(value===undefined||value===null||typeof value==='string'&&!value.trim())return fail('Presupuesto indefinido: indique 0 o un monto mayor que 0.');
+ if(typeof value!=='number'&&typeof value!=='string')return fail('El presupuesto debe ser numérico; use coma o punto para los decimales.');
+ const text=String(value).trim().replace(',','.');
+ if(typeof value==='string'&&!/^-?\d+(?:\.\d+)?$/.test(text))return fail('El presupuesto debe ser numérico; use coma o punto para los decimales.');
+ const parsed=Number(text);
+ if(!Number.isFinite(parsed))return fail('El presupuesto debe ser un número finito.');
+ if(parsed<0)return fail('El presupuesto no puede ser negativo. Indique 0 o un monto mayor que 0.');
+ if(parsed>MAX_PRESUPUESTO)return fail('El presupuesto no puede superar ₡999 999 999 999,99.');
+ if((typeof value==='string'&&(text.split('.')[1]?.length??0)>2)||Number(parsed.toFixed(2))!==parsed)return fail('El presupuesto admite como máximo dos decimales.');
+ return {valid:true,value:parsed};
 }
-
-function sendInvalidPresupuesto(res: Response) {
-  res.status(400).json({
-    error: "El presupuesto estimado debe ser un monto no negativo de hasta ₡999 999 999 999,99.",
-  });
+function sendInvalidPresupuesto(res:Response,error:string){res.status(400).json({error});}
+function todayCR(){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Costa_Rica',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const get=(t:string)=>parts.find(p=>p.type===t)!.value;return `${get('year')}-${get('month')}-${get('day')}`;}
+function validarVigencia(start:string,end:string,originalOpening?:string){
+ const today=todayCR();
+ if(start<today&&start!==originalOpening)throw new HttpError(400,`La apertura no puede estar en el pasado. Indique ${today.split('-').reverse().join('/')} o una fecha posterior.`);
+ if(end<today)throw new HttpError(400,'La convocatoria está vencida: el cierre debe ser hoy o una fecha posterior.');
 }
 
 type ConvocatoriaRow = {
@@ -81,6 +74,7 @@ async function validarCronograma(id:number,execute:typeof query){
  if(!c)throw new HttpError(404,'Convocatoria no encontrada');
  const start=asDateOnly(c.fecha_apertura),end=asDateOnly(c.fecha_cierre);
  const activities=await execute<HitoRow>('SELECT * FROM convocatoria_hito WHERE id_convocatoria=$1 ORDER BY orden,id_hito',[id]);
+ if(!activities.rows.length)throw new HttpError(400,'Agregue al menos una actividad con nombre, responsable y fechas.');
  for(const [i,h] of activities.rows.entries()){
   const a=asDateOnly(h.fecha_inicio),b=asDateOnly(h.fecha_fin);
   if(!h.nombre.trim()||!h.responsable.trim()||!validDate(a)||!validDate(b)||b<a)throw new HttpError(400,`Actividad ${i+1}: necesita nombre, responsable y fechas coherentes.`);
@@ -95,7 +89,8 @@ async function validarPublicacion(id:number,execute:typeof query){
  if(!c?.nombre.trim()||c.nombre.length>200)throw new HttpError(400,'Antes de publicar, revise el nombre de la convocatoria (de 1 a 200 caracteres).');
  const start=asDateOnly(c.fecha_apertura),end=asDateOnly(c.fecha_cierre);
  if(!validDate(start)||!validDate(end)||end<start)throw new HttpError(400,'Antes de publicar, corrija la apertura y el cierre de recepción. El cierre no puede ser anterior a la apertura.');
- if(!parsePresupuesto(c.presupuesto_estimado).valid)throw new HttpError(400,'Antes de publicar, corrija el presupuesto estimado: debe ser un monto no negativo.');
+ validarVigencia(start,end,start);
+ const budget=parsePresupuesto(c.presupuesto_estimado);if(!budget.valid)throw new HttpError(400,budget.error);
  await validarCronograma(id,execute);
 }
 
@@ -198,7 +193,7 @@ convocatoriasRouter.post(
     const fechaCierre = String(req.body?.fechaCierre ?? "").trim();
     const presupuestoResult = parsePresupuesto(req.body?.presupuestoEstimado);
     if (!presupuestoResult.valid) {
-      sendInvalidPresupuesto(res);
+      sendInvalidPresupuesto(res, presupuestoResult.error);
       return;
     }
     const presupuesto = presupuestoResult.value;
@@ -217,6 +212,7 @@ convocatoriasRouter.post(
       return;
     }
 
+    validarVigencia(fechaApertura,fechaCierre);
     const userId = req.demoAuth!.userId!;
     const publicar = estado === "activa";
 
@@ -295,7 +291,7 @@ convocatoriasRouter.patch(
     if (req.body?.presupuestoEstimado !== undefined) {
       const presupuestoResult = parsePresupuesto(req.body.presupuestoEstimado);
       if (!presupuestoResult.valid) {
-        sendInvalidPresupuesto(res);
+        sendInvalidPresupuesto(res, presupuestoResult.error);
         return;
       }
       set("presupuesto_estimado", presupuestoResult.value);
@@ -335,7 +331,12 @@ convocatoriasRouter.patch(
 
     }
     await saveHitos(id,req.body?.hitos,execute);
-    if(['nombre','descripcion','fechaApertura','fechaCierre','presupuestoEstimado','hitos'].some(k=>req.body[k]!==undefined))await validarCronograma(id,execute);
+    if(['nombre','descripcion','fechaApertura','fechaCierre','presupuestoEstimado','hitos'].some(k=>req.body[k]!==undefined)){
+     validarVigencia(opening,closing,asDateOnly(locked.rows[0].fecha_apertura));
+     const effective=await execute<ConvocatoriaRow>('SELECT * FROM convocatoria WHERE id_convocatoria=$1',[id]);
+     const budget=parsePresupuesto(effective.rows[0].presupuesto_estimado);if(!budget.valid)throw new HttpError(400,budget.error);
+     await validarCronograma(id,execute);
+    }
     if(req.body.estado==='activa')await validarPublicacion(id,execute);
     const result = await execute<ConvocatoriaRow>(
       `
@@ -418,13 +419,13 @@ convocatoriasRouter.delete(
   asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     const hitoId = Number(req.params.hitoId);
-    const result = await transaction(async execute=>{await lockDraft(id,execute);return execute(
+    const result = await transaction(async execute=>{await lockDraft(id,execute);const deleted=await execute(
       `
       DELETE FROM convocatoria_hito
       WHERE id_hito = $1 AND id_convocatoria = $2
       `,
       [hitoId, id],
-    );});
+    );if(deleted.rowCount)await validarCronograma(id,execute);return deleted;});
     if (result.rowCount === 0) {
       res.status(404).json({ error: "Hito no encontrado" });
       return;

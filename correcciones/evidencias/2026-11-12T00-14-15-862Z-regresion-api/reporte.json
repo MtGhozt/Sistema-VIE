@@ -1,0 +1,138 @@
+{
+  "run": "2026-11-12T00-14-15-862Z",
+  "scope": "Regresión de rutas con fixtures aislados. La batería D05–D11 cubre el recorrido real de rúbrica completa y consolidación.",
+  "results": [
+    {
+      "name": "Login investigador",
+      "status": "PASA"
+    },
+    {
+      "name": "Login vie_publicacion",
+      "status": "PASA"
+    },
+    {
+      "name": "Login vinculacion",
+      "status": "PASA"
+    },
+    {
+      "name": "Login comite_asistente",
+      "status": "PASA"
+    },
+    {
+      "name": "Login comite_evaluador",
+      "status": "PASA"
+    },
+    {
+      "name": "Login consejo_asistente",
+      "status": "PASA"
+    },
+    {
+      "name": "Login consejo",
+      "status": "PASA"
+    },
+    {
+      "name": "Login direccion_escuela",
+      "status": "PASA"
+    },
+    {
+      "name": "Login gestora_vie",
+      "status": "PASA"
+    },
+    {
+      "name": "Login cie",
+      "status": "PASA"
+    },
+    {
+      "name": "Login direccion_investigacion",
+      "status": "PASA"
+    },
+    {
+      "name": "Login admin",
+      "status": "PASA"
+    },
+    {
+      "name": "Migraciones conservan compromisos sin aceptación implícita",
+      "status": "PASA"
+    },
+    {
+      "name": "Campos generales, ES/EN y preguntas sobreviven a relectura",
+      "status": "PASA"
+    },
+    {
+      "name": "Errores de guardado identifican campos, tamaño y duplicados sin persistir cambios",
+      "status": "PASA"
+    },
+    {
+      "name": "Equipo interno/externo, tipos de hora y CRUD real",
+      "status": "PASA"
+    },
+    {
+      "name": "ID ajeno de integrante no permite modificar otra propuesta",
+      "status": "PASA"
+    },
+    {
+      "name": "Presupuesto exacto, fuentes y reversión de montos inválidos",
+      "status": "PASA"
+    },
+    {
+      "name": "Ética y productos se recuperan, editan y eliminan",
+      "status": "PASA"
+    },
+    {
+      "name": "Actividad/riesgo mantiene 0,07 meses y sus responsables",
+      "status": "PASA"
+    },
+    {
+      "name": "Declaración explícita y límites oficiales al enviar",
+      "status": "PASA"
+    },
+    {
+      "name": "Guardar rúbrica conserva criterios y separa instancias y usuarios",
+      "status": "PASA"
+    },
+    {
+      "name": "Envío concurrente produce un solo evento de historial",
+      "status": "PASA"
+    },
+    {
+      "name": "Vinculación recupera el dictamen emitido y no mezcla propuestas",
+      "status": "PASA"
+    },
+    {
+      "name": "Checklist VIE persiste y bloquea remisión incompleta",
+      "status": "PASA"
+    },
+    {
+      "name": "Dos devoluciones conservan ciclos independientes",
+      "status": "PASA"
+    },
+    {
+      "name": "Vista admin filtra sin cambiar identidad ni ampliar permisos",
+      "status": "PASA"
+    },
+    {
+      "name": "Convocatoria y cronograma se editan atomicamente",
+      "status": "PASA"
+    },
+    {
+      "name": "Comunicar exige aval y una decisión emitida no se sobrescribe",
+      "status": "PASA"
+    },
+    {
+      "name": "CIE conserva fundamento y decisión cerrada rechaza sobrescritura",
+      "status": "PASA"
+    },
+    {
+      "name": "Notificación concurrente única, por destinatario y lectura persistida",
+      "status": "PASA"
+    },
+    {
+      "name": "No notificar resolución inexistente ni aprobar borrador",
+      "status": "PASA"
+    },
+    {
+      "name": "Código anual respeta históricos y no depende del PK",
+      "status": "PASA"
+    }
+  ]
+}

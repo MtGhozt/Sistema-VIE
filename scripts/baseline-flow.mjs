@@ -112,7 +112,7 @@ try {
     });
     let conv;
     await check('F02', 'Crear y publicar convocatoria exclusiva de ejecución', async () => {
-      conv = await request('/convocatorias', 'vie_publicacion', 'POST', { nombre: `Baseline ${run}`, fechaApertura: '2026-01-01', fechaCierre: '2027-12-31', estado: 'borrador' });
+      conv = await request('/convocatorias', 'vie_publicacion', 'POST', { nombre: `Baseline ${run}`, fechaApertura: new Intl.DateTimeFormat('en-CA',{timeZone:'America/Costa_Rica',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()), fechaCierre: '2027-12-31', presupuestoEstimado:0, estado: 'borrador', hitos:[{nombre:'Recepción',responsable:'VIE',fechaInicio:'2027-01-01',fechaFin:'2027-12-31'}] });
       fixtures.push({ type: 'convocatoria', id: conv.id });
       await request(`/convocatorias/${conv.id}`, 'vie_publicacion', 'PATCH', { estado: 'activa' });
     });

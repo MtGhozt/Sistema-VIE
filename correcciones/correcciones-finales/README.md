@@ -18,3 +18,5 @@ Esta carpeta reúne los problemas reportados, su sustento, las correcciones y la
 La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos documentos corresponden a Costa Rica.
 
 - [Formato fijo DD/MM/YYYY y filtros como el histórico](FECHAS-Y-FILTROS-CONVOCATORIAS.md).
+
+- [Reglas vigentes de fechas, presupuesto obligatorio y mínimo de actividades](VIGENCIA-PRESUPUESTO-Y-ACTIVIDADES.md).

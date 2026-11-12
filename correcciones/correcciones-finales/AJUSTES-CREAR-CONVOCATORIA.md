@@ -39,3 +39,5 @@ Las marcas que el usuario ya hizo en [REVISION-MANUAL.md](REVISION-MANUAL.md) se
 - [ ] Comprobar que un cierre a 30 días aparece como próximo y uno a 31 días no.
 
 **Responsable:** ____________________ · **Fecha:** ____________________
+
+> Actualización posterior: [presupuesto obligatorio, vigencia y actividades](VIGENCIA-PRESUPUESTO-Y-ACTIVIDADES.md). La aceptación de presupuesto vacío descrita arriba corresponde a la versión anterior.

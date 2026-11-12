@@ -1,0 +1,82 @@
+{
+  "batch": "PIC-2026-11-12T03-31-19-367Z",
+  "perfil": "pruebas",
+  "base": "fondos_vie_test",
+  "idConvocatoria": 232,
+  "simulado": true,
+  "nota": "Únicamente título, modalidad, período y presupuesto de PIELS proceden del memorando. Evaluaciones, identificaciones, equipo y demás contenido son demostrativos.",
+  "results": [
+    {
+      "id": 1271,
+      "codigo": "PROP-2026-463",
+      "titulo": "[DEMO PIC-2026-11-12T03-31-19-367Z] Plataforma Internacional de Edición de Señas (PIELS) · 1",
+      "estadoEsperado": "borrador",
+      "estadoActual": "borrador",
+      "origen": "docs/referencias/IC_467_2026_Propuesta_de_Investigacioìn_PIELS_Mario_Chacoìn_RCM.pdf",
+      "simulado": true
+    },
+    {
+      "id": 1272,
+      "codigo": "PROP-2026-464",
+      "titulo": "[DEMO PIC-2026-11-12T03-31-19-367Z] Monitoreo de calidad del agua para acueductos comunitarios · 2",
+      "estadoEsperado": "enviada",
+      "estadoActual": "enviada",
+      "origen": "Contenido sintético realista",
+      "simulado": true
+    },
+    {
+      "id": 1273,
+      "codigo": "PROP-2026-465",
+      "titulo": "[DEMO PIC-2026-11-12T03-31-19-367Z] Detección temprana de enfermedades en cultivos mediante imágenes · 3",
+      "estadoEsperado": "en_subsanacion",
+      "estadoActual": "en_subsanacion",
+      "origen": "Contenido sintético realista",
+      "simulado": true
+    },
+    {
+      "id": 1274,
+      "codigo": "PROP-2026-466",
+      "titulo": "[DEMO PIC-2026-11-12T03-31-19-367Z] Accesibilidad de servicios digitales universitarios · 4",
+      "estadoEsperado": "dictaminada",
+      "estadoActual": "dictaminada",
+      "origen": "Contenido sintético realista",
+      "simulado": true
+    },
+    {
+      "id": 1275,
+      "codigo": "PROP-2026-467",
+      "titulo": "[DEMO PIC-2026-11-12T03-31-19-367Z] Plataforma Internacional de Edición de Señas (PIELS) · 5",
+      "estadoEsperado": "avalada",
+      "estadoActual": "avalada",
+      "origen": "docs/referencias/IC_467_2026_Propuesta_de_Investigacioìn_PIELS_Mario_Chacoìn_RCM.pdf",
+      "simulado": true
+    },
+    {
+      "id": 1276,
+      "codigo": "PROP-2026-468",
+      "titulo": "[DEMO PIC-2026-11-12T03-31-19-367Z] Monitoreo de calidad del agua para acueductos comunitarios · 6",
+      "estadoEsperado": "aprobada",
+      "estadoActual": "aprobada",
+      "origen": "Contenido sintético realista",
+      "simulado": true
+    },
+    {
+      "id": 1277,
+      "codigo": "PROP-2026-469",
+      "titulo": "[DEMO PIC-2026-11-12T03-31-19-367Z] Detección temprana de enfermedades en cultivos mediante imágenes · 7",
+      "estadoEsperado": "rechazada",
+      "estadoActual": "rechazada",
+      "origen": "Contenido sintético realista",
+      "simulado": true
+    },
+    {
+      "id": 1279,
+      "codigo": "PROP-2026-471",
+      "titulo": "[DEMO PIC-2026-11-12T03-31-19-367Z] Accesibilidad de servicios digitales universitarios · 8",
+      "estadoEsperado": "rechazo_aval",
+      "estadoActual": "rechazo_aval",
+      "origen": "Contenido sintético realista",
+      "simulado": true
+    }
+  ]
+}

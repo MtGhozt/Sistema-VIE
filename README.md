@@ -29,6 +29,22 @@ El usuario/contraseña local de PostgreSQL del compose es `vie` / `vie`. Si el p
 
 Si el archivo perdió el permiso de ejecución al copiarlo, ejecute `bash instalar.sh` o `bash desinstalar.sh`.
 
+## Cargar propuestas para la revisión manual
+
+Con la instalación y PostgreSQL preparados:
+
+```bash
+./cargar-propuestas-demo.sh --pruebas --simular  # describe el lote sin escribir
+./cargar-propuestas-demo.sh --pruebas           # ocho propuestas en fondos_vie_test
+./cargar-propuestas-demo.sh --desarrollo --cantidad 16  # lote voluntario en fondos_vie
+```
+
+Cada ejecución crea un lote nuevo identificado como **DEMO**, sin borrar ni modificar propuestas anteriores. Genera borradores y expedientes enviados, en subsanación, dictaminados, avalados, aprobados, rechazados y con rechazo de aval. Recorre el flujo de la API con los roles demo, tres evaluadores y confirmación del consolidado; no fuerza estados por SQL. Los oficios, evaluaciones, aceptaciones y notificaciones internas son **simulados** y no se envían mensajes externos.
+
+Consulte los expedientes con **`investigador@tec.ac.cr`**, contraseña **`prototipo2026`**, rol Persona Investigadora Coordinadora. El reporte con códigos y estados queda en `var/datos-demo/<lote>/reporte.json`. Si ocurre un error, el cargador lo informa y conserva el reporte y los registros creados hasta ese punto. Use `--help` para perfiles y configuración de conexión. En el modo pruebas, conecte la aplicación a esa misma base como se explica abajo.
+
+El caso PIELS toma del memorando incluido en el repositorio el título, modalidad, período 2027–2029 y presupuesto de ₡5 millones operativos por año (₡15 millones en total, sin duraderos). Los demás datos de estos clones son demostrativos; las otras iniciativas son sintéticas y realistas. No equivalen a expedientes institucionales auténticos.
+
 ## Preparar y ejecutar pruebas con un solo comando
 
 ```bash

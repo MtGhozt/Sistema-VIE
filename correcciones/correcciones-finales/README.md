@@ -22,3 +22,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [Reglas vigentes de fechas, presupuesto obligatorio y mínimo de actividades](VIGENCIA-PRESUPUESTO-Y-ACTIVIDADES.md).
 
 - **VIE-Publicación aceptado por el usuario.** Siguiente revisión: [Persona Investigadora Coordinadora](PERSONA-INVESTIGADORA-COORDINADORA.md), pendiente de aceptación manual.
+
+- [Segunda ronda del investigador: índice, equipo y confirmación de correcciones](AJUSTES-INDICE-EQUIPO-Y-PRODUCTOS.md).

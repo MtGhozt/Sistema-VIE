@@ -11,6 +11,7 @@ export type ParticipanteInput = {
   clienteId?:string; id?: number; idUsuario?: number | null; tipo: "funcionario_tec" | "externo";
   nombre: string; orcid: string | null; instancia: string | null; rol: string | null; periodo: string | null;
   titularCons?:string|null;
+  iniciales?:string;
   horas: { tipo: string; cantidad: number }[];
 };
 

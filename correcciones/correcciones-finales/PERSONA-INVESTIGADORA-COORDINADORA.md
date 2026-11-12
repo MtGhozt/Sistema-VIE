@@ -78,3 +78,7 @@ Los intentos iniciales con fallos se conservan como trazabilidad. Se corrigieron
 Cada ejecución crea un lote nuevo de ocho expedientes, o la cantidad indicada con `--cantidad` (8–80). Identificados como DEMO; no modifica ni elimina expedientes existentes ni fuerza estados por SQL. Al fallar conserva los registros ya creados y un reporte. No envía mensajes externos. En pruebas use la aplicación conectada a `fondos_vie_test`, con `investigador@tec.ac.cr` / `prototipo2026`. Instrucciones completas en el [README principal](../../README.md).
 
 Se reutiliza la columna `propuesta_subsanacion.respuesta` para guardar el texto antes del reenvío: **no hay una nueva migración**. Los datos históricos no se convierten automáticamente ni se atribuye validez institucional a los clones.
+
+## Segunda ronda · 12/11/2026
+
+[Ajustes de índice, equipo, calendarios y confirmación de correcciones](AJUSTES-INDICE-EQUIPO-Y-PRODUCTOS.md). Aclara nombramiento obligatorio al avanzar/enviar, CONS editable y azul para corrección guardada. Sustituye la deshabilitación del campo CONS descrita en la primera entrega.

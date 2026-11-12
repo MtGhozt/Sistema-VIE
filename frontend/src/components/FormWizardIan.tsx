@@ -194,6 +194,8 @@ export function FormWizardIan({
     });
   }
 
+  function patchAppointment(memberId:string,start:string,end:string){patchTeamTec(memberId,{periodo:start||end?`${start} / ${end}`:''});}
+
   function patchTeamHours(
     memberId: string,
     index: number,
@@ -1120,11 +1122,11 @@ export function FormWizardIan({
                         </button>
                       </div>
                     </div>
-                    <div className="team-member-field stack-sm">
-                      <span className="field-label">Período de nombramiento</span>
+                    <div className="team-member-field appointment-dates">
+                      <span className="field-label appointment-caption">Período de nombramiento (obligatorio para continuar)</span><span className="field-hint appointment-caption">Indique inicio y fin. El borrador puede quedar incompleto; para avanzar o confirmar la sección se requieren ambas fechas.</span>
                       {member.periodo&&!member.periodo.includes(' / ')&&<p className="field-hint">Período anterior: {member.periodo}. Indique las fechas para actualizarlo.</p>}
-                      <ConvocatoriaDateField id={`${member.id}-periodo-inicio`} label={`Inicio de nombramiento, persona TEC ${memberIndex+1}`} value={member.periodo.includes(' / ')?member.periodo.split(' / ')[0]:''} onChange={v=>patchTeamTec(member.id,{periodo:`${v} / ${member.periodo.split(' / ')[1]??''}`})}/>
-                      <ConvocatoriaDateField id={`${member.id}-periodo-fin`} label={`Fin de nombramiento, persona TEC ${memberIndex+1}`} value={member.periodo.includes(' / ')?member.periodo.split(' / ')[1]:''} min={dateFromInput(member.periodo.split(' / ')[0])??undefined} onChange={v=>patchTeamTec(member.id,{periodo:`${member.periodo.includes(' / ')?member.periodo.split(' / ')[0]:''} / ${v}`})}/>
+                      <ConvocatoriaDateField id={`${member.id}-periodo-inicio`} required label={`Inicio de nombramiento, persona TEC ${memberIndex+1}`} value={member.periodo.includes(' / ')?member.periodo.split(' / ')[0]:''} onChange={v=>patchAppointment(member.id,v,member.periodo.split(' / ')[1]??'')}/>
+                      <ConvocatoriaDateField id={`${member.id}-periodo-fin`} required label={`Fin de nombramiento, persona TEC ${memberIndex+1}`} value={member.periodo.includes(' / ')?member.periodo.split(' / ')[1]:''} min={dateFromInput(member.periodo.split(' / ')[0])??undefined} onChange={v=>patchAppointment(member.id,member.periodo.includes(' / ')?member.periodo.split(' / ')[0]:'',v)}/>
                     </div>
                     <label className="team-member-field">
                       <span className="field-hint">CONS: horas del régimen de Investigador Consolidado. Indique quién aporta estas horas; complete solo si asignó horas CONS.</span>
@@ -1134,7 +1136,7 @@ export function FormWizardIan({
                       <FormInput
                         aria-label={`Titular de horas CONS, persona TEC ${memberIndex + 1}`}
                         className="input"
-                        maxLength={150} disabled={!member.horas.some(h=>h.tipo==="CONS")} value={member.titularCons ?? ""}
+                        maxLength={150} value={member.titularCons ?? ""}
                         onChange={(event) =>
                           patchTeamTec(member.id, {
                             titularCons: event.target.value,
@@ -2161,7 +2163,7 @@ export function FormWizardIan({
     );
 
     return (
-      <div className="stack-xl">
+      <div className="stack-xl"><p className="field-hint">La cantidad cuenta opciones completas: una unidad de la opción 2 equivale a dos artículos. Se pueden combinar o repetir opciones; los productos complementarios no sustituyen el mínimo académico.</p>
         <section className="stack-md" aria-labelledby="product-commitment-heading">
           <div>
             <h3 id="product-commitment-heading">

@@ -16,7 +16,8 @@ export async function saveEquipo(id: number, raw: unknown, execute: typeof query
       nombre = user.rows[0].nombre; instancia = user.rows[0].escuela ?? instancia;
     }
     if(nombre.length>150||instancia.length>200)throw new HttpError(400,'Nombre o institución excede el límite de 150/200 caracteres.');
-    const period=String(row.periodo??'');if(period.includes(' / ')){const [a,b]=period.split(' / ').map((v:string)=>{const m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:'';});if(!a||!b||!Number.isFinite(Date.parse(a))||!Number.isFinite(Date.parse(b))||new Date(a).toISOString().slice(0,10)!==a||new Date(b).toISOString().slice(0,10)!==b||b<a)throw new HttpError(400,'Período de nombramiento: indique fechas reales y fin igual o posterior al inicio.');}
+    validarNombramiento(row.periodo);
+    if(row.iniciales!==undefined&&(typeof row.iniciales!=='string'||row.iniciales.length>10))throw new HttpError(400,'Las iniciales admiten hasta 10 caracteres.');
     if (!nombre) throw new HttpError(400, "Cada participante requiere un nombre");
     const values = [nombre, row.orcid || null, instancia || null, row.rol || null, row.periodo || null, row.tipo, userId];
     let participant: number;
@@ -51,8 +52,25 @@ export async function saveEquipo(id: number, raw: unknown, execute: typeof query
   return memberIds;
 }
 export async function loadEquipo(id: number, execute: typeof query) {
-  const result = await execute(`SELECT p.id_participante AS id, p.id_usuario AS "idUsuario",p.nombre_completo AS nombre,p.orcid,p.instancia_o_institucion AS instancia,p.rol_en_proyecto AS rol,p.periodo_nombramiento AS periodo,p.tipo,p.titular_cons AS "titularCons",
+  const result = await execute<{id:number;idUsuario:number|null;nombre:string;orcid:string|null;instancia:string|null;rol:string|null;periodo:string|null;tipo:string;titularCons:string|null;horas:{tipo:string;cantidad:number}[]}>(`SELECT p.id_participante AS id, p.id_usuario AS "idUsuario",p.nombre_completo AS nombre,p.orcid,p.instancia_o_institucion AS instancia,p.rol_en_proyecto AS rol,p.periodo_nombramiento AS periodo,p.tipo,p.titular_cons AS "titularCons",
     COALESCE((SELECT json_agg(json_build_object('tipo',h.tipo_hora,'cantidad',h.cantidad_horas::float) ORDER BY h.tipo_hora) FROM propuesta_participante_hora h WHERE h.id_participante=p.id_participante),'[]') AS horas
     FROM propuesta_participante p WHERE p.id_propuesta=$1 ORDER BY p.id_participante`, [id]);
-  return result.rows;
+  const metadata=await execute<{equipo:{teamTec?:Record<string,unknown>[];teamExternal?:Record<string,unknown>[]} | null}>("SELECT formulario_detalle->'formularioEquipo' AS equipo FROM propuesta WHERE id_propuesta=$1",[id]);
+  const extra=metadata.rows[0]?.equipo;
+  const snapshots=[...(Array.isArray(extra?.teamTec)?extra.teamTec:[]),...(Array.isArray(extra?.teamExternal)?extra.teamExternal:[])];
+  return result.rows.map(p=>{
+    const stable=snapshots.find(m=>Number(m.participantId)===p.id||m.id===`participante-${p.id}`);
+    const sameName=snapshots.filter(m=>m.nombre===p.nombre);
+    return {...p,iniciales:String(stable?.iniciales??(sameName.length===1?sameName[0].iniciales:'')??'')};
+  });
+}
+
+/** El borrador admite ausencia de período; al avanzar/enviar debe estar completo. */
+export function validarNombramiento(value:unknown,required=false){
+ const period=String(value??'').trim();
+ if(!period&&!required)return;
+ if(!period.includes(' / ')&&!required)return; // Texto histórico: se conserva hasta su actualización.
+ const dates=period.split(' / ').map(v=>{const m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:'';});
+ const [a,b]=dates;
+ if(dates.length!==2||!a||!b||[a,b].some(v=>v<'2000-01-01'||v>'2100-12-31'||!Number.isFinite(Date.parse(v))||new Date(v).toISOString().slice(0,10)!==v)||b<a)throw new HttpError(400,'Período de nombramiento: indique inicio y fin reales en DD/MM/YYYY, con año entre 2000 y 2100 y fin igual o posterior al inicio.');
 }

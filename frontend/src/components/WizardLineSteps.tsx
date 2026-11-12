@@ -108,7 +108,8 @@ export function WizardLineSteps({
         const isActive = i === step;
         const isDone = states?states[i]==='complete':i<step;
         const isError=states?.[i]==='error';
-        const correction=markedSteps?.includes(i);
+        const corrected=states?.[i]==='corrected';
+        const correction=markedSteps?.includes(i)&&!corrected;
         const tick =
           isActive || isDone
             ? TICK_MAX
@@ -116,7 +117,7 @@ export function WizardLineSteps({
         const shift = isActive ? MAX_SHIFT * 0.45 : p * MAX_SHIFT;
         const allowed = canSelect ? canSelect(i) : true;
         const status =
-          isError ? "Revise los errores" : correction ? "Requiere corrección" : isActive
+          isError ? "Revise los errores" : corrected ? "Corrección guardada y validada" : correction ? "Requiere corrección" : isActive
             ? "Paso actual"
             : isDone
               ? "Completado"
@@ -136,7 +137,7 @@ export function WizardLineSteps({
             className={[
               isActive ? "active" : isDone ? "done" : undefined,
               !allowed ? "blocked" : undefined,
-              isError?"step-error":undefined, isDone?"step-complete":undefined,correction?"step-correction":undefined,
+              isError?"step-error":undefined,corrected?"step-corrected":undefined, isDone?"step-complete":undefined,correction?"step-correction":undefined,
             ]
               .filter(Boolean)
               .join(" ")}

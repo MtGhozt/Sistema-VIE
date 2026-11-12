@@ -70,3 +70,19 @@
 .radio-choice input { scroll-margin-top: 100px; }
 .wizard-index > summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
 .question-block[aria-invalid="true"] { border-left: 3px solid #b92f40; padding-left: 12px; }
+
+/* Colores del botón completo: prevalecen sobre los estilos históricos del índice. */
+.wizard-line-steps button.step-complete { background: #e0f2e7 !important; color: #195c38 !important; border: 1px solid #a3d1b4; }
+.wizard-line-steps button.active:not(.step-error):not(.step-correction):not(.step-corrected) { background: #fff !important; border: 2px solid #386998; }
+.wizard-line-steps button.step-corrected { background: #dfeeff !important; color: #124a7d !important; border: 1px solid #85b6e4; }
+.wizard-line-steps button.step-correction,.wizard-line-steps button.step-error { background: #fbe5e7 !important; color: #8c2031 !important; border: 1px solid #d59ca5; }
+.wizard-line-steps button.step-corrected strong { text-decoration: none; }
+.wizard-line-steps button.step-complete small,.wizard-line-steps button.step-corrected small,.wizard-line-steps button.step-correction small,.wizard-line-steps button.step-error small { color: inherit; }
+.wizard-sidebar .wizard-index { min-height: 0; flex: 1 1 auto; }
+.wizard-sidebar .wizard-index[open] > .wizard-line-steps { max-height: calc(100dvh - 270px); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable; padding-block: 4px; }
+.wizard-line-steps button { flex-shrink: 0; scroll-margin-block: 8px; }
+.appointment-dates { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.appointment-caption { grid-column: 1 / -1; }
+.correction-guide .correction-saved { background: #dfeeff; color: #124a7d; border: 1px solid #85b6e4; }
+.correction-guide .correction-pending { background: #fbe5e7; color: #8c2031; border: 1px solid #d59ca5; }
+@media(max-width:600px) { .appointment-dates { grid-template-columns: minmax(0,1fr); } }

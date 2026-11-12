@@ -20,6 +20,7 @@ export function validarComplemento(name:string,value:unknown){
  }
  visit(value,0);
  const raw=value as Record<string,unknown>;
+ if(name==='formularioEquipo')for(const key of ['teamTec','teamExternal'])if(raw[key]!==undefined&&(!Array.isArray(raw[key])||(raw[key] as unknown[]).some(m=>!m||typeof m!=='object'||('iniciales'in m&&(typeof m.iniciales!=='string'||m.iniciales.length>10)))))throw new HttpError(400,'Equipo de investigación: registros o iniciales inválidos (máximo 10 caracteres).');
  if(name==='formularioDeclaracion'){
   const d=raw.declaracionJurada as {cedula?:string}|undefined;
   if(d?.cedula&&!/^[1-9]-\d{4}-\d{4}$/.test(d.cedula))throw new HttpError(400,'Número de cédula: use X-XXXX-XXXX, nueve dígitos y primer dígito distinto de cero.');

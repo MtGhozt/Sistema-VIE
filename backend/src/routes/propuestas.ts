@@ -1,3 +1,4 @@
+import {validarNombramiento} from "../propuestaEquipo.js";
 import { alcancePropuestas, exigirAlcance, etapaRol } from "../alcancePropuestas.js";
 import { siguienteCodigo } from "../numeracionPropuestas.js";
 import { cargarSubsanacion, validarEdicionSubsanacion, seccionesSubsanacion } from "../subsanacion.js";
@@ -499,6 +500,8 @@ propuestasRouter.post(
     if(!content.rows[0].abstract_en?.trim())throw new HttpError(400,"El abstract en inglés es obligatorio al enviar; keywords EN son opcionales");
     if((await execute("SELECT 1 FROM propuesta_participante pp JOIN propuesta_participante_hora h ON h.id_participante=pp.id_participante WHERE pp.id_propuesta=$1 AND h.tipo_hora='CONS' AND h.cantidad_horas>0 AND COALESCE(trim(pp.titular_cons),'')='' LIMIT 1",[id])).rowCount)throw new HttpError(400,'Identifique la persona titular de las horas CONS');
     if(!content.rows[0].resumen?.trim())throw new HttpError(400,"Resumen en español: complete el resumen antes de enviar la propuesta.");
+    const appointments=await execute<{periodo:string|null}>("SELECT periodo_nombramiento AS periodo FROM propuesta_participante WHERE id_propuesta=$1 AND tipo='funcionario_tec'",[id]);
+    for(const member of appointments.rows)validarNombramiento(member.periodo,true);
     const wordCount = (content.rows[0]?.resumen ?? "").trim().split(/\s+/u).filter(Boolean).length;
     const terms = await loadKeywords(id,execute);
     if (wordCount > 500 || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {

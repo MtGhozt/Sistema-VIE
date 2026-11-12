@@ -4,7 +4,7 @@ import { saveProductos } from "./propuestaProductos.js";
 import { savePlan } from "./propuestaPlan.js";
 import { saveEtica } from "./propuestaEtica.js";
 import { savePresupuesto } from "./propuestaPresupuesto.js";
-import { saveEquipo } from "./propuestaEquipo.js";
+import { saveEquipo, loadEquipo } from "./propuestaEquipo.js";
 import { HttpError } from "./middleware/HttpError.js";
 import type { query } from "./db.js";
 
@@ -35,6 +35,17 @@ export async function savePropuestaCampos(id: number, body: Record<string, unkno
     }
   }
   const memberIds=await enSeccion("Equipo de investigación",()=>saveEquipo(id, body.equipo, execute));
+  if(Array.isArray(body.equipo)){
+    const requested=body.formularioEquipo as {teamTec?:Record<string,unknown>[];teamExternal?:Record<string,unknown>[]} | undefined;
+    const snapshots=[...(Array.isArray(requested?.teamTec)?requested.teamTec:[]),...(Array.isArray(requested?.teamExternal)?requested.teamExternal:[])];
+    const persisted=await loadEquipo(id,execute);
+    const saved=persisted.map(p=>{
+      const raw=(body.equipo as Record<string,unknown>[]).find(r=>Number(r.id)===p.id||memberIds.get(String(r.clienteId))===p.id);
+      const snapshot=snapshots.find(m=>Number(m.participantId)===p.id||memberIds.get(String(m.id))===p.id||m.id===`participante-${p.id}`);
+      return {...snapshot,id:`participante-${p.id}`,participantId:p.id,nombre:p.nombre,periodo:p.periodo??'',iniciales:String(raw?.iniciales??snapshot?.iniciales??p.iniciales??'')};
+    });
+    body.formularioEquipo={...requested,teamTec:saved.filter(m=>persisted.find(p=>p.id===m.participantId)?.tipo==='funcionario_tec'),teamExternal:saved.filter(m=>persisted.find(p=>p.id===m.participantId)?.tipo==='externo')};
+  }
   const resolveId=(key:unknown)=>typeof key==='string'?memberIds.get(key)??Number(key):key;
   const plan=Array.isArray(body.actividades)?body.actividades.map(a=>({...a,participantes:Array.isArray(a.participantes)?a.participantes.map(resolveId):a.participantes,asignaciones:Array.isArray(a.asignaciones)?a.asignaciones.map((p:{idParticipante:unknown;responsabilidad:string})=>({...p,idParticipante:resolveId(p.idParticipante)})):undefined})):body.actividades;
   await enSeccion("Plan de acción y riesgos",()=>savePlan(id, plan, execute));

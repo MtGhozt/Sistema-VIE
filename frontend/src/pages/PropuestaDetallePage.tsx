@@ -1,3 +1,6 @@
+import {toIan} from "../data/formWizardAdapter";
+import {proposalIssues} from "../data/proposalIssues";
+import seccionesSubsanacion from "../../../shared/subsanacion-secciones.json";
 import { CoordinacionEditor } from "../components/CoordinacionEditor";
 import { DocumentosPanel } from "../components/DocumentosPanel";
 import { FormWizardStepContent } from "../components/FormWizardStepContent";
@@ -122,9 +125,15 @@ export function PropuestaDetallePage() {
     (session?.role === "admin" || detail.idCoordinador === session?.userId);
   const isDraft = detail.estadoActual === "borrador";
   const isCorrection = detail.estadoActual === "en_subsanacion";
-  const progressPct = Math.round(
-    ((step + 1) / FORM_WIZARD_STEPS.length) * 100,
-  );
+  const content=toIan(form);
+  const markedSections=seccionesSubsanacion.filter(section=>detail.subsanacion?.secciones.includes(section.codigo));
+  const stepStates=FORM_WIZARD_STEPS.map((_,index)=>{
+    const valid=index<15&&proposalIssues(index,content,idConvocatoria!=='').length===0;
+    const correction=markedSections.find(section=>section.paso===index);
+    if(correction)return valid&&correction.campos.some(field=>detail.subsanacion?.campos_atendidos.includes(field))?'corrected':'pending';
+    return valid?'complete':'pending';
+  });
+  const progressPct=Math.round(stepStates.slice(0,15).filter(state=>state==='complete'||state==='corrected').length/15*100);
   const etapa = stepFromPropuestaEstado(
     detail.estadoActual,
     detail.etapaFlujo,
@@ -284,7 +293,7 @@ export function PropuestaDetallePage() {
             <div style={{ width: `${progressPct}%` }} />
           </div>
           <details className="wizard-index" open><summary>Secciones del formulario</summary><WizardLineSteps
-            steps={FORM_WIZARD_STEPS}
+            steps={FORM_WIZARD_STEPS} states={stepStates} markedSteps={markedSections.map(section=>section.paso)}
             step={step}
             onSelect={setStep}
             canSelect={() => true}

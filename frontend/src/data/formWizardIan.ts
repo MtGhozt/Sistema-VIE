@@ -160,7 +160,7 @@ export const BASIC_ACADEMIC_PRODUCTS = [
 ] as const;
 
 export const TECHNOLOGY_ACADEMIC_PRODUCTS = [
-  ...BASIC_ACADEMIC_PRODUCTS,
+  ...BASIC_ACADEMIC_PRODUCTS.map(option=>option.value==='opcion_2'?{...option,label:'Opción 2: Dos artículos científicos en SciELO, Redalyc, ESCI o DOAJ, o memorias con Consejo Editorial; al menos uno debe estar publicado'}:option),
   {
     value: "opcion_4",
     label:

@@ -44,6 +44,7 @@ export function PropuestaNuevaPage() {
 
   const [subsanacion,setSubsanacion]=useState<PropuestaDetalle["subsanacion"]>(null);
   const [respuesta,setRespuesta]=useState("");
+  const [dirtySections,setDirtySections]=useState<number[]>([]);
   const [checkedSteps,setCheckedSteps]=useState<Record<number,boolean>>({});
   const [fontSize,setFontSize]=useState(16);
   const validationPanel=useRef<HTMLDivElement>(null);
@@ -86,11 +87,12 @@ export function PropuestaNuevaPage() {
   const allIssues=Object.entries(checkedSteps).flatMap(([s,full])=>proposalIssues(Number(s),ian,idConvocatoria!=="",!full));
   const fieldErrors=Object.fromEntries(allIssues.filter(i=>i.step===step).map(i=>[i.label,i.message]));
   const allowedSteps=subsanacion?seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=>s.paso):null;
-  const stepStates=FORM_WIZARD_STEPS.map((_,s)=>allIssues.some(i=>i.step===s)?'error':s<15&&proposalIssues(s,ian,idConvocatoria!=="").length===0?'complete':'pending');
+  const correctedSteps=seccionesSubsanacion.filter(section=>subsanacion?.secciones.includes(section.codigo)&&section.campos.some(field=>subsanacion.campos_atendidos.includes(field))&&!dirtySections.includes(section.paso)&&proposalIssues(section.paso,ian,idConvocatoria!=='').length===0).map(section=>section.paso);
+  const stepStates=FORM_WIZARD_STEPS.map((_,s)=>allIssues.some(i=>i.step===s)?'error':correctedSteps.includes(s)?'corrected':allowedSteps?.includes(s)?'pending':s<15&&proposalIssues(s,ian,idConvocatoria!=="").length===0?'complete':'pending');
   function goToIssue(issue:ProposalIssue){setStep(issue.step);requestAnimationFrame(()=>{const controls=Array.from(document.querySelectorAll<HTMLElement>('.wizard-body input,.wizard-body textarea,.wizard-body select,[data-proposal-label]'));const target=controls.find(e=>e.getAttribute('aria-label')===issue.label||e.dataset.proposalLabel===issue.label);target?.focus();target?.scrollIntoView({block:'center'});});}
   function showIssues(items:ProposalIssue[],full=true){if(!items.length)return false;setCheckedSteps(prev=>({...prev,...Object.fromEntries(items.map(i=>[i.step,full]))}));setStep(items[0].step);requestAnimationFrame(()=>validationPanel.current?.focus());return true;}
   function attemptStep(target:number){if(allowedSteps){setStep(target);return;}const issues=Array.from({length:target},(_,s)=>proposalIssues(s,toIan(form),idConvocatoria!=="")).flat();if(!showIssues(issues))setStep(target);}
-  const progressPct = Math.round(((step + 1) / FORM_WIZARD_STEPS.length) * 100);
+  const progressPct = Math.round(stepStates.slice(0,15).filter(state=>state==='complete'||state==='corrected').length/15*100);
 
   useEffect(()=>{
     if(isEditing||!session)return;
@@ -156,6 +158,7 @@ export function PropuestaNuevaPage() {
 
   function patch(partial: Partial<FormWizardState>) {
     setForm((prev) => ({ ...prev, ...partial, ...(subsanacion?{q8:prev.q8}:{}) }));
+    if(subsanacion)setDirtySections(previous=>previous.includes(step)?previous:[...previous,step]);
     setSaveStatus("Cambios sin guardar");
   }
 
@@ -186,11 +189,11 @@ export function PropuestaNuevaPage() {
     };
   }
 
-  async function persistDraft(): Promise<PropuestaDetalle> {
+  async function persistDraft(stepsToSave?:number[]): Promise<PropuestaDetalle> {
     if (isEditing) {
       const payload=draftPayload();
       if(subsanacion) {
-        const allowed=seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).flatMap(s=>s.campos);
+        const allowed=seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)&&(!stepsToSave||stepsToSave.includes(s.paso))).flatMap(s=>s.campos);
         const changes=Object.fromEntries(Object.entries(payload).filter(([key])=>allowed.includes(key)));
         return patchPropuesta(editId,{...changes,respuestaSubsanacion:respuesta});
       }
@@ -205,12 +208,14 @@ export function PropuestaNuevaPage() {
   async function onSave(exit=false) {
     setFailure(null);
     if (!canCreate) {reportFailure('Ingresá como investigador para crear propuestas','guardar');return;}
-    const draftErrors=(allowedSteps??Array.from({length:15},(_,i)=>i)).flatMap(s=>proposalIssues(s,toIan(form),idConvocatoria!=='',true));
-    if(showIssues(draftErrors,false))return;
+    const sectionsToSave=allowedSteps?[...new Set([...dirtySections,...(allowedSteps.includes(step)?[step]:[])])]:undefined;
+    const draftErrors=(sectionsToSave??Array.from({length:15},(_,i)=>i)).flatMap(s=>proposalIssues(s,toIan(form),idConvocatoria!=='',!subsanacion));
+    if(showIssues(draftErrors,Boolean(subsanacion)))return;
     setSaving(true);
     setSaveStatus('Guardando…');
     try {
-      const saved = await persistDraft();
+      const saved = await persistDraft(sectionsToSave);
+      if(subsanacion){if(saved.subsanacion!==undefined)setSubsanacion(saved.subsanacion);setDirtySections([]);}
       setSaveStatus(subsanacion?'Correcciones guardadas en el servidor':'Borrador guardado en el servidor');
       showToast(subsanacion?'Correcciones guardadas':'Borrador guardado', 'success');
       if(isEditing&&!exit)setReload(r=>r+1);
@@ -351,7 +356,7 @@ export function PropuestaNuevaPage() {
           </div>
 
           <div className="action-row" aria-label="Tamaño del texto"><button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
-          {subsanacion && <div className="stack-md correction-guide" role="note"><p><strong>Subsanación para {subsanacion.instancia}:</strong> {subsanacion.motivo}</p><p>Las secciones señaladas en rojo requieren corrección. Las demás se consultan en solo lectura.</p><div className="action-row">{seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=><button key={s.codigo} type="button" className="btn btn-secondary" onClick={()=>setStep(s.paso)}>{s.etiqueta}</button>)}</div><p>Edite únicamente: {seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=>s.etiqueta).join(", ")}.</p>
+          {subsanacion && <div className="stack-md correction-guide" role="note"><p><strong>Subsanación para {subsanacion.instancia}:</strong> {subsanacion.motivo}</p><p>Rojo: corrección pendiente o error. Azul: corrección guardada y validada en el formulario; no implica aprobación de la instancia. Verde: sección completa. Al modificar una corrección guardada vuelve a quedar pendiente.</p><div className="action-row">{seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=><button key={s.codigo} type="button" aria-label={s.etiqueta} className={`btn btn-secondary ${correctedSteps.includes(s.paso)?"correction-saved":"correction-pending"}`} onClick={()=>setStep(s.paso)}>{s.etiqueta} · {correctedSteps.includes(s.paso)?"Guardada y validada":"Pendiente de corrección"}</button>)}</div><p>Edite únicamente: {seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=>s.etiqueta).join(", ")}.</p>
             <label className="field"><span className="field-label">Respuesta a las observaciones</span><textarea aria-label="Respuesta a las observaciones" className="input textarea" maxLength={5000} value={respuesta} onChange={e=>setRespuesta(e.target.value)} required /></label></div>}
           <fieldset style={{border:0,padding:0,margin:0,minWidth:0}}>
           {(step===7||step===15)&&<div className="action-row"><button type="button" className="btn btn-secondary" onClick={()=>void downloadFile('/api/plantillas/presupuesto','Presupuesto-VIE-2027.xlsx').catch(e=>showToast(e.message,'error'))}>Descargar plantilla oficial de presupuesto</button></div>}
@@ -371,6 +376,7 @@ export function PropuestaNuevaPage() {
 
           </fieldset>
           {isEditing&&<Link className="btn btn-ghost" aria-disabled={saving} onClick={e=>{if(saving)e.preventDefault();}} to={`/propuestas/${editId}`}>Ver expediente guardado</Link>}
+          {subsanacion&&<p className="field-hint">Guardar correcciones valida y confirma las secciones modificadas. Si falta un dato, se señala y la sección sigue pendiente.</p>}
           <div className="wizard-footer">
             <button
               type="button"

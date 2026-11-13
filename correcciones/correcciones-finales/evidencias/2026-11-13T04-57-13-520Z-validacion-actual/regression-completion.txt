@@ -1,23 +1,23 @@
-PASA Guardar borrador parcial persiste y abstract solo se exige al enviar 
-PASA Archivos: carga, descarga binaria exacta y versión concurrente 
-PASA Archivos: otra instancia de API recupera el binario persistido en disco 
-PASA Archivos: no acepta rutas, extensión falsa, tamaño excesivo ni borrador ajeno 
-PASA Plantilla oficial XLSX se descarga y acepta como adjunto real 
-PASA Archivos: retiro lógico conserva versión y bloquea descarga 
-PASA Rúbrica oficial: 100 puntos, tres evaluadores y escalas completas 
-PASA Comité: borrador individual guardado/releído y notas de usuarios separadas 
-PASA Versionado: nueva rúbrica no altera la que utiliza un expediente iniciado 
-PASA Consolidación: promedio de tres notas y requisito regular desfavorable 
-PASA Recomendación negativa informa al Consejo y no crea resolución CIE 
-PASA Reconsideración: solicitud, autorización y conservación de decisión anterior 
-PASA Precondiciones VIE/CIE: comunicación, checklist y remisión reales 
-PASA Subsanación documental: solo archivos autorizados y reenvío a Comité 
-PASA Después de remitir, recepción no devuelve ni abre ciclos sobre evaluaciones entregadas 
-PASA Desarrollo tecnológico: activo de lista 5.5.a más académicos por cada diez horas 
-PASA Admin: CRUD de catálogos con bajas lógicas y protección por rol 
-PASA Catálogo de modalidades y baja de rúbrica conservan versiones y nombres reales 
-PASA Admin: alta, edición, rol, escuela, contraseña y baja de usuario 
-PASA Admin no puede retirar su propio acceso ni usar una acción override 
-PASA Comité: sustitución auditada conserva borradores y excluye notas del miembro retirado 
-PASA Formulario: titularidad CONS se guarda y se exige al enviar 
+PASA Guardar borrador parcial persiste y abstract solo se exige al enviar
+PASA Archivos: carga, descarga binaria exacta y versión concurrente
+PASA Archivos: otra instancia de API recupera el binario persistido en disco
+PASA Archivos: no acepta rutas, extensión falsa, tamaño excesivo ni borrador ajeno
+PASA Plantilla oficial XLSX se descarga y acepta como adjunto real
+PASA Archivos: retiro lógico conserva versión y bloquea descarga
+PASA Rúbrica oficial: 100 puntos, tres evaluadores y escalas completas
+PASA Comité: borrador individual guardado/releído y notas de usuarios separadas
+PASA Versionado: nueva rúbrica no altera la que utiliza un expediente iniciado
+PASA Consolidación: promedio de tres notas y requisito regular desfavorable
+PASA Recomendación negativa informa al Consejo y no crea resolución CIE
+PASA Reconsideración: solicitud, autorización y conservación de decisión anterior
+PASA Precondiciones VIE/CIE: comunicación, checklist y remisión reales
+PASA Subsanación documental: solo archivos autorizados y reenvío a Comité
+PASA Después de remitir, recepción no devuelve ni abre ciclos sobre evaluaciones entregadas
+PASA Desarrollo tecnológico: activo de lista 5.5.a más académicos por cada diez horas
+PASA Admin: CRUD de catálogos con bajas lógicas y protección por rol
+PASA Catálogo de modalidades y baja de rúbrica conservan versiones y nombres reales
+PASA Admin: alta, edición, rol, escuela, contraseña y baja de usuario
+PASA Admin no puede retirar su propio acceso ni usar una acción override
+PASA Comité: sustitución auditada conserva borradores y excluye notas del miembro retirado
+PASA Formulario: titularidad CONS se guarda y se exige al enviar
 Evidencia: correcciones/evidencias/2026-11-13T04-57-19-981Z-d05-d11-api

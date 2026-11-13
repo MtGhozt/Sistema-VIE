@@ -1,3 +1,4 @@
+import {DireccionRespaldo} from "../components/evaluation/DireccionRespaldo";
 import {WordBudget} from "../components/WordBudget";
 import {ConsejoRespaldo} from "../components/evaluation/ConsejoRespaldo";
 import {MiEvaluacionResumen} from "../components/evaluation/MiEvaluacionResumen";
@@ -43,11 +44,12 @@ export function PropuestaDetallePage() {
   const isAssistant=session?.viewRole==="comite_asistente";
   const isEvaluator=session?.viewRole==="comite_evaluador";
   const isCouncilAssistant=["consejo_asistente","consejo"].includes(session?.viewRole??"");
-  const comfortableReading=isVinculacion||isAssistant||isEvaluator||isCouncilAssistant;
+  const isDirection=session?.viewRole==="direccion_escuela";
+  const comfortableReading=isVinculacion||isAssistant||isEvaluator||isCouncilAssistant||isDirection;
   const [expandedReading,setExpandedReading]=useState(false);
   const savedReturn=(location.state as {returnTo?:string}|null)?.returnTo;
   const returnParams=new URLSearchParams(savedReturn?.split('?')[1]??'');
-  const evaluationReturn=(isAssistant||isEvaluator||isCouncilAssistant)&&Boolean(savedReturn?.startsWith('/evaluaciones?')&&returnParams.get('propuesta')===String(proposalId)&&Array.from(returnParams.keys()).every(key=>['propuesta','evaluacion','consejo'].includes(key))&&(!returnParams.has('evaluacion')||['pendiente','en_progreso','completada'].includes(returnParams.get('evaluacion')??''))&&(!returnParams.has('consejo')||['aval_pendiente','reconsideracion','pendientes'].includes(returnParams.get('consejo')??'')));
+  const evaluationReturn=(isAssistant||isEvaluator||isCouncilAssistant||isDirection)&&Boolean(savedReturn?.startsWith('/evaluaciones?')&&returnParams.get('propuesta')===String(proposalId)&&Array.from(returnParams.keys()).every(key=>['propuesta','evaluacion','consejo','direccion'].includes(key))&&(!returnParams.has('evaluacion')||['pendiente','en_progreso','completada'].includes(returnParams.get('evaluacion')??''))&&(!returnParams.has('consejo')||['aval_pendiente','reconsideracion','pendientes'].includes(returnParams.get('consejo')??''))&&(!returnParams.has('direccion')||returnParams.get('direccion')==='por_comunicar'));
   const backTo=evaluationReturn?savedReturn!:comfortableReading?(savedReturn&&/^\/historico(?:\?|$)/.test(savedReturn)?savedReturn:"/historico"):"/propuestas";
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
@@ -294,7 +296,8 @@ export function PropuestaDetallePage() {
         />
       </section>
 
-      {isCouncilAssistant&&<ConsejoRespaldo id={detail.id}/>}
+      {isDirection&&<DireccionRespaldo id={detail.id}/>}
+      {(isCouncilAssistant||isDirection)&&<ConsejoRespaldo id={detail.id}/>}
       {isEvaluator&&<MiEvaluacionResumen id={detail.id}/>}
       {comfortableReading&&<VinculacionResumen id={detail.id}/>}
       <div className={`wizard-layout wizard-layout-wide${expandedReading?" expediente-expanded":""}`}>

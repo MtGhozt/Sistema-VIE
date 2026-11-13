@@ -1,3 +1,4 @@
+import {DIRECCION_FILTROS,AVAL_COMUNICADO_SQL} from "../direccionEstado.js";
 import {CONSEJO_FILTROS,CONSEJO_DECISION_FILTROS} from "../consejoEstado.js";
 import {estadoEvaluadorSql,asignadoEvaluadorSql} from "../evaluadorEstado.js";
 import {COMITE_DEVUELTA_SQL} from "../comiteEstado.js";
@@ -63,6 +64,7 @@ type HistoricoRow = {
   numero_resolucion: string | null;
   numero_oficio_consejo: string | null;
   estado_aval:string|null;
+  aval_comunicado:boolean;
   numero_oficio_comite: string | null;
   numero_oficio_pi: string | null;
 };
@@ -91,6 +93,7 @@ const SELECT_BASE = `
     r.numero_resolucion,
     av.numero_oficio AS numero_oficio_consejo,
     av.resultado AS estado_aval,
+    (${AVAL_COMUNICADO_SQL}) AS aval_comunicado,
     rc.numero_oficio AS numero_oficio_comite,
     dpi.numero_oficio AS numero_oficio_pi
   FROM propuesta p
@@ -186,6 +189,7 @@ function mapRow(row: HistoricoRow) {
   return {
     id: row.id_propuesta,
     estadoAval:row.estado_aval,
+    avalComunicado:row.aval_comunicado,
     estadoEvaluacion:row.estado_evaluacion,
     estadoPi:row.estado_pi,estadoPiLabel:ESTADOS_PI[row.estado_pi],
     codigo: row.codigo,
@@ -224,6 +228,8 @@ historicoRouter.get(
     if(filtros.comite&&filtros.comite!=="devueltas")throw new HttpError(400,"Seleccione un filtro de devoluciones del Comité válido.");
     if(filtros.pi&&!Object.hasOwn(ESTADOS_PI,filtros.pi))throw new HttpError(400,"Seleccione un estado de PI válido.");
     const { where, values } = buildWhere(filtros);
+    const direccion=String(q.direccion??'');
+    if(direccion){if(!Object.hasOwn(DIRECCION_FILTROS,direccion))throw new HttpError(400,'Filtro de comunicación del aval inválido');where.push(`(${DIRECCION_FILTROS[direccion]})`);}
     const consejo=String(q.consejo??'');
     if(consejo){const all={...CONSEJO_FILTROS,...CONSEJO_DECISION_FILTROS};if(!Object.hasOwn(all,consejo))throw new HttpError(400,'Filtro del Consejo inválido');where.push(`(${all[consejo]})`);}
     const personal=String(q.evaluacion??'');

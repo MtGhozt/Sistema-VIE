@@ -1,3 +1,4 @@
+import {DireccionRespaldo,type ComunicacionAval} from "./DireccionRespaldo";
 import {DocumentosPanel} from "../DocumentosPanel";
 import {ConsejoRespaldo} from "./ConsejoRespaldo";
 import {VinculacionResumen} from "./VinculacionResumen";
@@ -1029,53 +1030,14 @@ export function DireccionEscuelaPanel({
   proposal: DemoProposal;
   onAction: ActionHandler;
 }) {
-  if(proposal.estado==='Aval rechazado')return <div className="split-review"><CaseFile proposal={proposal}/><section className="card"><h2>Rechazo de aval comunicado</h2><p>El rechazo fue notificado a la coordinación. La reconsideración se solicita y autoriza en el Consejo; no se comunica como aval aprobado.</p></section></div>;
-  return (
-    <div className="split-review">
-      <CaseFile proposal={proposal} />
-      <article className="card review-panel">
-        <PanelIntro
-          title="Comunicar aval a VIE"
-          description="El aval fue aprobado por el Consejo y está listo para comunicación formal."
-        />
-        <div className="official-doc">
-          <IconFile size={24} />
-          <div>
-            <span>Oficio de aval</span>
-            <strong>{proposal.oficioAval || "Sin aval registrado"}</strong>
-            <small>Consejo de la Escuela de Ingeniería en Computación</small>
-          </div>
-        </div>
-        <div className="detail-grid">
-          <div>
-            <span>Destinatario</span>
-            <strong>Vicerrectoría de Investigación y Extensión</strong>
-          </div>
-          <div>
-            <span>Estado</span>
-            <strong>Pendiente de comunicar</strong>
-          </div>
-        </div>
-        <div className="action-stack">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            disabled
-            title="Fuera de alcance del prototipo: no se genera PDF automático de oficios"
-          >
-            PDF del memorando · fuera de alcance
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => onAction("communicate-aval")}
-          >
-            Registrar comunicación del aval a VIE
-          </button>
-        </div>
-      </article>
-    </div>
-  );
+  const [record,setRecord]=useState<ComunicacionAval|null>(null),[confirm,setConfirm]=useState(false),[sending,setSending]=useState(false);
+  const eligible=proposal.estado==='Avalada'&&record&&Boolean(record.numero_oficio?.trim())&&!record.comunicado&&['aprueba','aprobado'].includes(record.resultado??'');
+  return <div className="split-review council-assistant-workspace"><CaseFile proposal={proposal}/><article className="card review-panel"><PanelIntro title="Comunicar aval a VIE" description="Dirección registra la comunicación del aval aprobado por el Consejo para que VIE verifique el expediente."/>
+   <p>{proposal.escuela}</p>
+   {proposal.numericId&&<><DireccionRespaldo id={proposal.numericId} onLoad={setRecord}/><ConsejoRespaldo id={proposal.numericId}/><VinculacionResumen id={proposal.numericId}/><DocumentosPanel id={proposal.numericId}/></>}
+   <button type="button" className="btn btn-primary" disabled={!eligible||sending} onClick={()=>setConfirm(true)}>Registrar comunicación del aval a VIE</button>
+   <SimpleModal open={confirm} title="Registrar comunicación del aval a VIE" description="Confirme el registro. El expediente saldrá de pendientes de Dirección y quedará disponible para verificación VIE." onClose={()=>{if(!sending)setConfirm(false);}} footer={<><button type="button" className="btn btn-secondary" disabled={sending} onClick={()=>setConfirm(false)}>Cancelar</button><button type="button" className="btn btn-primary" disabled={sending||!eligible} onClick={async()=>{if(sending)return;setSending(true);try{if(await onAction('communicate-aval'))setConfirm(false);}finally{setSending(false);}}}>{sending?'Registrando…':'Confirmar comunicación'}</button></>}><p>Oficio: {record?.numero_oficio??'Pendiente de consulta'}</p><p>Destinatario: Vicerrectoría de Investigación y Extensión.</p></SimpleModal>
+  </article></div>;
 }
 
 export function GestoraViePanel({

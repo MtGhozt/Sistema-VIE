@@ -100,9 +100,9 @@ export const HOME_BY_ROLE: Record<RoleId, HomeSummary> = {
       "Comunicá a la VIE los avales aprobados por el Consejo de Escuela.",
     stats: [
       ["Pendientes de comunicar", "2"],
-      ["Enviados", "14"],
-      ["Con confirmación", "13"],
-      ["Por revisar", "1"],
+      ["Comunicados a VIE", "14"],
+      ["En VIE", "13"],
+      ["Aval rechazado", "1"],
     ],
   },
   gestora_vie: {

@@ -3,6 +3,7 @@ import { apiJson } from "./client";
 export type HistoricoItem = {
   id: number;
   estadoAval?:string|null;
+  avalComunicado?:boolean;
   estadoEvaluacion?:string;
   estadoPi?:string;estadoPiLabel?:string;
   codigo: string;
@@ -31,6 +32,7 @@ export type HistoricoFiltros = {
   comite:string;
   evaluacion:string;
   consejo:string;
+  direccion:string;
 };
 
 export type HistoricoOpciones = {
@@ -57,6 +59,7 @@ export const EMPTY_HISTORICO_FILTROS: HistoricoFiltros = {
   comite:"",
   evaluacion:"",
   consejo:"",
+  direccion:"",
 };
 
 /** Listado del histórico con filtros combinables (CU5). */

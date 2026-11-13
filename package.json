@@ -28,7 +28,8 @@
     "regression:investigador-ajustes": "node scripts/regression-investigador-ajustes.mjs",
     "regression:vinculacion-final": "node scripts/regression-vinculacion-final.mjs",
     "test:actual": "node scripts/verificar-actual.mjs",
-    "regression:consejo-profesores": "node scripts/regression-consejo-profesores.mjs"
+    "regression:consejo-profesores": "node scripts/regression-consejo-profesores.mjs",
+    "regression:direccion-escuela": "node scripts/regression-direccion-escuela.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.10",

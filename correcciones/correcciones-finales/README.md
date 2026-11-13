@@ -38,3 +38,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [Datos demo actuales](DATOS-DE-PRUEBA.md): inventario de los 16 casos cargados tras el reinicio de desarrollo y pruebas. Validación integrada: 12 baterías aprobadas (270 comprobaciones y 6 casos no aplicables).
 
 - [Consejo de Profesores y rendimiento](CONSEJO-PROFESORES.md): mediciones antes/después, indicadores reales, presupuesto/documentos, decisión y reconsideración. Pendiente de revisión manual.
+
+- [Dirección de Escuela](DIRECCION-DE-ESCUELA.md): indicadores y comunicación única del aval a VIE, respaldos y estado operativo separado del académico. Pendiente de revisión manual.

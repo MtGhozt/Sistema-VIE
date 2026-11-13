@@ -108,16 +108,19 @@ assert(
   `count=${convos.length}`,
 );
 
+const apertura = new Date().toISOString().slice(0, 10);
+const cierre = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10);
 const nueva = await jfetch(`${base}/convocatorias`, {
   method: "POST",
   headers: hv,
   body: JSON.stringify({
     nombre: `Smoke Conv ${Date.now()}`,
     descripcion: "smoke",
-    fechaApertura: "2026-03-01",
-    fechaCierre: "2026-11-30",
+    fechaApertura: apertura,
+    fechaCierre: cierre,
     presupuestoEstimado: 100000,
     estado: "borrador",
+    hitos: [{ nombre: "Recepción smoke", responsable: "VIE", fechaInicio: apertura, fechaFin: cierre }],
   }),
 });
 assert(

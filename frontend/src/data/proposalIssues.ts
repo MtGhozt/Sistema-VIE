@@ -6,8 +6,8 @@ export type ProposalIssue={step:number;label:string;message:string};
 export function proposalIssues(step:number,f:FormWizardState,hasConvocatoria:boolean,draft=false):ProposalIssue[]{
  const out:ProposalIssue[]=[];
  const add=(label:string,message:string)=>out.push({step,label,message});
- const required=(label:string,value:string)=>{if(!draft&&!value.trim())add(label,'Complete este campo antes de continuar.');};
- const narrative=(label:string,value:string,limit:number)=>{required(label,value);if(countWords(value)>limit)add(label,`Contiene ${countWords(value)} palabras; admite como máximo ${limit}.`);};
+ const required=(label:string,value:string|null|undefined)=>{if(!draft&&!(value??'').trim())add(label,'Complete este campo antes de continuar.');};
+ const narrative=(label:string,value:string|null|undefined,limit:number)=>{const text=value??'';required(label,text);if(countWords(text)>limit)add(label,`Contiene ${countWords(text)} palabras; admite como máximo ${limit}.`);};
  if(step===0){
   if(!f.titulo.trim())add('Nombre del proyecto','Escriba el nombre del proyecto antes de guardar.');if(f.titulo.length>500)add('Nombre del proyecto','El nombre admite hasta 500 caracteres.');
   required('Modalidad',f.modalidad);

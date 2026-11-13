@@ -345,10 +345,11 @@ async function requestGemini(model: string, messages: ChatMessage[]): Promise<st
       );
     }
     if (response.status >= 500) {
+      // No reintentar el mismo modelo saturado: pasar al respaldo de inmediato.
       throw new GeminiAttemptError(
         `El modelo ${model} está saturado (estado ${response.status}).`,
         503,
-        true,
+        false,
         true,
         false,
       );

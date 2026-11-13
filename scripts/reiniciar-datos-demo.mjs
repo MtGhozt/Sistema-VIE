@@ -2,6 +2,7 @@
 import {createRequire} from 'node:module';
 import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 const profile=process.argv[2],count=Number(process.argv[3]??16),url=process.env.DATABASE_URL;
 if(!['desarrollo','pruebas'].includes(profile)||!Number.isInteger(count)||count<16||count>80||!url)throw new Error('Perfil/cantidad inválidos. Use reiniciar-datos-demo.sh.');
 const parsed=new URL(url),expected=profile==='pruebas'?'fondos_vie_test':'fondos_vie';
@@ -23,7 +24,7 @@ try{
 }catch(e){await client.query('ROLLBACK');report.error=e.message;throw e;}
 finally{client.release();await pool.end();}
 try{
- const child=spawnSync(process.execPath,[new URL('./cargar-propuestas-demo.mjs',import.meta.url).pathname,'--perfil',profile,'--cantidad',String(count)],{stdio:'inherit',env:process.env});
+ const child=spawnSync(process.execPath,[fileURLToPath(new URL('./cargar-propuestas-demo.mjs',import.meta.url)),'--perfil',profile,'--cantidad',String(count)],{stdio:'inherit',env:process.env});
  if(child.status!==0)throw new Error('El reinicio terminó, pero la carga no se completó. Revise el reporte del cargador; los registros parciales se conservan.');report.carga=true;
  const verify=new Pool({connectionString:url});try{await verify.query('ANALYZE');report.estadisticasActualizadas=true;report.estados=(await verify.query('SELECT estado_actual,count(*)::int AS cantidad FROM propuesta GROUP BY estado_actual ORDER BY estado_actual')).rows;report.pi=(await verify.query("SELECT (SELECT count(*) FROM dictamen_pi WHERE estado='emitido')::int AS emitidos,(SELECT count(*) FROM pi_certificacion_no_requerido)::int AS no_requeridos,(SELECT count(*) FROM revision_expediente WHERE etapa='pi' AND resultado='en_revision')::int AS en_revision")).rows[0];report.remisiones=(await verify.query("SELECT count(*)::int AS cantidad FROM comunicacion_institucional WHERE tipo='expediente_consejo'")).rows[0].cantidad;}finally{await verify.end();}
 }catch(e){report.error=e.message;process.exitCode=1;}

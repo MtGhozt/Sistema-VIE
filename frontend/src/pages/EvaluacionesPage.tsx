@@ -132,7 +132,7 @@ type BandejaEntry = {
 export function EvaluacionesPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
-  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");const comiteFilter=search.get("comite");const evaluacionFilter=search.get("evaluacion");const consejoFilter=search.get("consejo");const direccionFilter=search.get("direccion");
+  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");const comiteFilter=search.get("comite");const evaluacionFilter=search.get("evaluacion");const consejoFilter=search.get("consejo");const direccionFilter=search.get("direccion");const vieFilter=search.get("vie");
   const { showToast } = useToast();
   const [bandeja, setBandeja] = useState<BandejaEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState("");
@@ -148,7 +148,7 @@ export function EvaluacionesPage() {
     setLoading(true);
     setBandejaNote(null);
     try {
-      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter);
+      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter,vieFilter);
       const entries: BandejaEntry[] = res.items.map((item) => ({
         key: item.codigo, numericId: item.id, demo: bandejaToDemoProposal(item), api: item,
       }));
@@ -164,7 +164,7 @@ export function EvaluacionesPage() {
     } finally {
       setLoading(false);
     }
-  }, [session, role,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter]);
+  }, [session, role,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter,vieFilter]);
 
   useEffect(() => {
     void loadBandeja();
@@ -232,6 +232,7 @@ export function EvaluacionesPage() {
       } else {
         await loadBandeja();
       }
+      if(role==='gestora_vie'&&['send-cie','return'].includes(action)){navigate('/historico?vie='+(action==='send-cie'?'remitidos':'devueltos'));return true;}
       if(role==='direccion_escuela'&&action==='communicate-aval'){navigate('/historico?direccion=comunicados');return true;}
       if(role==='consejo'&&['council-approve','council-reject'].includes(action)){navigate('/historico?consejo='+(action==='council-approve'?'aval_aprobado':'aval_rechazado'));return true;}
       if(role==='consejo'&&action==='council-reconsider'){navigate('/historico?consejo=pendientes');return true;}
@@ -348,7 +349,7 @@ export function EvaluacionesPage() {
       {EVAL_ROLES.includes(role) || role === "admin" ? (
         <>
           {role !== "admin" && (
-            <div className={["comite_evaluador","consejo_asistente","consejo","direccion_escuela"].includes(role)?"evaluation-selector evaluator-selector":"evaluation-selector"}>
+            <div className={["comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie"].includes(role)?"evaluation-selector evaluator-selector":"evaluation-selector"}>
               <span>Expediente activo</span>
               <select
                 className="input"

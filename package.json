@@ -29,6 +29,7 @@
     "regression:vinculacion-final": "node scripts/regression-vinculacion-final.mjs",
     "test:actual": "node scripts/verificar-actual.mjs",
     "regression:consejo-profesores": "node scripts/regression-consejo-profesores.mjs",
+    "regression:gestora-vie": "node scripts/regression-gestora-vie.mjs",
     "regression:direccion-escuela": "node scripts/regression-direccion-escuela.mjs"
   },
   "devDependencies": {

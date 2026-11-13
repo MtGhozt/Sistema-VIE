@@ -112,7 +112,7 @@ export const HOME_BY_ROLE: Record<RoleId, HomeSummary> = {
       "Revisá contenido, completitud y observaciones antes de remitir las propuestas al CIE.",
     stats: [
       ["Expedientes pendientes", "5"],
-      ["Con observaciones", "2"],
+      ["Remitidos al CIE", "2"],
       ["Listos para CIE", "3"],
       ["Devueltos", "1"],
     ],

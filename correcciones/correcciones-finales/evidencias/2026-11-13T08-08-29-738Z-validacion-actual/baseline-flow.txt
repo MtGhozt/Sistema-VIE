@@ -1,0 +1,79 @@
+PASA | Conectar únicamente a BD de prueba y arrancar API propia | API nueva conectada a fondos_vie_test; puerto dinámico.
+PASA | Login vie_publicacion |
+PASA | Login investigador |
+PASA | Login vinculacion |
+PASA | Login comite_asistente |
+PASA | Login comite_evaluador |
+PASA | Login consejo_asistente |
+PASA | Login consejo |
+PASA | Login direccion_escuela |
+PASA | Login gestora_vie |
+PASA | Login cie |
+PASA | Login direccion_investigacion |
+PASA | Login admin |
+PASA | Consultar bandeja vinculacion | 33 expedientes; no implica permisos correctos
+PASA | Consultar bandeja comite_asistente | 92 expedientes; no implica permisos correctos
+PASA | Consultar bandeja comite_evaluador | 26 expedientes; no implica permisos correctos
+PASA | Consultar bandeja consejo_asistente | 7 expedientes; no implica permisos correctos
+PASA | Consultar bandeja consejo | 10 expedientes; no implica permisos correctos
+PASA | Consultar bandeja direccion_escuela | 16 expedientes; no implica permisos correctos
+PASA | Consultar bandeja gestora_vie | 17 expedientes; no implica permisos correctos
+PASA | Consultar bandeja cie | 5 expedientes; no implica permisos correctos
+PASA | Consultar bandeja direccion_investigacion | 21 expedientes; no implica permisos correctos
+PASA | Consultar bandeja admin | 100 expedientes; no implica permisos correctos
+PASA | Crear y publicar convocatoria exclusiva de ejecución |
+PASA | Crear expediente aprobacion |
+PASA | Enviar expediente aprobacion |
+PASA | aprobacion: pi | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | aprobacion: committee-ready | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | aprobacion: save-rubric | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | aprobacion: committee-score | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | aprobacion: committee-score | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | aprobacion: committee-score | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | aprobacion: committee-confirm | {"estado_actual":"dictaminada","etapa_flujo":3}
+PASA | aprobacion: send-council | {"estado_actual":"dictaminada","etapa_flujo":3}
+PASA | aprobacion: council-approve | {"estado_actual":"avalada","etapa_flujo":4}
+PASA | aprobacion: communicate-aval | {"estado_actual":"avalada","etapa_flujo":4}
+PASA | aprobacion: vie-observation | {"estado_actual":"avalada","etapa_flujo":4}
+PASA | aprobacion: vie-checklist | {"estado_actual":"avalada","etapa_flujo":4}
+PASA | aprobacion: send-cie | {"estado_actual":"avalada","etapa_flujo":5}
+PASA | aprobacion: cie-approve | {"estado_actual":"aprobada","etapa_flujo":6}
+PASA | aprobacion: notify-resolution | {"estado_actual":"aprobada","etapa_flujo":6}
+PASA | Localizar aprobacion en histórico |
+PASA | Crear expediente rechazo-cie |
+PASA | Enviar expediente rechazo-cie |
+PASA | rechazo-cie: pi | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-cie: committee-ready | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-cie: save-rubric | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-cie: committee-score | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-cie: committee-score | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-cie: committee-score | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-cie: committee-confirm | {"estado_actual":"dictaminada","etapa_flujo":3}
+PASA | rechazo-cie: send-council | {"estado_actual":"dictaminada","etapa_flujo":3}
+PASA | rechazo-cie: council-approve | {"estado_actual":"avalada","etapa_flujo":4}
+PASA | rechazo-cie: communicate-aval | {"estado_actual":"avalada","etapa_flujo":4}
+PASA | rechazo-cie: vie-observation | {"estado_actual":"avalada","etapa_flujo":4}
+PASA | rechazo-cie: vie-checklist | {"estado_actual":"avalada","etapa_flujo":4}
+PASA | rechazo-cie: send-cie | {"estado_actual":"avalada","etapa_flujo":5}
+PASA | rechazo-cie: cie-reject | {"estado_actual":"rechazada","etapa_flujo":6}
+PASA | rechazo-cie: notify-resolution | {"estado_actual":"rechazada","etapa_flujo":6}
+PASA | Localizar rechazo-cie en histórico |
+PASA | Crear expediente rechazo-consejo |
+PASA | Enviar expediente rechazo-consejo |
+PASA | rechazo-consejo: pi | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-consejo: committee-ready | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-consejo: save-rubric | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-consejo: committee-score | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-consejo: committee-score | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-consejo: committee-score | {"estado_actual":"en_evaluacion","etapa_flujo":2}
+PASA | rechazo-consejo: committee-confirm | {"estado_actual":"dictaminada","etapa_flujo":3}
+PASA | rechazo-consejo: send-council | {"estado_actual":"dictaminada","etapa_flujo":3}
+PASA | rechazo-consejo: council-reject | {"estado_actual":"rechazo_aval","etapa_flujo":3}
+NO APLICA | rechazo-consejo: communicate-aval | La rama termina al rechazar el aval; no se fuerza una resolución CIE.
+NO APLICA | rechazo-consejo: vie-observation | La rama termina al rechazar el aval; no se fuerza una resolución CIE.
+NO APLICA | rechazo-consejo: vie-checklist | La rama termina al rechazar el aval; no se fuerza una resolución CIE.
+NO APLICA | rechazo-consejo: send-cie | La rama termina al rechazar el aval; no se fuerza una resolución CIE.
+NO APLICA | rechazo-consejo: cie-approve | La rama termina al rechazar el aval; no se fuerza una resolución CIE.
+NO APLICA | rechazo-consejo: notify-resolution | La rama termina al rechazar el aval; no se fuerza una resolución CIE.
+PASA | Localizar rechazo-consejo en histórico |
+Evidencia: correcciones/evidencias/2026-11-13T08-09-44-966Z-linea-base-api

@@ -33,6 +33,7 @@ export type HistoricoFiltros = {
   evaluacion:string;
   consejo:string;
   direccion:string;
+  vie:string;
 };
 
 export type HistoricoOpciones = {
@@ -60,6 +61,7 @@ export const EMPTY_HISTORICO_FILTROS: HistoricoFiltros = {
   evaluacion:"",
   consejo:"",
   direccion:"",
+  vie:"",
 };
 
 /** Listado del histórico con filtros combinables (CU5). */

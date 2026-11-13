@@ -1,3 +1,4 @@
+import {VIE_FILTROS} from '../vieEstado.js';
 import {DIRECCION_FILTROS,AVAL_COMUNICADO_SQL} from "../direccionEstado.js";
 import {CONSEJO_DECISION_FILTROS,CONSEJO_FILTROS,CONSEJO_ENVIADO_SQL,CONSEJO_PENDIENTE_SQL} from "../consejoEstado.js";
 import consejoLimits from "../../../shared/consejo-text-limits.json" with {type:"json"};
@@ -105,7 +106,7 @@ const BANDEJA_SQL = `
     av.numero_oficio AS oficio_aval,
     r.numero_resolucion AS resolucion,
     COALESCE((SELECT json_object_agg(ch.codigo_item,ch.verificado) FROM revision_checklist ch
-      WHERE ch.id_revision=(SELECT rv.id_revision FROM revision_expediente rv WHERE rv.id_propuesta=p.id_propuesta AND rv.etapa='vie' ORDER BY rv.ciclo DESC LIMIT 1)), '{}'::json) AS vie_checks,
+      WHERE ch.id_revision=(SELECT rv.id_revision FROM revision_expediente rv WHERE rv.id_propuesta=p.id_propuesta AND rv.etapa='vie' AND rv.resultado<>'devuelto' AND NOT EXISTS(SELECT 1 FROM revision_expediente newer WHERE newer.id_propuesta=rv.id_propuesta AND newer.etapa='vie' AND newer.ciclo>rv.ciclo) ORDER BY rv.ciclo DESC LIMIT 1)), '{}'::json) AS vie_checks,
     av.observaciones AS justificacion_aval,
     EXISTS (SELECT 1 FROM comunicacion_institucional ci WHERE ci.id_propuesta=p.id_propuesta AND ci.tipo='resolucion_cie' AND ci.confirmada=true) AS notificada,
     av.fecha_aval,
@@ -316,6 +317,9 @@ evaluacionesRouter.get(
     if(requestedView && (authenticatedRole!=="admin" || !EVALUATION_VIEWS.has(requestedView))){res.status(403).json({error:"Vista de evaluación no permitida"});return;}
     const role = requestedView || authenticatedRole;
     const clause = bandejaClause(role);
+    const vieFilter=String(req.query.vie??'');
+    if(vieFilter&&(role!=='gestora_vie'||!['pendientes','listos'].includes(vieFilter)))throw new HttpError(400,'Filtro de verificación VIE inválido');
+    if(vieFilter)clause.sql=` AND (${VIE_FILTROS[vieFilter]})`;
     const direccionFilter=String(req.query.direccion??'');
     if(direccionFilter&&(role!=='direccion_escuela'||!Object.hasOwn(DIRECCION_FILTROS,direccionFilter)))throw new HttpError(400,'Filtro de comunicación del aval inválido');
     if(direccionFilter)clause.sql=` AND (${DIRECCION_FILTROS[direccionFilter]})`;
@@ -374,7 +378,10 @@ evaluacionesRouter.get(
       resumenDireccion=(await query(`SELECT ${Object.entries(DIRECCION_FILTROS).map(([k,v])=>`count(*) FILTER(WHERE ${v})::int AS ${k}`).join(',')} FROM propuesta p WHERE ${scope.sql}`,scope.params)).rows[0];
       pendientesDireccion=(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND ${DIRECCION_FILTROS.por_comunicar} ORDER BY av.fecha_aval ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja);
     }
+    const resumenVie=role==='gestora_vie'?(await query(`SELECT ${Object.entries(VIE_FILTROS).map(([k,v])=>`count(*) FILTER(WHERE ${v})::int AS ${k}`).join(',')} FROM propuesta p WHERE ${scope.sql}`,scope.params)).rows[0]:undefined;
+    const pendientesVie=role==='gestora_vie'?(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND (${VIE_FILTROS.pendientes}) ORDER BY (SELECT MAX(ci.fecha_envio) FROM comunicacion_institucional ci WHERE ci.id_propuesta=p.id_propuesta AND ci.tipo='aval_consejo') ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja):undefined;
     res.json({
+      resumenVie,pendientesVie,
       resumenDireccion,pendientesDireccion,
       resumenConsejo,pendientesConsejo,
       comiteEnviadas:resumenComite?.enviadas,
@@ -412,7 +419,7 @@ evaluacionesRouter.get(
 );
 
 evaluacionesRouter.get('/evaluaciones/propuestas/:id/comunicacion-aval',requireDemoAuth,asyncHandler(async(req,res)=>{
- if(!['direccion_escuela','gestora_vie','admin'].includes(req.demoAuth!.role??''))throw new HttpError(403,'Sin permiso para consultar la comunicación del aval');
+ if(!['direccion_escuela','gestora_vie','cie','direccion_investigacion','admin'].includes(req.demoAuth!.role??''))throw new HttpError(403,'Sin permiso para consultar la comunicación del aval');
  const id=Number(req.params.id);if(!Number.isSafeInteger(id)||id<1)throw new HttpError(400,'ID inválido');await exigirAlcance(id,req.demoAuth!);
  const record=(await query(`SELECT av.numero_oficio,av.resultado,av.observaciones,av.fecha_aval,u.nombre_completo AS emitido_por,
  (${AVAL_COMUNICADO_SQL}) AS comunicado,
@@ -422,7 +429,7 @@ evaluacionesRouter.get('/evaluaciones/propuestas/:id/comunicacion-aval',requireD
 }));
 
 evaluacionesRouter.get('/evaluaciones/propuestas/:id/respaldo-consejo',requireDemoAuth,asyncHandler(async(req,res)=>{
- if(!['consejo_asistente','consejo','direccion_escuela','admin'].includes(req.demoAuth!.role??''))throw new HttpError(403,'Sin permiso para consultar el respaldo del Consejo');
+ if(!['consejo_asistente','consejo','direccion_escuela','gestora_vie','cie','direccion_investigacion','admin'].includes(req.demoAuth!.role??''))throw new HttpError(403,'Sin permiso para consultar el respaldo del Consejo');
  const id=Number(req.params.id);if(!Number.isSafeInteger(id)||id<1)throw new HttpError(400,'ID inválido');await exigirAlcance(id,req.demoAuth!);
  const consolidated=(await query(`SELECT rc.*,u.nombre_completo AS confirmado_por FROM resultado_comite rc LEFT JOIN usuario u ON u.id_usuario=rc.id_coordinador_comite WHERE rc.id_propuesta=$1`,[id])).rows[0];
  const remision=(await query(`SELECT ci.mensaje,ci.fecha_envio,u.nombre_completo AS remitido_por FROM comunicacion_institucional ci JOIN usuario u ON u.id_usuario=ci.id_emisor WHERE ci.id_propuesta=$1 AND ci.tipo='expediente_consejo' AND ci.confirmada ORDER BY ci.fecha_envio DESC LIMIT 1`,[id])).rows[0];
@@ -431,7 +438,7 @@ evaluacionesRouter.get('/evaluaciones/propuestas/:id/respaldo-consejo',requireDe
 }));
 
 evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, asyncHandler(async(req,res)=>{
-  if(!roleOk(req.demoAuth!.role,"pi")&&!["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela"].includes(req.demoAuth!.role??"")){res.status(403).json({error:"Sin permiso para consultar el dictamen"});return;}
+  if(!roleOk(req.demoAuth!.role,"pi")&&!["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion"].includes(req.demoAuth!.role??"")){res.status(403).json({error:"Sin permiso para consultar el dictamen"});return;}
   const id=Number(req.params.id);
   if(!Number.isSafeInteger(id)||id<1){res.status(400).json({error:"ID inválido"});return;}
   await exigirAlcance(id,req.demoAuth!);
@@ -439,7 +446,7 @@ evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, async
   if(!proposal){res.status(404).json({error:"Propuesta no encontrada"});return;}
   const row=await query("SELECT * FROM dictamen_pi WHERE id_propuesta=$1",[id]);
   const raw=row.rows[0];
-  const d=["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela"].includes(req.demoAuth!.role??"")&&raw?.estado!=="emitido"?undefined:raw;
+  const d=["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion"].includes(req.demoAuth!.role??"")&&raw?.estado!=="emitido"?undefined:raw;
   const certification=(await query("SELECT * FROM pi_certificacion_no_requerido WHERE id_propuesta=$1",[id])).rows[0];
   const inReview=(await query("SELECT 1 FROM revision_expediente WHERE id_propuesta=$1 AND etapa='pi' AND resultado='en_revision'",[id])).rowCount;
   res.json({emitidoEn:d?.emitido_en??null,enRevision:Boolean(inReview),estado:proposal.requiere_dictamen_pi?d?.estado??null:certification?"no_requerido":null,fundamentoNoRequerido:certification?.fundamento??null,certificadoPor:certification?.id_certificador??null,fecha:certification?.fecha_certificacion??d?.fecha_dictamen??null,form:d?{
@@ -602,6 +609,7 @@ evaluacionesRouter.post(
       if(action==='committee-confirm'&&String(payload.texto??'').length>comiteLimits.fundamento)throw new HttpError(400,`El fundamento del dictamen consolidado admite como máximo ${comiteLimits.fundamento} caracteres`);
       if(['council-approve','council-reject','request-reconsideration','council-reconsider'].includes(action)&&String(payload.texto??'').length>4000)throw new HttpError(400,'El fundamento del Consejo admite como máximo 4000 caracteres');
       if(['vie-checklist','vie-observation','send-cie'].includes(action)&&!(await client.query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${AVAL_COMUNICADO_SQL}`,[id])).rowCount)throw new HttpError(409,'Dirección debe registrar primero la comunicación del aval a VIE');
+      if(['vie-observation','return'].includes(action)&&(role==='gestora_vie'||payload.instancia==='vie')&&String(payload.texto??'').length>4000)throw new HttpError(400,'El comentario VIE admite como máximo 4000 caracteres');
       const ranges:Record<string,[number,number]>={"pi-start":[1,5],pi:[1,5],"pi-not-required":[1,5],"committee-confirm":[2,2],"committee-ready":[1,2],"committee-score":[1,2],"send-council":[2,3],"council-approve":[3,3],"council-reject":[3,3],"communicate-aval":[4,4],"vie-checklist":[4,4],"vie-observation":[4,4],"send-cie":[4,4],"cie-approve":[5,5],"cie-reject":[5,5]};
       const range=ranges[action];
       if(range&&(propuesta.etapa_flujo<range[0]||propuesta.etapa_flujo>range[1])) throw new HttpError(409,"La acción no corresponde a la instancia actual del expediente");

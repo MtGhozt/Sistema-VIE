@@ -137,3 +137,8 @@
 .council-assistant-workspace { min-width: 0; }
 .council-assistant-workspace > * { min-width: 0; }
 .council-assistant-workspace .review-panel { position: static; max-height: none; overflow-wrap: anywhere; }
+
+.vie-document-review { border: 1px solid var(--ink-15); border-radius: 10px; margin: 14px 0; overflow-wrap: anywhere; }
+.vie-document-review > summary { cursor: pointer; padding: 16px; font-weight: 700; color: var(--blue); }
+.vie-document-review > div { padding: 0 16px 16px; }
+.vie-document-review .card { min-width: 0; }

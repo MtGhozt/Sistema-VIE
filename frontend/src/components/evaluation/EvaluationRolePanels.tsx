@@ -1040,71 +1040,36 @@ export function DireccionEscuelaPanel({
   </article></div>;
 }
 
-export function GestoraViePanel({
-  proposal,
-  onAction,
-}: {
-  proposal: DemoProposal;
-  onAction: ActionHandler;
-}) {
+export function GestoraViePanel({proposal,onAction}:{proposal:DemoProposal;onAction:ActionHandler}) {
   const initial=Object.fromEntries(vieItems.map(item=>[item.codigo,proposal.vieChecks?.[item.codigo]??false]));
-  const [checks,setChecks]=useState(initial);
-  const [saved,setSaved]=useState(initial);
+  const [checks,setChecks]=useState(initial),[saved,setSaved]=useState(initial),[saving,setSaving]=useState(false);
+  const [readingPane,setReadingPane]=useState<'case'|'rubric'|'both'>('both');
+  const [obs,setObs]=useState(''),[secciones,setSecciones]=useState<string[]>([]),[confirm,setConfirm]=useState(false);
   const allOk=vieItems.every(item=>checks[item.codigo]);
   const dirty=vieItems.some(item=>checks[item.codigo]!==saved[item.codigo]);
-  const [obs, setObs] = useState("");
-  const [secciones,setSecciones]=useState<string[]>([]);
-
-  return (
-    <div className="split-review">
-      <CaseFile proposal={proposal} />
-      <article className="card review-panel">
-        <PanelIntro
-          title="Verificación VIE"
-          description="Confirme que el expediente contiene la ruta previa y la documentación necesaria."
-        />
-        <div className="checklist" role="group" aria-label="Verificación VIE">
-          {vieItems.map(item=><label key={item.codigo} className="check-row">
-            <input type="checkbox" checked={checks[item.codigo]} onChange={e=>setChecks(prev=>({...prev,[item.codigo]:e.target.checked}))}/>
-            {checks[item.codigo]?<CheckIcon/>:<span className="custom-check"/>}
-            <div><strong>{item.etiqueta}</strong><span>{checks[item.codigo]?"Verificado":"Falta verificar"}</span></div>
-          </label>)}
-        </div>
-        <button type="button" className="btn btn-secondary" onClick={async()=>{if(await onAction("vie-checklist",{checks}))setSaved({...checks});}}>Guardar verificación</button>
-        <p className="field-hint" role="status">{dirty?"Verificación con cambios sin guardar.":"La remisión requiere guardar todos los requisitos verificados."}</p>
-        <label className="field">
-          <span className="field-label">Comentario o motivo de devolución</span>
-          <textarea
-            className="input textarea"
-            rows={5}
-            value={obs}
-            onChange={(e) => setObs(e.target.value)}
-            placeholder="Escriba un comentario o el motivo de una devolución..."
-          />
-        </label>
-        <SeccionesDevueltas value={secciones} onChange={setSecciones}/>
-        <div className="action-row">
-          <button
-            type="button"
-            className="btn btn-secondary btn-observation"
-            disabled={!obs.trim()}
-            onClick={() => onAction("vie-observation", { texto: obs })}
-          >
-            Enviar comentario sin devolución
-          </button>
-          <button type="button" className="btn btn-secondary" disabled={!obs.trim()||!secciones.length} onClick={()=>onAction("return",{texto:obs,secciones,instancia:"vie"})}>Devolver para subsanación en VIE</button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={dirty||!allOk}
-            onClick={() => onAction("send-cie")}
-          >
-            Enviar al CIE
-          </button>
-        </div>
-      </article>
-    </div>
-  );
+  async function save(next:Record<string,boolean>){if(saving)return;setSaving(true);try{if(await onAction('vie-checklist',{checks:next})){setSaved({...next});}}finally{setSaving(false);}}
+  return <div className={`split-review evaluator-workspace evaluator-pane-${readingPane}`}>
+    <div className="card evaluator-reading-tools" aria-label="Distribución de lectura"><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='case'} onClick={()=>setReadingPane(readingPane==='case'?'both':'case')}>Ampliar expediente</button><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='rubric'} onClick={()=>setReadingPane(readingPane==='rubric'?'both':'rubric')}>Ampliar verificación</button><button type="button" className="btn btn-secondary" onClick={()=>setReadingPane('both')}>Mostrar ambos paneles</button></div>
+    <aside className="rubric-case"><details open className="evaluator-proposal-details"><summary>Información de la propuesta</summary><div className="evaluator-proposal-scroll" tabIndex={0} aria-label="Información desplazable de la propuesta"><CaseFile proposal={proposal}/></div></details></aside>
+    <article className="card review-panel rubric-main"><PanelIntro title="Verificación VIE" description="Revise cada respaldo y guarde su verificación antes de remitir el expediente al CIE. VIE verifica y solicita subsanaciones; la resolución corresponde al CIE."/>
+    <div className="evaluation-progress" role="status"><strong>Requisitos verificados y guardados: {vieItems.filter(item=>saved[item.codigo]).length} de {vieItems.length}</strong><progress aria-label="Progreso de verificación VIE" max={vieItems.length} value={vieItems.filter(item=>saved[item.codigo]).length}/></div>
+    {vieItems.map(item=><details key={item.codigo} className="vie-document-review"><summary>{item.etiqueta} · {saved[item.codigo]?'Verificación guardada':'Pendiente de verificar'}{checks[item.codigo]!==saved[item.codigo]?' · Cambios sin guardar':''}</summary><div className="stack-md">
+      {item.codigo==='propuesta'&&<p>Use «Abrir expediente completo» para consultar todas las secciones, el presupuesto estructurado y sus anexos; al volver conservará la propuesta seleccionada.</p>}
+      {proposal.numericId&&item.codigo==='pi'&&<VinculacionResumen id={proposal.numericId}/>}
+      {proposal.numericId&&item.codigo==='evaluacion_comite'&&<ConsejoRespaldo id={proposal.numericId}/>}
+      {proposal.numericId&&item.codigo==='oficio_comite'&&<ConsejoRespaldo id={proposal.numericId}/>}
+      {proposal.numericId&&item.codigo==='aval'&&<DireccionRespaldo id={proposal.numericId}/>}
+      {proposal.numericId&&item.codigo==='respaldos'&&<DocumentosPanel id={proposal.numericId}/>}
+      <label className="check-row"><input type="checkbox" aria-label={`Verificar: ${item.etiqueta}`} disabled={saving} checked={checks[item.codigo]} onChange={e=>setChecks(prev=>({...prev,[item.codigo]:e.target.checked}))}/><span>He revisado: {item.etiqueta}</span></label>
+      <button type="button" className="btn btn-secondary" disabled={saving||checks[item.codigo]===saved[item.codigo]} onClick={()=>void save({...saved,[item.codigo]:checks[item.codigo]})}>Guardar revisión de {item.etiqueta}</button>
+    </div></details>)}
+    <button type="button" className="btn btn-secondary" disabled={saving||!dirty} onClick={()=>void save({...checks})}>{saving?'Guardando verificación…':'Guardar verificación'}</button>
+    <p className="field-hint" role="status">{dirty?'Verificación con cambios sin guardar.':'La remisión requiere guardar todos los requisitos verificados. Las marcas guardadas se conservan al volver.'}</p>
+    <label className="field"><span className="field-label">Comentario o motivo de devolución</span><textarea aria-label="Comentario o motivo de devolución" className="input textarea" rows={5} value={obs} maxLength={4000} aria-describedby="vie-observacion-budget" onChange={e=>setObs(e.target.value)} placeholder="Indique qué encontró y qué debe corregirse…"/><WordBudget id="vie-observacion-budget" value={obs} maxWords={4000} unit="caracteres"/></label>
+    <SeccionesDevueltas value={secciones} onChange={setSecciones}/>
+    <div className="action-row"><button type="button" className="btn btn-secondary btn-observation" disabled={saving||!obs.trim()} onClick={async()=>{if(await onAction('vie-observation',{texto:obs}))setObs('');}}>Enviar comentario sin devolución</button><button type="button" className="btn btn-secondary" disabled={saving||!obs.trim()||!secciones.length} onClick={()=>onAction('return',{texto:obs,secciones,instancia:'vie'})}>Devolver para subsanación en VIE</button><button type="button" className="btn btn-primary" disabled={saving||dirty||!allOk} onClick={()=>setConfirm(true)}>Enviar al CIE</button></div>
+    <SimpleModal open={confirm} title="Remitir expediente al CIE" description="Se enviará el expediente con su verificación completa. Saldrá de pendientes VIE y quedará disponible para resolución del CIE." onClose={()=>setConfirm(false)} footer={<><button type="button" className="btn btn-secondary" onClick={()=>setConfirm(false)}>Cancelar</button><button type="button" className="btn btn-primary" disabled={saving||dirty||!allOk} onClick={async()=>{if(await onAction('send-cie'))setConfirm(false);}}>Confirmar remisión al CIE</button></>}><p>Se conservarán los seis requisitos verificados en el expediente.</p></SimpleModal>
+    </article></div>;
 }
 
 export function DireccionInvestigacionPanel({

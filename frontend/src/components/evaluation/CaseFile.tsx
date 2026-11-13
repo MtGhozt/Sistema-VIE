@@ -17,7 +17,7 @@ export function CaseFile({ proposal }: { proposal: DemoProposal }) {
   const {session}=useAuth();
   const location=useLocation();const direction=new URLSearchParams(location.search).get("direccion");const council=new URLSearchParams(location.search).get("consejo");const personal=new URLSearchParams(location.search).get("evaluacion");
   const returnTo=`/evaluaciones?propuesta=${proposal.numericId}`+(personal&&["pendiente","en_progreso","completada"].includes(personal)?`&evaluacion=${personal}`:"")+(council&&["aval_pendiente","reconsideracion","pendientes"].includes(council)?`&consejo=${council}`:"")+(direction==="por_comunicar"?"&direccion=por_comunicar":"");
-  const isAssistant=["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela"].includes(session?.viewRole??"");
+  const isAssistant=["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie"].includes(session?.viewRole??"");
   const fullLink=proposal.numericId!=null?<Link className={isAssistant?"btn btn-primary case-full-access":undefined} to={`/propuestas/${proposal.numericId}`} state={{returnTo}}>Abrir expediente completo (solo lectura)</Link>:null;
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [loadError, setLoadError] = useState("");
@@ -70,7 +70,7 @@ export function CaseFile({ proposal }: { proposal: DemoProposal }) {
         <span className="badge badge-primary">{view.estado}</span>
       </div>
 
-      {isAssistant&&<div className="case-full-access-block">{fullLink}<p>Revise el formulario y el dictamen de PI. Al volver conservará esta propuesta en Evaluaciones.</p></div>}
+      {isAssistant&&<div className="case-full-access-block">{fullLink}<p>Revise el formulario, presupuesto, dictamen PI, oficios y documentos de respaldo. Al volver conservará esta propuesta en Evaluaciones.</p></div>}
       <ProcessTimeline
         currentStep={view.etapa}
         piRequired={view.piRequired}

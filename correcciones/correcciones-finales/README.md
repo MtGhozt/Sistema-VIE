@@ -43,3 +43,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [Consejo de Profesores y rendimiento](CONSEJO-PROFESORES.md): mediciones antes/después, indicadores reales, presupuesto/documentos, decisión y reconsideración. Pendiente de revisión manual.
 
 - [Dirección de Escuela](DIRECCION-DE-ESCUELA.md): indicadores y comunicación única del aval a VIE, respaldos y estado operativo separado del académico. Pendiente de revisión manual.
+
+- [Persona Gestora VIE](PERSONA-GESTORA-VIE.md): respaldos desplegables, verificación persistida por requisito, indicadores, Histórico y remisión confirmada. Pendiente de revisión manual.

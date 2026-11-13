@@ -1,6 +1,6 @@
 # Centro de Vinculación · revisión final
 
-**Estado:** implementación y validación técnica completadas el 12/11/2026. Pendiente de revisión manual del usuario. Persona Investigadora Coordinadora y VIE-Publicación permanecen aceptados; esta revisión no extiende su aceptación a Vinculación.
+**Estado:** aceptado por el usuario el 12/11/2026, incluidos los ajustes del formulario de dictamen. Nuevas incidencias se registrarán por separado. Persona Investigadora Coordinadora y VIE-Publicación permanecen aceptados.
 
 ## Hallazgos, cambios y sustento
 
@@ -54,14 +54,14 @@ Las primeras ejecuciones detectaron y permitieron corregir el acceso a expedient
 
 ## Revisión manual
 
-- [ ] Comprobar las cuatro tarjetas, sus conteos y su filtro en Histórico.
-- [ ] Revisar el orden de pendientes más antiguos y abrir el expediente correcto.
-- [ ] Combinar, plegar, limpiar y recargar los filtros.
-- [ ] Abrir una propuesta sin popup, consultar secciones y adjuntos, ampliar letra/ancho y volver al histórico conservando filtros.
-- [ ] Abrir el registro PI emitido/no requerido y verificar que sea de consulta.
-- [ ] Iniciar revisión y comprobar que aparezca En revisión sin emitir todavía.
-- [ ] Registrar dictamen o certificar no requerimiento; volver a consultar el resultado y los indicadores.
-- [ ] Confirmar que Evaluaciones no selecciona otro expediente cuando el solicitado ya no está pendiente.
+- [x] Comprobar las cuatro tarjetas, sus conteos y su filtro en Histórico.
+- [x] Revisar el orden de pendientes más antiguos y abrir el expediente correcto.
+- [x] Combinar, plegar, limpiar y recargar los filtros.
+- [x] Abrir una propuesta sin popup, consultar secciones y adjuntos, ampliar letra/ancho y volver al histórico conservando filtros.
+- [x] Abrir el registro PI emitido/no requerido y verificar que sea de consulta.
+- [x] Iniciar revisión y comprobar que aparezca En revisión sin emitir todavía.
+- [x] Registrar dictamen o certificar no requerimiento; volver a consultar el resultado y los indicadores.
+- [x] Confirmar que Evaluaciones no selecciona otro expediente cuando el solicitado ya no está pendiente.
 
 ## Ajuste del formulario de dictamen · 12/11/2026
 
@@ -76,10 +76,10 @@ La migración **011_emision_dictamen_pi.sql** se incluye en el instalador existe
 
 ### Comprobaciones manuales del ajuste
 
-- [ ] Verificar contadores y límites de todos los textos, incluidos el fundamento y la consulta del dictamen emitido.
-- [ ] Verificar las ayudas de resultado y mecanismo y el orden No/Sí.
-- [ ] Emitir y comprobar el oficio automático y la fecha/hora real de emisión en el expediente.
-- [ ] Consultar un dictamen histórico y comprobar que no se alteraron sus datos.
+- [x] Verificar contadores y límites de todos los textos, incluidos el fundamento y la consulta del dictamen emitido.
+- [x] Verificar las ayudas de resultado y mecanismo y el orden No/Sí.
+- [x] Emitir y comprobar el oficio automático y la fecha/hora real de emisión en el expediente.
+- [x] Consultar un dictamen histórico y comprobar que no se alteraron sus datos.
 
 ### Validación técnica del ajuste
 

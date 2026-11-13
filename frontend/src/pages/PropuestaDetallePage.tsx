@@ -37,9 +37,12 @@ export function PropuestaDetallePage() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const isVinculacion=session?.viewRole==="vinculacion";
+  const isAssistant=session?.viewRole==="comite_asistente";
+  const comfortableReading=isVinculacion||isAssistant;
   const [expandedReading,setExpandedReading]=useState(false);
   const savedReturn=(location.state as {returnTo?:string}|null)?.returnTo;
-  const backTo=isVinculacion?(savedReturn&&/^\/historico(?:\?|$)/.test(savedReturn)?savedReturn:"/historico"):"/propuestas";
+  const evaluationReturn=isAssistant&&savedReturn===`/evaluaciones?propuesta=${proposalId}`;
+  const backTo=evaluationReturn?savedReturn:comfortableReading?(savedReturn&&/^\/historico(?:\?|$)/.test(savedReturn)?savedReturn:"/historico"):"/propuestas";
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [form, setForm] = useState<FormWizardState>(DEFAULT_FORM_WIZARD_STATE);
@@ -54,7 +57,7 @@ export function PropuestaDetallePage() {
   const previousStep = useRef(step);
 
   const canEditRole =
-    !isVinculacion&&(session?.role === "investigador" || session?.role === "admin");
+    !comfortableReading&&(session?.role === "investigador" || session?.role === "admin");
 
   async function onEnviarBorrador() {
     if (!detail || detail.estadoActual !== "borrador") return;
@@ -147,9 +150,9 @@ export function PropuestaDetallePage() {
   );
 
   return (
-    <div className={isVinculacion?"pi-expediente":undefined}>
+    <div className={comfortableReading?"pi-expediente":undefined}>
       <div className="breadcrumbs">
-        <Link to={backTo}>{isVinculacion?"Histórico":"Propuestas"}</Link>
+        <Link to={backTo}>{evaluationReturn?"Evaluaciones":comfortableReading?"Histórico":"Propuestas"}</Link>
         <span>/</span>
         <span>{detail.codigo}</span>
       </div>
@@ -164,7 +167,7 @@ export function PropuestaDetallePage() {
         </div>
         <div className="page-actions">
           <Link to={backTo} className="btn btn-secondary">
-            Volver
+            {evaluationReturn?"Volver a la evaluación":"Volver"}
           </Link>
           {isVinculacion&&!detail.piAcreditada&&detail.etapaFlujo>=1&&detail.etapaFlujo<=5&&["enviada","en_evaluacion","dictaminada","avalada"].includes(detail.estadoActual)&&<Link className="btn btn-primary" to={`/evaluaciones?propuesta=${detail.id}`}>Realizar evaluación de PI</Link>}
           {canEdit && (isDraft || isCorrection) && (
@@ -283,7 +286,7 @@ export function PropuestaDetallePage() {
         />
       </section>
 
-      {isVinculacion&&<VinculacionResumen id={detail.id}/>}
+      {comfortableReading&&<VinculacionResumen id={detail.id}/>}
       <div className={`wizard-layout wizard-layout-wide${expandedReading?" expediente-expanded":""}`}>
         <aside className="wizard-sidebar">
           <div className="wizard-progress-head">
@@ -331,7 +334,7 @@ export function PropuestaDetallePage() {
             </div>
           </div>
 
-          <div className="action-row" aria-label="Tamaño del texto">{isVinculacion&&<><button type="button" className="btn btn-secondary" onClick={()=>setExpandedReading(v=>!v)} aria-pressed={expandedReading}>{expandedReading?"Mostrar índice lateral":"Ampliar área de lectura"}</button><label className="field"><span className="field-label">Sección del expediente</span><select aria-label="Sección del expediente" className="input" value={step} onChange={e=>setStep(Number(e.target.value))}>{FORM_WIZARD_STEPS.map((name,i)=><option key={name} value={i}>{String(i+1).padStart(2,'0')} · {name}</option>)}</select></label></>}<button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
+          <div className="action-row" aria-label="Tamaño del texto">{comfortableReading&&<><button type="button" className="btn btn-secondary" onClick={()=>setExpandedReading(v=>!v)} aria-pressed={expandedReading}>{expandedReading?"Mostrar índice lateral":"Ampliar área de lectura"}</button><label className="field"><span className="field-label">Sección del expediente</span><select aria-label="Sección del expediente" className="input" value={step} onChange={e=>setStep(Number(e.target.value))}>{FORM_WIZARD_STEPS.map((name,i)=><option key={name} value={i}>{String(i+1).padStart(2,'0')} · {name}</option>)}</select></label></>}<button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
           <div className="wizard-body" style={{fontSize}}>
             <FormWizardStepContent
               readOnly

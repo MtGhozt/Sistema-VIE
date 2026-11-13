@@ -28,3 +28,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - **Persona Investigadora Coordinadora aceptada por el usuario el 12/11/2026.** Próxima revisión: Centro de Vinculación.
 
 - [Centro de Vinculación: indicadores, histórico y consulta completa](CENTRO-DE-VINCULACION.md), pendiente de aceptación manual.
+
+- [Asistente del Comité Técnico](ASISTENTE-COMITE-TECNICO.md): acceso destacado, lectura ampliable, regreso a la evaluación y consulta del dictamen PI. Pendiente de revisión manual. Vinculación aceptado por el usuario.

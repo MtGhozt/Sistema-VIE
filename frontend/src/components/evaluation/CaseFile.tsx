@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import {useAuth} from "../../auth/AuthContext";
 import { Link } from "react-router-dom";
 import { fetchPropuesta, type PropuestaDetalle } from "../../api/propuestas";
 import type { DemoProposal } from "../../data/demo";
@@ -13,6 +14,9 @@ function formatColones(n: number) {
 
 /** Expediente lateral: metadatos de bandeja + detalle real desde la API. */
 export function CaseFile({ proposal }: { proposal: DemoProposal }) {
+  const {session}=useAuth();
+  const isAssistant=session?.viewRole==="comite_asistente";
+  const fullLink=proposal.numericId!=null?<Link className={isAssistant?"btn btn-primary case-full-access":undefined} to={`/propuestas/${proposal.numericId}`} state={{returnTo:`/evaluaciones?propuesta=${proposal.numericId}`}}>Abrir expediente completo (solo lectura)</Link>:null;
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(Boolean(proposal.numericId));
@@ -64,6 +68,7 @@ export function CaseFile({ proposal }: { proposal: DemoProposal }) {
         <span className="badge badge-primary">{view.estado}</span>
       </div>
 
+      {isAssistant&&<div className="case-full-access-block">{fullLink}<p>Revise el formulario y el dictamen de PI. Al volver conservará esta propuesta en Evaluaciones.</p></div>}
       <ProcessTimeline
         currentStep={view.etapa}
         piRequired={view.piRequired}
@@ -205,13 +210,8 @@ export function CaseFile({ proposal }: { proposal: DemoProposal }) {
         ))}
       </div>
 
-      {proposal.numericId != null && (
-        <p className="field-hint" style={{ marginTop: "0.75rem" }}>
-          <Link to={`/propuestas/${proposal.numericId}`}>
-            Abrir expediente completo (solo lectura)
-          </Link>
-        </p>
-      )}
+      {!isAssistant&&fullLink}
+
     </div>
   );
 }

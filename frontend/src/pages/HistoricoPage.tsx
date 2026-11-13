@@ -107,7 +107,7 @@ function HistoricoModal({
 
 export function HistoricoPage() {
   const { codigo } = useParams();
-  const {session}=useAuth();const isVinculacion=session?.viewRole==="vinculacion";
+  const {session}=useAuth();const isVinculacion=session?.viewRole==="vinculacion";const fullReader=isVinculacion||session?.viewRole==="comite_asistente";
   const [search,setSearch]=useSearchParams();const navigate=useNavigate();
   const fromUrl=()=>Object.fromEntries(Object.keys(EMPTY_HISTORICO_FILTROS).map(key=>[key,search.get(key)??''])) as HistoricoFiltros;
   const [filtros, setFiltros] = useState<HistoricoFiltros>(
@@ -151,10 +151,10 @@ export function HistoricoPage() {
 
   // Deep-link /historico/:codigo → abre el expediente directamente.
   useEffect(() => {
-    if (!codigo||isVinculacion) return;
+    if (!codigo||fullReader) return;
     const found = items.find((h) => h.codigo === codigo);
     if (found) setSelected(found);
-  }, [codigo, items,isVinculacion]);
+  }, [codigo, items,fullReader]);
 
   const activos = useMemo(
     () => Object.values(filtros).filter(Boolean).length,
@@ -168,7 +168,7 @@ export function HistoricoPage() {
     const next=new URLSearchParams(search);if(value)next.set(key,value);else next.delete(key);setSearch(next,{replace:true});
   }
 
-  function openRecord(row:HistoricoItem){if(isVinculacion)navigate(`/historico/${encodeURIComponent(row.codigo)}`,{state:{returnTo:'/historico'+(search.toString()?'?'+search.toString():'')}});else setSelected(row);}
+  function openRecord(row:HistoricoItem){if(fullReader)navigate(`/historico/${encodeURIComponent(row.codigo)}`,{state:{returnTo:'/historico'+(search.toString()?'?'+search.toString():'')}});else setSelected(row);}
   return (
     <>
       <header className="page-header">
@@ -332,7 +332,7 @@ export function HistoricoPage() {
                         <button
                           type="button"
                           className="table-link"
-                          aria-haspopup={isVinculacion?undefined:"dialog"}
+                          aria-haspopup={fullReader?undefined:"dialog"}
                           onClick={(e) => {
                             e.stopPropagation();
                             openRecord(row);
@@ -384,7 +384,7 @@ export function HistoricoPage() {
         )}
       </section>
 
-      {selected && !isVinculacion && (
+      {selected && !fullReader && (
         <HistoricoModal item={selected} onClose={() => setSelected(null)} />
       )}
     </>
@@ -392,5 +392,5 @@ export function HistoricoPage() {
 }
 
 export function HistoricoDetallePage() {
-  const {session}=useAuth();return session?.viewRole==="vinculacion"?<PropuestaDetallePage/>:<HistoricoPage/>;
+  const {session}=useAuth();return ["vinculacion","comite_asistente"].includes(session?.viewRole??"")?<PropuestaDetallePage/>:<HistoricoPage/>;
 }

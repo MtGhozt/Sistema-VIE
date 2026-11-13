@@ -349,14 +349,15 @@ evaluacionesRouter.get(
 );
 
 evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, asyncHandler(async(req,res)=>{
-  if(!roleOk(req.demoAuth!.role,"pi")){res.status(403).json({error:"Sin permiso para editar el dictamen"});return;}
+  if(!roleOk(req.demoAuth!.role,"pi")&&req.demoAuth!.role!=="comite_asistente"){res.status(403).json({error:"Sin permiso para consultar el dictamen"});return;}
   const id=Number(req.params.id);
   if(!Number.isSafeInteger(id)||id<1){res.status(400).json({error:"ID inválido"});return;}
   await exigirAlcance(id,req.demoAuth!);
   const proposal=await loadPropuesta(id);
   if(!proposal){res.status(404).json({error:"Propuesta no encontrada"});return;}
   const row=await query("SELECT * FROM dictamen_pi WHERE id_propuesta=$1",[id]);
-  const d=row.rows[0];
+  const raw=row.rows[0];
+  const d=req.demoAuth!.role==="comite_asistente"&&raw?.estado!=="emitido"?undefined:raw;
   const certification=(await query("SELECT * FROM pi_certificacion_no_requerido WHERE id_propuesta=$1",[id])).rows[0];
   const inReview=(await query("SELECT 1 FROM revision_expediente WHERE id_propuesta=$1 AND etapa='pi' AND resultado='en_revision'",[id])).rowCount;
   res.json({emitidoEn:d?.emitido_en??null,enRevision:Boolean(inReview),estado:proposal.requiere_dictamen_pi?d?.estado??null:certification?"no_requerido":null,fundamentoNoRequerido:certification?.fundamento??null,certificadoPor:certification?.id_certificador??null,fecha:certification?.fecha_certificacion??d?.fecha_dictamen??null,form:d?{

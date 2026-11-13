@@ -107,7 +107,7 @@ function HistoricoModal({
 
 export function HistoricoPage() {
   const { codigo } = useParams();
-  const {session}=useAuth();const isVinculacion=session?.viewRole==="vinculacion";const fullReader=isVinculacion||session?.viewRole==="comite_asistente";
+  const {session}=useAuth();const isVinculacion=session?.viewRole==="vinculacion";const fullReader=isVinculacion||["comite_asistente","comite_evaluador"].includes(session?.viewRole??"");
   const [search,setSearch]=useSearchParams();const navigate=useNavigate();
   const fromUrl=()=>Object.fromEntries(Object.keys(EMPTY_HISTORICO_FILTROS).map(key=>[key,search.get(key)??''])) as HistoricoFiltros;
   const [filtros, setFiltros] = useState<HistoricoFiltros>(
@@ -187,7 +187,7 @@ export function HistoricoPage() {
         clearDisabled={activos === 0}
         onClear={() => setSearch({})}
       >
-        <div className="independent-filters">{session?.viewRole==='comite_asistente'&&<FilterGroup title="Devoluciones del Comité" active={Boolean(filtros.comite)} onClear={()=>set('comite','')}><label className="field"><span className="field-label">Devoluciones del Comité</span><select className="input" aria-label="Devoluciones del Comité" value={filtros.comite} onChange={e=>set('comite',e.target.value)}><option value="">Todos los expedientes</option><option value="devueltas">Devueltas por el Comité · pendientes de subsanación</option></select></label></FilterGroup>}{isVinculacion&&<FilterGroup title="Estado de PI" active={Boolean(filtros.pi)} onClear={()=>set('pi','')}><label className="field" htmlFor="filtro-pi"><span className="field-label">Estado de PI</span><select aria-label="Estado de PI" id="filtro-pi" className="input" value={filtros.pi} onChange={e=>set('pi',e.target.value)}><option value="">Todos los registros de PI</option>{estadosPi.map(s=><option key={s.valor} value={s.valor}>{s.label}</option>)}</select></label></FilterGroup>}
+        <div className="independent-filters">{session?.viewRole==='comite_evaluador'&&<FilterGroup title="Mi evaluación" active={Boolean(filtros.evaluacion)} onClear={()=>set('evaluacion','')}><label className="field"><span>Mi evaluación</span><select className="input" aria-label="Mi evaluación" value={filtros.evaluacion} onChange={e=>set('evaluacion',e.target.value)}><option value="">Todos los expedientes visibles</option><option value="pendiente">Sin evaluación en el ciclo actual</option><option value="en_progreso">Borrador de mi evaluación</option><option value="completada">Mi evaluación entregada</option></select></label></FilterGroup>}{session?.viewRole==='comite_asistente'&&<FilterGroup title="Devoluciones del Comité" active={Boolean(filtros.comite)} onClear={()=>set('comite','')}><label className="field"><span className="field-label">Devoluciones del Comité</span><select className="input" aria-label="Devoluciones del Comité" value={filtros.comite} onChange={e=>set('comite',e.target.value)}><option value="">Todos los expedientes</option><option value="devueltas">Devueltas por el Comité · pendientes de subsanación</option></select></label></FilterGroup>}{isVinculacion&&<FilterGroup title="Estado de PI" active={Boolean(filtros.pi)} onClear={()=>set('pi','')}><label className="field" htmlFor="filtro-pi"><span className="field-label">Estado de PI</span><select aria-label="Estado de PI" id="filtro-pi" className="input" value={filtros.pi} onChange={e=>set('pi',e.target.value)}><option value="">Todos los registros de PI</option>{estadosPi.map(s=><option key={s.valor} value={s.valor}>{s.label}</option>)}</select></label></FilterGroup>}
           <FilterGroup title="Escuela / Dependencia" active={Boolean(filtros.escuela)} onClear={()=>set("escuela","")}>
 <label className="field" htmlFor="filtro-escuela">
             <span className="field-label">Escuela / Dependencia</span>
@@ -314,7 +314,7 @@ export function HistoricoPage() {
                   <th scope="col">Persona investigadora</th>
                   <th scope="col">Línea / Temática</th>
                   <th scope="col">Año</th>
-                  <th scope="col">{isVinculacion?"Estado de propuesta":"Estado"}</th>{isVinculacion&&<th scope="col">Estado de PI</th>}
+                  <th scope="col">{isVinculacion||session?.viewRole==="comite_evaluador"?"Estado de propuesta":"Estado"}</th>{isVinculacion&&<th scope="col">Estado de PI</th>}{session?.viewRole==="comite_evaluador"&&<th scope="col">Mi evaluación</th>}
                   <th scope="col">
                     <span className="sr-only">Acciones</span>
                   </th>
@@ -362,7 +362,7 @@ export function HistoricoPage() {
                         {row.estadoLabel}
                       </span>
                     </td>
-                    {isVinculacion&&<td><span className="badge">{row.estadoPiLabel}</span></td>}
+                    {isVinculacion&&<td><span className="badge">{row.estadoPiLabel}</span></td>}{session?.viewRole==="comite_evaluador"&&<td><span className="badge">{({pendiente:"Pendiente de evaluar",en_progreso:"Borrador de evaluación",completada:"Evaluación entregada",no_asignada:"Sin asignación"} as Record<string,string>)[row.estadoEvaluacion??"no_asignada"]}</span></td>}
                     <td>
                       <button
                         type="button"
@@ -392,5 +392,5 @@ export function HistoricoPage() {
 }
 
 export function HistoricoDetallePage() {
-  const {session}=useAuth();return ["vinculacion","comite_asistente"].includes(session?.viewRole??"")?<PropuestaDetallePage/>:<HistoricoPage/>;
+  const {session}=useAuth();return ["vinculacion","comite_asistente","comite_evaluador"].includes(session?.viewRole??"")?<PropuestaDetallePage/>:<HistoricoPage/>;
 }

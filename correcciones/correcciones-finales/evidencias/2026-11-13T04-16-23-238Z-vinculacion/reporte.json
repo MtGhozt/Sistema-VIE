@@ -1,0 +1,170 @@
+{
+  "run": "2026-11-13T04-16-23-238Z",
+  "capturas": false,
+  "fixtures": [
+    1478,
+    1479,
+    1480,
+    1482,
+    1483,
+    1484,
+    1485,
+    1486,
+    1488,
+    1490,
+    1491,
+    1492,
+    1493
+  ],
+  "results": [
+    {
+      "name": "En revisión es un registro persistido, idempotente y sin avanzar el circuito",
+      "status": "PASA"
+    },
+    {
+      "name": "API rechaza excesos sin truncar y asigna oficio e instante ignorando valores manipulados",
+      "status": "PASA"
+    },
+    {
+      "name": "Estados PI distinguen declaración, certificación, revisión y dictamen emitido",
+      "status": "PASA"
+    },
+    {
+      "name": "Indicadores y filtros usan el mismo ámbito y todos los registros, sin límite de bandeja",
+      "status": "PASA"
+    },
+    {
+      "name": "Permisos: borradores y otra escuela no se muestran; otros roles no inician PI",
+      "status": "PASA"
+    },
+    {
+      "name": "Registros emitidos/certificados no se reabren",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades: pendientes reales más antiguos; excluye decisiones PI cerradas",
+      "status": "PASA"
+    },
+    {
+      "name": "Cuatro tarjetas llevan al histórico filtrado y muestran conteos reales",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades de Inicio muestran la razón y abren el expediente consultado",
+      "status": "PASA"
+    },
+    {
+      "name": "Filtros desplegables de PI se conservan al recargar y limpiar individualmente",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico abre pantalla completa sin diálogo, con contenido de propuesta y registro PI",
+      "status": "PASA"
+    },
+    {
+      "name": "Lectura: ampliar ancho y letra, cambiar sección y consultar en móvil",
+      "status": "PASA"
+    },
+    {
+      "name": "Enlace a Evaluaciones selecciona el ID correcto y no incluye expediente lateral pequeño",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio explícito de revisión persiste sin emitir y sin perder el formulario al comenzar",
+      "status": "PASA"
+    },
+    {
+      "name": "Emisión vuelve a la consulta completa y actualiza histórico y conteo",
+      "status": "PASA"
+    },
+    {
+      "name": "Enlace inválido/cerrado no selecciona por defecto otro expediente",
+      "status": "PASA"
+    },
+    {
+      "name": "Fallo de consulta informa error sin inventar pendientes ni conteos",
+      "status": "PASA"
+    },
+    {
+      "name": "Asistente: consulta dictamen/certificación de su ámbito sin permiso para emitir",
+      "status": "PASA"
+    },
+    {
+      "name": "Asistente: acceso destacado al expediente desde su evaluación específica",
+      "status": "PASA"
+    },
+    {
+      "name": "Asistente: lectura ampliable, selector, dictamen íntegro y sin edición de PI",
+      "status": "PASA"
+    },
+    {
+      "name": "Asistente: volver tras recargar conserva la evaluación y la propuesta exacta",
+      "status": "PASA"
+    },
+    {
+      "name": "Asistente: desde Histórico usa pantalla completa y regresa al filtro de origen",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: antes de remitir no se permite evaluar; la devolución de recepción sigue disponible",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: envío único cambia controles y estado persistido; evaluador recibe la propuesta",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: fundamento consolidado con límite y contador, API rechaza exceso",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: Listas para evaluación usa conteo completo y abre solo expedientes remitidos",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: Devueltas cuenta solo subsanaciones activas del Comité y abre Histórico filtrado",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: Reenviadas por revisar representa correcciones reales y deja de contarlas al remitir",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluador: la remisión aumenta asignadas y pendientes personales; filtros respetan asignación",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluador: cuatro tarjetas usan conteos personales y destinos coherentes",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluador: panel de propuesta desplazable, acceso destacado y retorno exacto",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluador: ambos paneles se amplían y las secciones se pliegan",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluador: límites y contadores, círculo dinámico y progreso de completitud",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluador: API rechaza texto excesivo sin perder el borrador",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluador: guardar persiste nota, progreso y justificaciones y solo cambia su estado personal",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluador: entrega retira del pendiente, actualiza Histórico y mantiene la rúbrica consultable",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluador: consulta entregada conserva origen y controles de lectura en móvil",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

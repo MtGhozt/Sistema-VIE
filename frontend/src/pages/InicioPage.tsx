@@ -548,6 +548,9 @@ function RoleHome({
   );
 
   const [resumenComite,setResumenComite]=useState<{pendientes:number;reenviadas:number;enviadas:number;devueltas:number}|null>(null);
+  const [evalRefresh,setEvalRefresh]=useState(0);
+  useEffect(()=>{if(role!=="comite_evaluador")return;const refresh=()=>setEvalRefresh(n=>n+1);window.addEventListener("focus",refresh);return()=>window.removeEventListener("focus",refresh);},[role]);
+  const [resumenEvaluador,setResumenEvaluador]=useState<{asignadas:number;pendientes:number;borradores:number;entregadas:number}|null>(null);
   const [comiteError,setComiteError]=useState("");
   const isViePublicacion = role === "vie_publicacion";
   const isVinculacion=role==='vinculacion';
@@ -567,20 +570,21 @@ function RoleHome({
         const view =
           sessionRole === "admin" && isEvalRole ? role : undefined;
         const res = await fetchEvaluacionBandeja(view);
-        if (!cancelled) {setBandejaItems(res.items);setResumenComite(res.resumenComite??null);setComiteError("");}
+        if (!cancelled) {setBandejaItems(res.items);setResumenComite(res.resumenComite??null);setResumenEvaluador(res.resumenEvaluador??null);setComiteError("");}
       } catch {
-        if (!cancelled) {setBandejaItems([]);setResumenComite(null);setComiteError("No se pudieron consultar los indicadores del Comité. Recargue para reintentar.");}
+        if (!cancelled) {setBandejaItems([]);setResumenComite(null);setResumenEvaluador(null);setComiteError("No se pudieron consultar los indicadores del Comité. Recargue para reintentar.");}
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [isEvalRole, role, sessionRole,isVinculacion]);
+  }, [isEvalRole, role, sessionRole,isVinculacion,evalRefresh]);
 
   const statEntries = useMemo(() => {
     return home.stats.map(([label]) => {
       let value:number|string = 0;
       if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;return {label,value:piError?"—":piSummary&&state?piSummary.conteos[state]:"…"};}
+      if(role==='comite_evaluador'){const key=({'En bandeja':'asignadas','Pendientes de evaluar':'pendientes','Borradores de evaluación':'borradores','Evaluaciones entregadas':'entregadas'} as Record<string,'asignadas'|'pendientes'|'borradores'|'entregadas'>)[label];return {label,value:comiteError?'—':resumenEvaluador&&key?resumenEvaluador[key]:'…'};}
       if(role==="comite_asistente"){const key=({Pendientes:"pendientes","Reenviadas por revisar":"reenviadas","Listas para evaluación":"enviadas",Devueltas:"devueltas"} as const)[label as "Pendientes"];return {label,value:comiteError?"—":resumenComite&&key?resumenComite[key]:"…"};}
       if (isViePublicacion) {
         value = convocatoriaStatValue(label, convocatorias);
@@ -589,7 +593,7 @@ function RoleHome({
       }
       return { label, value };
     });
-  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems,isVinculacion,piSummary,piError,role,resumenComite,comiteError]);
+  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems,isVinculacion,piSummary,piError,role,resumenComite,comiteError,resumenEvaluador]);
 
   const vieTasks = useMemo(() => {
     if (!isViePublicacion) return [];
@@ -626,6 +630,7 @@ function RoleHome({
   }, [isViePublicacion, isEvalRole, bandejaItems,isVinculacion,piSummary]);
 
   function statNavigate(label: string) {
+    if(role==='comite_evaluador'){navigate(label==='Evaluaciones entregadas'?'/historico?evaluacion=completada':label==='Pendientes de evaluar'?'/evaluaciones?evaluacion=pendiente':label==='Borradores de evaluación'?'/evaluaciones?evaluacion=en_progreso':'/evaluaciones');return;}
     if(role==="comite_asistente"){navigate(label==="Devueltas"?"/historico?comite=devueltas":"/evaluaciones?comite="+(label==="Reenviadas por revisar"?"reenviadas":label==="Listas para evaluación"?"enviadas":"recepcion"));return;}
     if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;navigate('/historico'+(state?'?pi='+state:''));return;}
     if (isViePublicacion) {
@@ -650,7 +655,8 @@ function RoleHome({
         </div>
       </header>
 
-      {role==="comite_asistente"&&comiteError&&<p role="alert">{comiteError}</p>}
+      {role==="comite_evaluador"&&<button type="button" className="btn btn-secondary" onClick={()=>setEvalRefresh(n=>n+1)}>Actualizar indicadores</button>}
+      {["comite_asistente","comite_evaluador"].includes(role)&&comiteError&&<p role="alert">{comiteError}</p>}
       <section
         className={`stats-grid${five ? " stats-grid-five" : ""}`}
         aria-label="Indicadores"

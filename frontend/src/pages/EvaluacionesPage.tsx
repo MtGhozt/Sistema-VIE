@@ -132,7 +132,7 @@ type BandejaEntry = {
 export function EvaluacionesPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
-  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");const comiteFilter=search.get("comite");
+  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");const comiteFilter=search.get("comite");const evaluacionFilter=search.get("evaluacion");
   const { showToast } = useToast();
   const [bandeja, setBandeja] = useState<BandejaEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState("");
@@ -148,7 +148,7 @@ export function EvaluacionesPage() {
     setLoading(true);
     setBandejaNote(null);
     try {
-      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter);
+      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter,evaluacionFilter);
       const entries: BandejaEntry[] = res.items.map((item) => ({
         key: item.codigo, numericId: item.id, demo: bandejaToDemoProposal(item), api: item,
       }));
@@ -164,7 +164,7 @@ export function EvaluacionesPage() {
     } finally {
       setLoading(false);
     }
-  }, [session, role,requested,comiteFilter]);
+  }, [session, role,requested,comiteFilter,evaluacionFilter]);
 
   useEffect(() => {
     void loadBandeja();
@@ -232,6 +232,7 @@ export function EvaluacionesPage() {
       } else {
         await loadBandeja();
       }
+      if(role==='comite_evaluador'&&action==='committee-score'){navigate('/historico?evaluacion=completada');return true;}
       if (["pi","pi-not-required","return","committee-confirm","council-reconsider","committee-ready","committee-score","send-council","council-approve","council-reject","communicate-aval","send-cie","cie-approve","cie-reject"].includes(action)) await loadBandeja();
       return true;
     } catch (err) {
@@ -302,6 +303,7 @@ export function EvaluacionesPage() {
     return (
       <section className="card empty-state">
         <h1 className="sr-only">{title}</h1>
+        {role==='comite_evaluador'&&<Link className="btn btn-secondary" to="/evaluaciones">Ver mis evaluaciones pendientes</Link>}
         {role==='comite_asistente'&&comiteFilter&&<Link className="btn btn-secondary" to="/evaluaciones">Ver todas las fases del Comité</Link>}
         <strong>{bandejaNote ? "No se pudo consultar la bandeja" : "No hay propuestas disponibles"}</strong>
         {bandejaNote && <p role="alert">{bandejaNote}</p>}
@@ -335,11 +337,12 @@ export function EvaluacionesPage() {
         </div>
       </header>
 
+      {role==='comite_evaluador'&&<label className="field"><span>Mi evaluación</span><select aria-label="Mi evaluación" className="input" value={evaluacionFilter??''} onChange={e=>setSearch(e.target.value?{evaluacion:e.target.value}:{})}><option value="">Pendientes y borradores</option><option value="pendiente">Pendientes de evaluar</option><option value="en_progreso">Borradores de evaluación</option><option value="completada">Evaluaciones entregadas (solo lectura)</option></select></label>}
       {role==='comite_asistente'&&<label className="field"><span className="field-label">Fase del Comité</span><select className="input" aria-label="Fase del Comité" value={comiteFilter??''} onChange={e=>setSearch(e.target.value?{comite:e.target.value}:{})}><option value="">Todas las fases</option><option value="recepcion">Pendientes de completitud</option><option value="reenviadas">Reenviadas por revisar</option><option value="enviadas">Enviadas al Cuerpo Evaluador</option></select></label>}
       {EVAL_ROLES.includes(role) || role === "admin" ? (
         <>
           {role !== "admin" && (
-            <div className="evaluation-selector">
+            <div className={role==="comite_evaluador"?"evaluation-selector evaluator-selector":"evaluation-selector"}>
               <span>Expediente activo</span>
               <select
                 className="input"

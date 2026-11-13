@@ -1,3 +1,4 @@
+import comiteTextLimits from "../../../../shared/comite-text-limits.json";
 import {Link} from "react-router-dom";
 import {WordBudget} from "../WordBudget";
 import piLimits from "../../../../shared/pi-text-limits.json";
@@ -328,6 +329,7 @@ function RubricPanel({
   onAction: ActionHandler;
   cie?: boolean;
 }) {
+  const [readingPane,setReadingPane]=useState<'both'|'case'|'rubric'>('both');
   const [sections,setSections]=useState(()=>getRubricSections(proposal.modalidad));
   const criteria=useMemo(()=>getRubricForModalidad(proposal.modalidad,sections),[proposal.modalidad,sections]);
   const [assigned,setAssigned]=useState(true);
@@ -340,7 +342,7 @@ function RubricPanel({
       criteria.map((c) => [
         c.id,
         {
-          score: c.aiScore,
+          score: 0,
           reason: "",
         },
       ]),
@@ -407,12 +409,12 @@ function RubricPanel({
     const s = scores[c.id]?.score ?? 0;
     return acc + c.weight * (s / 10);
   }, 0);
-  const average = Math.round(weighted * 10) / 10;
+  const average = Math.round(weighted * 100) / 100;
   const failedRequired = criteria.filter(
     (c) => c.required && (scores[c.id]?.score ?? 0) <= 6,
   );
   const allJustified = criteria.every((c) =>
-    String(scores[c.id]?.reason ?? "").trim(),
+    String(scores[c.id]?.reason ?? "").trim()&&String(scores[c.id]?.reason??"").length<=comiteTextLimits.justificacion,
   );
   const recommendation =
     average >= 70 && failedRequired.length === 0 && products && productRules?.cumple
@@ -420,10 +422,12 @@ function RubricPanel({
       : "NO RECOMIENDA";
 
   return (
-    <div className="rubric-layout">
+    <div className={`rubric-layout${!cie?` evaluator-workspace evaluator-pane-${readingPane}`:''}`}>
+      {!cie&&<div className="card evaluator-reading-tools" aria-label="Distribución de lectura"><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='case'} onClick={()=>setReadingPane(readingPane==='case'?'both':'case')}>Ampliar propuesta</button><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='rubric'} onClick={()=>setReadingPane(readingPane==='rubric'?'both':'rubric')}>Ampliar evaluación</button><button type="button" className="btn btn-secondary" onClick={()=>setReadingPane('both')}>Mostrar ambos paneles</button></div>}
+
       {loadError && <p role="alert">{loadError}. Recargue antes de editar para no sobrescribir una evaluación que no se pudo recuperar.</p>}
       <article className="card rubric-case">
-        <CaseFile proposal={proposal} />
+        {!cie?<details open className="evaluator-proposal-details"><summary>Información de la propuesta</summary><div className="evaluator-proposal-scroll" tabIndex={0} aria-label="Información desplazable de la propuesta"><CaseFile proposal={proposal}/></div></details>:<CaseFile proposal={proposal}/>}
       </article>
       <fieldset className="rubric-main" disabled={loadingSaved || Boolean(loadError)||closed||!assigned} style={{border:0,padding:0,margin:0,minWidth:0}}>
         {loadingSaved && <p role="status">Recuperando evaluación guardada…</p>}
@@ -441,13 +445,14 @@ function RubricPanel({
               Definición versionada basada en la rúbrica oficial Fondos VIE 2027. Escala: 0, 6, 8 o 10. Los requisitos obligatorios con 0 o 6 y el incumplimiento de productos determinan una recomendación desfavorable. La nota y su justificación son humanas.
             </p>
           </div>
-          <div className="score-ring">
+          <div className="score-ring" role="img" aria-label={`Calificación ponderada: ${average} de ${availablePoints}`} style={!cie?{background:`radial-gradient(closest-side, white 78%, transparent 80%),conic-gradient(var(--blue) ${availablePoints?average/availablePoints*100:0}%, var(--ink-08) 0)`}:undefined}>
             <strong>{average}</strong>
             <span>/ {availablePoints} puntos incluidos</span>
             <small>{recommendation}</small>
           </div>
         </div>
 
+        {!cie&&<div className="card evaluation-progress" role="status" aria-live="polite"><strong>Progreso de evaluación</strong><progress aria-label="Progreso de evaluación" max={criteria.length+1} value={criteria.filter(c=>Boolean(scores[c.id]?.reason.trim())&&(scores[c.id]?.reason.length??0)<=comiteTextLimits.justificacion&&[0,6,8,10].includes(scores[c.id]?.score)).length+(products?1:0)}/><span>{criteria.filter(c=>Boolean(scores[c.id]?.reason.trim())&&(scores[c.id]?.reason.length??0)<=comiteTextLimits.justificacion).length} de {criteria.length} criterios justificados · Productos {products?'verificados':'pendientes de verificar'}</span><small>El progreso mide la completitud; la calificación ponderada se muestra en el círculo.</small></div>}
         {!cie && proposal.numericId && (
           <article className="card ai-eval" aria-live="polite">
             <div className="ai-eval-head">
@@ -521,13 +526,13 @@ function RubricPanel({
         {productRules&&<p>Productos mínimos: {productRules.minAcademicos} académicos{productRules.minPI?` más ${productRules.minPI} activo de la lista 5.5.a`:""}. Registrados: {productRules.academicos} académicos y {productRules.activosPI} activos. {productRules.cumple?"Cantidad suficiente; requiere verificación humana.":"No cumple la cantidad mínima registrada."}</p>}
         <label className="subsanacion-seccion"><input type="checkbox" checked={products} onChange={e=>setProducts(e.target.checked)}/>Verifiqué que los productos comprometidos cumplen los mínimos oficiales (validación no sumativa).</label>
         {sections.map((section) => (
-          <section key={section.id} className="rubric-section">
-            <div className="rubric-section-head">
+          <details open key={section.id} className="rubric-section">
+            <summary className="rubric-section-head">
               <div>
                 <h3>{section.title}</h3>
                 <span>Peso total de la sección: {section.weight}%</span>
               </div>
-            </div>
+            </summary>
             {section.criteria.map((_crit, idx) => {
               const id = `${section.id}-${idx}`;
               const full = criteria.find((c) => c.id === id)!;
@@ -577,7 +582,7 @@ function RubricPanel({
                       <select
                         id={`valoracion-${id}`}
                         className="input"
-                        value={row?.score ?? full.aiScore}
+                        value={row?.score ?? 0}
                         onChange={(e) =>
                           setScores((s) => ({
                             ...s,
@@ -605,6 +610,7 @@ function RubricPanel({
                       <textarea
                         id={`justificacion-${id}`}
                         aria-label="Justificación humana obligatoria"
+                        maxLength={comiteTextLimits.justificacion} aria-describedby={`budget-${id}`}
                         className="input textarea"
                         rows={3}
                         value={row?.reason ?? ""}
@@ -615,13 +621,13 @@ function RubricPanel({
                             [id]: { ...s[id], reason: e.target.value },
                           }))
                         }
-                      />
+                      /><WordBudget id={`budget-${id}`} value={row?.reason??""} maxWords={comiteTextLimits.justificacion} unit="caracteres"/>
                     </label>
                   </div>
                 </article>
               );
             })}
-          </section>
+          </details>
         ))}
 
         <article className="card rubric-result-card">

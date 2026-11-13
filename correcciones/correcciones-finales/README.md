@@ -30,3 +30,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [Centro de Vinculación: indicadores, histórico y consulta completa](CENTRO-DE-VINCULACION.md), pendiente de aceptación manual.
 
 - [Asistente del Comité Técnico](ASISTENTE-COMITE-TECNICO.md): acceso destacado, lectura ampliable, regreso a la evaluación y consulta del dictamen PI. Pendiente de revisión manual. Vinculación aceptado por el usuario.
+
+- [Cuerpo Evaluador del Comité Técnico](CUERPO-EVALUADOR-COMITE-TECNICO.md): indicadores personales, Histórico, lectura ampliable y rúbrica con contadores, nota y progreso. Pendiente de aceptación manual.

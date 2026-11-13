@@ -1,3 +1,4 @@
+import {estadoEvaluadorSql,asignadoEvaluadorSql} from "../evaluadorEstado.js";
 import {COMITE_ENVIADO_SQL,COMITE_DEVUELTA_SQL,COMITE_RECEPCION_SQL,COMITE_REENVIADA_SQL} from "../comiteEstado.js";
 import comiteLimits from "../../../shared/comite-text-limits.json" with {type:"json"};
 import piLimits from "../../../shared/pi-text-limits.json" with { type: "json" };
@@ -315,6 +316,22 @@ evaluacionesRouter.get(
     const scope = alcancePropuestas(req.demoAuth!,clause.params.length+1);
     if(authenticatedRole==='comite_evaluador'){scope.params.push(req.demoAuth!.userId);scope.sql+=` AND EXISTS(SELECT 1 FROM comite_miembro cm WHERE cm.id_propuesta=p.id_propuesta AND cm.id_usuario=$${clause.params.length+scope.params.length})`;}
 
+    const evaluacionFilter=String(req.query.evaluacion??'');
+    if(evaluacionFilter&&(role!=='comite_evaluador'||!['pendiente','en_progreso','completada'].includes(evaluacionFilter)))throw new HttpError(400,'Filtro de evaluación individual inválido');
+    let resumenEvaluador;
+    if(role==='comite_evaluador'){
+      const userParam=`$${clause.params.length+scope.params.length+1}`;
+      const estado=estadoEvaluadorSql(userParam),asignado=asignadoEvaluadorSql(userParam);
+      const open=`p.etapa_flujo=2 AND p.estado_actual='en_evaluacion' AND ${COMITE_ENVIADO_SQL}`;
+      resumenEvaluador=(await query(`SELECT count(*) FILTER(WHERE ${open} AND ${estado}<>'completada')::int AS asignadas,
+        count(*) FILTER(WHERE ${open} AND ${estado}='pendiente')::int AS pendientes,
+        count(*) FILTER(WHERE ${open} AND ${estado}='en_progreso')::int AS borradores,
+        count(*) FILTER(WHERE ${estado}='completada')::int AS entregadas
+        FROM propuesta p WHERE ${scope.sql} AND ${asignado}`,[...clause.params,...scope.params,req.demoAuth!.userId])).rows[0];
+      scope.params.push(req.demoAuth!.userId);
+      if(evaluacionFilter==='completada')clause.sql=` AND ${estado}='completada' AND ${asignado}`;
+      else clause.sql+=` AND ${estado}${evaluacionFilter?`='${evaluacionFilter}'`:"<>'completada'"} AND ${asignado}`;
+    }
     const requestedProposal=String(req.query.propuesta??'').trim();
     if(requestedProposal.length>120)throw new HttpError(400,'La referencia del expediente es demasiado extensa.');
     const params=[...clause.params,...scope.params];
@@ -335,6 +352,7 @@ evaluacionesRouter.get(
     res.json({
       comiteEnviadas:resumenComite?.enviadas,
       resumenComite,
+      resumenEvaluador,
       role,
       items: result.rows.map(mapBandeja),
       total: result.rows.length,
@@ -367,7 +385,7 @@ evaluacionesRouter.get(
 );
 
 evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, asyncHandler(async(req,res)=>{
-  if(!roleOk(req.demoAuth!.role,"pi")&&req.demoAuth!.role!=="comite_asistente"){res.status(403).json({error:"Sin permiso para consultar el dictamen"});return;}
+  if(!roleOk(req.demoAuth!.role,"pi")&&!["comite_asistente","comite_evaluador"].includes(req.demoAuth!.role??"")){res.status(403).json({error:"Sin permiso para consultar el dictamen"});return;}
   const id=Number(req.params.id);
   if(!Number.isSafeInteger(id)||id<1){res.status(400).json({error:"ID inválido"});return;}
   await exigirAlcance(id,req.demoAuth!);
@@ -375,7 +393,7 @@ evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, async
   if(!proposal){res.status(404).json({error:"Propuesta no encontrada"});return;}
   const row=await query("SELECT * FROM dictamen_pi WHERE id_propuesta=$1",[id]);
   const raw=row.rows[0];
-  const d=req.demoAuth!.role==="comite_asistente"&&raw?.estado!=="emitido"?undefined:raw;
+  const d=["comite_asistente","comite_evaluador"].includes(req.demoAuth!.role??"")&&raw?.estado!=="emitido"?undefined:raw;
   const certification=(await query("SELECT * FROM pi_certificacion_no_requerido WHERE id_propuesta=$1",[id])).rows[0];
   const inReview=(await query("SELECT 1 FROM revision_expediente WHERE id_propuesta=$1 AND etapa='pi' AND resultado='en_revision'",[id])).rowCount;
   res.json({emitidoEn:d?.emitido_en??null,enRevision:Boolean(inReview),estado:proposal.requiere_dictamen_pi?d?.estado??null:certification?"no_requerido":null,fundamentoNoRequerido:certification?.fundamento??null,certificadoPor:certification?.id_certificador??null,fecha:certification?.fecha_certificacion??d?.fecha_dictamen??null,form:d?{

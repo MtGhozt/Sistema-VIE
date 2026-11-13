@@ -1,0 +1,2 @@
+export function estadoEvaluadorSql(usuario:string){return `COALESCE((SELECT ev.estado FROM evaluacion ev WHERE ev.id_propuesta=p.id_propuesta AND ev.id_evaluador=${usuario} AND ev.instancia='comite' AND ev.id_rubrica=p.id_rubrica_actual AND ev.ciclo=p.ciclo_evaluacion ORDER BY ev.id_evaluacion DESC LIMIT 1),'pendiente')`;}
+export function asignadoEvaluadorSql(usuario:string){return `EXISTS(SELECT 1 FROM comite_miembro cm WHERE cm.id_propuesta=p.id_propuesta AND cm.id_usuario=${usuario})`;}

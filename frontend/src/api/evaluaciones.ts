@@ -33,6 +33,7 @@ export type EvaluacionBandejaItem = {
 
 export type EvaluacionBandejaResponse = {
   comiteEnviadas?:number;
+  resumenEvaluador?:{asignadas:number;pendientes:number;borradores:number;entregadas:number};
   resumenComite?:{pendientes:number;reenviadas:number;enviadas:number;devueltas:number};
   role: string;
   items: EvaluacionBandejaItem[];
@@ -89,8 +90,8 @@ export function postEvaluacionIA(idPropuesta: number) {
   );
 }
 
-export function fetchEvaluacionBandeja(view?: string, propuesta?:string|null,comite?:string|null) {
-  const params=new URLSearchParams();if(view)params.set("vista",view);if(propuesta)params.set("propuesta",propuesta);if(comite)params.set("comite",comite);
+export function fetchEvaluacionBandeja(view?: string, propuesta?:string|null,comite?:string|null,evaluacion?:string|null) {
+  const params=new URLSearchParams();if(view)params.set("vista",view);if(propuesta)params.set("propuesta",propuesta);if(comite)params.set("comite",comite);if(evaluacion)params.set("evaluacion",evaluacion);
   return apiJson<EvaluacionBandejaResponse>(`/api/evaluaciones/bandeja${params.size?"?"+params.toString():""}`);
 }
 

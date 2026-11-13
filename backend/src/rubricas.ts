@@ -1,3 +1,4 @@
+import textLimits from "../../shared/comite-text-limits.json" with {type:"json"};
 import { readFileSync } from "node:fs";
 import type { PoolClient } from "pg";
 import { HttpError } from "./middleware/HttpError.js";
@@ -33,6 +34,7 @@ export async function saveRubric(client:PoolClient,id:number,userId:number,insta
  if(existing.rows[0]?.estado==='completada')throw new HttpError(409,'La evaluación individual ya fue entregada');
  const scores=payload.scores as Record<string,{score:unknown;reason:unknown}>;
  if(!scores||typeof scores!=='object'||Array.isArray(scores)||Object.keys(scores).some(k=>!criteria.some(c=>c.key===k)))throw new HttpError(400,'Criterios inválidos para la versión del expediente');
+ for(const c of criteria){const reason=scores[c.key]?.reason;if(typeof reason==='string'&&reason.length>textLimits.justificacion)throw new HttpError(400,`La justificación del criterio «${c.label}» admite como máximo ${textLimits.justificacion} caracteres`);}
  let total=0,failed=false;
  for(const c of criteria){const row=scores[c.key];if(!row||![0,6,8,10].includes(Number(row.score))||typeof row.reason!=='string'||complete&&!row.reason.trim())throw new HttpError(400,'Valore y justifique todos los criterios antes de entregar');total+=c.weight*Number(row.score)/10;if(c.required&&Number(row.score)<=6)failed=true;}
  const structure=await productRequirements(client,id,modality);

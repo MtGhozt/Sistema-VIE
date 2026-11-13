@@ -1,3 +1,4 @@
+import {estadoEvaluadorSql,asignadoEvaluadorSql} from "../evaluadorEstado.js";
 import {COMITE_DEVUELTA_SQL} from "../comiteEstado.js";
 import {ESTADO_PI_SQL,ESTADOS_PI} from "../estadoPi.js";
 import {HttpError} from "../middleware/HttpError.js";
@@ -45,6 +46,7 @@ const MODALIDAD_LABEL: Record<string, string> = {
 
 type HistoricoRow = {
   id_propuesta: number;
+  estado_evaluacion?:string;
   codigo: string;
   estado_pi:keyof typeof ESTADOS_PI;
   titulo: string;
@@ -180,6 +182,7 @@ function mapRow(row: HistoricoRow) {
 
   return {
     id: row.id_propuesta,
+    estadoEvaluacion:row.estado_evaluacion,
     estadoPi:row.estado_pi,estadoPiLabel:ESTADOS_PI[row.estado_pi],
     codigo: row.codigo,
     titulo: row.titulo,
@@ -217,13 +220,24 @@ historicoRouter.get(
     if(filtros.comite&&filtros.comite!=="devueltas")throw new HttpError(400,"Seleccione un filtro de devoluciones del Comité válido.");
     if(filtros.pi&&!Object.hasOwn(ESTADOS_PI,filtros.pi))throw new HttpError(400,"Seleccione un estado de PI válido.");
     const { where, values } = buildWhere(filtros);
+    const personal=String(q.evaluacion??'');
+    if(personal){
+      if(req.demoAuth!.role!=='comite_evaluador'||!['pendiente','en_progreso','completada'].includes(personal))throw new HttpError(400,'Filtro de evaluación individual inválido');
+      values.push(req.demoAuth!.userId);const usuario=`$${values.length}`;values.push(personal);
+      where.push(`${asignadoEvaluadorSql(usuario)} AND ${estadoEvaluadorSql(usuario)}=$${values.length}`);
+    }
     const scope = alcancePropuestas(req.demoAuth!,values.length+1);
     where.push(scope.sql);
     values.push(...scope.params);
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
+    let select=SELECT_BASE;
+    if(req.demoAuth!.role==='comite_evaluador'){
+      values.push(req.demoAuth!.userId);const usuario=`$${values.length}`;
+      select=select.replace('p.id_propuesta,',`p.id_propuesta, CASE WHEN ${asignadoEvaluadorSql(usuario)} THEN ${estadoEvaluadorSql(usuario)} ELSE 'no_asignada' END AS estado_evaluacion,`);
+    }
     const rows = await query<HistoricoRow>(
-      `${SELECT_BASE} ${whereSql}
+      `${select} ${whereSql}
        ORDER BY COALESCE(r.fecha_resolucion, p.fecha_envio, p.fecha_inicio) DESC NULLS LAST,
                 p.id_propuesta DESC`,
       values,

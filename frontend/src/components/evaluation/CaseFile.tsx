@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {useAuth} from "../../auth/AuthContext";
-import { Link } from "react-router-dom";
+import { Link,useLocation } from "react-router-dom";
 import { fetchPropuesta, type PropuestaDetalle } from "../../api/propuestas";
 import type { DemoProposal } from "../../data/demo";
 import { formatCRC } from "../../data/proposalView";
@@ -15,8 +15,10 @@ function formatColones(n: number) {
 /** Expediente lateral: metadatos de bandeja + detalle real desde la API. */
 export function CaseFile({ proposal }: { proposal: DemoProposal }) {
   const {session}=useAuth();
-  const isAssistant=session?.viewRole==="comite_asistente";
-  const fullLink=proposal.numericId!=null?<Link className={isAssistant?"btn btn-primary case-full-access":undefined} to={`/propuestas/${proposal.numericId}`} state={{returnTo:`/evaluaciones?propuesta=${proposal.numericId}`}}>Abrir expediente completo (solo lectura)</Link>:null;
+  const location=useLocation();const personal=new URLSearchParams(location.search).get("evaluacion");
+  const returnTo=`/evaluaciones?propuesta=${proposal.numericId}`+(personal&&["pendiente","en_progreso","completada"].includes(personal)?`&evaluacion=${personal}`:"");
+  const isAssistant=["comite_asistente","comite_evaluador"].includes(session?.viewRole??"");
+  const fullLink=proposal.numericId!=null?<Link className={isAssistant?"btn btn-primary case-full-access":undefined} to={`/propuestas/${proposal.numericId}`} state={{returnTo}}>Abrir expediente completo (solo lectura)</Link>:null;
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(Boolean(proposal.numericId));

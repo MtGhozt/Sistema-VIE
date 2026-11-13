@@ -1,0 +1,12 @@
+{
+  "run": "2026-11-13T08-03-24-232Z",
+  "capturas": false,
+  "results": [
+    {
+      "name": "Entorno",
+      "status": "FALLA",
+      "detail": "{\"error\":\"Indique motivo y secciones concretas a subsanar\"}\n\n400 !== 200\n"
+    }
+  ],
+  "errors": []
+}

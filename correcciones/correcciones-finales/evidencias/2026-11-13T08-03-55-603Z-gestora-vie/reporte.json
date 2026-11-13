@@ -1,0 +1,50 @@
+{
+  "run": "2026-11-13T08-03-55-603Z",
+  "capturas": false,
+  "results": [
+    {
+      "name": "API: conteos completos, cuatro filtros, alcance y ruta previa",
+      "status": "PASA"
+    },
+    {
+      "name": "API: respaldos PI, Comité, aval y archivo real están autorizados y consultables",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: indicadores reales, enlaces filtrados y prioridades pendientes",
+      "status": "FALLA",
+      "detail": "expect(locator).toHaveText(expected) failed\n\nLocator: locator('.stat-card').filter({ hasText: 'Expedientes pendientes' }).locator('.stat-value')\nExpected: \"10\"\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveText\" locator('.stat-card').filter({ hasText: 'Expedientes pendientes' }).locator('.stat-value') with timeout 5000ms\n  - waiting for locator('.stat-card').filter({ hasText: 'Expedientes pendientes' }).locator('.stat-value')\n"
+    },
+    {
+      "name": "Evaluaciones: lectura en dos paneles, seis secciones y respaldos completos",
+      "status": "FALLA",
+      "detail": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Verificación VIE', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('heading', { name: 'Verificación VIE', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: 'Verificación VIE', exact: true })\n"
+    },
+    {
+      "name": "Expediente: botón azul grande, lectura cómoda, documentos y retorno a la misma evaluación",
+      "status": "FALLA",
+      "detail": "expect(locator).toHaveClass(expected) failed\n\nLocator: getByRole('link', { name: 'Abrir expediente completo (solo lectura)', exact: true })\nExpected pattern: /btn-primary/\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveClass\" getByRole('link', { name: 'Abrir expediente completo (solo lectura)', exact: true }) with timeout 5000ms\n  - waiting for getByRole('link', { name: 'Abrir expediente completo (solo lectura)', exact: true })\n"
+    },
+    {
+      "name": "Checklist: guardado individual persiste al recargar y no borra cambios de otro requisito",
+      "status": "FALLA",
+      "detail": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.vie-document-review').first().locator('summary')\u001b[22m\n"
+    },
+    {
+      "name": "Remisión: requiere checklist completo guardado, confirma y sale de pendientes",
+      "status": "FALLA",
+      "detail": "locator.getAttribute: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.vie-document-review').first()\u001b[22m\n"
+    },
+    {
+      "name": "Subsanación: reinicia verificación del nuevo ciclo y observa límites en API/UI",
+      "status": "FALLA",
+      "detail": "expect(locator).toHaveAttribute(expected) failed\n\nLocator: getByLabel('Comentario o motivo de devolución', { exact: true })\nExpected: \"4000\"\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveAttribute\" getByLabel('Comentario o motivo de devolución', { exact: true }) with timeout 5000ms\n  - waiting for getByLabel('Comentario o motivo de devolución', { exact: true })\n"
+    },
+    {
+      "name": "Inicio: errores visibles y sin ceros ni pendientes ficticios",
+      "status": "FALLA",
+      "detail": "expect(locator).toContainText(expected) failed\n\nLocator: getByRole('alert')\nExpected substring: \"indicadores VIE\"\nReceived string:    \"\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"toContainText\" getByRole('alert') with timeout 5000ms\n  - waiting for getByRole('alert')\n    14 × locator resolved to <div role=\"alert\" aria-live=\"assertive\"></div>\n       - unexpected value \"\"\n"
+    }
+  ],
+  "errors": []
+}

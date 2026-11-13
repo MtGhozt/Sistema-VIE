@@ -1,0 +1,44 @@
+{
+  "run": "2026-11-13T08-05-44-215Z",
+  "capturas": false,
+  "results": [
+    {
+      "name": "API: conteos completos, cuatro filtros, alcance y ruta previa",
+      "status": "PASA"
+    },
+    {
+      "name": "API: respaldos PI, Comité, aval y archivo real están autorizados y consultables",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: indicadores reales, enlaces filtrados y prioridades pendientes",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluaciones: lectura en dos paneles, seis secciones y respaldos completos",
+      "status": "PASA"
+    },
+    {
+      "name": "Expediente: botón azul grande, lectura cómoda, documentos y retorno a la misma evaluación",
+      "status": "PASA"
+    },
+    {
+      "name": "Checklist: guardado individual persiste al recargar y no borra cambios de otro requisito",
+      "status": "PASA"
+    },
+    {
+      "name": "Remisión: requiere checklist completo guardado, confirma y sale de pendientes",
+      "status": "FALLA",
+      "detail": "locator.check: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Verificar: Dictamen PI o constancia de no requerido', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input type=\"checkbox\" aria-label=\"Verificar: Dictamen PI o constancia de no requerido\"/>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    10 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "name": "Subsanación: reinicia verificación del nuevo ciclo y observa límites en API/UI",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: errores visibles y sin ceros ni pendientes ficticios",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

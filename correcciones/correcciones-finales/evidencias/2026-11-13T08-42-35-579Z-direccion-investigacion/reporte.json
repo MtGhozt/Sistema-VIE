@@ -1,0 +1,44 @@
+{
+  "run": "2026-11-13T08-42-35-579Z",
+  "capturas": false,
+  "results": [
+    {
+      "name": "API: bandeja solo pendiente, cuatro filtros y Dirección sin facultad de resolver",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: indicadores y enlaces filtrados, prioridades sin resoluciones ya notificadas",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluación: lectura ampliable, botón azul grande y retorno al expediente seleccionado",
+      "status": "PASA"
+    },
+    {
+      "name": "Respaldos: fundamento y rúbrica CIE, PI, Comité, aval y documento descargable",
+      "status": "FALLA",
+      "detail": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Respaldo del Comité Técnico', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('heading', { name: 'Respaldo del Comité Técnico', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: 'Respaldo del Comité Técnico', exact: true })\n"
+    },
+    {
+      "name": "Notificación: cancelar no escribe y confirmar sale de pendientes conservando aprobación",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico: estado de notificación, fecha, responsable y destinatario; retorno con filtro",
+      "status": "PASA"
+    },
+    {
+      "name": "Concurrencia y reintentos: una notificación interna y una comunicación, sin cambiar la resolución",
+      "status": "PASA"
+    },
+    {
+      "name": "Rechazo: Dirección comunica el resultado CIE sin reabrirlo ni transformarlo",
+      "status": "PASA"
+    },
+    {
+      "name": "Errores y Superadministrador: sin conteos falsos y con la misma vista operativa",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

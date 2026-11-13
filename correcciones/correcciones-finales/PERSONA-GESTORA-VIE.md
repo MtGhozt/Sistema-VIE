@@ -52,13 +52,17 @@ Comando específico: `pnpm regression:gestora-vie`, con `TEST_DATABASE_URL` apun
 
 **Resultado:** 15 baterías aprobadas, **298 comprobaciones correctas y 6 casos no aplicables**, incluidas las 10 pruebas específicas de VIE. [Reporte integrado](evidencias/2026-11-13T08-08-29-738Z-validacion-actual/reporte.json) · [Reporte VIE](evidencias/2026-11-13T08-09-38-693Z-gestora-vie/reporte.json). Compilación correcta; lint sin errores, con advertencias preexistentes.
 
+## Ajuste de confirmación · No / Sí
+
+Se sustituyó «He revisado…» por una lista de requisitos con opciones exclusivas **No / Sí**, en ese orden. El estado pendiente/guardado se muestra en una línea independiente y el botón visible se simplificó a «Guardar revisión». Las opciones tienen un área de interacción mínima de 44 px y se distribuyen sin apretar el texto en móvil. El guardado individual y global conserva su funcionamiento. Compilación correcta y 10 pruebas VIE aprobadas, incluida persistencia y controles móviles: [reporte del ajuste](evidencias/2026-11-13T08-17-12-434Z-gestora-vie/reporte.json).
+
 ## Revisión manual del usuario
 
 - [ ] Inicio: comprobar los cuatro indicadores y sus filtros de Histórico.
 - [ ] Abrir una evaluación y ampliar cada panel; contraer y desplegar respaldos.
 - [ ] Revisar PI, nota y oficio del Comité, aval y descargar un adjunto real.
 - [ ] Abrir el expediente con el botón azul, revisar presupuesto/documentos y volver a la misma evaluación.
-- [ ] Marcar un requisito, guardarlo, recargar y comprobar la persistencia.
+- [ ] Elegir «Sí» en un requisito, guardarlo, recargar y comprobar la persistencia; volver a «No» y guardar para desmarcarlo.
 - [ ] Modificar dos marcas, guardar solo una y comprobar que la otra siga pendiente de guardar.
 - [ ] Devolver con motivo/secciones, corregir como investigador y comprobar la nueva verificación pendiente en VIE.
 - [ ] Completar y guardar requisitos, cancelar una remisión y después confirmarla; comprobar que sale de pendientes.

@@ -1053,15 +1053,20 @@ export function GestoraViePanel({proposal,onAction}:{proposal:DemoProposal;onAct
     <aside className="rubric-case"><details open className="evaluator-proposal-details"><summary>Información de la propuesta</summary><div className="evaluator-proposal-scroll" tabIndex={0} aria-label="Información desplazable de la propuesta"><CaseFile proposal={proposal}/></div></details></aside>
     <article className="card review-panel rubric-main"><PanelIntro title="Verificación VIE" description="Revise cada respaldo y guarde su verificación antes de remitir el expediente al CIE. VIE verifica y solicita subsanaciones; la resolución corresponde al CIE."/>
     <div className="evaluation-progress" role="status"><strong>Requisitos verificados y guardados: {vieItems.filter(item=>saved[item.codigo]).length} de {vieItems.length}</strong><progress aria-label="Progreso de verificación VIE" max={vieItems.length} value={vieItems.filter(item=>saved[item.codigo]).length}/></div>
-    {vieItems.map(item=><details key={item.codigo} className="vie-document-review"><summary>{item.etiqueta} · {saved[item.codigo]?'Verificación guardada':'Pendiente de verificar'}{checks[item.codigo]!==saved[item.codigo]?' · Cambios sin guardar':''}</summary><div className="stack-md">
+    {vieItems.map(item=><details key={item.codigo} className="vie-document-review"><summary><span className="vie-review-title">{item.etiqueta}</span><span className="vie-review-status">{checks[item.codigo]!==saved[item.codigo]?'Cambios sin guardar':saved[item.codigo]?'Verificación guardada':'Pendiente de verificar'}</span></summary><div className="stack-md">
       {item.codigo==='propuesta'&&<p>Use «Abrir expediente completo» para consultar todas las secciones, el presupuesto estructurado y sus anexos; al volver conservará la propuesta seleccionada.</p>}
       {proposal.numericId&&item.codigo==='pi'&&<VinculacionResumen id={proposal.numericId}/>}
       {proposal.numericId&&item.codigo==='evaluacion_comite'&&<ConsejoRespaldo id={proposal.numericId}/>}
       {proposal.numericId&&item.codigo==='oficio_comite'&&<ConsejoRespaldo id={proposal.numericId}/>}
       {proposal.numericId&&item.codigo==='aval'&&<DireccionRespaldo id={proposal.numericId}/>}
       {proposal.numericId&&item.codigo==='respaldos'&&<DocumentosPanel id={proposal.numericId}/>}
-      <label className="check-row"><input type="checkbox" aria-label={`Verificar: ${item.etiqueta}`} disabled={saving} checked={checks[item.codigo]} onChange={e=>setChecks(prev=>({...prev,[item.codigo]:e.target.checked}))}/><span>He revisado: {item.etiqueta}</span></label>
-      <button type="button" className="btn btn-secondary" disabled={saving||checks[item.codigo]===saved[item.codigo]} onClick={()=>void save({...saved,[item.codigo]:checks[item.codigo]})}>Guardar revisión de {item.etiqueta}</button>
+      <div className="vie-review-confirmation">
+        <fieldset className="vie-review-choice" aria-label={`Verificar: ${item.etiqueta}`} disabled={saving}>
+          <legend>Revisión confirmada</legend>
+          <div className="vie-review-options">{[false,true].map(value=><label key={String(value)}><input type="radio" name={`vie-revision-${item.codigo}`} checked={checks[item.codigo]===value} onChange={()=>setChecks(prev=>({...prev,[item.codigo]:value}))}/><span>{value?'Sí':'No'}</span></label>)}</div>
+        </fieldset>
+        <button type="button" className="btn btn-secondary" aria-label={`Guardar revisión de ${item.etiqueta}`} disabled={saving||checks[item.codigo]===saved[item.codigo]} onClick={()=>void save({...saved,[item.codigo]:checks[item.codigo]})}>Guardar revisión</button>
+      </div>
     </div></details>)}
     <button type="button" className="btn btn-secondary" disabled={saving||!dirty} onClick={()=>void save({...checks})}>{saving?'Guardando verificación…':'Guardar verificación'}</button>
     <p className="field-hint" role="status">{dirty?'Verificación con cambios sin guardar.':'La remisión requiere guardar todos los requisitos verificados. Las marcas guardadas se conservan al volver.'}</p>

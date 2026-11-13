@@ -142,3 +142,14 @@
 .vie-document-review > summary { cursor: pointer; padding: 16px; font-weight: 700; color: var(--blue); }
 .vie-document-review > div { padding: 0 16px 16px; }
 .vie-document-review .card { min-width: 0; }
+
+.vie-review-title,.vie-review-status { display: block; }
+.vie-review-status { margin-top: 6px; font-size: .875rem; font-weight: 500; color: var(--ink); }
+.vie-review-confirmation { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
+.vie-review-choice { min-width: 0; margin: 0; padding: 0; border: 0; }
+.vie-review-choice legend { font-weight: 600; margin-bottom: 8px; }
+.vie-review-options { display: flex; flex-wrap: wrap; gap: 12px; }
+.vie-review-options label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--ink-15); border-radius: 8px; cursor: pointer; }
+.vie-review-options label:has(input:checked) { border-color: var(--blue); background: var(--blue-soft, #edf4ff); }
+.vie-review-options input { appearance: auto; position: static; opacity: 1; width: 18px; height: 18px; margin: 0; accent-color: var(--blue); }
+.vie-review-confirmation > button { min-height: 44px; white-space: normal; }

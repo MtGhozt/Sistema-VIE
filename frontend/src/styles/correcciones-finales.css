@@ -153,3 +153,11 @@
 .vie-review-options label:has(input:checked) { border-color: var(--blue); background: var(--blue-soft, #edf4ff); }
 .vie-review-options input { appearance: auto; position: static; opacity: 1; width: 18px; height: 18px; margin: 0; accent-color: var(--blue); }
 .vie-review-confirmation > button { min-height: 44px; white-space: normal; }
+
+.cie-institutional-records > details > section { margin: 12px; padding: 12px; }
+.cie-institutional-records { margin-top: 16px; }
+.cie-checklist-readonly { padding-left: 20px; display: grid; gap: 10px; }
+
+.evaluator-workspace .cie-case { max-height: calc(100vh - 130px); overflow: auto; scrollbar-gutter: stable; }
+.cie-case .evaluator-proposal-scroll { max-height: none; overflow: visible; }
+@media(max-width:700px) { .evaluator-workspace .cie-case { max-height: 75vh; } }

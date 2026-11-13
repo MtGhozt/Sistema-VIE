@@ -35,6 +35,8 @@ export type EvaluacionBandejaItem = {
 
 export type EvaluacionBandejaResponse = {
   comiteEnviadas?:number;
+  resumenCie?:Record<string,number>;
+  pendientesCie?:EvaluacionBandejaItem[];
   resumenVie?:Record<string,number>;
   pendientesVie?:EvaluacionBandejaItem[];
   resumenDireccion?:Record<string,number>;
@@ -98,8 +100,8 @@ export function postEvaluacionIA(idPropuesta: number) {
   );
 }
 
-export function fetchEvaluacionBandeja(view?: string, propuesta?:string|null,comite?:string|null,evaluacion?:string|null,consejo?:string|null,direccion?:string|null,vie?:string|null) {
-  const params=new URLSearchParams();if(view)params.set("vista",view);if(propuesta)params.set("propuesta",propuesta);if(comite)params.set("comite",comite);if(evaluacion)params.set("evaluacion",evaluacion);if(consejo)params.set("consejo",consejo);if(direccion)params.set("direccion",direccion);if(vie)params.set("vie",vie);
+export function fetchEvaluacionBandeja(view?: string, propuesta?:string|null,comite?:string|null,evaluacion?:string|null,consejo?:string|null,direccion?:string|null,vie?:string|null,cie?:string|null) {
+  const params=new URLSearchParams();if(view)params.set("vista",view);if(propuesta)params.set("propuesta",propuesta);if(comite)params.set("comite",comite);if(evaluacion)params.set("evaluacion",evaluacion);if(consejo)params.set("consejo",consejo);if(direccion)params.set("direccion",direccion);if(vie)params.set("vie",vie);if(cie)params.set("cie",cie);
   return apiJson<EvaluacionBandejaResponse>(`/api/evaluaciones/bandeja${params.size?"?"+params.toString():""}`);
 }
 

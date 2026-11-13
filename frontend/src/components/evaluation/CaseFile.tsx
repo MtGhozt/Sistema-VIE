@@ -15,9 +15,9 @@ function formatColones(n: number) {
 /** Expediente lateral: metadatos de bandeja + detalle real desde la API. */
 export function CaseFile({ proposal }: { proposal: DemoProposal }) {
   const {session}=useAuth();
-  const location=useLocation();const direction=new URLSearchParams(location.search).get("direccion");const council=new URLSearchParams(location.search).get("consejo");const personal=new URLSearchParams(location.search).get("evaluacion");
-  const returnTo=`/evaluaciones?propuesta=${proposal.numericId}`+(personal&&["pendiente","en_progreso","completada"].includes(personal)?`&evaluacion=${personal}`:"")+(council&&["aval_pendiente","reconsideracion","pendientes"].includes(council)?`&consejo=${council}`:"")+(direction==="por_comunicar"?"&direccion=por_comunicar":"");
-  const isAssistant=["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie"].includes(session?.viewRole??"");
+  const location=useLocation();const cie=new URLSearchParams(location.search).get("cie");const direction=new URLSearchParams(location.search).get("direccion");const council=new URLSearchParams(location.search).get("consejo");const personal=new URLSearchParams(location.search).get("evaluacion");
+  const returnTo=`/evaluaciones?propuesta=${proposal.numericId}`+(personal&&["pendiente","en_progreso","completada"].includes(personal)?`&evaluacion=${personal}`:"")+(council&&["aval_pendiente","reconsideracion","pendientes"].includes(council)?`&consejo=${council}`:"")+(direction==="por_comunicar"?"&direccion=por_comunicar":"")+(cie&&["pendientes","en_evaluacion"].includes(cie)?`&cie=${cie}`:"");
+  const isAssistant=["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie"].includes(session?.viewRole??"");
   const fullLink=proposal.numericId!=null?<Link className={isAssistant?"btn btn-primary case-full-access":undefined} to={`/propuestas/${proposal.numericId}`} state={{returnTo}}>Abrir expediente completo (solo lectura)</Link>:null;
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [loadError, setLoadError] = useState("");

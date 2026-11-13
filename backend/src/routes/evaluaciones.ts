@@ -1,3 +1,4 @@
+import {CIE_FILTROS,CIE_PENDIENTE_SQL} from '../cieEstado.js';
 import {VIE_FILTROS} from '../vieEstado.js';
 import {DIRECCION_FILTROS,AVAL_COMUNICADO_SQL} from "../direccionEstado.js";
 import {CONSEJO_DECISION_FILTROS,CONSEJO_FILTROS,CONSEJO_ENVIADO_SQL,CONSEJO_PENDIENTE_SQL} from "../consejoEstado.js";
@@ -226,7 +227,7 @@ function bandejaClause(role: string | null | undefined): {
       };
     case "cie":
       return {
-        sql: ` AND p.etapa_flujo = 5 AND p.estado_actual='avalada' AND p.estado_actual NOT IN ('aprobada', 'rechazada')`,
+        sql: ` AND (${CIE_PENDIENTE_SQL})`,
         params: [],
       };
     case "direccion_investigacion":
@@ -317,6 +318,9 @@ evaluacionesRouter.get(
     if(requestedView && (authenticatedRole!=="admin" || !EVALUATION_VIEWS.has(requestedView))){res.status(403).json({error:"Vista de evaluación no permitida"});return;}
     const role = requestedView || authenticatedRole;
     const clause = bandejaClause(role);
+    const cieFilter=String(req.query.cie??'');
+    if(cieFilter&&(role!=='cie'||!['pendientes','en_evaluacion'].includes(cieFilter)))throw new HttpError(400,'Filtro de evaluación CIE inválido');
+    if(cieFilter)clause.sql=` AND (${CIE_FILTROS[cieFilter]})`;
     const vieFilter=String(req.query.vie??'');
     if(vieFilter&&(role!=='gestora_vie'||!['pendientes','listos'].includes(vieFilter)))throw new HttpError(400,'Filtro de verificación VIE inválido');
     if(vieFilter)clause.sql=` AND (${VIE_FILTROS[vieFilter]})`;
@@ -380,7 +384,10 @@ evaluacionesRouter.get(
     }
     const resumenVie=role==='gestora_vie'?(await query(`SELECT ${Object.entries(VIE_FILTROS).map(([k,v])=>`count(*) FILTER(WHERE ${v})::int AS ${k}`).join(',')} FROM propuesta p WHERE ${scope.sql}`,scope.params)).rows[0]:undefined;
     const pendientesVie=role==='gestora_vie'?(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND (${VIE_FILTROS.pendientes}) ORDER BY (SELECT MAX(ci.fecha_envio) FROM comunicacion_institucional ci WHERE ci.id_propuesta=p.id_propuesta AND ci.tipo='aval_consejo') ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja):undefined;
+    const resumenCie=role==='cie'?(await query(`SELECT ${Object.entries(CIE_FILTROS).map(([k,v])=>`count(*) FILTER(WHERE ${v})::int AS ${k}`).join(',')} FROM propuesta p WHERE ${scope.sql}`,scope.params)).rows[0]:undefined;
+    const pendientesCie=role==='cie'?(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND (${CIE_PENDIENTE_SQL}) ORDER BY (SELECT MAX(h.fecha_hora) FROM propuesta_historial_estado h WHERE h.id_propuesta=p.id_propuesta AND h.observacion='Expediente remitido al CIE') ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja):undefined;
     res.json({
+      resumenCie,pendientesCie,
       resumenVie,pendientesVie,
       resumenDireccion,pendientesDireccion,
       resumenConsejo,pendientesConsejo,
@@ -417,6 +424,20 @@ evaluacionesRouter.get(
     res.json(mapBandeja(row));
   }),
 );
+
+evaluacionesRouter.get('/evaluaciones/propuestas/:id/respaldo-cie',requireDemoAuth,asyncHandler(async(req,res)=>{
+ if(!['gestora_vie','cie','direccion_investigacion','admin'].includes(req.demoAuth!.role??''))throw new HttpError(403,'Sin permiso para consultar el respaldo CIE');
+ const id=Number(req.params.id);if(!Number.isSafeInteger(id)||id<1)throw new HttpError(400,'ID inválido');await exigirAlcance(id,req.demoAuth!);
+ const revision=(await query(`SELECT rv.resultado,rv.ciclo,rv.fecha_fin,u.nombre_completo AS responsable,
+ COALESCE((SELECT json_agg(json_build_object('codigo',ch.codigo_item,'etiqueta',ch.etiqueta,'verificado',ch.verificado) ORDER BY ch.codigo_item) FROM revision_checklist ch WHERE ch.id_revision=rv.id_revision),'[]'::json) AS checks
+ FROM revision_expediente rv JOIN usuario u ON u.id_usuario=rv.id_revisor WHERE rv.id_propuesta=$1 AND rv.etapa='vie' ORDER BY rv.ciclo DESC LIMIT 1`,[id])).rows[0];
+ const remision=(await query(`SELECT h.fecha_hora,u.nombre_completo AS responsable FROM propuesta_historial_estado h LEFT JOIN usuario u ON u.id_usuario=h.id_usuario WHERE h.id_propuesta=$1 AND h.observacion='Expediente remitido al CIE' ORDER BY h.fecha_hora DESC LIMIT 1`,[id])).rows[0];
+ const resolucion=(await query(`SELECT r.numero_resolucion,r.resultado,r.fundamento,r.fecha_resolucion,u.nombre_completo AS responsable FROM resolucion_cie r JOIN usuario u ON u.id_usuario=r.id_responsable WHERE r.id_propuesta=$1`,[id])).rows[0];
+ const evaluacion=resolucion?(await query(`SELECT ev.puntaje_total,ev.estado,r.codigo AS version,
+ (SELECT json_agg(json_build_object('criterio',c.nombre,'puntaje',ep.puntaje,'justificacion',ep.justificacion) ORDER BY c.numero) FROM evaluacion_puntaje ep JOIN rubrica_criterio c ON c.id_criterio=ep.id_criterio WHERE ep.id_evaluacion=ev.id_evaluacion) AS criterios
+ FROM evaluacion ev JOIN propuesta p ON p.id_propuesta=ev.id_propuesta JOIN rubrica r ON r.id_rubrica=ev.id_rubrica JOIN resolucion_cie rc ON rc.id_propuesta=p.id_propuesta AND rc.id_responsable=ev.id_evaluador WHERE ev.id_propuesta=$1 AND ev.instancia='cie' AND ev.ciclo=p.ciclo_evaluacion AND ev.id_rubrica=p.id_rubrica_actual`,[id])).rows[0]:null;
+ res.json({revision:revision??null,remision:remision??null,resolucion:resolucion??null,evaluacion:evaluacion??null});
+}));
 
 evaluacionesRouter.get('/evaluaciones/propuestas/:id/comunicacion-aval',requireDemoAuth,asyncHandler(async(req,res)=>{
  if(!['direccion_escuela','gestora_vie','cie','direccion_investigacion','admin'].includes(req.demoAuth!.role??''))throw new HttpError(403,'Sin permiso para consultar la comunicación del aval');
@@ -973,6 +994,9 @@ evaluacionesRouter.post(
         case "cie-reject": {
           const fundamento=str(payload.texto)||str(payload.fundamento);
           if(!fundamento)throw new HttpError(400,'El fundamento de la resolución es obligatorio');
+          if(fundamento.length>4000)throw new HttpError(400,'El fundamento CIE admite como máximo 4000 caracteres');
+          // La rúbrica enviada por la interfaz forma parte del mismo registro transaccional.
+          if(payload.scores!==undefined)await saveRubric(client,id,userId,'cie',locked.rows[0].modalidad,payload,true);
           const numero =
             str(payload.numero) ||
             `CIE-RES-${new Date().getFullYear()}-${String(id).padStart(3, "0")}`;

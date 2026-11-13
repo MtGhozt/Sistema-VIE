@@ -1,0 +1,15 @@
+PASA D01: creación concurrente única y códigos históricos intactos
+PASA D01: contador por año y no reutilización tras eliminar el último código
+PASA D02: identidades de otra escuela y borradores inaccesibles incluso para admin
+PASA D02: asignación expresa por rol habilita solo el expediente enviado
+PASA D02: pertenencia al equipo permite leer enviados y nunca editar ni ver borradores ajenos
+PASA D04: PI no requerida bloquea sin certificación; solo Vinculación certifica con fundamento
+PASA D03: devolución exige motivo/secciones, bloquea avances y conserva alcance de edición
+PASA D03: segundo ciclo independiente y Comité cierra su decisión sin sobrescritura
+PASA D03: devolución VIE regresa a VIE y exige nueva verificación antes de remitir
+PASA D04: PI requerida no se omite, dictamen emitido habilita y queda cerrado
+PASA D04: certificar un expediente histórico no altera su dictamen ni retrocede la etapa
+PASA D03: reenvío concurrente cierra una sola subsanación y conserva un único evento
+PASA D02: cada instancia ve sus notas y solo resumen público de las previas
+PASA D03: rechazo previo no se acepta desde otra instancia ni por admin
+Evidencia: correcciones/evidencias/2026-11-13T08-31-42-838Z-decisiones-d01-d04

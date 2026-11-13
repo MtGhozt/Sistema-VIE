@@ -1,0 +1,54 @@
+{
+  "run": "2026-11-13T08-31-39-602Z",
+  "simulado": true,
+  "results": [
+    {
+      "name": "ayuda sin dependencias",
+      "status": "PASA"
+    },
+    {
+      "name": "rechazar flags desconocidos",
+      "status": "PASA"
+    },
+    {
+      "name": "verificar solo permite base aislada",
+      "status": "PASA"
+    },
+    {
+      "name": "instalación simulada no ejecuta comandos",
+      "status": "PASA"
+    },
+    {
+      "name": "instalación usa lockfile y compila antes de migrar",
+      "status": "PASA"
+    },
+    {
+      "name": "perfil aislado y health antes de migrar",
+      "status": "PASA"
+    },
+    {
+      "name": "batería actual y navegador después de instalar",
+      "status": "PASA"
+    },
+    {
+      "name": "desinstalación simulada no toca datos ni dependencias",
+      "status": "PASA"
+    },
+    {
+      "name": "detener conserva dependencias y volumen por defecto",
+      "status": "PASA"
+    },
+    {
+      "name": "desinstalar elimina únicamente directorios generados",
+      "status": "PASA"
+    },
+    {
+      "name": "sin purga no solicita borrar el volumen",
+      "status": "PASA"
+    },
+    {
+      "name": "borrado de datos requiere flag explícito",
+      "status": "PASA"
+    }
+  ]
+}

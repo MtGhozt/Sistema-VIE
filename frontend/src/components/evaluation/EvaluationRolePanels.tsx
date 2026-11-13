@@ -1,3 +1,4 @@
+import {CieRespaldo} from "./CieRespaldo";
 import {DireccionRespaldo,type ComunicacionAval} from "./DireccionRespaldo";
 import {DocumentosPanel} from "../DocumentosPanel";
 import {ConsejoRespaldo} from "./ConsejoRespaldo";
@@ -427,12 +428,13 @@ function RubricPanel({
       : "NO RECOMIENDA";
 
   return (
-    <div className={`rubric-layout${!cie?` evaluator-workspace evaluator-pane-${readingPane}`:''}`}>
-      {!cie&&<div className="card evaluator-reading-tools" aria-label="Distribución de lectura"><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='case'} onClick={()=>setReadingPane(readingPane==='case'?'both':'case')}>Ampliar propuesta</button><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='rubric'} onClick={()=>setReadingPane(readingPane==='rubric'?'both':'rubric')}>Ampliar evaluación</button><button type="button" className="btn btn-secondary" onClick={()=>setReadingPane('both')}>Mostrar ambos paneles</button></div>}
+    <div className={`rubric-layout evaluator-workspace evaluator-pane-${readingPane}`}>
+      {<div className="card evaluator-reading-tools" aria-label="Distribución de lectura"><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='case'} onClick={()=>setReadingPane(readingPane==='case'?'both':'case')}>Ampliar propuesta</button><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='rubric'} onClick={()=>setReadingPane(readingPane==='rubric'?'both':'rubric')}>Ampliar evaluación</button><button type="button" className="btn btn-secondary" onClick={()=>setReadingPane('both')}>Mostrar ambos paneles</button></div>}
 
       {loadError && <p role="alert">{loadError}. Recargue antes de editar para no sobrescribir una evaluación que no se pudo recuperar.</p>}
-      <article className="card rubric-case">
-        {!cie?<details open className="evaluator-proposal-details"><summary>Información de la propuesta</summary><div className="evaluator-proposal-scroll" tabIndex={0} aria-label="Información desplazable de la propuesta"><CaseFile proposal={proposal}/></div></details>:<CaseFile proposal={proposal}/>}
+      <article className={cie?"card rubric-case cie-case":"card rubric-case"} tabIndex={cie?0:undefined} aria-label={cie?"Expediente y respaldos":undefined}>
+        {<details open className="evaluator-proposal-details"><summary>Información de la propuesta</summary><div className="evaluator-proposal-scroll" tabIndex={0} aria-label="Información desplazable de la propuesta"><CaseFile proposal={proposal}/></div></details>}
+        {cie&&proposal.numericId&&<div className="stack-md cie-institutional-records"><details className="vie-document-review"><summary>Dictamen de Propiedad Intelectual</summary><VinculacionResumen id={proposal.numericId}/></details><details className="vie-document-review"><summary>Evaluación y oficio del Comité Técnico</summary><ConsejoRespaldo id={proposal.numericId}/></details><details className="vie-document-review"><summary>Aval del Consejo y comunicación a VIE</summary><DireccionRespaldo id={proposal.numericId}/></details><details className="vie-document-review"><summary>Archivos de respaldo y presupuesto adjunto</summary><DocumentosPanel id={proposal.numericId}/></details><details className="vie-document-review"><summary>Verificación VIE y resolución CIE</summary><CieRespaldo id={proposal.numericId}/></details></div>}
       </article>
       <fieldset className="rubric-main" disabled={loadingSaved || Boolean(loadError)||closed||!assigned} style={{border:0,padding:0,margin:0,minWidth:0}}>
         {loadingSaved && <p role="status">Recuperando evaluación guardada…</p>}
@@ -450,14 +452,14 @@ function RubricPanel({
               Definición versionada basada en la rúbrica oficial Fondos VIE 2027. Escala: 0, 6, 8 o 10. Los requisitos obligatorios con 0 o 6 y el incumplimiento de productos determinan una recomendación desfavorable. La nota y su justificación son humanas.
             </p>
           </div>
-          <div className="score-ring" role="img" aria-label={`Calificación ponderada: ${average} de ${availablePoints}`} style={!cie?{background:`radial-gradient(closest-side, white 78%, transparent 80%),conic-gradient(var(--blue) ${availablePoints?average/availablePoints*100:0}%, var(--ink-08) 0)`}:undefined}>
+          <div className="score-ring" role="img" aria-label={`Calificación ponderada: ${average} de ${availablePoints}`} style={{background:`radial-gradient(closest-side, white 78%, transparent 80%),conic-gradient(var(--blue) ${availablePoints?average/availablePoints*100:0}%, var(--ink-08) 0)`}}>
             <strong>{average}</strong>
             <span>/ {availablePoints} puntos incluidos</span>
             <small>{recommendation}</small>
           </div>
         </div>
 
-        {!cie&&<div className="card evaluation-progress" role="status" aria-live="polite"><strong>Progreso de evaluación</strong><progress aria-label="Progreso de evaluación" max={criteria.length+1} value={criteria.filter(c=>Boolean(scores[c.id]?.reason.trim())&&(scores[c.id]?.reason.length??0)<=comiteTextLimits.justificacion&&[0,6,8,10].includes(scores[c.id]?.score)).length+(products?1:0)}/><span>{criteria.filter(c=>Boolean(scores[c.id]?.reason.trim())&&(scores[c.id]?.reason.length??0)<=comiteTextLimits.justificacion).length} de {criteria.length} criterios justificados · Productos {products?'verificados':'pendientes de verificar'}</span><small>El progreso mide la completitud; la calificación ponderada se muestra en el círculo.</small></div>}
+        {<div className="card evaluation-progress" role="status" aria-live="polite"><strong>Progreso de evaluación</strong><progress aria-label="Progreso de evaluación" max={criteria.length+1} value={criteria.filter(c=>Boolean(scores[c.id]?.reason.trim())&&(scores[c.id]?.reason.length??0)<=comiteTextLimits.justificacion&&[0,6,8,10].includes(scores[c.id]?.score)).length+(products?1:0)}/><span>{criteria.filter(c=>Boolean(scores[c.id]?.reason.trim())&&(scores[c.id]?.reason.length??0)<=comiteTextLimits.justificacion).length} de {criteria.length} criterios justificados · Productos {products?'verificados':'pendientes de verificar'}</span><small>El progreso mide la completitud; la calificación ponderada se muestra en el círculo.</small></div>}
         {!cie && proposal.numericId && (
           <article className="card ai-eval" aria-live="polite">
             <div className="ai-eval-head">
@@ -654,6 +656,7 @@ function RubricPanel({
           </div>
         </article>
 
+        {cie&&!allJustified&&<p className="field-hint" role="status">Valore y justifique todos los criterios antes de emitir la resolución. Puede guardar la evaluación para continuar después.</p>}
         <div className="action-row end">
           <button
             type="button"
@@ -675,6 +678,7 @@ function RubricPanel({
               <button
                 type="button"
                 className="btn btn-secondary"
+                disabled={!allJustified}
                 onClick={() => setRejectOpen(true)}
               >
                 Rechazar
@@ -682,7 +686,7 @@ function RubricPanel({
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={false}
+                disabled={!allJustified}
                 title={availablePoints < 100 ? "Pendiente de incorporar y validar la rúbrica oficial completa; este subconjunto no permite una recomendación definitiva." : undefined}
                 onClick={() => setApproveOpen(true)}
               >
@@ -711,7 +715,7 @@ recommendation,
         <SimpleModal
           open={rejectOpen}
           title="Emitir resolución de rechazo"
-          description="Registre el fundamento que acompañará la resolución del CIE."
+          description="Registre el fundamento. La resolución cerrará la evaluación de este expediente; su notificación corresponderá a Dirección de Investigación."
           onClose={() => setRejectOpen(false)}
           footer={
             <>
@@ -725,7 +729,7 @@ recommendation,
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={!rejectText.trim()}
+                disabled={!allJustified||!rejectText.trim()}
                 onClick={async () => {
                   if (!await onAction("cie-reject", {
                     average,
@@ -746,12 +750,12 @@ texto: rejectText.trim(),
               Justificación del rechazo (obligatoria)
             </span>
             <textarea
-              className="input textarea"
+              aria-label="Justificación del rechazo CIE" maxLength={4000} aria-describedby="cie-rechazo-budget" className="input textarea"
               rows={6}
               value={rejectText}
               onChange={(e) => setRejectText(e.target.value)}
               placeholder="Fundamento de la resolución de rechazo..."
-            />
+            /><WordBudget id="cie-rechazo-budget" value={rejectText} maxWords={4000} unit="caracteres"/>
           </label>
         </SimpleModal>
 
@@ -772,7 +776,7 @@ texto: rejectText.trim(),
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={!approveText.trim()}
+                disabled={!allJustified||!approveText.trim()}
                 onClick={async () => {
                   if (!await onAction("cie-approve", {
                     average,
@@ -794,12 +798,12 @@ recommendation,
               Justificación de la aprobación (obligatoria)
             </span>
             <textarea
-              className="input textarea"
+              aria-label="Justificación de la aprobación CIE" maxLength={4000} aria-describedby="cie-aprobacion-budget" className="input textarea"
               rows={6}
               value={approveText}
               onChange={(e) => setApproveText(e.target.value)}
               placeholder="Fundamento de la resolución aprobatoria..."
-            />
+            /><WordBudget id="cie-aprobacion-budget" value={approveText} maxWords={4000} unit="caracteres"/>
           </label>
         </SimpleModal>
       </fieldset>

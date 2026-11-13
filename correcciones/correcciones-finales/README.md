@@ -45,3 +45,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [Dirección de Escuela](DIRECCION-DE-ESCUELA.md): indicadores y comunicación única del aval a VIE, respaldos y estado operativo separado del académico. Pendiente de revisión manual.
 
 - [Persona Gestora VIE](PERSONA-GESTORA-VIE.md): respaldos desplegables, verificación persistida por requisito, indicadores, Histórico y remisión confirmada. Pendiente de revisión manual.
+
+- [CIE](CIE.md): evaluación con paneles, respaldos completos, indicadores y consulta de resolución/rúbrica. Explica el cierre por rechazo y el alcance pendiente de un eventual recurso. Pendiente de revisión manual.

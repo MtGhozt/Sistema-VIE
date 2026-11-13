@@ -548,6 +548,8 @@ function RoleHome({
   );
 
   const [resumenComite,setResumenComite]=useState<{pendientes:number;reenviadas:number;enviadas:number;devueltas:number}|null>(null);
+  const [resumenCie,setResumenCie]=useState<Record<string,number>|null>(null);
+  const [pendientesCie,setPendientesCie]=useState<EvaluacionBandejaItem[]>([]);
   const [resumenVie,setResumenVie]=useState<Record<string,number>|null>(null);
   const [pendientesVie,setPendientesVie]=useState<EvaluacionBandejaItem[]>([]);
   const [resumenDireccion,setResumenDireccion]=useState<Record<string,number>|null>(null);
@@ -555,7 +557,7 @@ function RoleHome({
   const [resumenConsejo,setResumenConsejo]=useState<Record<string,number>|null>(null);
   const [pendientesConsejo,setPendientesConsejo]=useState<EvaluacionBandejaItem[]>([]);
   const [evalRefresh,setEvalRefresh]=useState(0);
-  useEffect(()=>{if(!["comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie"].includes(role))return;const refresh=()=>setEvalRefresh(n=>n+1);window.addEventListener("focus",refresh);return()=>window.removeEventListener("focus",refresh);},[role]);
+  useEffect(()=>{if(!["comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie"].includes(role))return;const refresh=()=>setEvalRefresh(n=>n+1);window.addEventListener("focus",refresh);return()=>window.removeEventListener("focus",refresh);},[role]);
   const [resumenEvaluador,setResumenEvaluador]=useState<{asignadas:number;pendientes:number;borradores:number;entregadas:number}|null>(null);
   const [comiteError,setComiteError]=useState("");
   const isViePublicacion = role === "vie_publicacion";
@@ -576,9 +578,9 @@ function RoleHome({
         const view =
           sessionRole === "admin" && isEvalRole ? role : undefined;
         const res = await fetchEvaluacionBandeja(view);
-        if (!cancelled) {setBandejaItems(res.items);setResumenVie(res.resumenVie??null);setPendientesVie(res.pendientesVie??[]);setResumenComite(res.resumenComite??null);setResumenEvaluador(res.resumenEvaluador??null);setResumenConsejo(res.resumenConsejo??null);setPendientesConsejo(res.pendientesConsejo??[]);setResumenDireccion(res.resumenDireccion??null);setPendientesDireccion(res.pendientesDireccion??[]);setComiteError("");}
+        if (!cancelled) {setBandejaItems(res.items);setResumenCie(res.resumenCie??null);setPendientesCie(res.pendientesCie??[]);setResumenVie(res.resumenVie??null);setPendientesVie(res.pendientesVie??[]);setResumenComite(res.resumenComite??null);setResumenEvaluador(res.resumenEvaluador??null);setResumenConsejo(res.resumenConsejo??null);setPendientesConsejo(res.pendientesConsejo??[]);setResumenDireccion(res.resumenDireccion??null);setPendientesDireccion(res.pendientesDireccion??[]);setComiteError("");}
       } catch {
-        if (!cancelled) {setBandejaItems([]);setResumenVie(null);setPendientesVie([]);setResumenComite(null);setResumenEvaluador(null);setResumenConsejo(null);setPendientesConsejo([]);setResumenDireccion(null);setPendientesDireccion([]);setComiteError(role==="gestora_vie"?"No se pudieron consultar los indicadores VIE. Actualice para reintentar.":role==="direccion_escuela"?"No se pudieron consultar las comunicaciones de aval. Actualice para reintentar.":["consejo","consejo_asistente"].includes(role)?"No se pudieron consultar los indicadores del Consejo. Actualice para reintentar.":"No se pudieron consultar los indicadores del Comité. Recargue para reintentar.");}
+        if (!cancelled) {setBandejaItems([]);setResumenCie(null);setPendientesCie([]);setResumenVie(null);setPendientesVie([]);setResumenComite(null);setResumenEvaluador(null);setResumenConsejo(null);setPendientesConsejo([]);setResumenDireccion(null);setPendientesDireccion([]);setComiteError(role==="cie"?"No se pudieron consultar los indicadores CIE. Actualice para reintentar.":role==="gestora_vie"?"No se pudieron consultar los indicadores VIE. Actualice para reintentar.":role==="direccion_escuela"?"No se pudieron consultar las comunicaciones de aval. Actualice para reintentar.":["consejo","consejo_asistente"].includes(role)?"No se pudieron consultar los indicadores del Consejo. Actualice para reintentar.":"No se pudieron consultar los indicadores del Comité. Recargue para reintentar.");}
       }
     })();
     return () => {
@@ -590,6 +592,7 @@ function RoleHome({
     return home.stats.map(([label]) => {
       let value:number|string = 0;
       if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;return {label,value:piError?"—":piSummary&&state?piSummary.conteos[state]:"…"};}
+      if(role==='cie'){const key=({'Pendientes de resolución':'pendientes','En evaluación':'en_evaluacion',Aprobadas:'aprobadas',Rechazadas:'rechazadas'} as Record<string,string>)[label];return {label,value:comiteError?'—':resumenCie&&key?resumenCie[key]:'…'};}
       if(role==='gestora_vie'){const key=({'Expedientes pendientes':'pendientes','Remitidos al CIE':'remitidos','Listos para CIE':'listos',Devueltos:'devueltos'} as Record<string,string>)[label];return {label,value:comiteError?'—':resumenVie&&key?resumenVie[key]:'…'};}
       if(role==='direccion_escuela'){const key=({'Pendientes de comunicar':'por_comunicar','Comunicados a VIE':'comunicados','En VIE':'en_vie','Aval rechazado':'aval_rechazado'} as Record<string,string>)[label];return {label,value:comiteError?'—':resumenDireccion&&key?resumenDireccion[key]:'…'};}
       if(role==='consejo'){const key=({'Pendientes de aval':'aval_pendiente',Avaladas:'aval_aprobado','Aval rechazado':'aval_rechazado','Reconsideraciones solicitadas':'reconsideracion'} as Record<string,string>)[label];return {label,value:comiteError?'—':resumenConsejo&&key?resumenConsejo[key]:'…'};}
@@ -603,7 +606,7 @@ function RoleHome({
       }
       return { label, value };
     });
-  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems,isVinculacion,piSummary,piError,role,resumenComite,comiteError,resumenEvaluador,resumenConsejo,resumenDireccion,resumenVie]);
+  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems,isVinculacion,piSummary,piError,role,resumenComite,comiteError,resumenEvaluador,resumenConsejo,resumenDireccion,resumenVie,resumenCie]);
 
   const vieTasks = useMemo(() => {
     if (!isViePublicacion) return [];
@@ -621,6 +624,7 @@ function RoleHome({
 
   /** Pendientes reales desde bandeja API (sin lista demo alambrada). */
   const pendingTasks = useMemo(() => {
+    if(role==='cie')return pendientesCie.map(item=>({id:item.id,title:item.titulo,status:'Pendiente de resolución CIE',meta:`${item.codigo} · ${item.escuela}`,path:`/evaluaciones?propuesta=${item.id}`}));
     if(role==='gestora_vie')return pendientesVie.map(item=>({id:item.id,title:item.titulo,status:'Pendiente de verificación VIE',meta:`${item.codigo} · ${item.escuela}`,path:`/evaluaciones?propuesta=${item.id}`}));
     if(role==='direccion_escuela')return pendientesDireccion.map(item=>({id:item.id,title:item.titulo,status:'Pendiente de comunicación',meta:`${item.codigo} · Aval ${dateLabel(item.fechaAval??item.fechaEnvio).replaceAll('-','/')} · ${item.escuela}`,path:`/evaluaciones?propuesta=${item.id}`}));
     if(['consejo_asistente','consejo'].includes(role))return pendientesConsejo.map(item=>({id:item.id,title:item.titulo,status:role==='consejo'?(item.estadoActual==='rechazo_aval'?'Reconsideración solicitada':'Pendiente de aval'):'Pendiente de remisión',meta:`${item.codigo} · Dictamen ${dateLabel(item.fechaDictamenComite??item.fechaEnvio).replaceAll('-','/')} · ${item.escuela}`,path:`/evaluaciones?propuesta=${item.id}`}));
@@ -640,9 +644,10 @@ function RoleHome({
         meta: `${item.codigo} · ${item.escuela}`,
         path: `/evaluaciones?propuesta=${item.id}`,
       }));
-  }, [isViePublicacion, isEvalRole, bandejaItems,isVinculacion,piSummary,role,pendientesConsejo,pendientesDireccion,pendientesVie]);
+  }, [isViePublicacion, isEvalRole, bandejaItems,isVinculacion,piSummary,role,pendientesConsejo,pendientesDireccion,pendientesVie,pendientesCie]);
 
   function statNavigate(label: string) {
+    if(role==='cie'){const key=({'Pendientes de resolución':'pendientes','En evaluación':'en_evaluacion',Aprobadas:'aprobadas',Rechazadas:'rechazadas'} as Record<string,string>)[label];navigate('/historico?cie='+key);return;}
     if(role==='gestora_vie'){const key=({'Expedientes pendientes':'pendientes','Remitidos al CIE':'remitidos','Listos para CIE':'listos',Devueltos:'devueltos'} as Record<string,string>)[label];navigate('/historico?vie='+key);return;}
     if(role==='direccion_escuela'){const key=({'Pendientes de comunicar':'por_comunicar','Comunicados a VIE':'comunicados','En VIE':'en_vie','Aval rechazado':'aval_rechazado'} as Record<string,string>)[label];navigate(key==='por_comunicar'?'/evaluaciones?direccion='+key:'/historico?direccion='+key);return;}
     if(role==='consejo'){const key=({'Pendientes de aval':'aval_pendiente',Avaladas:'aval_aprobado','Aval rechazado':'aval_rechazado','Reconsideraciones solicitadas':'reconsideracion'} as Record<string,string>)[label];navigate(['aval_pendiente','reconsideracion'].includes(key)?'/evaluaciones?consejo='+key:'/historico?consejo='+key);return;}
@@ -672,8 +677,8 @@ function RoleHome({
         </div>
       </header>
 
-      {["comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie"].includes(role)&&<button type="button" className="btn btn-secondary" onClick={()=>setEvalRefresh(n=>n+1)}>Actualizar indicadores</button>}
-      {["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie"].includes(role)&&comiteError&&<p role="alert">{comiteError}</p>}
+      {["comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie"].includes(role)&&<button type="button" className="btn btn-secondary" onClick={()=>setEvalRefresh(n=>n+1)}>Actualizar indicadores</button>}
+      {["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie"].includes(role)&&comiteError&&<p role="alert">{comiteError}</p>}
       <section
         className={`stats-grid${five ? " stats-grid-five" : ""}`}
         aria-label="Indicadores"
@@ -698,7 +703,7 @@ function RoleHome({
             <div>
               <h2>{isViePublicacion?"Convocatorias próximas a cerrar":isVinculacion?"Pendientes de PI más antiguos":role==="direccion_escuela"?"Avales más antiguos por comunicar":role==="consejo"?"Avales y reconsideraciones pendientes":role==="consejo_asistente"?"Expedientes más antiguos por preparar":"Pendientes prioritarios"}</h2>
               <p>
-                {role==="gestora_vie"?"Solo expedientes comunicados a VIE y pendientes de verificación, por antigüedad de la comunicación; máximo cinco.":role==="direccion_escuela"?"Solo avales aprobados pendientes de comunicación, ordenados por antigüedad del aval; máximo cinco.":role==="consejo"?"Solo expedientes remitidos pendientes de decisión y reconsideraciones solicitadas. Orden de antigüedad del dictamen; máximo cinco.":role==="consejo_asistente"?"Consolidados pendientes de remisión, por antigüedad del dictamen del Comité. Máximo cinco; no incluye expedientes ya remitidos o con decisión.":isVinculacion?piSummary?.criterio??"Ordenados por mayor antigüedad desde el envío.":isViePublicacion?"Publicadas con cierre en los próximos 30 días, de la fecha más cercana a la más lejana.":"Tareas que requieren atención según la responsabilidad institucional actual."}
+                {role==="cie"?"Solo expedientes remitidos formalmente al CIE y pendientes de resolución, por antigüedad de la remisión; máximo cinco.":role==="gestora_vie"?"Solo expedientes comunicados a VIE y pendientes de verificación, por antigüedad de la comunicación; máximo cinco.":role==="direccion_escuela"?"Solo avales aprobados pendientes de comunicación, ordenados por antigüedad del aval; máximo cinco.":role==="consejo"?"Solo expedientes remitidos pendientes de decisión y reconsideraciones solicitadas. Orden de antigüedad del dictamen; máximo cinco.":role==="consejo_asistente"?"Consolidados pendientes de remisión, por antigüedad del dictamen del Comité. Máximo cinco; no incluye expedientes ya remitidos o con decisión.":isVinculacion?piSummary?.criterio??"Ordenados por mayor antigüedad desde el envío.":isViePublicacion?"Publicadas con cierre en los próximos 30 días, de la fecha más cercana a la más lejana.":"Tareas que requieren atención según la responsabilidad institucional actual."}
               </p>
             </div>
           </div>
@@ -745,7 +750,7 @@ function RoleHome({
                 <span>Ninguna convocatoria publicada cierra en los próximos 30 días.</span>
               </div>
             )}
-            {!isViePublicacion && isEvalRole && pendingTasks.length === 0 && (!isVinculacion||Boolean(piSummary)) && (!["consejo_asistente","consejo"].includes(role)||Boolean(resumenConsejo)) && (role!=="direccion_escuela"||Boolean(resumenDireccion)) && (role!=="gestora_vie"||Boolean(resumenVie)) && (
+            {!isViePublicacion && isEvalRole && pendingTasks.length === 0 && (!isVinculacion||Boolean(piSummary)) && (!["consejo_asistente","consejo"].includes(role)||Boolean(resumenConsejo)) && (role!=="direccion_escuela"||Boolean(resumenDireccion)) && (role!=="gestora_vie"||Boolean(resumenVie)) && (role!=="cie"||Boolean(resumenCie)) && (
               <div className="empty-state small">
                 <strong>Sin pendientes</strong>
                 <span>No hay expedientes en su bandeja en este momento.</span>

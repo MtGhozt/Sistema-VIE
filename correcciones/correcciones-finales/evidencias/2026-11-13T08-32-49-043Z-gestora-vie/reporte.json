@@ -1,0 +1,47 @@
+{
+  "run": "2026-11-13T08-32-49-043Z",
+  "capturas": false,
+  "results": [
+    {
+      "name": "API: conteos completos, cuatro filtros, alcance y ruta previa",
+      "status": "PASA"
+    },
+    {
+      "name": "API: respaldos PI, Comité, aval y archivo real están autorizados y consultables",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: indicadores reales, enlaces filtrados y prioridades pendientes",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluaciones: lectura en dos paneles, seis secciones y respaldos completos",
+      "status": "PASA"
+    },
+    {
+      "name": "Expediente: botón azul grande, lectura cómoda, documentos y retorno a la misma evaluación",
+      "status": "PASA"
+    },
+    {
+      "name": "Checklist: guardado individual persiste al recargar y no borra cambios de otro requisito",
+      "status": "PASA"
+    },
+    {
+      "name": "Remisión: requiere checklist completo guardado, confirma y sale de pendientes",
+      "status": "PASA"
+    },
+    {
+      "name": "Subsanación: reinicia verificación del nuevo ciclo y observa límites en API/UI",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: errores visibles y sin ceros ni pendientes ficticios",
+      "status": "PASA"
+    },
+    {
+      "name": "Superadministrador hereda la vista VIE y los respaldos sin saltar precondiciones",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

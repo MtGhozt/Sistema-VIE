@@ -1,3 +1,4 @@
+import {CIE_FILTROS} from '../cieEstado.js';
 import {VIE_FILTROS} from '../vieEstado.js';
 import {DIRECCION_FILTROS,AVAL_COMUNICADO_SQL} from "../direccionEstado.js";
 import {CONSEJO_FILTROS,CONSEJO_DECISION_FILTROS} from "../consejoEstado.js";
@@ -229,6 +230,8 @@ historicoRouter.get(
     if(filtros.comite&&filtros.comite!=="devueltas")throw new HttpError(400,"Seleccione un filtro de devoluciones del Comité válido.");
     if(filtros.pi&&!Object.hasOwn(ESTADOS_PI,filtros.pi))throw new HttpError(400,"Seleccione un estado de PI válido.");
     const { where, values } = buildWhere(filtros);
+    const cie=String(q.cie??'');
+    if(cie){if(!Object.hasOwn(CIE_FILTROS,cie))throw new HttpError(400,'Filtro de evaluación CIE inválido');where.push(`(${CIE_FILTROS[cie]})`);}
     const vie=String(q.vie??'');
     if(vie){if(!Object.hasOwn(VIE_FILTROS,vie))throw new HttpError(400,'Filtro de verificación VIE inválido');where.push(`(${VIE_FILTROS[vie]})`);}
     const direccion=String(q.direccion??'');

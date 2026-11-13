@@ -5,9 +5,11 @@
 > **UI demo · 2026-11-04:** detalle = wizard en solo lectura, KPIs reales, filtros, line sidebar de pasos. Ver [docs/ui-demo-noviembre-2026.md](docs/ui-demo-noviembre-2026.md).
 >
 > **Post-auditoría · 2026-11-09:** CU2 (equipo, plan, presupuesto, adjuntos) y CU3/CU4 están **persistidos** (D01–D11 + MERGE-IAN). CaseFile de Evaluaciones carga el detalle real vía API. Prioridad de cierre: [correcciones/PRIORIDAD-POST-AUDITORIA.md](correcciones/PRIORIDAD-POST-AUDITORIA.md). Este resumen corto no sustituye ESTADO-DE-REVISION ni MERGE-IAN.
+>
+> **Correcciones finales · 2026-11-11:** perfil VIE Publicación — pantallas propias, validación en español, fechas `DD/MM/YYYY`, presupuesto/cronograma obligatorios. Ver [correcciones/correcciones-finales/README.md](correcciones/correcciones-finales/README.md) y `pnpm regression:vie-final`.
 
 
-Última actualización: 2026-11-09 (auditoría + CaseFile enriquecido; docs alineados)
+Última actualización: 2026-11-11 (VIE Publicación + docs alineados post-pull)
 
 ## Lectura para el equipo
 
@@ -127,6 +129,7 @@ recursos del wizard · checklist NVDA en `docs/a11y/INFORME-WCAG.md`.
 
 | Fecha | Qué | Pendiente |
 |-------|-----|-----------|
+| 2026-11-11 | **VIE Publicación:** rutas/crear/editar/revisar, filtros como histórico, vigencia presupuesto y ≥1 actividad; evidencia en `correcciones-finales/` | Firma manual REVISION-MANUAL + V01–V06 |
 | 2026-11-09 | **Post-auditoría:** CaseFile enriquecido desde `GET /propuestas/:id`; limpieza de adapters/demo muertos; eliminado `ProposalDetailView`; docs CONTINUIDAD + WCAG + guion V01 | Firma humana V01–V06 |
 | 2026-10-29 | **CU3/CU4 API + UI**: bandeja y acciones persistidas; flujo investigador→evaluador→histórico demostrable | `evaluacion_puntaje` fino; oficios PDF |
 | 2026-10-29 | **CU2 ampliación**: problema / objetivo general / metodología en create+patch | equipo, plan, presupuesto en tablas hijas |
@@ -157,7 +160,8 @@ recursos del wizard · checklist NVDA en `docs/a11y/INFORME-WCAG.md`.
 3. ~~**CU3/CU4** persistencia (dictamen, aval, resolución) + avance de estado~~
 4. ~~a11y rúbrica: toggle alto contraste, checklist lector~~ · ~~wizard completo persistido (Ian + D01–D11)~~ · ~~CaseFile con detalle API~~
 5. Firma humana V01–V06 + NVDA presencial (ver [correcciones/GUIION-DEMO-V01.md](correcciones/GUIION-DEMO-V01.md)).
-6. Opcional / diferido: seed de adjuntos, UNIQUE evaluación, `propuesta_asignacion`, PDF oficios.
+6. Firma manual VIE Publicación ([REVISION-MANUAL.md](correcciones/correcciones-finales/REVISION-MANUAL.md)); adaptar 2 pruebas merge-ian del investigador.
+7. Opcional / diferido: seed de adjuntos, UNIQUE evaluación, `propuesta_asignacion`, PDF oficios.
 
 ## Referencias rápidas
 
@@ -167,5 +171,6 @@ recursos del wizard · checklist NVDA en `docs/a11y/INFORME-WCAG.md`.
 - BD (docs): `docs/database/` · SQL: `database/`
 - **UI referencia:** `docs/prototipo-html-referencia/Fondos-VIE-Prototipo.html`
 - **App:** desde la raíz `pnpm dev`
-- Claves UI: `frontend/src/pages/InicioPage.tsx`, `PropuestaDetallePage.tsx`, `PropuestaNuevaPage.tsx`, `EvaluacionesPage.tsx`, `HistoricoPage.tsx`, `components/evaluation/CaseFile.tsx`, `data/formWizardIan.ts`
+- Claves UI: `frontend/src/pages/InicioPage.tsx`, `PropuestaDetallePage.tsx`, `PropuestaNuevaPage.tsx`, `ConvocatoriasPage.tsx`, `EvaluacionesPage.tsx`, `HistoricoPage.tsx`, `components/evaluation/CaseFile.tsx`, `data/formWizardIan.ts`
 - Prioridad post-auditoría: `correcciones/PRIORIDAD-POST-AUDITORIA.md` · Guion V01: `correcciones/GUIION-DEMO-V01.md`
+- Correcciones finales VIE: `correcciones/correcciones-finales/`

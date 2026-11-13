@@ -158,9 +158,13 @@ TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regr
 TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:completion
 TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:ui
 TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:completion-ui
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:vie-final
+TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm regression:convocatoria-requisitos
 TEST_DATABASE_URL=postgresql://vie:vie@127.0.0.1:55432/fondos_vie_test pnpm test:fresh-schema
 pnpm test:lifecycle
 ```
+
+Las regresiones VIE importan el backend compilado: ejecute `pnpm build` antes si cambió código de API. La evidencia de VIE Publicación está en `correcciones/correcciones-finales/evidencias/`.
 
 `test:lifecycle` comprueba los scripts Bash en un directorio temporal con Docker/pnpm simulados; no desinstala el repositorio real. Las regresiones API/UI sí usan PostgreSQL real y escriben fixtures propios.
 

@@ -4,6 +4,7 @@ export type HistoricoItem = {
   id: number;
   estadoAval?:string|null;
   avalComunicado?:boolean;
+  resolucionNotificada?:boolean;
   estadoEvaluacion?:string;
   estadoPi?:string;estadoPiLabel?:string;
   codigo: string;
@@ -35,6 +36,7 @@ export type HistoricoFiltros = {
   direccion:string;
   vie:string;
   cie:string;
+  notificacion:string;
 };
 
 export type HistoricoOpciones = {
@@ -64,6 +66,7 @@ export const EMPTY_HISTORICO_FILTROS: HistoricoFiltros = {
   direccion:"",
   vie:"",
   cie:"",
+  notificacion:"",
 };
 
 /** Listado del histórico con filtros combinables (CU5). */

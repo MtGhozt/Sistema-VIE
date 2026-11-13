@@ -47,3 +47,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [Persona Gestora VIE](PERSONA-GESTORA-VIE.md): respaldos desplegables, verificación persistida por requisito, indicadores, Histórico y remisión confirmada. Pendiente de revisión manual.
 
 - [CIE](CIE.md): evaluación con paneles, respaldos completos, indicadores y consulta de resolución/rúbrica. Explica el cierre por rechazo y el alcance pendiente de un eventual recurso. Pendiente de revisión manual.
+
+- [Dirección de Investigación](DIRECCION-DE-INVESTIGACION.md): notificación de decisiones CIE, indicadores, pendientes reales, expediente y registro histórico. Pendiente de revisión manual.

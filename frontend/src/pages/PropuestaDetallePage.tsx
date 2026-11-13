@@ -48,11 +48,12 @@ export function PropuestaDetallePage() {
   const isDirection=session?.viewRole==="direccion_escuela";
   const isGestora=session?.viewRole==="gestora_vie";
   const isCie=session?.viewRole==="cie";
-  const comfortableReading=isCie||isGestora||isVinculacion||isAssistant||isEvaluator||isCouncilAssistant||isDirection;
+  const isResearchDirection=session?.viewRole==="direccion_investigacion";
+  const comfortableReading=isResearchDirection||isCie||isGestora||isVinculacion||isAssistant||isEvaluator||isCouncilAssistant||isDirection;
   const [expandedReading,setExpandedReading]=useState(false);
   const savedReturn=(location.state as {returnTo?:string}|null)?.returnTo;
   const returnParams=new URLSearchParams(savedReturn?.split('?')[1]??'');
-  const evaluationReturn=(isCie||isGestora||isAssistant||isEvaluator||isCouncilAssistant||isDirection)&&Boolean(savedReturn?.startsWith('/evaluaciones?')&&returnParams.get('propuesta')===String(proposalId)&&Array.from(returnParams.keys()).every(key=>['propuesta','evaluacion','consejo','direccion','cie'].includes(key))&&(!returnParams.has('evaluacion')||['pendiente','en_progreso','completada'].includes(returnParams.get('evaluacion')??''))&&(!returnParams.has('consejo')||['aval_pendiente','reconsideracion','pendientes'].includes(returnParams.get('consejo')??''))&&(!returnParams.has('direccion')||returnParams.get('direccion')==='por_comunicar')&&(!returnParams.has('cie')||['pendientes','en_evaluacion'].includes(returnParams.get('cie')??'')));
+  const evaluationReturn=(isResearchDirection||isCie||isGestora||isAssistant||isEvaluator||isCouncilAssistant||isDirection)&&Boolean(savedReturn?.startsWith('/evaluaciones?')&&returnParams.get('propuesta')===String(proposalId)&&Array.from(returnParams.keys()).every(key=>['propuesta','evaluacion','consejo','direccion','cie','notificacion'].includes(key))&&(!returnParams.has('evaluacion')||['pendiente','en_progreso','completada'].includes(returnParams.get('evaluacion')??''))&&(!returnParams.has('consejo')||['aval_pendiente','reconsideracion','pendientes'].includes(returnParams.get('consejo')??''))&&(!returnParams.has('direccion')||returnParams.get('direccion')==='por_comunicar')&&(!returnParams.has('cie')||['pendientes','en_evaluacion'].includes(returnParams.get('cie')??''))&&(!returnParams.has('notificacion')||returnParams.get('notificacion')==='pendientes'));
   const backTo=evaluationReturn?savedReturn!:comfortableReading?(savedReturn&&/^\/historico(?:\?|$)/.test(savedReturn)?savedReturn:"/historico"):"/propuestas";
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
@@ -299,9 +300,9 @@ export function PropuestaDetallePage() {
         />
       </section>
 
-      {(isCie||isDirection||isGestora)&&<DireccionRespaldo id={detail.id}/>}
-      {(isCie||isCouncilAssistant||isDirection||isGestora)&&<ConsejoRespaldo id={detail.id}/>}
-      {isCie&&<CieRespaldo id={detail.id}/>}
+      {(isResearchDirection||isCie||isDirection||isGestora)&&<DireccionRespaldo id={detail.id}/>}
+      {(isResearchDirection||isCie||isCouncilAssistant||isDirection||isGestora)&&<ConsejoRespaldo id={detail.id}/>}
+      {(isResearchDirection||isCie)&&<CieRespaldo id={detail.id}/>}
       {isEvaluator&&<MiEvaluacionResumen id={detail.id}/>}
       {comfortableReading&&<VinculacionResumen id={detail.id}/>}
       <div className={`wizard-layout wizard-layout-wide${expandedReading?" expediente-expanded":""}`}>

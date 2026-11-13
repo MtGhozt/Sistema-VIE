@@ -1,3 +1,4 @@
+import {NOTIFICACION_FILTROS,RESOLUCION_NOTIFICADA_SQL} from '../notificacionEstado.js';
 import {CIE_FILTROS} from '../cieEstado.js';
 import {VIE_FILTROS} from '../vieEstado.js';
 import {DIRECCION_FILTROS,AVAL_COMUNICADO_SQL} from "../direccionEstado.js";
@@ -67,6 +68,7 @@ type HistoricoRow = {
   numero_oficio_consejo: string | null;
   estado_aval:string|null;
   aval_comunicado:boolean;
+  resolucion_notificada:boolean;
   numero_oficio_comite: string | null;
   numero_oficio_pi: string | null;
 };
@@ -75,6 +77,7 @@ const SELECT_BASE = `
   SELECT
     p.id_propuesta,
     p.codigo,
+    (${RESOLUCION_NOTIFICADA_SQL}) AS resolucion_notificada,
     ${ESTADO_PI_SQL} AS estado_pi,
     p.titulo,
     p.modalidad,mc.nombre AS modalidad_nombre,
@@ -192,6 +195,7 @@ function mapRow(row: HistoricoRow) {
     id: row.id_propuesta,
     estadoAval:row.estado_aval,
     avalComunicado:row.aval_comunicado,
+    resolucionNotificada:row.resolucion_notificada,
     estadoEvaluacion:row.estado_evaluacion,
     estadoPi:row.estado_pi,estadoPiLabel:ESTADOS_PI[row.estado_pi],
     codigo: row.codigo,
@@ -230,6 +234,8 @@ historicoRouter.get(
     if(filtros.comite&&filtros.comite!=="devueltas")throw new HttpError(400,"Seleccione un filtro de devoluciones del Comité válido.");
     if(filtros.pi&&!Object.hasOwn(ESTADOS_PI,filtros.pi))throw new HttpError(400,"Seleccione un estado de PI válido.");
     const { where, values } = buildWhere(filtros);
+    const notificacion=String(q.notificacion??'');
+    if(notificacion){if(!Object.hasOwn(NOTIFICACION_FILTROS,notificacion))throw new HttpError(400,'Filtro de notificación inválido');where.push(`(${NOTIFICACION_FILTROS[notificacion]})`);}
     const cie=String(q.cie??'');
     if(cie){if(!Object.hasOwn(CIE_FILTROS,cie))throw new HttpError(400,'Filtro de evaluación CIE inválido');where.push(`(${CIE_FILTROS[cie]})`);}
     const vie=String(q.vie??'');

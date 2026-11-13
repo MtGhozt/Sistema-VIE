@@ -1,0 +1,43 @@
+{
+  "run": "2026-11-13T08-44-04-573Z",
+  "capturas": false,
+  "results": [
+    {
+      "name": "API: bandeja solo pendiente, cuatro filtros y Dirección sin facultad de resolver",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: indicadores y enlaces filtrados, prioridades sin resoluciones ya notificadas",
+      "status": "PASA"
+    },
+    {
+      "name": "Evaluación: lectura ampliable, botón azul grande y retorno al expediente seleccionado",
+      "status": "PASA"
+    },
+    {
+      "name": "Respaldos: fundamento y rúbrica CIE, PI, Comité, aval y documento descargable",
+      "status": "PASA"
+    },
+    {
+      "name": "Notificación: cancelar no escribe y confirmar sale de pendientes conservando aprobación",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico: estado de notificación, fecha, responsable y destinatario; retorno con filtro",
+      "status": "PASA"
+    },
+    {
+      "name": "Concurrencia y reintentos: una notificación interna y una comunicación, sin cambiar la resolución",
+      "status": "PASA"
+    },
+    {
+      "name": "Rechazo: Dirección comunica el resultado CIE sin reabrirlo ni transformarlo",
+      "status": "PASA"
+    },
+    {
+      "name": "Errores y Superadministrador: sin conteos falsos y con la misma vista operativa",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

@@ -168,7 +168,7 @@ try {
     await Promise.all([action(id,'direccion_investigacion','notify-resolution'),action(id,'direccion_investigacion','notify-resolution')]);
     const r=await env.pool.query('SELECT id_notificacion FROM notificacion WHERE id_propuesta=$1',[id]);assert.equal(r.rowCount,1);const nid=String(r.rows[0].id_notificacion);
     assert.ok((await call('/notificaciones','investigador')).some(n=>n.id===nid));assert.ok(!(await call('/notificaciones','cie')).some(n=>n.id===nid));await call(`/notificaciones/${nid}/leida`,'cie','PATCH',undefined,404);await call(`/notificaciones/${nid}/leida`,'investigador','PATCH',undefined,204);assert.equal((await call('/notificaciones','investigador')).find(n=>n.id===nid).unread,false);
-    const b=await call('/evaluaciones/bandeja','direccion_investigacion');assert.equal(b.items.find(p=>p.id===id).notificada,true);
+    const b=await call('/evaluaciones/bandeja','direccion_investigacion');assert.ok(!b.items.some(p=>p.id===id));assert.equal((await call(`/evaluaciones/propuestas/${id}`,'direccion_investigacion')).notificada,true);
   });
   await check('No notificar resolución inexistente ni aprobar borrador',async()=>{
     const id=await draft();await action(id,'admin','cie-approve',{texto:'No permitido'},400);await env.pool.query("UPDATE propuesta SET estado_actual='rechazada',etapa_flujo=6 WHERE id_propuesta=$1",[id]);await stageFixture(id);await action(id,'direccion_investigacion','notify-resolution',{},409);

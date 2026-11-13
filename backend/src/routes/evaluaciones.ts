@@ -1,3 +1,4 @@
+import {NOTIFICACION_FILTROS} from '../notificacionEstado.js';
 import {CIE_FILTROS,CIE_PENDIENTE_SQL} from '../cieEstado.js';
 import {VIE_FILTROS} from '../vieEstado.js';
 import {DIRECCION_FILTROS,AVAL_COMUNICADO_SQL} from "../direccionEstado.js";
@@ -232,7 +233,7 @@ function bandejaClause(role: string | null | undefined): {
       };
     case "direccion_investigacion":
       return {
-        sql: ` AND p.estado_actual IN ('aprobada', 'rechazada')`,
+        sql: ` AND (${NOTIFICACION_FILTROS.pendientes})`,
         params: [],
       };
     case "admin":
@@ -318,6 +319,8 @@ evaluacionesRouter.get(
     if(requestedView && (authenticatedRole!=="admin" || !EVALUATION_VIEWS.has(requestedView))){res.status(403).json({error:"Vista de evaluación no permitida"});return;}
     const role = requestedView || authenticatedRole;
     const clause = bandejaClause(role);
+    const notificacionFilter=String(req.query.notificacion??'');
+    if(notificacionFilter&&(role!=='direccion_investigacion'||notificacionFilter!=='pendientes'))throw new HttpError(400,'Filtro de notificación inválido');
     const cieFilter=String(req.query.cie??'');
     if(cieFilter&&(role!=='cie'||!['pendientes','en_evaluacion'].includes(cieFilter)))throw new HttpError(400,'Filtro de evaluación CIE inválido');
     if(cieFilter)clause.sql=` AND (${CIE_FILTROS[cieFilter]})`;
@@ -386,7 +389,10 @@ evaluacionesRouter.get(
     const pendientesVie=role==='gestora_vie'?(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND (${VIE_FILTROS.pendientes}) ORDER BY (SELECT MAX(ci.fecha_envio) FROM comunicacion_institucional ci WHERE ci.id_propuesta=p.id_propuesta AND ci.tipo='aval_consejo') ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja):undefined;
     const resumenCie=role==='cie'?(await query(`SELECT ${Object.entries(CIE_FILTROS).map(([k,v])=>`count(*) FILTER(WHERE ${v})::int AS ${k}`).join(',')} FROM propuesta p WHERE ${scope.sql}`,scope.params)).rows[0]:undefined;
     const pendientesCie=role==='cie'?(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND (${CIE_PENDIENTE_SQL}) ORDER BY (SELECT MAX(h.fecha_hora) FROM propuesta_historial_estado h WHERE h.id_propuesta=p.id_propuesta AND h.observacion='Expediente remitido al CIE') ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja):undefined;
+    const resumenNotificacion=role==='direccion_investigacion'?(await query(`SELECT ${Object.entries(NOTIFICACION_FILTROS).map(([k,v])=>`count(*) FILTER(WHERE ${v})::int AS ${k}`).join(',')} FROM propuesta p WHERE ${scope.sql}`,scope.params)).rows[0]:undefined;
+    const pendientesNotificacion=role==='direccion_investigacion'?(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND (${NOTIFICACION_FILTROS.pendientes}) ORDER BY r.fecha_resolucion ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja):undefined;
     res.json({
+      resumenNotificacion,pendientesNotificacion,
       resumenCie,pendientesCie,
       resumenVie,pendientesVie,
       resumenDireccion,pendientesDireccion,
@@ -436,7 +442,8 @@ evaluacionesRouter.get('/evaluaciones/propuestas/:id/respaldo-cie',requireDemoAu
  const evaluacion=resolucion?(await query(`SELECT ev.puntaje_total,ev.estado,r.codigo AS version,
  (SELECT json_agg(json_build_object('criterio',c.nombre,'puntaje',ep.puntaje,'justificacion',ep.justificacion) ORDER BY c.numero) FROM evaluacion_puntaje ep JOIN rubrica_criterio c ON c.id_criterio=ep.id_criterio WHERE ep.id_evaluacion=ev.id_evaluacion) AS criterios
  FROM evaluacion ev JOIN propuesta p ON p.id_propuesta=ev.id_propuesta JOIN rubrica r ON r.id_rubrica=ev.id_rubrica JOIN resolucion_cie rc ON rc.id_propuesta=p.id_propuesta AND rc.id_responsable=ev.id_evaluador WHERE ev.id_propuesta=$1 AND ev.instancia='cie' AND ev.ciclo=p.ciclo_evaluacion AND ev.id_rubrica=p.id_rubrica_actual`,[id])).rows[0]:null;
- res.json({revision:revision??null,remision:remision??null,resolucion:resolucion??null,evaluacion:evaluacion??null});
+ const notificacion=(await query(`SELECT ci.fecha_envio,ci.mensaje,em.nombre_completo AS responsable,de.nombre_completo AS destinatario,de.correo_institucional AS correo FROM comunicacion_institucional ci JOIN usuario em ON em.id_usuario=ci.id_emisor LEFT JOIN usuario de ON de.id_usuario=ci.id_destinatario WHERE ci.id_propuesta=$1 AND ci.tipo='resolucion_cie' AND ci.confirmada=true ORDER BY ci.fecha_envio DESC,ci.id_comunicacion DESC LIMIT 1`,[id])).rows[0];
+ res.json({revision:revision??null,remision:remision??null,resolucion:resolucion??null,evaluacion:evaluacion??null,notificacion:notificacion??null});
 }));
 
 evaluacionesRouter.get('/evaluaciones/propuestas/:id/comunicacion-aval',requireDemoAuth,asyncHandler(async(req,res)=>{
@@ -1032,8 +1039,8 @@ evaluacionesRouter.post(
         }
 
         case "notify-resolution": {
-          const resolution = await client.query("SELECT resultado FROM resolucion_cie WHERE id_propuesta=$1", [id]);
-          if (!resolution.rowCount || !["aprobada", "rechazada"].includes(propuesta.estado_actual)) {
+          const resolution = await client.query("SELECT resultado,numero_resolucion,fundamento FROM resolucion_cie WHERE id_propuesta=$1", [id]);
+          if (!resolution.rowCount || !["aprobada", "rechazada"].includes(propuesta.estado_actual) || resolution.rows[0].resultado!==propuesta.estado_actual) {
             throw new HttpError(409, "Se requiere una resolución CIE antes de notificarla");
           }
           const sent = await client.query("SELECT 1 FROM comunicacion_institucional WHERE id_propuesta=$1 AND tipo='resolucion_cie' AND confirmada=true", [id]);
@@ -1048,7 +1055,7 @@ evaluacionesRouter.post(
               propuesta.id_coordinador,
               id,
               `Resolución de ${propuesta.codigo}`,
-              `Se notificó formalmente el resultado de la propuesta «${propuesta.titulo}».`,
+              `Resolución ${resolution.rows[0].numero_resolucion}: ${resolution.rows[0].resultado==='aprobada'?'aprobación':'rechazo'} de «${propuesta.titulo}». ${resolution.rows[0].fundamento}`.slice(0,500),
             ],
           );
           await client.query(
@@ -1062,11 +1069,11 @@ evaluacionesRouter.post(
               id,
               userId,
               propuesta.id_coordinador,
-              `Notificación de resolución de ${propuesta.codigo}`,
+              `Notificación interna de resolución ${resolution.rows[0].numero_resolucion}: ${resolution.rows[0].resultado==='aprobada'?'aprobación':'rechazo'} de ${propuesta.codigo}.`,
             ],
           );
           message =
-            "Resolución notificada a la persona coordinadora y comunicación registrada.";
+            "Notificación interna registrada para la persona coordinadora. Consulte el registro en Histórico.";
           break;
         }
 

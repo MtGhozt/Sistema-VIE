@@ -1,0 +1,43 @@
+{
+  "run": "2026-11-13T08-46-26-359Z",
+  "capturas": false,
+  "results": [
+    {
+      "name": "API: solo aval aprobado y pendiente; Dirección no aprueba ni rechaza",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: cuatro conteos reales y destinos distintos sin confirmaciones inventadas",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades: solo avales por comunicar, más antiguos primero y máximo cinco",
+      "status": "PASA"
+    },
+    {
+      "name": "Expediente completo: acceso destacado, aval, Comité, PI, presupuesto y documentos",
+      "status": "PASA"
+    },
+    {
+      "name": "Comunicación: cancelar no guarda; confirmar cambia fase, sale de pendientes y habilita VIE",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico: comunicación diferenciada del estado académico, con responsable y sin acuse ficticio",
+      "status": "PASA"
+    },
+    {
+      "name": "Concurrencia: dos peticiones producen un solo registro y evento de comunicación",
+      "status": "PASA"
+    },
+    {
+      "name": "Subsanación de VIE regresa a VIE sin obligar ni permitir otra comunicación de Dirección",
+      "status": "PASA"
+    },
+    {
+      "name": "Errores y filtros: valores inválidos se rechazan y la indisponibilidad no inventa ceros",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

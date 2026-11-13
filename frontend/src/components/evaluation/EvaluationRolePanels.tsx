@@ -1,4 +1,4 @@
-import {CieRespaldo} from "./CieRespaldo";
+import {CieRespaldo,type RespaldoCie} from "./CieRespaldo";
 import {DireccionRespaldo,type ComunicacionAval} from "./DireccionRespaldo";
 import {DocumentosPanel} from "../DocumentosPanel";
 import {ConsejoRespaldo} from "./ConsejoRespaldo";
@@ -1081,71 +1081,19 @@ export function GestoraViePanel({proposal,onAction}:{proposal:DemoProposal;onAct
     </article></div>;
 }
 
-export function DireccionInvestigacionPanel({
-  proposal,
-  onAction,
-}: {
-  proposal: DemoProposal;
-  onAction: ActionHandler;
-}) {
-  const rejected = proposal.estado.includes("Rechazada");
-  return (
-    <div className="split-review">
-      <CaseFile proposal={proposal} />
-      <article className="card review-panel">
-        <PanelIntro
-          title="Notificación formal de resolución"
-          description="Comunique el resultado emitido por el CIE y cierre el flujo institucional."
-        />
-        <div className="official-doc">
-          <IconFile size={24} />
-          <div>
-            <span>Resolución CIE</span>
-            <strong>{proposal.resolucion || "Sin resolución registrada"}</strong>
-            <small>Resultado: {rejected ? "Rechazo" : "Aprobación"}</small>
-          </div>
-        </div>
-        <div className="detail-grid">
-          <div>
-            <span>Persona investigadora</span>
-            <strong>{proposal.investigadora}</strong>
-          </div>
-          <div>
-            <span>Fecha de resolución</span>
-            <strong>{proposal.fechaResolucion ? new Date(proposal.fechaResolucion).toLocaleDateString("es-CR",{timeZone:"America/Costa_Rica"}) : "Sin fecha registrada"}</strong>
-          </div>
-          <div>
-            <span>Correo</span>
-            <strong>{proposal.coordinadorCorreo || "Sin correo registrado"}</strong>
-          </div>
-          <div>
-            <span>Estado de notificación</span>
-            <strong>{proposal.notificada ? "Notificada" : "Pendiente"}</strong>
-          </div>
-        </div>
-        <div className="action-stack">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            disabled
-            title="Fuera de alcance del prototipo: no se genera PDF automático de resoluciones"
-          >
-            PDF de resolución · fuera de alcance
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={proposal.notificada}
-            onClick={() => onAction("notify-resolution")}
-          >
-            {proposal.notificada
-              ? "Resolución notificada"
-              : "Notificar resolución"}
-          </button>
-        </div>
-      </article>
-    </div>
-  );
+export function DireccionInvestigacionPanel({proposal,onAction}:{proposal:DemoProposal;onAction:ActionHandler}) {
+  const [record,setRecord]=useState<RespaldoCie|null>(null),[confirm,setConfirm]=useState(false),[sending,setSending]=useState(false);
+  const [readingPane,setReadingPane]=useState<'case'|'rubric'|'both'>('both');
+  const eligible=Boolean(record?.resolucion&&!record.notificacion&&!proposal.notificada);
+  return <div className={`split-review evaluator-workspace evaluator-pane-${readingPane}`}>
+    <div className="card evaluator-reading-tools" aria-label="Distribución de lectura"><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='case'} onClick={()=>setReadingPane(readingPane==='case'?'both':'case')}>Ampliar expediente</button><button type="button" className="btn btn-secondary" aria-pressed={readingPane==='rubric'} onClick={()=>setReadingPane(readingPane==='rubric'?'both':'rubric')}>Ampliar notificación</button><button type="button" className="btn btn-secondary" onClick={()=>setReadingPane('both')}>Mostrar ambos paneles</button></div>
+    <aside className="rubric-case"><details open className="evaluator-proposal-details"><summary>Información de la propuesta</summary><div className="evaluator-proposal-scroll" tabIndex={0} aria-label="Información desplazable de la propuesta"><CaseFile proposal={proposal}/></div></details></aside>
+    <article className="card review-panel rubric-main"><PanelIntro title="Notificación formal de resolución" description="Dirección de Investigación comunica la aprobación o el rechazo emitido por CIE. La decisión y su fundamento se consultan en solo lectura."/>
+    <p>Persona destinataria: {proposal.investigadora} · {proposal.coordinadorCorreo||'Sin correo registrado'}</p>
+    {proposal.numericId&&<><CieRespaldo id={proposal.numericId} onLoad={setRecord}/><details className="vie-document-review"><summary>Evaluación y oficio del Comité Técnico</summary><ConsejoRespaldo id={proposal.numericId}/></details><details className="vie-document-review"><summary>Dictamen de Propiedad Intelectual</summary><VinculacionResumen id={proposal.numericId}/></details><details className="vie-document-review"><summary>Aval del Consejo y comunicación a VIE</summary><DireccionRespaldo id={proposal.numericId}/></details><details className="vie-document-review"><summary>Archivos del expediente</summary><DocumentosPanel id={proposal.numericId}/></details></>}
+    <button type="button" className="btn btn-primary" disabled={!eligible||sending} onClick={()=>setConfirm(true)}>Notificar resolución</button>
+    <SimpleModal open={confirm} title="Confirmar notificación de resolución" description="Se registrará una notificación interna para la persona coordinadora y el expediente saldrá de pendientes. El resultado del CIE se conserva." onClose={()=>{if(!sending)setConfirm(false);}} footer={<><button type="button" className="btn btn-secondary" disabled={sending} onClick={()=>setConfirm(false)}>Cancelar</button><button type="button" className="btn btn-primary" disabled={!eligible||sending} onClick={async()=>{if(sending)return;setSending(true);try{if(await onAction('notify-resolution'))setConfirm(false);}finally{setSending(false);}}}>{sending?'Notificando…':'Confirmar notificación'}</button></>}><p>Resolución: {record?.resolucion?.numero_resolucion}</p><p>Resultado: {record?.resolucion?.resultado==='rechazada'?'Rechazo':'Aprobación'}</p><p>Destinatario: {proposal.investigadora}</p><p>No se envía correo externo.</p></SimpleModal>
+    </article></div>;
 }
 
 export function AdminEvalTransversal({

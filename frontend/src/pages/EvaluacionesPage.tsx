@@ -132,7 +132,7 @@ type BandejaEntry = {
 export function EvaluacionesPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
-  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");const comiteFilter=search.get("comite");const evaluacionFilter=search.get("evaluacion");const consejoFilter=search.get("consejo");const direccionFilter=search.get("direccion");const vieFilter=search.get("vie");const cieFilter=search.get("cie");
+  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");const comiteFilter=search.get("comite");const evaluacionFilter=search.get("evaluacion");const consejoFilter=search.get("consejo");const direccionFilter=search.get("direccion");const vieFilter=search.get("vie");const cieFilter=search.get("cie");const notificacionFilter=search.get("notificacion");
   const { showToast } = useToast();
   const [bandeja, setBandeja] = useState<BandejaEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState("");
@@ -148,7 +148,7 @@ export function EvaluacionesPage() {
     setLoading(true);
     setBandejaNote(null);
     try {
-      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter,vieFilter,cieFilter);
+      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter,vieFilter,cieFilter,notificacionFilter);
       const entries: BandejaEntry[] = res.items.map((item) => ({
         key: item.codigo, numericId: item.id, demo: bandejaToDemoProposal(item), api: item,
       }));
@@ -164,7 +164,7 @@ export function EvaluacionesPage() {
     } finally {
       setLoading(false);
     }
-  }, [session, role,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter,vieFilter,cieFilter]);
+  }, [session, role,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter,vieFilter,cieFilter,notificacionFilter]);
 
   useEffect(() => {
     void loadBandeja();
@@ -232,6 +232,7 @@ export function EvaluacionesPage() {
       } else {
         await loadBandeja();
       }
+      if(role==='direccion_investigacion'&&action==='notify-resolution'){navigate('/historico?notificacion=notificadas');return true;}
       if(role==='cie'&&['cie-approve','cie-reject'].includes(action)){navigate('/historico?cie='+(action==='cie-approve'?'aprobadas':'rechazadas'));return true;}
       if(role==='gestora_vie'&&['send-cie','return'].includes(action)){navigate('/historico?vie='+(action==='send-cie'?'remitidos':'devueltos'));return true;}
       if(role==='direccion_escuela'&&action==='communicate-aval'){navigate('/historico?direccion=comunicados');return true;}
@@ -309,6 +310,7 @@ export function EvaluacionesPage() {
     return (
       <section className="card empty-state">
         <h1 className="sr-only">{title}</h1>
+        {role==='direccion_investigacion'&&<Link className="btn btn-secondary" to="/historico?notificacion=notificadas">Consultar resoluciones notificadas</Link>}
         {role==='direccion_escuela'&&<Link className="btn btn-secondary" to="/historico?direccion=comunicados">Consultar avales comunicados</Link>}
         {role==='consejo'&&<Link className="btn btn-secondary" to="/historico">Consultar avales y rechazos</Link>}
         {role==='comite_evaluador'&&<Link className="btn btn-secondary" to="/evaluaciones">Ver mis evaluaciones pendientes</Link>}
@@ -317,7 +319,7 @@ export function EvaluacionesPage() {
         {bandejaNote && <p role="alert">{bandejaNote}</p>}
         <button type="button" className="btn btn-secondary" onClick={() => void loadBandeja()}>Actualizar bandeja</button>{role==="vinculacion"&&<Link className="btn btn-secondary" to="/historico">Consultar histórico de PI</Link>}
         <p className="muted">
-          {role==="direccion_escuela"?"Aquí aparecen los avales aprobados pendientes de comunicación. Lo ya comunicado se consulta en Histórico.":role==="consejo"?"Los expedientes aparecerán cuando el asistente los remita al Consejo o se solicite reconsideración.":"Los expedientes aparecen aquí según la etapa y asignación que corresponden a su rol."}
+          {role==="direccion_investigacion"?"Aquí aparecen solo resoluciones CIE pendientes de notificación. Las ya notificadas se consultan en Histórico.":role==="direccion_escuela"?"Aquí aparecen los avales aprobados pendientes de comunicación. Lo ya comunicado se consulta en Histórico.":role==="consejo"?"Los expedientes aparecerán cuando el asistente los remita al Consejo o se solicite reconsideración.":"Los expedientes aparecen aquí según la etapa y asignación que corresponden a su rol."}
         </p>
       </section>
     );
@@ -350,7 +352,7 @@ export function EvaluacionesPage() {
       {EVAL_ROLES.includes(role) || role === "admin" ? (
         <>
           {role !== "admin" && (
-            <div className={["comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie"].includes(role)?"evaluation-selector evaluator-selector":"evaluation-selector"}>
+            <div className={["comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion"].includes(role)?"evaluation-selector evaluator-selector":"evaluation-selector"}>
               <span>Expediente activo</span>
               <select
                 className="input"

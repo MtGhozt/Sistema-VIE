@@ -548,10 +548,10 @@ function RoleHome({
   );
 
   const [resumenComite,setResumenComite]=useState<{pendientes:number;reenviadas:number;enviadas:number;devueltas:number}|null>(null);
-  const [resumenConsejo,setResumenConsejo]=useState<{recibidos:number;pendientes:number;en_consejo:number;enviados:number}|null>(null);
+  const [resumenConsejo,setResumenConsejo]=useState<Record<string,number>|null>(null);
   const [pendientesConsejo,setPendientesConsejo]=useState<EvaluacionBandejaItem[]>([]);
   const [evalRefresh,setEvalRefresh]=useState(0);
-  useEffect(()=>{if(!["comite_evaluador","consejo_asistente"].includes(role))return;const refresh=()=>setEvalRefresh(n=>n+1);window.addEventListener("focus",refresh);return()=>window.removeEventListener("focus",refresh);},[role]);
+  useEffect(()=>{if(!["comite_evaluador","consejo_asistente","consejo"].includes(role))return;const refresh=()=>setEvalRefresh(n=>n+1);window.addEventListener("focus",refresh);return()=>window.removeEventListener("focus",refresh);},[role]);
   const [resumenEvaluador,setResumenEvaluador]=useState<{asignadas:number;pendientes:number;borradores:number;entregadas:number}|null>(null);
   const [comiteError,setComiteError]=useState("");
   const isViePublicacion = role === "vie_publicacion";
@@ -574,7 +574,7 @@ function RoleHome({
         const res = await fetchEvaluacionBandeja(view);
         if (!cancelled) {setBandejaItems(res.items);setResumenComite(res.resumenComite??null);setResumenEvaluador(res.resumenEvaluador??null);setResumenConsejo(res.resumenConsejo??null);setPendientesConsejo(res.pendientesConsejo??[]);setComiteError("");}
       } catch {
-        if (!cancelled) {setBandejaItems([]);setResumenComite(null);setResumenEvaluador(null);setResumenConsejo(null);setPendientesConsejo([]);setComiteError(role==="consejo_asistente"?"No se pudieron consultar los indicadores del Consejo. Actualice para reintentar.":"No se pudieron consultar los indicadores del Comité. Recargue para reintentar.");}
+        if (!cancelled) {setBandejaItems([]);setResumenComite(null);setResumenEvaluador(null);setResumenConsejo(null);setPendientesConsejo([]);setComiteError(["consejo","consejo_asistente"].includes(role)?"No se pudieron consultar los indicadores del Consejo. Actualice para reintentar.":"No se pudieron consultar los indicadores del Comité. Recargue para reintentar.");}
       }
     })();
     return () => {
@@ -586,6 +586,7 @@ function RoleHome({
     return home.stats.map(([label]) => {
       let value:number|string = 0;
       if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;return {label,value:piError?"—":piSummary&&state?piSummary.conteos[state]:"…"};}
+      if(role==='consejo'){const key=({'Pendientes de aval':'aval_pendiente',Avaladas:'aval_aprobado','Aval rechazado':'aval_rechazado','Reconsideraciones solicitadas':'reconsideracion'} as Record<string,string>)[label];return {label,value:comiteError?'—':resumenConsejo&&key?resumenConsejo[key]:'…'};}
       if(role==='consejo_asistente'){const key=({Recibidos:'recibidos','Pendientes de preparar':'pendientes','En Consejo':'en_consejo',Enviados:'enviados'} as Record<string,'recibidos'|'pendientes'|'en_consejo'|'enviados'>)[label];return {label,value:comiteError?'—':resumenConsejo&&key?resumenConsejo[key]:'…'};}
       if(role==='comite_evaluador'){const key=({'En bandeja':'asignadas','Pendientes de evaluar':'pendientes','Borradores de evaluación':'borradores','Evaluaciones entregadas':'entregadas'} as Record<string,'asignadas'|'pendientes'|'borradores'|'entregadas'>)[label];return {label,value:comiteError?'—':resumenEvaluador&&key?resumenEvaluador[key]:'…'};}
       if(role==="comite_asistente"){const key=({Pendientes:"pendientes","Reenviadas por revisar":"reenviadas","Listas para evaluación":"enviadas",Devueltas:"devueltas"} as const)[label as "Pendientes"];return {label,value:comiteError?"—":resumenComite&&key?resumenComite[key]:"…"};}
@@ -614,7 +615,7 @@ function RoleHome({
 
   /** Pendientes reales desde bandeja API (sin lista demo alambrada). */
   const pendingTasks = useMemo(() => {
-    if(role==='consejo_asistente')return pendientesConsejo.map(item=>({id:item.id,title:item.titulo,status:'Pendiente de remisión',meta:`${item.codigo} · Dictamen ${dateLabel(item.fechaDictamenComite??item.fechaEnvio).replaceAll('-','/')} · ${item.escuela}`,path:`/evaluaciones?propuesta=${item.id}`}));
+    if(['consejo_asistente','consejo'].includes(role))return pendientesConsejo.map(item=>({id:item.id,title:item.titulo,status:role==='consejo'?(item.estadoActual==='rechazo_aval'?'Reconsideración solicitada':'Pendiente de aval'):'Pendiente de remisión',meta:`${item.codigo} · Dictamen ${dateLabel(item.fechaDictamenComite??item.fechaEnvio).replaceAll('-','/')} · ${item.escuela}`,path:`/evaluaciones?propuesta=${item.id}`}));
     if(isVinculacion)return (piSummary?.pendientes??[]).map(item=>({id:item.id,title:item.titulo,status:item.estadoPiLabel??'',meta:`${item.codigo} · Enviada ${dateLabel(item.fechaEnvio).replaceAll('-','/')} · ${item.escuela}`,path:`/historico/${encodeURIComponent(item.codigo)}`}));
     if (isViePublicacion || !isEvalRole) return [];
     return [...bandejaItems]
@@ -634,6 +635,7 @@ function RoleHome({
   }, [isViePublicacion, isEvalRole, bandejaItems,isVinculacion,piSummary,role,pendientesConsejo]);
 
   function statNavigate(label: string) {
+    if(role==='consejo'){const key=({'Pendientes de aval':'aval_pendiente',Avaladas:'aval_aprobado','Aval rechazado':'aval_rechazado','Reconsideraciones solicitadas':'reconsideracion'} as Record<string,string>)[label];navigate(['aval_pendiente','reconsideracion'].includes(key)?'/evaluaciones?consejo='+key:'/historico?consejo='+key);return;}
     if(role==='consejo_asistente'){const key=({Recibidos:'recibidos','Pendientes de preparar':'pendientes','En Consejo':'en_consejo',Enviados:'enviados'} as Record<string,string>)[label];navigate(key==='pendientes'?'/evaluaciones?consejo=pendientes':'/historico?consejo='+key);return;}
     if(role==='comite_evaluador'){navigate(label==='Evaluaciones entregadas'?'/historico?evaluacion=completada':label==='Pendientes de evaluar'?'/evaluaciones?evaluacion=pendiente':label==='Borradores de evaluación'?'/evaluaciones?evaluacion=en_progreso':'/evaluaciones');return;}
     if(role==="comite_asistente"){navigate(label==="Devueltas"?"/historico?comite=devueltas":"/evaluaciones?comite="+(label==="Reenviadas por revisar"?"reenviadas":label==="Listas para evaluación"?"enviadas":"recepcion"));return;}
@@ -660,8 +662,8 @@ function RoleHome({
         </div>
       </header>
 
-      {["comite_evaluador","consejo_asistente"].includes(role)&&<button type="button" className="btn btn-secondary" onClick={()=>setEvalRefresh(n=>n+1)}>Actualizar indicadores</button>}
-      {["comite_asistente","comite_evaluador","consejo_asistente"].includes(role)&&comiteError&&<p role="alert">{comiteError}</p>}
+      {["comite_evaluador","consejo_asistente","consejo"].includes(role)&&<button type="button" className="btn btn-secondary" onClick={()=>setEvalRefresh(n=>n+1)}>Actualizar indicadores</button>}
+      {["comite_asistente","comite_evaluador","consejo_asistente","consejo"].includes(role)&&comiteError&&<p role="alert">{comiteError}</p>}
       <section
         className={`stats-grid${five ? " stats-grid-five" : ""}`}
         aria-label="Indicadores"
@@ -684,13 +686,13 @@ function RoleHome({
         <article className="card">
           <div className="section-title">
             <div>
-              <h2>{isViePublicacion?"Convocatorias próximas a cerrar":isVinculacion?"Pendientes de PI más antiguos":role==="consejo_asistente"?"Expedientes más antiguos por preparar":"Pendientes prioritarios"}</h2>
+              <h2>{isViePublicacion?"Convocatorias próximas a cerrar":isVinculacion?"Pendientes de PI más antiguos":role==="consejo"?"Avales y reconsideraciones pendientes":role==="consejo_asistente"?"Expedientes más antiguos por preparar":"Pendientes prioritarios"}</h2>
               <p>
-                {role==="consejo_asistente"?"Consolidados pendientes de remisión, por antigüedad del dictamen del Comité. Máximo cinco; no incluye expedientes ya remitidos o con decisión.":isVinculacion?piSummary?.criterio??"Ordenados por mayor antigüedad desde el envío.":isViePublicacion?"Publicadas con cierre en los próximos 30 días, de la fecha más cercana a la más lejana.":"Tareas que requieren atención según la responsabilidad institucional actual."}
+                {role==="consejo"?"Solo expedientes remitidos pendientes de decisión y reconsideraciones solicitadas. Orden de antigüedad del dictamen; máximo cinco.":role==="consejo_asistente"?"Consolidados pendientes de remisión, por antigüedad del dictamen del Comité. Máximo cinco; no incluye expedientes ya remitidos o con decisión.":isVinculacion?piSummary?.criterio??"Ordenados por mayor antigüedad desde el envío.":isViePublicacion?"Publicadas con cierre en los próximos 30 días, de la fecha más cercana a la más lejana.":"Tareas que requieren atención según la responsabilidad institucional actual."}
               </p>
             </div>
           </div>
-          <div className="task-list">{isVinculacion&&!piSummary&&!piError&&<p role="status">Consultando pendientes de PI…</p>}{role==="consejo_asistente"&&!resumenConsejo&&!comiteError&&<p role="status">Consultando consolidados pendientes…</p>}
+          <div className="task-list">{isVinculacion&&!piSummary&&!piError&&<p role="status">Consultando pendientes de PI…</p>}{["consejo_asistente","consejo"].includes(role)&&!resumenConsejo&&!comiteError&&<p role="status">Consultando consolidados pendientes…</p>}
             {isViePublicacion &&
               vieTasks.map((task) => (
                 <button
@@ -733,7 +735,7 @@ function RoleHome({
                 <span>Ninguna convocatoria publicada cierra en los próximos 30 días.</span>
               </div>
             )}
-            {!isViePublicacion && isEvalRole && pendingTasks.length === 0 && (!isVinculacion||Boolean(piSummary)) && (role!=="consejo_asistente"||Boolean(resumenConsejo)) && (
+            {!isViePublicacion && isEvalRole && pendingTasks.length === 0 && (!isVinculacion||Boolean(piSummary)) && (!["consejo_asistente","consejo"].includes(role)||Boolean(resumenConsejo)) && (
               <div className="empty-state small">
                 <strong>Sin pendientes</strong>
                 <span>No hay expedientes en su bandeja en este momento.</span>

@@ -1,0 +1,39 @@
+{
+  "run": "2026-11-13T05-39-45-411Z",
+  "capturas": false,
+  "results": [
+    {
+      "name": "Adjuntos: los 12 roles consultan y descargan solo documentos de expedientes autorizados",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: cuatro indicadores reales y destinos por aval, sin sesión ficticia",
+      "status": "PASA"
+    },
+    {
+      "name": "Consulta completa: presupuesto, PI, oficio y botón destacado con retorno al filtro",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico rápido: filtra sin recomputar opciones y conserva únicamente la última selección",
+      "status": "PASA"
+    },
+    {
+      "name": "Aval aprobado: fundamento con límite, confirmación y salida del pendiente",
+      "status": "PASA"
+    },
+    {
+      "name": "Rechazo de aval: fundamento persistido, sin resolución CIE ni reapertura automática",
+      "status": "PASA"
+    },
+    {
+      "name": "Reconsideración: coordinación solicita y el Consejo recibe la tarea con fundamento limitado",
+      "status": "PASA"
+    },
+    {
+      "name": "Nuevo ciclo: exige nueva remisión, conserva auditoría y no salta el circuito",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

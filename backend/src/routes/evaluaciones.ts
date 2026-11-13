@@ -1,4 +1,4 @@
-import {CONSEJO_FILTROS,CONSEJO_ENVIADO_SQL,CONSEJO_PENDIENTE_SQL} from "../consejoEstado.js";
+import {CONSEJO_DECISION_FILTROS,CONSEJO_FILTROS,CONSEJO_ENVIADO_SQL,CONSEJO_PENDIENTE_SQL} from "../consejoEstado.js";
 import consejoLimits from "../../../shared/consejo-text-limits.json" with {type:"json"};
 import {estadoEvaluadorSql,asignadoEvaluadorSql} from "../evaluadorEstado.js";
 import {COMITE_ENVIADO_SQL,COMITE_DEVUELTA_SQL,COMITE_RECEPCION_SQL,COMITE_REENVIADA_SQL} from "../comiteEstado.js";
@@ -211,10 +211,11 @@ function bandejaClause(role: string | null | undefined): {
     case "consejo_asistente":
       return {sql:` AND ${CONSEJO_PENDIENTE_SQL}`,params:[]};
     case "consejo":
+      return {sql:` AND ((${CONSEJO_DECISION_FILTROS.aval_pendiente}) OR (${CONSEJO_DECISION_FILTROS.reconsideracion}))`,params:[]};
     case "direccion_escuela":
       return {
         // Solo expedientes consolidados; incluye rechazo de aval para su reconsideración.
-        sql: ` AND p.etapa_flujo BETWEEN 3 AND 4 AND p.estado_actual IN ('dictaminada','avalada','rechazo_aval') ${role==='consejo'?`AND ${CONSEJO_ENVIADO_SQL}`:''}`,
+        sql: ` AND p.etapa_flujo BETWEEN 3 AND 4 AND p.estado_actual IN ('dictaminada','avalada','rechazo_aval')`,
         params: [],
       };
     case "gestora_vie":
@@ -316,8 +317,8 @@ evaluacionesRouter.get(
     const role = requestedView || authenticatedRole;
     const clause = bandejaClause(role);
     const consejoFilter=String(req.query.consejo??'');
-    if(consejoFilter&&(role!=='consejo_asistente'||!Object.hasOwn(CONSEJO_FILTROS,consejoFilter)))throw new HttpError(400,'Filtro del Consejo inválido');
-    if(consejoFilter)clause.sql=` AND (${CONSEJO_FILTROS[consejoFilter]})`;
+    if(consejoFilter&&(!['consejo_asistente','consejo'].includes(role)||!Object.hasOwn({...CONSEJO_FILTROS,...CONSEJO_DECISION_FILTROS},consejoFilter)))throw new HttpError(400,'Filtro del Consejo inválido');
+    if(consejoFilter)clause.sql=` AND (${({...CONSEJO_FILTROS,...CONSEJO_DECISION_FILTROS})[consejoFilter]})`;
     const comiteFilter=String(req.query.comite??'');
     if(comiteFilter&&(!['recepcion','enviadas','reenviadas'].includes(comiteFilter)||role!=='comite_asistente'))throw new HttpError(400,'Filtro de fase del Comité inválido');
     if(comiteFilter)clause.sql+=` AND (${comiteFilter==='reenviadas'?COMITE_REENVIADA_SQL:comiteFilter==='recepcion'?COMITE_RECEPCION_SQL:COMITE_ENVIADO_SQL})`;
@@ -359,9 +360,11 @@ evaluacionesRouter.get(
       count(*) FILTER(WHERE ${COMITE_DEVUELTA_SQL})::int AS devueltas
       FROM propuesta p WHERE ${scope.sql}`,[...clause.params,...scope.params])).rows[0]:undefined;
     let resumenConsejo,pendientesConsejo;
-    if(role==='consejo_asistente'){
-      resumenConsejo=(await query(`SELECT ${Object.entries(CONSEJO_FILTROS).map(([k,v])=>`count(*) FILTER(WHERE ${v})::int AS ${k}`).join(',')} FROM propuesta p WHERE ${scope.sql}`,[...scope.params])).rows[0];
-      pendientesConsejo=(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND ${CONSEJO_PENDIENTE_SQL} ORDER BY rc.fecha_dictamen ASC NULLS LAST,p.fecha_envio ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja);
+    if(['consejo_asistente','consejo'].includes(role)){
+      const definitions=role==='consejo'?CONSEJO_DECISION_FILTROS:CONSEJO_FILTROS;
+      resumenConsejo=(await query(`SELECT ${Object.entries(definitions).map(([k,v])=>`count(*) FILTER(WHERE ${v})::int AS ${k}`).join(',')} FROM propuesta p WHERE ${scope.sql}`,scope.params)).rows[0];
+      const pending=role==='consejo'?`((${CONSEJO_DECISION_FILTROS.aval_pendiente}) OR (${CONSEJO_DECISION_FILTROS.reconsideracion}))`:CONSEJO_PENDIENTE_SQL;
+      pendientesConsejo=(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND (${pending}) ORDER BY rc.fecha_dictamen ASC NULLS LAST,p.fecha_envio ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja);
     }
     res.json({
       resumenConsejo,pendientesConsejo,
@@ -578,6 +581,7 @@ evaluacionesRouter.post(
       const instance=role==="cie" || role==="admin"&&payload.instancia==="cie"?"cie":"comite";
       if((action==='committee-score'||action==='committee-confirm'||action==='save-rubric'&&instance==='comite')&&!(await client.query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${COMITE_ENVIADO_SQL}`,[id])).rowCount)throw new HttpError(409,'El asistente debe enviar primero la propuesta al Cuerpo Evaluador');
       if(action==='committee-confirm'&&String(payload.texto??'').length>comiteLimits.fundamento)throw new HttpError(400,`El fundamento del dictamen consolidado admite como máximo ${comiteLimits.fundamento} caracteres`);
+      if(['council-approve','council-reject','request-reconsideration','council-reconsider'].includes(action)&&String(payload.texto??'').length>4000)throw new HttpError(400,'El fundamento del Consejo admite como máximo 4000 caracteres');
       const ranges:Record<string,[number,number]>={"pi-start":[1,5],pi:[1,5],"pi-not-required":[1,5],"committee-confirm":[2,2],"committee-ready":[1,2],"committee-score":[1,2],"send-council":[2,3],"council-approve":[3,3],"council-reject":[3,3],"communicate-aval":[3,4],"vie-checklist":[4,4],"vie-observation":[4,4],"send-cie":[4,4],"cie-approve":[5,5],"cie-reject":[5,5]};
       const range=ranges[action];
       if(range&&(propuesta.etapa_flujo<range[0]||propuesta.etapa_flujo>range[1])) throw new HttpError(409,"La acción no corresponde a la instancia actual del expediente");
@@ -760,6 +764,7 @@ evaluacionesRouter.post(
         }
         case 'request-reconsideration': {
           if(prev!=='rechazo_aval'||propuesta.id_coordinador!==userId)throw new HttpError(409,'Solo la coordinación puede solicitar reconsideración de su aval rechazado');
+          if((await client.query('SELECT 1 FROM reconsideracion_aval WHERE id_propuesta=$1 AND fecha_autorizacion IS NULL',[id])).rowCount)throw new HttpError(409,'Ya hay una solicitud de reconsideración pendiente del Consejo');
           const texto=str(payload.texto);if(!texto)throw new HttpError(400,'Justifique la solicitud de reconsideración');
           await client.query('INSERT INTO reconsideracion_aval(id_propuesta,id_solicitante,motivo) VALUES($1,$2,$3)',[id,userId,texto]);
           message='Reconsideración solicitada al Consejo; el rechazo continúa vigente.';break;

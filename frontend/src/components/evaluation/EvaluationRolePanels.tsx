@@ -1,3 +1,4 @@
+import {DocumentosPanel} from "../DocumentosPanel";
 import {ConsejoRespaldo} from "./ConsejoRespaldo";
 import {VinculacionResumen} from "./VinculacionResumen";
 import consejoTextLimits from "../../../../shared/consejo-text-limits.json";
@@ -852,6 +853,7 @@ export function ConsejoPanel({
     <div className="split-review">
       <CaseFile proposal={proposal} />
       <article className="card review-panel">
+        {proposal.numericId&&<><ConsejoRespaldo id={proposal.numericId}/><VinculacionResumen id={proposal.numericId}/><DocumentosPanel id={proposal.numericId}/></>}
         <PanelIntro
           title="Decisión del Consejo de Profesores"
           description="Revise el expediente consolidado, la evaluación del Comité y los oficios de respaldo."
@@ -947,12 +949,12 @@ export function ConsejoPanel({
               Justificación del rechazo (obligatoria)
             </span>
             <textarea
-              className="input textarea"
+              aria-label="Justificación del rechazo" maxLength={4000} aria-describedby="consejo-rechazo-budget" className="input textarea"
               rows={5}
               value={rejectText}
               onChange={(e) => setRejectText(e.target.value)}
               required
-            />
+            /><WordBudget id="consejo-rechazo-budget" value={rejectText} maxWords={4000} unit="caracteres"/>
           </label>
           {!rejectText.trim() && (
             <p className="field-hint" role="status">
@@ -1001,13 +1003,13 @@ export function ConsejoPanel({
               Justificación de la aprobación (obligatoria)
             </span>
             <textarea
-              className="input textarea"
+              aria-label="Justificación de la aprobación" maxLength={4000} aria-describedby="consejo-aprobacion-budget" className="input textarea"
               rows={5}
               value={approveText}
               onChange={(e) => setApproveText(e.target.value)}
               placeholder="Explique por qué se otorga el aval..."
               required
-            />
+            /><WordBudget id="consejo-aprobacion-budget" value={approveText} maxWords={4000} unit="caracteres"/>
           </label>
           {!approveText.trim() && (
             <p className="field-hint" role="status">

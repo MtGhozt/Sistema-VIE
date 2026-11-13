@@ -34,7 +34,7 @@ export type EvaluacionBandejaItem = {
 
 export type EvaluacionBandejaResponse = {
   comiteEnviadas?:number;
-  resumenConsejo?:{recibidos:number;pendientes:number;en_consejo:number;enviados:number};
+  resumenConsejo?:Record<string,number>;
   pendientesConsejo?:EvaluacionBandejaItem[];
   resumenEvaluador?:{asignadas:number;pendientes:number;borradores:number;entregadas:number};
   resumenComite?:{pendientes:number;reenviadas:number;enviadas:number;devueltas:number};

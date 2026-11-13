@@ -36,3 +36,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [Asistente del Consejo de Escuela](ASISTENTE-CONSEJO-ESCUELA.md): alcance del rol, indicadores, prioridades, respaldos, remisión y reinicio reproducible de datos. Pendiente de aceptación manual.
 
 - [Datos demo actuales](DATOS-DE-PRUEBA.md): inventario de los 16 casos cargados tras el reinicio de desarrollo y pruebas. Validación integrada: 12 baterías aprobadas (270 comprobaciones y 6 casos no aplicables).
+
+- [Consejo de Profesores y rendimiento](CONSEJO-PROFESORES.md): mediciones antes/después, indicadores reales, presupuesto/documentos, decisión y reconsideración. Pendiente de revisión manual.

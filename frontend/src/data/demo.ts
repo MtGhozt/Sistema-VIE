@@ -89,8 +89,8 @@ export const HOME_BY_ROLE: Record<RoleId, HomeSummary> = {
     stats: [
       ["Pendientes de aval", "2"],
       ["Avaladas", "11"],
-      ["Rechazadas", "3"],
-      ["Sesión próxima", "1"],
+      ["Aval rechazado", "3"],
+      ["Reconsideraciones solicitadas", "1"],
     ],
   },
   direccion_escuela: {

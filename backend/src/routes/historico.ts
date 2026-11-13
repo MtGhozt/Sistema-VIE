@@ -1,4 +1,4 @@
-import {CONSEJO_FILTROS} from "../consejoEstado.js";
+import {CONSEJO_FILTROS,CONSEJO_DECISION_FILTROS} from "../consejoEstado.js";
 import {estadoEvaluadorSql,asignadoEvaluadorSql} from "../evaluadorEstado.js";
 import {COMITE_DEVUELTA_SQL} from "../comiteEstado.js";
 import {ESTADO_PI_SQL,ESTADOS_PI} from "../estadoPi.js";
@@ -62,6 +62,7 @@ type HistoricoRow = {
   lineas: string | null;
   numero_resolucion: string | null;
   numero_oficio_consejo: string | null;
+  estado_aval:string|null;
   numero_oficio_comite: string | null;
   numero_oficio_pi: string | null;
 };
@@ -89,6 +90,7 @@ const SELECT_BASE = `
     ) AS lineas,
     r.numero_resolucion,
     av.numero_oficio AS numero_oficio_consejo,
+    av.resultado AS estado_aval,
     rc.numero_oficio AS numero_oficio_comite,
     dpi.numero_oficio AS numero_oficio_pi
   FROM propuesta p
@@ -183,6 +185,7 @@ function mapRow(row: HistoricoRow) {
 
   return {
     id: row.id_propuesta,
+    estadoAval:row.estado_aval,
     estadoEvaluacion:row.estado_evaluacion,
     estadoPi:row.estado_pi,estadoPiLabel:ESTADOS_PI[row.estado_pi],
     codigo: row.codigo,
@@ -222,7 +225,7 @@ historicoRouter.get(
     if(filtros.pi&&!Object.hasOwn(ESTADOS_PI,filtros.pi))throw new HttpError(400,"Seleccione un estado de PI válido.");
     const { where, values } = buildWhere(filtros);
     const consejo=String(q.consejo??'');
-    if(consejo){if(!Object.hasOwn(CONSEJO_FILTROS,consejo))throw new HttpError(400,'Filtro del Consejo inválido');where.push(`(${CONSEJO_FILTROS[consejo]})`);}
+    if(consejo){const all={...CONSEJO_FILTROS,...CONSEJO_DECISION_FILTROS};if(!Object.hasOwn(all,consejo))throw new HttpError(400,'Filtro del Consejo inválido');where.push(`(${all[consejo]})`);}
     const personal=String(q.evaluacion??'');
     if(personal){
       if(req.demoAuth!.role!=='comite_evaluador'||!['pendiente','en_progreso','completada'].includes(personal))throw new HttpError(400,'Filtro de evaluación individual inválido');
@@ -246,14 +249,14 @@ historicoRouter.get(
       values,
     );
 
+    if(q.opciones==='0'){res.json({items:rows.rows.map(mapRow),total:rows.rows.length,filtrosAplicados:filtros});return;}
     const scopeOnly=alcancePropuestas(req.demoAuth!);
-    const accessible=await query<HistoricoRow & {anio:number|null}>(`${SELECT_BASE} WHERE ${scopeOnly.sql}`,scopeOnly.params);
-    const all=accessible.rows;
-    const escuelas={rows:[...new Map(all.map(r=>[r.escuela_codigo,{codigo:r.escuela_codigo,nombre:r.escuela_nombre}])).values()].sort((a,b)=>a.nombre.localeCompare(b.nombre))};
-    const lineas={rows:[...new Set(all.flatMap(r=>r.lineas?.split(" · ")??[]))].sort().map(nombre=>({nombre}))};
-    const estados={rows:[...new Set(all.map(r=>r.estado_actual))].sort().map(estado_actual=>({estado_actual}))};
-    const years=await query<{anio:number}>(`SELECT DISTINCT ${ANIO_EXPR}::int AS anio FROM propuesta p LEFT JOIN resolucion_cie r ON r.id_propuesta=p.id_propuesta WHERE ${scopeOnly.sql} AND COALESCE(r.fecha_resolucion,p.fecha_envio,p.fecha_inicio) IS NOT NULL ORDER BY anio DESC`,scopeOnly.params);
-    const anios={rows:years.rows};
+    const [escuelas,lineas,estados,anios]=await Promise.all([
+      query<{codigo:string;nombre:string}>(`SELECT DISTINCT e.codigo,e.nombre FROM propuesta p JOIN escuela e ON e.id_escuela=p.id_escuela WHERE ${scopeOnly.sql} ORDER BY e.nombre`,scopeOnly.params),
+      query<{nombre:string}>(`SELECT DISTINCT l.nombre FROM propuesta p JOIN propuesta_linea pl ON pl.id_propuesta=p.id_propuesta JOIN linea_investigacion l ON l.id_linea_investigacion=pl.id_linea_investigacion WHERE ${scopeOnly.sql} ORDER BY l.nombre`,scopeOnly.params),
+      query<{estado_actual:string}>(`SELECT DISTINCT p.estado_actual FROM propuesta p WHERE ${scopeOnly.sql} ORDER BY p.estado_actual`,scopeOnly.params),
+      query<{anio:number}>(`SELECT DISTINCT ${ANIO_EXPR}::int AS anio FROM propuesta p LEFT JOIN resolucion_cie r ON r.id_propuesta=p.id_propuesta WHERE ${scopeOnly.sql} AND COALESCE(r.fecha_resolucion,p.fecha_envio,p.fecha_inicio) IS NOT NULL ORDER BY anio DESC`,scopeOnly.params),
+    ]);
 
     res.json({
       items: rows.rows.map(mapRow),

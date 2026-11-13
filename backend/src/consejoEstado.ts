@@ -3,3 +3,5 @@ export const CONSEJO_ENVIADO_SQL="EXISTS(SELECT 1 FROM comunicacion_instituciona
 export const CONSEJO_PENDIENTE_SQL=`${CONSEJO_RECIBIDO_SQL} AND p.estado_actual='dictaminada' AND p.etapa_flujo=3 AND NOT (${CONSEJO_ENVIADO_SQL})`;
 export const CONSEJO_ESPERA_SQL=`${CONSEJO_RECIBIDO_SQL} AND p.estado_actual='dictaminada' AND p.etapa_flujo=3 AND ${CONSEJO_ENVIADO_SQL}`;
 export const CONSEJO_FILTROS:Record<string,string>={recibidos:CONSEJO_RECIBIDO_SQL,pendientes:CONSEJO_PENDIENTE_SQL,en_consejo:CONSEJO_ESPERA_SQL,enviados:CONSEJO_ENVIADO_SQL};
+
+export const CONSEJO_DECISION_FILTROS:Record<string,string>={aval_pendiente:CONSEJO_ESPERA_SQL,aval_aprobado:"EXISTS(SELECT 1 FROM aval_consejo ac WHERE ac.id_propuesta=p.id_propuesta AND ac.resultado IN ('aprueba','aprobado'))",aval_rechazado:"p.estado_actual='rechazo_aval' AND EXISTS(SELECT 1 FROM aval_consejo ac WHERE ac.id_propuesta=p.id_propuesta AND ac.resultado IN ('rechaza','rechazado'))",reconsideracion:"p.estado_actual='rechazo_aval' AND EXISTS(SELECT 1 FROM reconsideracion_aval ra WHERE ra.id_propuesta=p.id_propuesta AND ra.fecha_autorizacion IS NULL)"};

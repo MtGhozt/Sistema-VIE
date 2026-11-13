@@ -2,6 +2,7 @@ import { apiJson } from "./client";
 
 export type HistoricoItem = {
   id: number;
+  estadoAval?:string|null;
   estadoEvaluacion?:string;
   estadoPi?:string;estadoPiLabel?:string;
   codigo: string;
@@ -43,7 +44,7 @@ export type HistoricoRespuesta = {
   items: HistoricoItem[];
   total: number;
   filtrosAplicados: HistoricoFiltros;
-  opciones: HistoricoOpciones;
+  opciones?: HistoricoOpciones;
 };
 
 export const EMPTY_HISTORICO_FILTROS: HistoricoFiltros = {
@@ -59,13 +60,14 @@ export const EMPTY_HISTORICO_FILTROS: HistoricoFiltros = {
 };
 
 /** Listado del histórico con filtros combinables (CU5). */
-export function fetchHistorico(filtros: Partial<HistoricoFiltros> = {}) {
+export function fetchHistorico(filtros: Partial<HistoricoFiltros> = {}, options?:{signal?:AbortSignal;includeOptions?:boolean}) {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(filtros)) {
     if (value) params.set(key, String(value));
   }
+  if(options?.includeOptions===false)params.set("opciones","0");
   const qs = params.toString();
   return apiJson<HistoricoRespuesta>(
-    `/api/historico/propuestas${qs ? `?${qs}` : ""}`,
+    `/api/historico/propuestas${qs ? `?${qs}` : ""}`,{signal:options?.signal},
   );
 }

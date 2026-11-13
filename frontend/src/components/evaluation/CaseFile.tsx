@@ -15,9 +15,9 @@ function formatColones(n: number) {
 /** Expediente lateral: metadatos de bandeja + detalle real desde la API. */
 export function CaseFile({ proposal }: { proposal: DemoProposal }) {
   const {session}=useAuth();
-  const location=useLocation();const personal=new URLSearchParams(location.search).get("evaluacion");
-  const returnTo=`/evaluaciones?propuesta=${proposal.numericId}`+(personal&&["pendiente","en_progreso","completada"].includes(personal)?`&evaluacion=${personal}`:"");
-  const isAssistant=["comite_asistente","comite_evaluador","consejo_asistente"].includes(session?.viewRole??"");
+  const location=useLocation();const council=new URLSearchParams(location.search).get("consejo");const personal=new URLSearchParams(location.search).get("evaluacion");
+  const returnTo=`/evaluaciones?propuesta=${proposal.numericId}`+(personal&&["pendiente","en_progreso","completada"].includes(personal)?`&evaluacion=${personal}`:"")+(council&&["aval_pendiente","reconsideracion","pendientes"].includes(council)?`&consejo=${council}`:"");
+  const isAssistant=["comite_asistente","comite_evaluador","consejo_asistente","consejo"].includes(session?.viewRole??"");
   const fullLink=proposal.numericId!=null?<Link className={isAssistant?"btn btn-primary case-full-access":undefined} to={`/propuestas/${proposal.numericId}`} state={{returnTo}}>Abrir expediente completo (solo lectura)</Link>:null;
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [loadError, setLoadError] = useState("");

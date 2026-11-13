@@ -232,6 +232,8 @@ export function EvaluacionesPage() {
       } else {
         await loadBandeja();
       }
+      if(role==='consejo'&&['council-approve','council-reject'].includes(action)){navigate('/historico?consejo='+(action==='council-approve'?'aval_aprobado':'aval_rechazado'));return true;}
+      if(role==='consejo'&&action==='council-reconsider'){navigate('/historico?consejo=pendientes');return true;}
       if(role==='consejo_asistente'&&action==='send-council'){navigate('/historico?consejo=enviados');return true;}
       if(role==='comite_evaluador'&&action==='committee-score'){navigate('/historico?evaluacion=completada');return true;}
       if (["pi","pi-not-required","return","committee-confirm","council-reconsider","committee-ready","committee-score","send-council","council-approve","council-reject","communicate-aval","send-cie","cie-approve","cie-reject"].includes(action)) await loadBandeja();
@@ -304,14 +306,14 @@ export function EvaluacionesPage() {
     return (
       <section className="card empty-state">
         <h1 className="sr-only">{title}</h1>
+        {role==='consejo'&&<Link className="btn btn-secondary" to="/historico">Consultar avales y rechazos</Link>}
         {role==='comite_evaluador'&&<Link className="btn btn-secondary" to="/evaluaciones">Ver mis evaluaciones pendientes</Link>}
         {role==='comite_asistente'&&comiteFilter&&<Link className="btn btn-secondary" to="/evaluaciones">Ver todas las fases del Comité</Link>}
         <strong>{bandejaNote ? "No se pudo consultar la bandeja" : "No hay propuestas disponibles"}</strong>
         {bandejaNote && <p role="alert">{bandejaNote}</p>}
         <button type="button" className="btn btn-secondary" onClick={() => void loadBandeja()}>Actualizar bandeja</button>{role==="vinculacion"&&<Link className="btn btn-secondary" to="/historico">Consultar histórico de PI</Link>}
         <p className="muted">
-          Cuando una investigadora envíe una propuesta, aparecerá aquí según la
-          etapa del flujo.
+          {role==="consejo"?"Los expedientes aparecerán cuando el asistente los remita al Consejo o se solicite reconsideración.":"Los expedientes aparecen aquí según la etapa y asignación que corresponden a su rol."}
         </p>
       </section>
     );
@@ -338,12 +340,13 @@ export function EvaluacionesPage() {
         </div>
       </header>
 
+      {role==='consejo'&&<label className="field"><span>Trabajo del Consejo</span><select aria-label="Trabajo del Consejo" className="input" value={consejoFilter??''} onChange={e=>setSearch(e.target.value?{consejo:e.target.value}:{})}><option value="">Pendientes y reconsideraciones</option><option value="aval_pendiente">Pendientes de aval</option><option value="reconsideracion">Reconsideraciones solicitadas</option></select></label>}
       {role==='comite_evaluador'&&<label className="field"><span>Mi evaluación</span><select aria-label="Mi evaluación" className="input" value={evaluacionFilter??''} onChange={e=>setSearch(e.target.value?{evaluacion:e.target.value}:{})}><option value="">Pendientes y borradores</option><option value="pendiente">Pendientes de evaluar</option><option value="en_progreso">Borradores de evaluación</option><option value="completada">Evaluaciones entregadas (solo lectura)</option></select></label>}
       {role==='comite_asistente'&&<label className="field"><span className="field-label">Fase del Comité</span><select className="input" aria-label="Fase del Comité" value={comiteFilter??''} onChange={e=>setSearch(e.target.value?{comite:e.target.value}:{})}><option value="">Todas las fases</option><option value="recepcion">Pendientes de completitud</option><option value="reenviadas">Reenviadas por revisar</option><option value="enviadas">Enviadas al Cuerpo Evaluador</option></select></label>}
       {EVAL_ROLES.includes(role) || role === "admin" ? (
         <>
           {role !== "admin" && (
-            <div className={["comite_evaluador","consejo_asistente"].includes(role)?"evaluation-selector evaluator-selector":"evaluation-selector"}>
+            <div className={["comite_evaluador","consejo_asistente","consejo"].includes(role)?"evaluation-selector evaluator-selector":"evaluation-selector"}>
               <span>Expediente activo</span>
               <select
                 className="input"

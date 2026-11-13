@@ -1,3 +1,4 @@
+import {WordBudget} from "../components/WordBudget";
 import {ConsejoRespaldo} from "../components/evaluation/ConsejoRespaldo";
 import {MiEvaluacionResumen} from "../components/evaluation/MiEvaluacionResumen";
 import {VinculacionResumen} from "../components/evaluation/VinculacionResumen";
@@ -41,12 +42,12 @@ export function PropuestaDetallePage() {
   const isVinculacion=session?.viewRole==="vinculacion";
   const isAssistant=session?.viewRole==="comite_asistente";
   const isEvaluator=session?.viewRole==="comite_evaluador";
-  const isCouncilAssistant=session?.viewRole==="consejo_asistente";
+  const isCouncilAssistant=["consejo_asistente","consejo"].includes(session?.viewRole??"");
   const comfortableReading=isVinculacion||isAssistant||isEvaluator||isCouncilAssistant;
   const [expandedReading,setExpandedReading]=useState(false);
   const savedReturn=(location.state as {returnTo?:string}|null)?.returnTo;
   const returnParams=new URLSearchParams(savedReturn?.split('?')[1]??'');
-  const evaluationReturn=(isAssistant||isEvaluator||isCouncilAssistant)&&Boolean(savedReturn?.startsWith('/evaluaciones?')&&returnParams.get('propuesta')===String(proposalId)&&Array.from(returnParams.keys()).every(key=>['propuesta','evaluacion'].includes(key))&&(!returnParams.has('evaluacion')||['pendiente','en_progreso','completada'].includes(returnParams.get('evaluacion')??'')));
+  const evaluationReturn=(isAssistant||isEvaluator||isCouncilAssistant)&&Boolean(savedReturn?.startsWith('/evaluaciones?')&&returnParams.get('propuesta')===String(proposalId)&&Array.from(returnParams.keys()).every(key=>['propuesta','evaluacion','consejo'].includes(key))&&(!returnParams.has('evaluacion')||['pendiente','en_progreso','completada'].includes(returnParams.get('evaluacion')??''))&&(!returnParams.has('consejo')||['aval_pendiente','reconsideracion','pendientes'].includes(returnParams.get('consejo')??'')));
   const backTo=evaluationReturn?savedReturn!:comfortableReading?(savedReturn&&/^\/historico(?:\?|$)/.test(savedReturn)?savedReturn:"/historico"):"/propuestas";
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
@@ -57,6 +58,7 @@ export function PropuestaDetallePage() {
   const [fontSize,setFontSize]=useState(16);
   const [loading, setLoading] = useState(true);
   const [reconsideracion, setReconsideracion] = useState("");
+  const [requestedReconsideration,setRequestedReconsideration]=useState(false);
   const [sending, setSending] = useState(false);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const previousStep = useRef(step);
@@ -213,16 +215,16 @@ export function PropuestaDetallePage() {
           <label className="field">
             <span>Motivo de reconsideración</span>
             <textarea
-              aria-label="Motivo de reconsideración"
+              aria-label="Motivo de reconsideración" maxLength={4000} aria-describedby="reconsideracion-presupuesto"
               className="input textarea"
               value={reconsideracion}
               onChange={(e) => setReconsideracion(e.target.value)}
-            />
+            /><WordBudget id="reconsideracion-presupuesto" value={reconsideracion} maxWords={4000} unit="caracteres"/>
           </label>
           <button
             type="button"
             className="btn btn-primary"
-            disabled={!reconsideracion.trim() || sending}
+            disabled={requestedReconsideration||!reconsideracion.trim() || sending}
             onClick={async () => {
               setSending(true);
               try {
@@ -236,6 +238,7 @@ export function PropuestaDetallePage() {
                     }),
                   },
                 );
+                setRequestedReconsideration(true);
                 showToast(
                   "Solicitud registrada para el Consejo",
                   "success",
@@ -250,7 +253,7 @@ export function PropuestaDetallePage() {
               }
             }}
           >
-            Solicitar nuevo ciclo
+            {requestedReconsideration?"Solicitud enviada al Consejo":"Solicitar nuevo ciclo"}
           </button>
         </section>
       )}
@@ -341,7 +344,7 @@ export function PropuestaDetallePage() {
             </div>
           </div>
 
-          <div className="action-row" aria-label="Tamaño del texto">{comfortableReading&&<><button type="button" className="btn btn-secondary" onClick={()=>setExpandedReading(v=>!v)} aria-pressed={expandedReading}>{expandedReading?"Mostrar índice lateral":"Ampliar área de lectura"}</button><label className="field"><span className="field-label">Sección del expediente</span><select aria-label="Sección del expediente" className="input" value={step} onChange={e=>setStep(Number(e.target.value))}>{FORM_WIZARD_STEPS.map((name,i)=><option key={name} value={i}>{String(i+1).padStart(2,'0')} · {name}</option>)}</select></label></>}<button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
+          <div className="action-row" aria-label="Tamaño del texto"><button type="button" className="btn btn-secondary" onClick={()=>setStep(7)}>Ver presupuesto</button><button type="button" className="btn btn-secondary" onClick={()=>setStep(15)}>Ver documentos del expediente</button>{comfortableReading&&<><button type="button" className="btn btn-secondary" onClick={()=>setExpandedReading(v=>!v)} aria-pressed={expandedReading}>{expandedReading?"Mostrar índice lateral":"Ampliar área de lectura"}</button><label className="field"><span className="field-label">Sección del expediente</span><select aria-label="Sección del expediente" className="input" value={step} onChange={e=>setStep(Number(e.target.value))}>{FORM_WIZARD_STEPS.map((name,i)=><option key={name} value={i}>{String(i+1).padStart(2,'0')} · {name}</option>)}</select></label></>}<button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
           <div className="wizard-body" style={{fontSize}}>
             <FormWizardStepContent
               readOnly

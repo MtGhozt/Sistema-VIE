@@ -1,0 +1,35 @@
+{
+  "fase": "antes",
+  "entorno": "API local aislada, 12 solicitudes por caso, sin login incluido",
+  "propuestas": 16,
+  "mediciones": [
+    {
+      "role": "consejo_asistente",
+      "route": "/evaluaciones/bandeja",
+      "medianaMs": 1573.64,
+      "p95Ms": 1775.67,
+      "bytes": 2766
+    },
+    {
+      "role": "consejo_asistente",
+      "route": "/historico/propuestas?consejo=pendientes",
+      "medianaMs": 1072.66,
+      "p95Ms": 1086.49,
+      "bytes": 1359
+    },
+    {
+      "role": "consejo",
+      "route": "/evaluaciones/bandeja",
+      "medianaMs": 12.27,
+      "p95Ms": 13.77,
+      "bytes": 4052
+    },
+    {
+      "role": "consejo",
+      "route": "/historico/propuestas?consejo=pendientes",
+      "medianaMs": 1066.24,
+      "p95Ms": 1090.44,
+      "bytes": 1359
+    }
+  ]
+}

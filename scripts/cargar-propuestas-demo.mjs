@@ -66,6 +66,7 @@ try{
   if(saved.estadoActual!==expected)throw new Error(`Estado inesperado en ${saved.codigo}: ${saved.estadoActual}, esperado ${expected}.`);
   console.log(`${entry.codigo} · ${entry.estadoActual} · ${entry.titulo}`);
  }
+ await pool.query('ANALYZE');
  console.log(`Lote completo: ${count} propuestas para investigador@tec.ac.cr en ${expected}.`);
 }catch(e){console.error('Carga detenida:',e.message);console.error('Los expedientes ya creados se conservan y se registran en el reporte. No se modifican estados por SQL.');results.push({error:e.message});process.exitCode=1;}
 finally{

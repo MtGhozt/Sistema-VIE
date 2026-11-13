@@ -127,6 +127,7 @@ const LIST_SQL = `
   SELECT c.*,
     (SELECT COUNT(*)::int FROM propuesta p WHERE p.id_convocatoria = c.id_convocatoria) AS propuestas_count
   FROM convocatoria c
+  WHERE ($1::boolean OR c.estado<>'borrador')
   ORDER BY c.fecha_apertura DESC, c.id_convocatoria DESC
 `;
 
@@ -134,8 +135,8 @@ const LIST_SQL = `
 convocatoriasRouter.get(
   "/convocatorias",
   requireDemoAuth,
-  asyncHandler(async (_req, res) => {
-    const result = await query<ConvocatoriaRow>(LIST_SQL);
+  asyncHandler(async (req, res) => {
+    const result = await query<ConvocatoriaRow>(LIST_SQL,[["vie_publicacion","admin"].includes(req.demoAuth!.role??"")]);
     res.json(result.rows.map(mapConvocatoria));
   }),
 );
@@ -160,7 +161,7 @@ convocatoriasRouter.get(
       [id],
     );
     const row = result.rows[0];
-    if (!row) {
+    if (!row || row.estado==='borrador'&&!["vie_publicacion","admin"].includes(req.demoAuth!.role??"")) {
       res.status(404).json({ error: "Convocatoria no encontrada" });
       return;
     }

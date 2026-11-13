@@ -1,3 +1,4 @@
+import type {CSSProperties} from "react";
 import {ProposalFieldErrors} from "../components/ProposalFieldContext";
 import {proposalIssues,type ProposalIssue} from "../data/proposalIssues";
 import {todayCR} from "../data/convocatoriaUi";
@@ -333,7 +334,7 @@ export function PropuestaNuevaPage() {
           /></details>
         </aside>
 
-        <section className="card wizard-card">
+        <section className="card wizard-card" style={{"--proposal-reading-size":`${fontSize}px`} as CSSProperties}>
           <div className="wizard-card-head institutional-form-head">
             <div>
               <span className="eyebrow">
@@ -360,7 +361,7 @@ export function PropuestaNuevaPage() {
             <label className="field"><span className="field-label">Respuesta a las observaciones</span><textarea aria-label="Respuesta a las observaciones" className="input textarea" maxLength={5000} value={respuesta} onChange={e=>setRespuesta(e.target.value)} required /></label></div>}
           <fieldset style={{border:0,padding:0,margin:0,minWidth:0}}>
           {(step===7||step===15)&&<div className="action-row"><button type="button" className="btn btn-secondary" onClick={()=>void downloadFile('/api/plantillas/presupuesto','Presupuesto-VIE-2027.xlsx').catch(e=>showToast(e.message,'error'))}>Descargar plantilla oficial de presupuesto</button></div>}
-          <ProposalFieldErrors.Provider value={fieldErrors}><div className="wizard-body" style={{fontSize}}>
+          <ProposalFieldErrors.Provider value={fieldErrors}><div className="wizard-body" style={{fontSize,"--proposal-reading-size":`${fontSize}px`} as CSSProperties}>
             <FormWizardStepContent
               bloquearIdentificacion={Boolean(subsanacion)}
               readOnly={Boolean(subsanacion)&&step!==16&&!allowedSteps?.includes(step)}

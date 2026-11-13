@@ -591,7 +591,9 @@ export function getFormStepStatus(
         .split(",")
         .map((word) => word.trim())
         .filter(Boolean).length;
+      const englishCount=form.keywords.split(',').map(s=>s.trim()).filter(Boolean).length;
       complete =
+        (englishCount===0||englishCount>=4&&englishCount<=6)&&
         hasText(form.resumen, form.abstract, form.palabras) &&
         keywordCount >= 4 &&
         keywordCount <= 6 &&

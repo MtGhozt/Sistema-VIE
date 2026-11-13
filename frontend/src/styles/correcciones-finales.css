@@ -161,3 +161,10 @@
 .evaluator-workspace .cie-case { max-height: calc(100vh - 130px); overflow: auto; scrollbar-gutter: stable; }
 .cie-case .evaluator-proposal-scroll { max-height: none; overflow: visible; }
 @media(max-width:700px) { .evaluator-workspace .cie-case { max-height: 75vh; } }
+
+/* Local reading size applies to all section text, including legacy fixed sizes. */
+.wizard-layout .wizard-card,.wizard-layout .wizard-card *,
+.proposal-reading-records,.proposal-reading-records * { font-size: var(--proposal-reading-size,16px) !important; }
+.wizard-layout .wizard-card :is(h2,h3),.proposal-reading-records :is(h2,h3) { font-size: calc(var(--proposal-reading-size,16px) * 1.15) !important; }
+.wizard-layout .wizard-card :is(h4,h5),.proposal-reading-records :is(h4,h5) { font-size: calc(var(--proposal-reading-size,16px) * 1.05) !important; }
+.wizard-card .wizard-body .action-plan-risk { scroll-margin-block: 120px; }

@@ -3,7 +3,7 @@ import {FormInput,FormSelect,LimitedTextarea} from "./ProposalFieldControls";
 import {ConvocatoriaDateField} from "./ConvocatoriaDateField";
 import {dateFromInput,dateLabel} from "../data/convocatoriaUi";
 import {apiJson} from "../api/client";
-import { useEffect, useState, useId, useContext, type ReactNode } from "react";
+import { useEffect, useState, useId, useContext, useRef, type ReactNode } from "react";
 import type { Convocatoria } from "../api/convocatorias";
 
 import {
@@ -178,6 +178,8 @@ export function FormWizardIan({
 }: Props) {
   const q6GroupName = useId();
   const [catalogos,setCatalogos]=useState<{modalidades:{codigo:string;nombre:string}[];lineas:{id_linea_investigacion:number;nombre:string}[]}>({modalidades:[],lineas:[]});
+  const pendingRisk=useRef<{activityId:string;index:number}|null>(null);
+  useEffect(()=>{const target=pendingRisk.current;if(!target)return;const node=document.getElementById(`risk-${target.activityId}-${target.index}`);if(node){node.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});node.querySelector<HTMLTextAreaElement>('textarea')?.focus({preventScroll:true});pendingRisk.current=null;}},[form.planAccion]);
   const [error,setError]=useState('');
   const [collapsedActivities, setCollapsedActivities] = useState<
     Record<string, boolean>
@@ -863,7 +865,7 @@ export function FormWizardIan({
             className="input"
             value={form.keywords}
             onChange={(e) => patch({ keywords: e.target.value })}
-            placeholder="Separadas por comas (inglés)"
+            placeholder="De 4 a 6 términos separados por comas (si completa el campo)"
           />
         </label>
       </div>
@@ -876,14 +878,14 @@ export function FormWizardIan({
         <p className="body-copy">
           Agregá las personas funcionarias del TEC y las personas colaboradoras
           externas que participarán en la propuesta. Podés añadir tantas filas y
-          tipos de horas como necesités.
+          tipos de horas TEC como necesités. Las personas externas se registran con los datos de colaboración establecidos en el formulario oficial.
         </p>
 
         <section className="stack-md" aria-labelledby="team-tec-heading">
           <div className="page-heading">
             <div>
               <h3 id="team-tec-heading">
-                Cuadro 2. Investigadores que son funcionarios del TEC
+                Personas investigadoras del TEC
               </h3>
             </div>
             <button
@@ -1109,10 +1111,11 @@ export function FormWizardIan({
                           type="button"
                           className="btn btn-secondary team-add-hours"
                           aria-label={`Agregar otro tipo de horas, persona TEC ${memberIndex + 1}`}
+                          disabled={member.horas.length>=TEAM_HOUR_TYPES.length}
                           onClick={() =>
                             patchTeamTec(member.id, {
                               horas: [
-                                ...member.horas,
+                                ...(member.horas.length?member.horas:[{tipo:"" as const,cantidad:""}]),
                                 { tipo: "", cantidad: "" },
                               ],
                             })
@@ -1155,7 +1158,7 @@ export function FormWizardIan({
           <div className="page-heading">
             <div>
               <h3 id="team-external-heading">
-                Cuadro 3. Colaboradores externos
+                Personas colaboradoras externas
               </h3>
             </div>
             <button
@@ -1531,14 +1534,7 @@ export function FormWizardIan({
                     actividad: "",
                     resultadoEsperado: "",
                     participantes: [],
-                    riesgos: [
-                      {
-                        id: `riesgo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-                        riesgo: "",
-                        mitigacion: "",
-                        responsable: "",
-                      },
-                    ],
+                    riesgos: [],
                     mesInicio: "",
                     duracionMeses: "",
                   },
@@ -1801,7 +1797,8 @@ export function FormWizardIan({
                     type="button"
                     className="btn btn-secondary"
                     aria-label={`Agregar riesgo, actividad ${activityIndex + 1}`}
-                    onClick={() =>
+                    onClick={() => {
+                      pendingRisk.current={activityId:activity.id,index:activity.riesgos.length};
                       patchPlanActivity(activity.id, {
                         riesgos: [
                           ...activity.riesgos,
@@ -1812,20 +1809,19 @@ export function FormWizardIan({
                             responsable: "",
                           },
                         ],
-                      })
-                    }
+                      });
+                    }}
                   >
                     Agregar riesgo
                   </button>
                 </div>
                 {activity.riesgos.map((risk, riskIndex) => (
-                  <div className="form-section-block action-plan-risk" key={risk.id}>
+                  <div className="form-section-block action-plan-risk" id={`risk-${activity.id}-${riskIndex}`} key={risk.id}>
                     <div className="page-heading">
                       <h5>Riesgo {riskIndex + 1}</h5>
                       <button
                         type="button"
                         className="btn btn-secondary"
-                        disabled={activity.riesgos.length === 1}
                         aria-label={`Quitar riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
                         onClick={() =>
                           patchPlanActivity(activity.id, {
@@ -1951,13 +1947,13 @@ export function FormWizardIan({
                         min="0"
                         max="999999999999.99"
                         step="0.01"
-                        value={row.operativo}
+                        value={row.operativo||"0"}
                         onChange={(event) =>
                           patch({
                             presupuestoAnual: form.presupuestoAnual.map(
                               (budget) =>
                                 budget.anio === row.anio
-                                  ? { ...budget, operativo: event.target.value }
+                                  ? { ...budget, operativo: event.target.value||"0" }
                                   : budget,
                             ),
                           })
@@ -1975,14 +1971,14 @@ export function FormWizardIan({
                         min="0"
                         max="999999999999.99"
                         step="0.01"
-                        value={index === 0 ? row.duraderos : "0"}
+                        value={index === 0 ? row.duraderos||"0" : "0"}
                         disabled={index > 0}
                         onChange={(event) =>
                           patch({
                             presupuestoAnual: form.presupuestoAnual.map(
                               (budget) =>
                                 budget.anio === row.anio
-                                  ? { ...budget, duraderos: event.target.value }
+                                  ? { ...budget, duraderos: event.target.value||"0" }
                                   : budget,
                             ),
                           })
@@ -2061,7 +2057,7 @@ export function FormWizardIan({
                             min="0"
                             max="999999999999.99"
                             step="0.01"
-                            value={source[yearKey]}
+                            value={source[yearKey]||"0"}
                             onChange={(event) =>
                               patch({
                                 financiamiento: form.financiamiento.map(
@@ -2069,7 +2065,7 @@ export function FormWizardIan({
                                     item.tipo === source.tipo
                                       ? {
                                           ...item,
-                                          [yearKey]: event.target.value,
+                                          [yearKey]: event.target.value||"0",
                                         }
                                       : item,
                                 ),

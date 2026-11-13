@@ -10,7 +10,17 @@ export function toIan(f:Form):Ian {
  const objectives=[...new Set(f.actividades.map(a=>a.objetivo))];
  base.objetivosEspecificos=Array.from({length:Math.max(3,extra.objetivosEspecificos?.length??0,f.objetivosRegistrados.length)},(_,i)=>({id:`objetivo-${i}`,descripcion:extra.objetivosEspecificos?.[i]?.descripcion??f.objetivosRegistrados.find(o=>o.numero===i+1)?.descripcion??objectives[i]??''}));
  const oldTeam=[...(base.teamTec??[]),...(base.teamExternal??[])];
- const team=f.equipo.map((p,i)=>({id:memberKey(p,i),participantId:p.id,nombre:p.nombre,iniciales:p.iniciales??oldTeam.find(m=>m.participantId===p.id&&p.id!==undefined||m.id===memberKey(p,i)||m.nombre===p.nombre)?.iniciales??'',orcid:p.orcid??'',instancia:p.instancia??'',institucion:p.instancia??'',rol:(p.rol??'') as Ian['teamTec'][number]['rol'],periodo:p.periodo??'',titularCons:p.titularCons??'',horas:p.horas.map(h=>({tipo:(h.tipo==='DOC'?'DOC VIE':h.tipo==='VIE-Centros'?'VIE-Centro':h.tipo) as Ian['teamTec'][number]['horas'][number]['tipo'],cantidad:String(h.cantidad)}))}));
+ const team=f.equipo.map((p,i)=>{
+  const normalHours=p.horas.map(h=>({tipo:(String(h.tipo)==='DOC'?'DOC VIE':String(h.tipo)==='VIE-Centros'?'VIE-Centro':h.tipo) as Ian['teamTec'][number]['horas'][number]['tipo'],cantidad:String(h.cantidad)}));
+  const snapshots=oldTeam.filter(m=>m.nombre===p.nombre);
+  const snapshot=oldTeam.find(m=>m.participantId===p.id&&p.id!==undefined||m.id===memberKey(p,i))??(snapshots.length===1?snapshots[0]:undefined);
+  // Preserve new empty controls without sending invalid hour types to the API.
+  // A snapshot must agree with the structured values; stale snapshots never override them.
+  const rawHours=snapshot&&'horas' in snapshot&&Array.isArray(snapshot.horas)?snapshot.horas.map(h=>({tipo:(String(h.tipo)==='DOC'?'DOC VIE':String(h.tipo)==='VIE-Centros'?'VIE-Centro':h.tipo) as Ian['teamTec'][number]['horas'][number]['tipo'],cantidad:h.cantidad==null?'':String(h.cantidad)})):undefined;
+  const comparable=(hours:Ian['teamTec'][number]['horas'])=>JSON.stringify(hours.filter(h=>h.tipo||h.cantidad).map(h=>[h.tipo,Number(h.cantidad)]).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))));
+  const horas=rawHours&&comparable(rawHours)===comparable(normalHours)?rawHours:normalHours;
+  return {id:memberKey(p,i),participantId:p.id,nombre:p.nombre,iniciales:p.iniciales??snapshot?.iniciales??'',orcid:p.orcid??'',instancia:p.instancia??'',institucion:p.instancia??'',rol:(p.rol??'') as Ian['teamTec'][number]['rol'],periodo:p.periodo??'',titularCons:p.titularCons??'',horas};
+ });
  const firstYear=Number(f.inicio.slice(0,4))||f.presupuesto[0]?.anio||2027;
  const years=[...new Set([...Array.from({length:3},(_,i)=>firstYear+i),...f.presupuesto.map(p=>p.anio)])].sort((a,b)=>a-b);
  return {...base,titulo:f.titulo,modalidad:f.modalidad,inicio:f.inicio,fin:f.fin,escuela:f.escuela,resumen:f.resumen,palabras:f.palabras,keywords:f.keywordsEn,abstract:f.abstract,
@@ -18,8 +28,8 @@ export function toIan(f:Form):Ian {
  teamTec:team.filter((_,i)=>f.equipo[i].tipo==='funcionario_tec'),teamExternal:team.filter((_,i)=>f.equipo[i].tipo==='externo'),
  problema:f.problema,objetivoGeneral:f.objetivos,estadoArte:f.estadoArte,metodologia:f.metodologia,referencias:f.referencias,
  planAccion:f.actividades.map((a,i)=>({id:`actividad-${a.id??i}`,activityId:a.id,objetivoNumero:String(Math.max(0,base.objetivosEspecificos.findIndex(o=>o.descripcion===a.objetivo))+1) as '1',actividad:a.actividad,resultadoEsperado:a.resultado,mesInicio:String(a.inicio),duracionMeses:String(a.duracion),riesgos:a.riesgos.map((r,j)=>({...r,id:`riesgo-${i}-${j}`})),participantes:a.participantes.map((id,j)=>({id:`asignacion-${i}-${j}`,teamMemberId:typeof id==='string'?id:memberKey(f.equipo.find(p=>p.id===id)??{id} as ParticipanteInput,f.equipo.findIndex(p=>p.id===id)),responsabilidad:(a.asignaciones?.find(p=>p.idParticipante===id)?.responsabilidad??a.responsabilidad) as 'Ejecuta'}))})),
- presupuestoAnual:years.map(anio=>{const p=f.presupuesto.find(p=>p.anio===anio);return {anio,operativo:p?String(p.operativo):'',duraderos:p?String(p.duraderos):''};}),
- financiamiento:base.financiamiento.map(s=>({...s,...Object.fromEntries(years.slice(0,3).map((anio,i)=>[`anio${i+1}`,String(f.fuentes.find(v=>v.tipo===s.tipo&&v.anio===anio)?.monto??'')])),oficio:f.fuentes.find(v=>v.tipo===s.tipo)?.oficio??s.oficio})),
+ presupuestoAnual:years.map(anio=>{const p=f.presupuesto.find(p=>p.anio===anio);return {anio,operativo:String(p?.operativo??0),duraderos:String(p?.duraderos??0)};}),
+ financiamiento:base.financiamiento.map(s=>({...s,...Object.fromEntries(years.slice(0,3).map((anio,i)=>[`anio${i+1}`,String(f.fuentes.find(v=>v.tipo===s.tipo&&v.anio===anio)?.monto??0)])),oficio:f.fuentes.find(v=>v.tipo===s.tipo)?.oficio??s.oficio})),
  productosAcademicos:f.compromisos.filter(p=>!['adicional','activo_pi'].includes(p.ambito)).map((p,i)=>({id:`academico-${i}`,codigoOpcion:p.codigo as 'opcion_1',cantidad:String(p.cantidad),objetivoNumero:base.productosAcademicos[i]?.objetivoNumero??''})),
  activosPI:f.compromisos.filter(p=>p.ambito==='activo_pi').map((p,i)=>({id:`activo-${i}`,codigoOpcion:p.codigo as 'activo_1',cantidad:String(p.cantidad),dictamen:p.dictamen??''})),
  productosAdicionales:f.compromisos.filter(p=>p.ambito==='adicional').map((p,i)=>({id:`adicional-${i}`,descripcion:p.descripcion})),

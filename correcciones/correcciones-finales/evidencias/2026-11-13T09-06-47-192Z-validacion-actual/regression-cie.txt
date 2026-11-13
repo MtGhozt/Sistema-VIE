@@ -1,0 +1,41 @@
+{
+  name: 'API: remisión formal, indicadores y filtros coherentes con Histórico',
+  status: 'PASA'
+}
+{
+  name: 'Inicio: cuatro conteos y destinos filtrados; prioridades reales',
+  status: 'PASA'
+}
+{
+  name: 'Evaluación: paneles ampliables, secciones y botón azul con retorno a la evaluación',
+  status: 'PASA'
+}
+{
+  name: 'Respaldos: PI, consolidado y oficio, aval, seis checks VIE y descarga real',
+  status: 'PASA'
+}
+{
+  name: 'Rúbrica: círculo y progreso, contadores, guardado y recuperación',
+  status: 'PASA'
+}
+{
+  name: 'Resolución: confirmación, fundamento limitado y guardado transaccional de la rúbrica',
+  status: 'PASA'
+}
+{
+  name: 'Histórico: expediente amplio, resolución y rúbrica consultables; conserva filtro',
+  status: 'PASA'
+}
+{
+  name: 'Rechazo: atomicidad, límites y cierre sin override; notificación permitida',
+  status: 'PASA'
+}
+{
+  name: 'Móvil y Superadministrador: misma consulta y precondiciones',
+  status: 'PASA'
+}
+{
+  name: 'Inicio: error de consulta sin ceros ni tareas inventadas',
+  status: 'PASA'
+}
+Evidencia: correcciones/correcciones-finales/evidencias/2026-11-13T09-08-07-544Z-cie

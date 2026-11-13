@@ -504,6 +504,7 @@ propuestasRouter.post(
     for(const member of appointments.rows)validarNombramiento(member.periodo,true);
     const wordCount = (content.rows[0]?.resumen ?? "").trim().split(/\s+/u).filter(Boolean).length;
     const terms = await loadKeywords(id,execute);
+    if(terms.keywordsEn.length&&(terms.keywordsEn.length<4||terms.keywordsEn.length>6))throw new HttpError(400,'Keywords EN: indique entre 4 y 6 términos en inglés o deje el campo vacío.');
     if (wordCount > 500 || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {
       throw new HttpError(400,"El resumen admite máximo 500 palabras y se requieren entre 4 y 6 términos clave en español.");
     }

@@ -1,0 +1,47 @@
+{
+  "run": "2026-11-13T09-08-23-606Z",
+  "capturas": false,
+  "results": [
+    {
+      "name": "API: solo VIE Publicación y Admin ven borradores, incluyendo acceso directo",
+      "status": "PASA"
+    },
+    {
+      "name": "Investigador: convocatorias publicadas sin borradores ni filtro inoperante",
+      "status": "PASA"
+    },
+    {
+      "name": "Investigador: ampliar/reducir modifica todo el texto visible de los 17 pasos",
+      "status": "PASA"
+    },
+    {
+      "name": "Keywords EN: 1–3 o más de 6 impiden avanzar; vacío o 4–6 se aceptan",
+      "status": "PASA"
+    },
+    {
+      "name": "API: permite borrador EN parcial, exige 4–6 al enviar y admite EN vacío",
+      "status": "PASA"
+    },
+    {
+      "name": "Equipo: agregar tipos a distintas personas, editar cantidades y persistir sin duplicados",
+      "status": "PASA"
+    },
+    {
+      "name": "Riesgos: nueva actividad sin riesgo automático; agregar enfoca y desplaza el riesgo creado",
+      "status": "PASA"
+    },
+    {
+      "name": "Presupuesto: importes ausentes y borrados muestran cero sin alterar campos de texto",
+      "status": "PASA"
+    },
+    {
+      "name": "Vistas de lectura: tamaño de letra compartido por todos los perfiles institucionales",
+      "status": "PASA"
+    },
+    {
+      "name": "Superadministrador: conserva borradores VIE y hereda formulario/lectura en sus vistas",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

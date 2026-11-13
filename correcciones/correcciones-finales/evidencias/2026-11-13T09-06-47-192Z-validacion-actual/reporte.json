@@ -1,0 +1,191 @@
+{
+  "run": "2026-11-13T09-06-47-192Z",
+  "capturas": false,
+  "secuencial": true,
+  "base": "fondos_vie_test",
+  "estado": "PASA",
+  "suites": [
+    {
+      "suite": "test-lifecycle",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 12
+      },
+      "report": "correcciones/evidencias/2026-11-13T09-06-47-227Z-ciclo-instalacion",
+      "log": "test-lifecycle.txt"
+    },
+    {
+      "suite": "test-fresh-schema",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 1
+      },
+      "report": "correcciones/evidencias/2026-11-13T09-06-47-442Z-esquema-nuevo",
+      "log": "test-fresh-schema.txt"
+    },
+    {
+      "suite": "regression-api",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 33
+      },
+      "report": "correcciones/evidencias/2026-11-13T09-06-47-948Z-regresion-api",
+      "log": "regression-api.txt"
+    },
+    {
+      "suite": "regression-decisions",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 14
+      },
+      "report": "correcciones/evidencias/2026-11-13T09-06-50-932Z-decisiones-d01-d04",
+      "log": "regression-decisions.txt"
+    },
+    {
+      "suite": "regression-completion",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 22
+      },
+      "report": "correcciones/evidencias/2026-11-13T09-06-54-361Z-d05-d11-api",
+      "log": "regression-completion.txt"
+    },
+    {
+      "suite": "regression-merge-ian",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 8
+      },
+      "report": "correcciones/evidencias/2026-11-13T09-06-58-524Z-merge-ian",
+      "log": "regression-merge-ian.txt"
+    },
+    {
+      "suite": "regression-convocatoria-requisitos",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 15
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-07-02-736Z-requisitos-convocatoria",
+      "log": "regression-convocatoria-requisitos.txt"
+    },
+    {
+      "suite": "regression-vie-final",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 14
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-07-04-390Z-vie-publicacion",
+      "log": "regression-vie-final.txt"
+    },
+    {
+      "suite": "regression-investigador-final",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 24
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-07-14-571Z-investigador",
+      "log": "regression-investigador-final.txt"
+    },
+    {
+      "suite": "regression-investigador-ajustes",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 10
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-07-22-313Z-ajustes-indice-equipo",
+      "log": "regression-investigador-ajustes.txt"
+    },
+    {
+      "suite": "regression-vinculacion-final",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 45
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-07-28-354Z-vinculacion",
+      "log": "regression-vinculacion-final.txt"
+    },
+    {
+      "suite": "regression-consejo-profesores",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 9
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-07-46-691Z-consejo-profesores",
+      "log": "regression-consejo-profesores.txt"
+    },
+    {
+      "suite": "regression-direccion-escuela",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 9
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-07-54-881Z-direccion-escuela",
+      "log": "regression-direccion-escuela.txt"
+    },
+    {
+      "suite": "regression-gestora-vie",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 10
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-08-00-893Z-gestora-vie",
+      "log": "regression-gestora-vie.txt"
+    },
+    {
+      "suite": "regression-cie",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 10
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-08-07-544Z-cie",
+      "log": "regression-cie.txt"
+    },
+    {
+      "suite": "regression-direccion-investigacion",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 9
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-08-16-011Z-direccion-investigacion",
+      "log": "regression-direccion-investigacion.txt"
+    },
+    {
+      "suite": "regression-formulario-permisos",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 10
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T09-08-23-606Z-formulario-permisos",
+      "log": "regression-formulario-permisos.txt"
+    },
+    {
+      "suite": "baseline-flow",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 72,
+        "NO APLICA": 6
+      },
+      "report": "correcciones/evidencias/2026-11-13T09-08-56-820Z-linea-base-api",
+      "log": "baseline-flow.txt"
+    }
+  ],
+  "pendientes": []
+}

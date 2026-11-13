@@ -49,3 +49,5 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [CIE](CIE.md): evaluación con paneles, respaldos completos, indicadores y consulta de resolución/rúbrica. Explica el cierre por rechazo y el alcance pendiente de un eventual recurso. Pendiente de revisión manual.
 
 - [Dirección de Investigación](DIRECCION-DE-INVESTIGACION.md): notificación de decisiones CIE, indicadores, pendientes reales, expediente y registro histórico. Pendiente de revisión manual.
+
+- [Formulario, lectura y borradores](AJUSTES-FORMULARIO-Y-BORRADORES.md): permisos de convocatorias, texto en 17 pasos, EN, horas, riesgos y ceros en presupuesto. Pendiente de revisión manual.

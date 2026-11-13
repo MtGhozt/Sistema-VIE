@@ -28,7 +28,7 @@ export function proposalIssues(step:number,f:FormWizardState,hasConvocatoria:boo
    if(f.modalidad==='Desarrollo tecnológico')required('Nivel de madurez tecnológica (TRL) esperado',f.trlEsperado);
   }
  }
- if(step===1){narrative(`Resumen (español · máximo ${FIELD_WORD_LIMITS.resumen} palabras)`,f.resumen,FIELD_WORD_LIMITS.resumen);narrative(`Abstract (English · max. ${FIELD_WORD_LIMITS.abstract} words)`,f.abstract,FIELD_WORD_LIMITS.abstract);const terms=f.palabras.split(',').map(s=>s.trim()).filter(Boolean);if((!draft||terms.length)&& (terms.length<4||terms.length>6))add('Palabras clave',`Se requieren entre 4 y 6 términos separados por comas; hay ${terms.length}.`);}
+ if(step===1){narrative(`Resumen (español · máximo ${FIELD_WORD_LIMITS.resumen} palabras)`,f.resumen,FIELD_WORD_LIMITS.resumen);narrative(`Abstract (English · max. ${FIELD_WORD_LIMITS.abstract} words)`,f.abstract,FIELD_WORD_LIMITS.abstract);const terms=f.palabras.split(',').map(s=>s.trim()).filter(Boolean);if((!draft||terms.length)&& (terms.length<4||terms.length>6))add('Palabras clave',`Se requieren entre 4 y 6 términos separados por comas; hay ${terms.length}.`);const en=f.keywords.split(',').map(s=>s.trim()).filter(Boolean);if(en.length&&(en.length<4||en.length>6))add('Keywords EN (opcionales)',`Indique entre 4 y 6 términos en inglés separados por comas; hay ${en.length}. También puede dejar el campo vacío.`);}
  if(step===2){
   if(!draft&&!f.teamTec.length)add('Equipo TEC','Agregue al menos una persona investigadora TEC.');
   f.teamTec.forEach((m,i)=>{for(const [label,value] of [['Nombre y apellidos',m.nombre],['ID ORCID',m.orcid],['Instancia académica',m.instancia],['Condición o rol',m.rol]])required(`${label}, persona TEC ${i+1}`,value);

@@ -1,3 +1,4 @@
+import type {CSSProperties} from "react";
 import {CieRespaldo} from "../components/evaluation/CieRespaldo";
 import {DireccionRespaldo} from "../components/evaluation/DireccionRespaldo";
 import {WordBudget} from "../components/WordBudget";
@@ -163,7 +164,7 @@ export function PropuestaDetallePage() {
   );
 
   return (
-    <div className={comfortableReading?"pi-expediente":undefined}>
+    <div className={comfortableReading?"pi-expediente":undefined} style={{"--proposal-reading-size":`${fontSize}px`} as CSSProperties}>
       <div className="breadcrumbs">
         <Link to={backTo}>{evaluationReturn?"Evaluaciones":comfortableReading?"Histórico":"Propuestas"}</Link>
         <span>/</span>
@@ -300,11 +301,13 @@ export function PropuestaDetallePage() {
         />
       </section>
 
+      <div className="proposal-reading-records">
       {(isResearchDirection||isCie||isDirection||isGestora)&&<DireccionRespaldo id={detail.id}/>}
       {(isResearchDirection||isCie||isCouncilAssistant||isDirection||isGestora)&&<ConsejoRespaldo id={detail.id}/>}
       {(isResearchDirection||isCie)&&<CieRespaldo id={detail.id}/>}
       {isEvaluator&&<MiEvaluacionResumen id={detail.id}/>}
       {comfortableReading&&<VinculacionResumen id={detail.id}/>}
+      </div>
       <div className={`wizard-layout wizard-layout-wide${expandedReading?" expediente-expanded":""}`}>
         <aside className="wizard-sidebar">
           <div className="wizard-progress-head">
@@ -330,7 +333,7 @@ export function PropuestaDetallePage() {
           /></details>
         </aside>
 
-        <section className="card wizard-card">
+        <section className="card wizard-card" style={{"--proposal-reading-size":`${fontSize}px`} as CSSProperties}>
           <div className="wizard-card-head institutional-form-head">
             <div>
               <span className="eyebrow">
@@ -353,7 +356,7 @@ export function PropuestaDetallePage() {
           </div>
 
           <div className="action-row" aria-label="Tamaño del texto"><button type="button" className="btn btn-secondary" onClick={()=>setStep(7)}>Ver presupuesto</button><button type="button" className="btn btn-secondary" onClick={()=>setStep(15)}>Ver documentos del expediente</button>{comfortableReading&&<><button type="button" className="btn btn-secondary" onClick={()=>setExpandedReading(v=>!v)} aria-pressed={expandedReading}>{expandedReading?"Mostrar índice lateral":"Ampliar área de lectura"}</button><label className="field"><span className="field-label">Sección del expediente</span><select aria-label="Sección del expediente" className="input" value={step} onChange={e=>setStep(Number(e.target.value))}>{FORM_WIZARD_STEPS.map((name,i)=><option key={name} value={i}>{String(i+1).padStart(2,'0')} · {name}</option>)}</select></label></>}<button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
-          <div className="wizard-body" style={{fontSize}}>
+          <div className="wizard-body" style={{fontSize,"--proposal-reading-size":`${fontSize}px`} as CSSProperties}>
             <FormWizardStepContent
               readOnly
               step={step}

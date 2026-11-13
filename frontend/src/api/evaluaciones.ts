@@ -33,6 +33,7 @@ export type EvaluacionBandejaItem = {
 
 export type EvaluacionBandejaResponse = {
   comiteEnviadas?:number;
+  resumenComite?:{pendientes:number;reenviadas:number;enviadas:number;devueltas:number};
   role: string;
   items: EvaluacionBandejaItem[];
   total: number;

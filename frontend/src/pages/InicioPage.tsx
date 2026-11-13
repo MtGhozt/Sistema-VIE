@@ -547,7 +547,8 @@ function RoleHome({
     [],
   );
 
-  const [comiteEnviadas,setComiteEnviadas]=useState<number|null>(null);
+  const [resumenComite,setResumenComite]=useState<{pendientes:number;reenviadas:number;enviadas:number;devueltas:number}|null>(null);
+  const [comiteError,setComiteError]=useState("");
   const isViePublicacion = role === "vie_publicacion";
   const isVinculacion=role==='vinculacion';
   const [piSummary,setPiSummary]=useState<ResumenVinculacion|null>(null);
@@ -566,9 +567,9 @@ function RoleHome({
         const view =
           sessionRole === "admin" && isEvalRole ? role : undefined;
         const res = await fetchEvaluacionBandeja(view);
-        if (!cancelled) {setBandejaItems(res.items);setComiteEnviadas(res.comiteEnviadas??null);}
+        if (!cancelled) {setBandejaItems(res.items);setResumenComite(res.resumenComite??null);setComiteError("");}
       } catch {
-        if (!cancelled) setBandejaItems([]);
+        if (!cancelled) {setBandejaItems([]);setResumenComite(null);setComiteError("No se pudieron consultar los indicadores del Comité. Recargue para reintentar.");}
       }
     })();
     return () => {
@@ -580,7 +581,7 @@ function RoleHome({
     return home.stats.map(([label]) => {
       let value:number|string = 0;
       if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;return {label,value:piError?"—":piSummary&&state?piSummary.conteos[state]:"…"};}
-      if(role==="comite_asistente"&&label==="Listas para evaluación"){return {label,value:comiteEnviadas??"…"};}
+      if(role==="comite_asistente"){const key=({Pendientes:"pendientes","Reenviadas por revisar":"reenviadas","Listas para evaluación":"enviadas",Devueltas:"devueltas"} as const)[label as "Pendientes"];return {label,value:comiteError?"—":resumenComite&&key?resumenComite[key]:"…"};}
       if (isViePublicacion) {
         value = convocatoriaStatValue(label, convocatorias);
       } else if (isEvalRole) {
@@ -588,7 +589,7 @@ function RoleHome({
       }
       return { label, value };
     });
-  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems,isVinculacion,piSummary,piError,role,comiteEnviadas]);
+  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems,isVinculacion,piSummary,piError,role,resumenComite,comiteError]);
 
   const vieTasks = useMemo(() => {
     if (!isViePublicacion) return [];
@@ -625,7 +626,7 @@ function RoleHome({
   }, [isViePublicacion, isEvalRole, bandejaItems,isVinculacion,piSummary]);
 
   function statNavigate(label: string) {
-    if(role==="comite_asistente"&&label==="Listas para evaluación"){navigate("/evaluaciones?comite=enviadas");return;}
+    if(role==="comite_asistente"){navigate(label==="Devueltas"?"/historico?comite=devueltas":"/evaluaciones?comite="+(label==="Reenviadas por revisar"?"reenviadas":label==="Listas para evaluación"?"enviadas":"recepcion"));return;}
     if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;navigate('/historico'+(state?'?pi='+state:''));return;}
     if (isViePublicacion) {
       navigate(convocatoriaStatPath(label));
@@ -649,6 +650,7 @@ function RoleHome({
         </div>
       </header>
 
+      {role==="comite_asistente"&&comiteError&&<p role="alert">{comiteError}</p>}
       <section
         className={`stats-grid${five ? " stats-grid-five" : ""}`}
         aria-label="Indicadores"

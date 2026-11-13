@@ -1,3 +1,4 @@
+import {COMITE_DEVUELTA_SQL} from "../comiteEstado.js";
 import {ESTADO_PI_SQL,ESTADOS_PI} from "../estadoPi.js";
 import {HttpError} from "../middleware/HttpError.js";
 import { alcancePropuestas } from "../alcancePropuestas.js";
@@ -112,6 +113,7 @@ function buildWhere(filters: {
   estado: string;
   anio: string;
   pi:string;
+  comite:string;
 }) {
   const clauses: string[] = [];
   const values: unknown[] = [];
@@ -126,6 +128,7 @@ function buildWhere(filters: {
     clauses.push(out);
   };
 
+  if(filters.comite)push(`(${COMITE_DEVUELTA_SQL})`);
   if (filters.escuela) {
     push(
       "(e.nombre ILIKE ? OR e.codigo ILIKE ?)",
@@ -208,8 +211,10 @@ historicoRouter.get(
       estado: String(q.estado ?? "").trim(),
       anio: String(q.anio ?? "").trim(),
       pi:String(q.pi??"").trim(),
+      comite:String(q.comite??"").trim(),
     };
 
+    if(filtros.comite&&filtros.comite!=="devueltas")throw new HttpError(400,"Seleccione un filtro de devoluciones del Comité válido.");
     if(filtros.pi&&!Object.hasOwn(ESTADOS_PI,filtros.pi))throw new HttpError(400,"Seleccione un estado de PI válido.");
     const { where, values } = buildWhere(filtros);
     const scope = alcancePropuestas(req.demoAuth!,values.length+1);

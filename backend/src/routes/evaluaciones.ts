@@ -1,4 +1,4 @@
-import {COMITE_ENVIADO_SQL} from "../comiteEstado.js";
+import {COMITE_ENVIADO_SQL,COMITE_DEVUELTA_SQL,COMITE_RECEPCION_SQL,COMITE_REENVIADA_SQL} from "../comiteEstado.js";
 import comiteLimits from "../../../shared/comite-text-limits.json" with {type:"json"};
 import piLimits from "../../../shared/pi-text-limits.json" with { type: "json" };
 import { alcancePropuestas, exigirAlcance, etapaRol } from "../alcancePropuestas.js";
@@ -309,8 +309,8 @@ evaluacionesRouter.get(
     const role = requestedView || authenticatedRole;
     const clause = bandejaClause(role);
     const comiteFilter=String(req.query.comite??'');
-    if(comiteFilter&&(!['recepcion','enviadas'].includes(comiteFilter)||role!=='comite_asistente'))throw new HttpError(400,'Filtro de fase del Comité inválido');
-    if(comiteFilter)clause.sql+=` AND ${comiteFilter==='recepcion'?'NOT ':''}(${COMITE_ENVIADO_SQL})`;
+    if(comiteFilter&&(!['recepcion','enviadas','reenviadas'].includes(comiteFilter)||role!=='comite_asistente'))throw new HttpError(400,'Filtro de fase del Comité inválido');
+    if(comiteFilter)clause.sql+=` AND (${comiteFilter==='reenviadas'?COMITE_REENVIADA_SQL:comiteFilter==='recepcion'?COMITE_RECEPCION_SQL:COMITE_ENVIADO_SQL})`;
 
     const scope = alcancePropuestas(req.demoAuth!,clause.params.length+1);
     if(authenticatedRole==='comite_evaluador'){scope.params.push(req.demoAuth!.userId);scope.sql+=` AND EXISTS(SELECT 1 FROM comite_miembro cm WHERE cm.id_propuesta=p.id_propuesta AND cm.id_usuario=$${clause.params.length+scope.params.length})`;}
@@ -326,9 +326,15 @@ evaluacionesRouter.get(
        LIMIT 100`,
       params,
     );
-    const comiteEnviadas=role==='comite_asistente'?Number((await query(`SELECT count(*) AS total FROM propuesta p WHERE p.estado_actual IN ('enviada','en_evaluacion') AND p.etapa_flujo BETWEEN 1 AND 2 AND ${scope.sql} AND ${COMITE_ENVIADO_SQL}`,[...clause.params,...scope.params])).rows[0].total):undefined;
+    const resumenComite=role==='comite_asistente'?(await query(`SELECT
+      count(*) FILTER(WHERE ${COMITE_RECEPCION_SQL})::int AS pendientes,
+      count(*) FILTER(WHERE ${COMITE_REENVIADA_SQL})::int AS reenviadas,
+      count(*) FILTER(WHERE p.estado_actual IN ('enviada','en_evaluacion') AND p.etapa_flujo BETWEEN 1 AND 2 AND ${COMITE_ENVIADO_SQL})::int AS enviadas,
+      count(*) FILTER(WHERE ${COMITE_DEVUELTA_SQL})::int AS devueltas
+      FROM propuesta p WHERE ${scope.sql}`,[...clause.params,...scope.params])).rows[0]:undefined;
     res.json({
-      comiteEnviadas,
+      comiteEnviadas:resumenComite?.enviadas,
+      resumenComite,
       role,
       items: result.rows.map(mapBandeja),
       total: result.rows.length,

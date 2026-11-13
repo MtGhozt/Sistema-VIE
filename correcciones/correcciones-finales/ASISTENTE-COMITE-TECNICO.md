@@ -66,3 +66,27 @@ No se introduce una reapertura excepcional ni se anulan evaluaciones entregadas.
 - [ ] Recargar y comprobar que no se pueda remitir nuevamente ni devolver desde recepción.
 - [ ] Verificar la tarjeta Listas para evaluación y el filtro de fase.
 - [ ] Comprobar el contador y límite de 4.000 caracteres del fundamento consolidado.
+
+## Indicadores Con faltantes / Devueltas · 12/11/2026
+
+**Hallazgo:** las tarjetas usaban el estado académico general y abrían la bandeja sin distinguir conjuntos. La bandeja excluía las subsanaciones, de modo que «Devueltas» siempre podía mostrar cero. No hay una marca persistida de «faltantes» anterior a la devolución: los checks sin marcar de una sesión no constituyen un estado institucional.
+
+**Cambio:** se reemplaza «Con faltantes» por **Reenviadas por revisar**, basado en subsanaciones reales del Comité ya respondidas. No se inventa una nueva decisión ni un estado de aprobación. La recepción/corrección corresponde a P4.a del análisis de personas y al ciclo de subsanación D03 ya aprobado.
+
+| Indicador | Qué cuenta | Destino |
+| --- | --- | --- |
+| Pendientes | Expedientes en recepción, aún no remitidos al Cuerpo Evaluador. Incluye las reenviadas por revisar. | Evaluaciones · fase Pendientes de completitud. |
+| Reenviadas por revisar | Expedientes corregidos y reenviados tras una devolución del Comité, todavía sin nueva remisión al Cuerpo Evaluador. Es un subconjunto de Pendientes. | Evaluaciones · fase Reenviadas por revisar. |
+| Listas para evaluación | Expedientes efectivamente remitidos al Cuerpo Evaluador. | Evaluaciones · fase Enviadas al Cuerpo Evaluador. |
+| Devueltas | Expedientes actualmente en subsanación con una devolución del Comité aún no reenviada. No cuenta devoluciones de VIE ni el acumulado histórico de devoluciones cerradas. | Histórico · filtro Devoluciones del Comité = Devueltas pendientes de subsanación. |
+
+Los cuatro conteos se calculan en BD sobre todo el ámbito autorizado (escuela/asignación), independientemente del límite de 100 filas de la bandeja. Los filtros usan los mismos predicados. Un fallo de consulta muestra un error y «—», no ceros inventados. El filtro del Histórico se conserva al recargar, permite limpiar y combina con los filtros existentes. No hay migración ni se alteran expedientes.
+
+### Validación
+
+**28 comprobaciones aprobadas** de Vinculación/Asistente. Se crearon por API expedientes devueltos y reenviados, se verificaron los conteos y destinos con navegador, y se comprobó que al remitir una corregida baja Reenviadas y sube Listas. Se mantuvieron las regresiones de permisos, lectura y envío único. [Reporte final](evidencias/2026-11-13T03-57-44-444Z-vinculacion/reporte.json). Compilación frontend/backend aprobada; no se generaron capturas.
+
+- [ ] Comprobar que ya no aparezca Con faltantes y se muestre Reenviadas por revisar.
+- [ ] Abrir Devueltas y comprobar expedientes pendientes de corrección y el filtro de Histórico.
+- [ ] Corregir/reenviar como investigador y comprobar la salida de Devueltas y la entrada en Reenviadas por revisar.
+- [ ] Remitir al Cuerpo Evaluador y comprobar que cambien los conteos y listados.

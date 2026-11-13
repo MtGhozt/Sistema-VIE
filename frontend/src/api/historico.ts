@@ -26,6 +26,7 @@ export type HistoricoFiltros = {
   estado: string;
   anio: string;
   pi:string;
+  comite:string;
 };
 
 export type HistoricoOpciones = {
@@ -49,6 +50,7 @@ export const EMPTY_HISTORICO_FILTROS: HistoricoFiltros = {
   estado: "",
   anio: "",
   pi:"",
+  comite:"",
 };
 
 /** Listado del histórico con filtros combinables (CU5). */

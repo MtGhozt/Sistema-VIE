@@ -52,7 +52,7 @@ export const HOME_BY_ROLE: Record<RoleId, HomeSummary> = {
       "Verificá que cada expediente esté completo antes de enviarlo al cuerpo evaluador.",
     stats: [
       ["Pendientes", "6"],
-      ["Con faltantes", "2"],
+      ["Reenviadas por revisar", "2"],
       ["Listas para evaluación", "3"],
       ["Devueltas", "1"],
     ],

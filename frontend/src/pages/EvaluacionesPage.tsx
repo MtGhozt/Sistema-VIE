@@ -132,7 +132,7 @@ type BandejaEntry = {
 export function EvaluacionesPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
-  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");const comiteFilter=search.get("comite");const evaluacionFilter=search.get("evaluacion");
+  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");const comiteFilter=search.get("comite");const evaluacionFilter=search.get("evaluacion");const consejoFilter=search.get("consejo");
   const { showToast } = useToast();
   const [bandeja, setBandeja] = useState<BandejaEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState("");
@@ -148,7 +148,7 @@ export function EvaluacionesPage() {
     setLoading(true);
     setBandejaNote(null);
     try {
-      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter,evaluacionFilter);
+      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter,evaluacionFilter,consejoFilter);
       const entries: BandejaEntry[] = res.items.map((item) => ({
         key: item.codigo, numericId: item.id, demo: bandejaToDemoProposal(item), api: item,
       }));
@@ -164,7 +164,7 @@ export function EvaluacionesPage() {
     } finally {
       setLoading(false);
     }
-  }, [session, role,requested,comiteFilter,evaluacionFilter]);
+  }, [session, role,requested,comiteFilter,evaluacionFilter,consejoFilter]);
 
   useEffect(() => {
     void loadBandeja();
@@ -232,6 +232,7 @@ export function EvaluacionesPage() {
       } else {
         await loadBandeja();
       }
+      if(role==='consejo_asistente'&&action==='send-council'){navigate('/historico?consejo=enviados');return true;}
       if(role==='comite_evaluador'&&action==='committee-score'){navigate('/historico?evaluacion=completada');return true;}
       if (["pi","pi-not-required","return","committee-confirm","council-reconsider","committee-ready","committee-score","send-council","council-approve","council-reject","communicate-aval","send-cie","cie-approve","cie-reject"].includes(action)) await loadBandeja();
       return true;
@@ -342,7 +343,7 @@ export function EvaluacionesPage() {
       {EVAL_ROLES.includes(role) || role === "admin" ? (
         <>
           {role !== "admin" && (
-            <div className={role==="comite_evaluador"?"evaluation-selector evaluator-selector":"evaluation-selector"}>
+            <div className={["comite_evaluador","consejo_asistente"].includes(role)?"evaluation-selector evaluator-selector":"evaluation-selector"}>
               <span>Expediente activo</span>
               <select
                 className="input"

@@ -29,17 +29,34 @@ El usuario/contraseña local de PostgreSQL del compose es `vie` / `vie`. Si el p
 
 Si el archivo perdió el permiso de ejecución al copiarlo, ejecute `bash instalar.sh` o `bash desinstalar.sh`.
 
+## Reiniciar datos y ejecutar las pruebas actuales
+
+**El reinicio borra todos los datos anteriores del esquema público de la base local elegida**, restaura los usuarios/catálogos demo y crea 16 escenarios nuevos por API. Requiere PostgreSQL iniciado y `pnpm build`. No borra código, dependencias, evidencias ni archivos locales de documentos.
+
+```bash
+./reiniciar-datos-demo.sh --desarrollo --simular  # describe sin borrar
+./reiniciar-datos-demo.sh --desarrollo           # reinicia fondos_vie (aplicación habitual)
+./reiniciar-datos-demo.sh --pruebas              # reinicia solo fondos_vie_test
+./verificar-actual.sh --reiniciar                # compila, reinicia pruebas, valida y deja 16 escenarios limpios
+```
+
+`verificar-actual.sh` usa exclusivamente la base local `fondos_vie_test`. Ejecuta en secuencia esquema nuevo, API, D01–D04, D05–D11, convocatorias, perfiles revisados y rutas de aprobación/rechazo. No genera capturas. Si una batería falla, conserva sus datos y logs para diagnóstico; si todas pasan con `--reiniciar`, vuelve a cargar solo los 16 escenarios, eliminando los fixtures de las pruebas. Los reportes quedan en `correcciones/correcciones-finales/evidencias/*-validacion-actual/`.
+
+`./instalar.sh --pruebas --verificar` usa esta misma batería y reinicia la base aislada. Los comandos `pnpm regression:ui` y `pnpm regression:completion-ui` ejecutan los recorridos de interfaz actuales; los guiones antiguos homónimos se conservan como trazabilidad histórica y han sido sustituidos como puntos de entrada por las baterías de perfiles revisados.
+
+Después de reiniciar desarrollo, recargue la aplicación y vuelva a iniciar sesión con los usuarios demo si tenía una sesión anterior. Los expedientes son demostrativos: PI, notas, remisiones y decisiones no tienen validez institucional. Incluyen plantilla presupuestaria oficial adjunta y captura estructurada; no se presentan como oficios firmados externos.
+
 ## Cargar propuestas para la revisión manual
 
 Con la instalación y PostgreSQL preparados:
 
 ```bash
 ./cargar-propuestas-demo.sh --pruebas --simular  # describe el lote sin escribir
-./cargar-propuestas-demo.sh --pruebas           # ocho propuestas en fondos_vie_test
+./cargar-propuestas-demo.sh --pruebas           # 16 escenarios en fondos_vie_test
 ./cargar-propuestas-demo.sh --desarrollo --cantidad 16  # lote voluntario en fondos_vie
 ```
 
-Cada ejecución crea un lote nuevo identificado como **DEMO**, sin borrar ni modificar propuestas anteriores. Genera borradores y expedientes enviados, en subsanación, dictaminados, avalados, aprobados, rechazados y con rechazo de aval. Recorre el flujo de la API con los roles demo, tres evaluadores y confirmación del consolidado; no fuerza estados por SQL. Los oficios, evaluaciones, aceptaciones y notificaciones internas son **simulados** y no se envían mensajes externos.
+Cada ejecución crea un lote nuevo identificado como **DEMO** (16 propuestas por defecto; `--cantidad` admite 8–80; con menos de 16 solo se cubre el subconjunto inicial), sin borrar ni modificar propuestas anteriores. Por defecto genera 16 escenarios: borrador, envío pendiente de PI, PI en revisión, no requerimiento pendiente y certificado, recepción de Comité, subsanación, evaluación pendiente, borrador individual, evaluación parcial, consolidado, remitida al Consejo, avalada, aprobada, rechazada por CIE y rechazo de aval. Recorre el flujo de la API con los roles demo, tres evaluadores y confirmación del consolidado; no fuerza estados por SQL. Los oficios, evaluaciones, aceptaciones y notificaciones internas son **simulados** y no se envían mensajes externos.
 
 Consulte los expedientes con **`investigador@tec.ac.cr`**, contraseña **`prototipo2026`**, rol Persona Investigadora Coordinadora. El reporte con códigos y estados queda en `var/datos-demo/<lote>/reporte.json`. Si ocurre un error, el cargador lo informa y conserva el reporte y los registros creados hasta ese punto. Use `--help` para perfiles y configuración de conexión. En el modo pruebas, conecte la aplicación a esa misma base como se explica abajo.
 

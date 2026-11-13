@@ -561,7 +561,7 @@ COMMENT ON COLUMN "aval_consejo"."resultado" IS 'aprobado | rechazado';
 
 COMMENT ON TABLE "comunicacion_institucional" IS 'Comunicación formal (Dirección Escuela→VIE / Dirección Investigación→coordinador)';
 
-COMMENT ON COLUMN "comunicacion_institucional"."tipo" IS 'aval_a_vie | notificacion_resolucion | otro';
+COMMENT ON COLUMN "comunicacion_institucional"."tipo" IS 'expediente_consejo | aval_a_vie | notificacion_resolucion | otro';
 
 COMMENT ON COLUMN "resolucion_cie"."resultado" IS 'aprobada | rechazada';
 

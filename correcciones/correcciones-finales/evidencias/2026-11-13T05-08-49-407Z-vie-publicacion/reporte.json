@@ -1,0 +1,80 @@
+{
+  "run": "2026-11-13T05-08-49-407Z",
+  "fechaEscenarioCR": "2026-11-12",
+  "capturas": false,
+  "scope": "VIE Publicación: acceso, inicio, listado, creación, edición, revisión, acciones, histórico y notificaciones; Chromium en locale en-US; API propia y PostgreSQL aislado.",
+  "fixtures": [
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    30
+  ],
+  "results": [
+    {
+      "name": "Acceso: mensajes propios en español con navegador en inglés",
+      "status": "PASA"
+    },
+    {
+      "name": "Crear: pantalla propia, campos señalados y validación de fechas antes de guardar",
+      "status": "PASA"
+    },
+    {
+      "name": "Edición y recarga: conserva actividades e identificadores internos sin mostrarlos",
+      "status": "PASA"
+    },
+    {
+      "name": "Revisión móvil: fechas legibles DD-MM-AAAA y cronograma sin desbordar",
+      "status": "PASA"
+    },
+    {
+      "name": "Publicar/cerrar/eliminar: confirmaciones reales, cancelación y mensajes de éxito",
+      "status": "PASA"
+    },
+    {
+      "name": "Filtros independientes: limpiar o plegar uno conserva el otro",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio: prioridades de cierre reales, incluye hoy en Costa Rica y excluye vencidas/borradores/cerradas",
+      "status": "PASA"
+    },
+    {
+      "name": "API: publicar vuelve a validar el cronograma almacenado y revierte una transición inválida",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico y notificaciones: filtros separados, fechas y pantallas accesibles al rol",
+      "status": "PASA"
+    },
+    {
+      "name": "Calendario nativo: selección asistida, botón y límites de las actividades",
+      "status": "PASA"
+    },
+    {
+      "name": "API: presupuesto obligatorio, cero explícito y rechazo de nulo sin cambiar el valor",
+      "status": "PASA"
+    },
+    {
+      "name": "API: crear, editar, acortar período y agregar actividades rechaza fechas fuera del intervalo sin cambios parciales",
+      "status": "PASA"
+    },
+    {
+      "name": "Permisos de pantallas nuevas: investigador consulta pero no publica ni edita",
+      "status": "PASA"
+    },
+    {
+      "name": "Fallo de servidor: respuesta sin JSON no muestra Service Unavailable en inglés",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

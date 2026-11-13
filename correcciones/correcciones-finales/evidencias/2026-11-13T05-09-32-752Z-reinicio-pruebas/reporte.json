@@ -1,0 +1,52 @@
+{
+  "run": "2026-11-13T05-09-32-752Z",
+  "perfil": "pruebas",
+  "base": "fondos_vie_test",
+  "cantidad": 16,
+  "reinicio": true,
+  "carga": true,
+  "estados": [
+    {
+      "estado_actual": "aprobada",
+      "cantidad": 1
+    },
+    {
+      "estado_actual": "avalada",
+      "cantidad": 1
+    },
+    {
+      "estado_actual": "borrador",
+      "cantidad": 1
+    },
+    {
+      "estado_actual": "dictaminada",
+      "cantidad": 2
+    },
+    {
+      "estado_actual": "en_evaluacion",
+      "cantidad": 5
+    },
+    {
+      "estado_actual": "en_subsanacion",
+      "cantidad": 1
+    },
+    {
+      "estado_actual": "enviada",
+      "cantidad": 3
+    },
+    {
+      "estado_actual": "rechazada",
+      "cantidad": 1
+    },
+    {
+      "estado_actual": "rechazo_aval",
+      "cantidad": 1
+    }
+  ],
+  "pi": {
+    "emitidos": 11,
+    "no_requeridos": 1,
+    "en_revision": 1
+  },
+  "remisiones": 5
+}

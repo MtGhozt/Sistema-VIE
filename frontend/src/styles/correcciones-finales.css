@@ -133,3 +133,7 @@
 .evaluator-workspace .rubric-section > summary { display: list-item; list-style-position: inside; }
 .evaluator-workspace .rubric-section > summary::marker { color: var(--blue); }
 .evaluator-workspace .rubric-section > summary > div { display: inline-block; vertical-align: middle; max-width: calc(100% - 24px); }
+
+.council-assistant-workspace { min-width: 0; }
+.council-assistant-workspace > * { min-width: 0; }
+.council-assistant-workspace .review-panel { position: static; max-height: none; overflow-wrap: anywhere; }

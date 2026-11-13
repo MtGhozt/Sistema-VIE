@@ -1,0 +1,34 @@
+PASA | Login investigador | 
+PASA | Login vie_publicacion | 
+PASA | Login vinculacion | 
+PASA | Login comite_asistente | 
+PASA | Login comite_evaluador | 
+PASA | Login consejo_asistente | 
+PASA | Login consejo | 
+PASA | Login direccion_escuela | 
+PASA | Login gestora_vie | 
+PASA | Login cie | 
+PASA | Login direccion_investigacion | 
+PASA | Login admin | 
+PASA | Migraciones conservan compromisos sin aceptación implícita | 
+PASA | Campos generales, ES/EN y preguntas sobreviven a relectura | 
+PASA | Errores de guardado identifican campos, tamaño y duplicados sin persistir cambios | 
+PASA | Equipo interno/externo, tipos de hora y CRUD real | 
+PASA | ID ajeno de integrante no permite modificar otra propuesta | 
+PASA | Presupuesto exacto, fuentes y reversión de montos inválidos | 
+PASA | Ética y productos se recuperan, editan y eliminan | 
+PASA | Actividad/riesgo mantiene 0,07 meses y sus responsables | 
+PASA | Declaración explícita y límites oficiales al enviar | 
+PASA | Guardar rúbrica conserva criterios y separa instancias y usuarios | 
+PASA | Envío concurrente produce un solo evento de historial | 
+PASA | Vinculación recupera el dictamen emitido y no mezcla propuestas | 
+PASA | Checklist VIE persiste y bloquea remisión incompleta | 
+PASA | Dos devoluciones conservan ciclos independientes | 
+PASA | Vista admin filtra sin cambiar identidad ni ampliar permisos | 
+PASA | Convocatoria y cronograma se editan atomicamente | 
+PASA | Comunicar exige aval y una decisión emitida no se sobrescribe | 
+PASA | CIE conserva fundamento y decisión cerrada rechaza sobrescritura | 
+PASA | Notificación concurrente única, por destinatario y lectura persistida | 
+PASA | No notificar resolución inexistente ni aprobar borrador | 
+PASA | Código anual respeta históricos y no depende del PK | 
+Evidencia: correcciones/evidencias/2026-11-13T05-08-33-866Z-regresion-api

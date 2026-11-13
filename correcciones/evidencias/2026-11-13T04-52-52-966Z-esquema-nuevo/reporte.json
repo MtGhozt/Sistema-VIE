@@ -1,0 +1,20 @@
+{
+  "run": "2026-11-13T04-52-52-966Z",
+  "status": "PASA",
+  "propuestas": 16,
+  "codigosConservados": true,
+  "migrations": [
+    "001_compromisos_propuesta.sql",
+    "002_precision_plan.sql",
+    "003_decisiones_d01_d04.sql",
+    "004_certificacion_pi_independiente.sql",
+    "005_alcance_restante.sql",
+    "006_identificacion_formulario.sql",
+    "007_ciclos_evaluacion.sql",
+    "008_formulario_ian.sql",
+    "009_asignacion_comite_historica.sql",
+    "010_evaluacion_ia.sql",
+    "011_emision_dictamen_pi.sql"
+  ],
+  "scope": "Esquema nuevo + seed + migraciones en una transacción; se revierte íntegramente sin borrar volúmenes ni modificar el esquema público."
+}

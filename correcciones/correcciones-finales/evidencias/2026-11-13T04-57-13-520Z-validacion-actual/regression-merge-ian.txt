@@ -1,0 +1,63 @@
+{
+  name: 'Convocatorias API: cronograma aislado y borrado de borrador sin propuestas',
+  status: 'PASA'
+}
+{
+  name: 'Convocatorias UI: editar actividad, guardar, reabrir y eliminar borrador',
+  status: 'PASA'
+}
+{
+  name: 'Formulario API: complementos, equipo nuevo y plan se guardan atómicamente',
+  status: 'PASA'
+}
+{
+  name: 'Formulario UI: usa campos Ian, conserva equipo, presupuesto y duración decimal al guardar dos veces',
+  status: 'FALLA',
+  detail: 'expect(locator).toHaveValue(expected) failed\n' +
+    '\n' +
+    "Locator: getByLabel('Titular de horas CONS (si aplica)', { exact: true })\n" +
+    'Expected: "Titular original"\n' +
+    'Timeout: 5000ms\n' +
+    'Error: element(s) not found\n' +
+    '\n' +
+    'Call log:\n' +
+    `  - Expect "toHaveValue" getByLabel('Titular de horas CONS (si aplica)', { exact: true }) with timeout 5000ms\n` +
+    "  - waiting for getByLabel('Titular de horas CONS (si aplica)', { exact: true })\n"
+}
+{
+  name: 'Objetivos previos sin complemento ni actividades se recuperan desde la tabla normalizada',
+  status: 'FALLA',
+  detail: 'locator.click: Timeout 12000ms exceeded.\n' +
+    'Call log:\n' +
+    "\x1B[2m  - waiting for locator('.wizard-steps button').nth(3)\x1B[22m\n" +
+    '\x1B[2m    - locator resolved to <button type="button" class="blocked" aria-disabled="true">…</button>\x1B[22m\n' +
+    '\x1B[2m  - attempting click action\x1B[22m\n' +
+    '\x1B[2m    2 × waiting for element to be visible, enabled and stable\x1B[22m\n' +
+    '\x1B[2m      - element is not enabled\x1B[22m\n' +
+    '\x1B[2m    - retrying click action\x1B[22m\n' +
+    '\x1B[2m    - waiting 20ms\x1B[22m\n' +
+    '\x1B[2m    2 × waiting for element to be visible, enabled and stable\x1B[22m\n' +
+    '\x1B[2m      - element is not enabled\x1B[22m\n' +
+    '\x1B[2m    - retrying click action\x1B[22m\n' +
+    '\x1B[2m      - waiting 100ms\x1B[22m\n' +
+    '\x1B[2m    23 × waiting for element to be visible, enabled and stable\x1B[22m\n' +
+    '\x1B[2m       - element is not enabled\x1B[22m\n' +
+    '\x1B[2m     - retrying click action\x1B[22m\n' +
+    '\x1B[2m       - waiting 500ms\x1B[22m\n'
+}
+{
+  name: 'Complementos API: rechazo de sección ajena revierte todo el guardado',
+  status: 'PASA'
+}
+{
+  name: 'Convocatorias API: no elimina con propuestas ni permite devolver publicada a borrador',
+  status: 'PASA'
+}
+{
+  name: 'Subsanación: complementos respetan la sección y PI permanece congelada',
+  status: 'FALLA',
+  detail: 'POST /propuestas/66/enviar: {"error":"Período de nombramiento: indique inicio y fin reales en DD/MM/YYYY, con año entre 2000 y 2100 y fin igual o posterior al inicio."}\n' +
+    '\n' +
+    '400 !== 200\n'
+}
+Evidencia: correcciones/evidencias/2026-11-13T04-57-24-044Z-merge-ian

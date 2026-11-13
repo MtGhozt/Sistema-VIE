@@ -17,7 +17,7 @@ export function CaseFile({ proposal }: { proposal: DemoProposal }) {
   const {session}=useAuth();
   const location=useLocation();const personal=new URLSearchParams(location.search).get("evaluacion");
   const returnTo=`/evaluaciones?propuesta=${proposal.numericId}`+(personal&&["pendiente","en_progreso","completada"].includes(personal)?`&evaluacion=${personal}`:"");
-  const isAssistant=["comite_asistente","comite_evaluador"].includes(session?.viewRole??"");
+  const isAssistant=["comite_asistente","comite_evaluador","consejo_asistente"].includes(session?.viewRole??"");
   const fullLink=proposal.numericId!=null?<Link className={isAssistant?"btn btn-primary case-full-access":undefined} to={`/propuestas/${proposal.numericId}`} state={{returnTo}}>Abrir expediente completo (solo lectura)</Link>:null;
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [loadError, setLoadError] = useState("");

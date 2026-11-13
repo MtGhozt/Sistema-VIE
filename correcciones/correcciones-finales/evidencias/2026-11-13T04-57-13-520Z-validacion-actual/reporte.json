@@ -1,0 +1,68 @@
+{
+  "run": "2026-11-13T04-57-13-520Z",
+  "capturas": false,
+  "secuencial": true,
+  "base": "fondos_vie_test",
+  "estado": "FALLA",
+  "suites": [
+    {
+      "suite": "test-fresh-schema",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 1
+      },
+      "report": "correcciones/evidencias/2026-11-13T04-57-13-575Z-esquema-nuevo",
+      "log": "test-fresh-schema.txt"
+    },
+    {
+      "suite": "regression-api",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 33
+      },
+      "report": "correcciones/evidencias/2026-11-13T04-57-14-067Z-regresion-api",
+      "log": "regression-api.txt"
+    },
+    {
+      "suite": "regression-decisions",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 14
+      },
+      "report": "correcciones/evidencias/2026-11-13T04-57-16-742Z-decisiones-d01-d04",
+      "log": "regression-decisions.txt"
+    },
+    {
+      "suite": "regression-completion",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 22
+      },
+      "report": "correcciones/evidencias/2026-11-13T04-57-19-981Z-d05-d11-api",
+      "log": "regression-completion.txt"
+    },
+    {
+      "suite": "regression-merge-ian",
+      "status": "FALLA",
+      "exit": 1,
+      "counts": {
+        "PASA": 5,
+        "FALLA": 3
+      },
+      "report": "correcciones/evidencias/2026-11-13T04-57-24-044Z-merge-ian",
+      "log": "regression-merge-ian.txt"
+    }
+  ],
+  "pendientes": [
+    "regression-convocatoria-requisitos",
+    "regression-vie-final",
+    "regression-investigador-final",
+    "regression-investigador-ajustes",
+    "regression-vinculacion-final",
+    "baseline-flow"
+  ]
+}

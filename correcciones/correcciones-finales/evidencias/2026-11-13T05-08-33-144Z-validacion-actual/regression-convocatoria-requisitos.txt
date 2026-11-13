@@ -1,0 +1,55 @@
+{
+  name: 'API: creación rechaza apertura pasada y no inserta datos',
+  status: 'PASA'
+}
+{ name: 'API: creación rechaza cierre vencido', status: 'PASA' }
+{
+  name: 'API: presupuesto obligatorio y errores diferenciados',
+  status: 'PASA'
+}
+{
+  name: 'API: acepta cero y monto positivo con coma y dos decimales',
+  status: 'PASA'
+}
+{
+  name: 'API: al menos una actividad también al crear por API',
+  status: 'PASA'
+}
+{
+  name: 'API: edición no permite mover apertura al pasado y revierte todo',
+  status: 'PASA'
+}
+{
+  name: 'API: rechaza cronograma vacío por edición o eliminación individual',
+  status: 'PASA'
+}
+{
+  name: 'API: borrador legado indefinido exige presupuesto antes de editar/publicar',
+  status: 'PASA'
+}
+{
+  name: 'API: borrador vencido no se publica; publicada vencida no se reactiva',
+  status: 'PASA'
+}
+{
+  name: 'API: apertura histórica sin cambios permite corregir borrador vigente',
+  status: 'PASA'
+}
+{
+  name: 'UI: próximas a cerrar incluye hoy y 30, excluye pasado, 31 y año 2000',
+  status: 'PASA'
+}
+{
+  name: 'UI: guardar marca presupuesto indefinido; cero elimina ese error',
+  status: 'PASA'
+}
+{ name: 'UI: fecha pasada se señala antes de guardar', status: 'PASA' }
+{
+  name: 'UI: validación de cronograma vacío y fecha de Costa Rica en medianoche UTC',
+  status: 'PASA'
+}
+{
+  name: 'UI: creación válida con presupuesto cero y actividad persiste',
+  status: 'PASA'
+}
+Evidencia: correcciones/correcciones-finales/evidencias/2026-11-13T05-08-47-717Z-requisitos-convocatoria

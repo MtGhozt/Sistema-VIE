@@ -1,3 +1,5 @@
+import {CONSEJO_FILTROS,CONSEJO_ENVIADO_SQL,CONSEJO_PENDIENTE_SQL} from "../consejoEstado.js";
+import consejoLimits from "../../../shared/consejo-text-limits.json" with {type:"json"};
 import {estadoEvaluadorSql,asignadoEvaluadorSql} from "../evaluadorEstado.js";
 import {COMITE_ENVIADO_SQL,COMITE_DEVUELTA_SQL,COMITE_RECEPCION_SQL,COMITE_REENVIADA_SQL} from "../comiteEstado.js";
 import comiteLimits from "../../../shared/comite-text-limits.json" with {type:"json"};
@@ -74,6 +76,7 @@ type BandejaRow = {
   fecha_resolucion: string | null;
   vie_checks: Record<string,boolean>;
   comite_enviado:boolean;
+  fecha_comite:string|null;
 };
 
 const BANDEJA_SQL = `
@@ -103,6 +106,7 @@ const BANDEJA_SQL = `
       WHERE ch.id_revision=(SELECT rv.id_revision FROM revision_expediente rv WHERE rv.id_propuesta=p.id_propuesta AND rv.etapa='vie' ORDER BY rv.ciclo DESC LIMIT 1)), '{}'::json) AS vie_checks,
     av.observaciones AS justificacion_aval,
     EXISTS (SELECT 1 FROM comunicacion_institucional ci WHERE ci.id_propuesta=p.id_propuesta AND ci.tipo='resolucion_cie' AND ci.confirmada=true) AS notificada,
+    rc.fecha_dictamen AS fecha_comite,
     rc.calificacion_promedio::text AS calificacion_comite
   FROM propuesta p
   LEFT JOIN modalidad_catalogo mc ON mc.codigo=p.modalidad
@@ -119,6 +123,7 @@ const BANDEJA_SQL = `
 
 function mapBandeja(row: BandejaRow) {
   return {
+    fechaDictamenComite:row.fecha_comite,
     comiteEnviado:row.comite_enviado,
     id: row.id_propuesta,
     codigo: row.codigo,
@@ -204,11 +209,12 @@ function bandejaClause(role: string | null | undefined): {
     case "comite_evaluador":
       return {sql:` AND p.etapa_flujo=2 AND p.estado_actual='en_evaluacion' AND ${COMITE_ENVIADO_SQL}`,params:[]};
     case "consejo_asistente":
+      return {sql:` AND ${CONSEJO_PENDIENTE_SQL}`,params:[]};
     case "consejo":
     case "direccion_escuela":
       return {
         // Solo expedientes consolidados; incluye rechazo de aval para su reconsideración.
-        sql: ` AND p.etapa_flujo BETWEEN 3 AND 4 AND p.estado_actual IN ('dictaminada','avalada','rechazo_aval')`,
+        sql: ` AND p.etapa_flujo BETWEEN 3 AND 4 AND p.estado_actual IN ('dictaminada','avalada','rechazo_aval') ${role==='consejo'?`AND ${CONSEJO_ENVIADO_SQL}`:''}`,
         params: [],
       };
     case "gestora_vie":
@@ -309,6 +315,9 @@ evaluacionesRouter.get(
     if(requestedView && (authenticatedRole!=="admin" || !EVALUATION_VIEWS.has(requestedView))){res.status(403).json({error:"Vista de evaluación no permitida"});return;}
     const role = requestedView || authenticatedRole;
     const clause = bandejaClause(role);
+    const consejoFilter=String(req.query.consejo??'');
+    if(consejoFilter&&(role!=='consejo_asistente'||!Object.hasOwn(CONSEJO_FILTROS,consejoFilter)))throw new HttpError(400,'Filtro del Consejo inválido');
+    if(consejoFilter)clause.sql=` AND (${CONSEJO_FILTROS[consejoFilter]})`;
     const comiteFilter=String(req.query.comite??'');
     if(comiteFilter&&(!['recepcion','enviadas','reenviadas'].includes(comiteFilter)||role!=='comite_asistente'))throw new HttpError(400,'Filtro de fase del Comité inválido');
     if(comiteFilter)clause.sql+=` AND (${comiteFilter==='reenviadas'?COMITE_REENVIADA_SQL:comiteFilter==='recepcion'?COMITE_RECEPCION_SQL:COMITE_ENVIADO_SQL})`;
@@ -349,7 +358,13 @@ evaluacionesRouter.get(
       count(*) FILTER(WHERE p.estado_actual IN ('enviada','en_evaluacion') AND p.etapa_flujo BETWEEN 1 AND 2 AND ${COMITE_ENVIADO_SQL})::int AS enviadas,
       count(*) FILTER(WHERE ${COMITE_DEVUELTA_SQL})::int AS devueltas
       FROM propuesta p WHERE ${scope.sql}`,[...clause.params,...scope.params])).rows[0]:undefined;
+    let resumenConsejo,pendientesConsejo;
+    if(role==='consejo_asistente'){
+      resumenConsejo=(await query(`SELECT ${Object.entries(CONSEJO_FILTROS).map(([k,v])=>`count(*) FILTER(WHERE ${v})::int AS ${k}`).join(',')} FROM propuesta p WHERE ${scope.sql}`,[...scope.params])).rows[0];
+      pendientesConsejo=(await query<BandejaRow>(`${BANDEJA_SQL} AND ${scope.sql} AND ${CONSEJO_PENDIENTE_SQL} ORDER BY rc.fecha_dictamen ASC NULLS LAST,p.fecha_envio ASC NULLS LAST,p.id_propuesta ASC LIMIT 5`,scope.params)).rows.map(mapBandeja);
+    }
     res.json({
+      resumenConsejo,pendientesConsejo,
       comiteEnviadas:resumenComite?.enviadas,
       resumenComite,
       resumenEvaluador,
@@ -384,8 +399,17 @@ evaluacionesRouter.get(
   }),
 );
 
+evaluacionesRouter.get('/evaluaciones/propuestas/:id/respaldo-consejo',requireDemoAuth,asyncHandler(async(req,res)=>{
+ if(!['consejo_asistente','consejo','direccion_escuela','admin'].includes(req.demoAuth!.role??''))throw new HttpError(403,'Sin permiso para consultar el respaldo del Consejo');
+ const id=Number(req.params.id);if(!Number.isSafeInteger(id)||id<1)throw new HttpError(400,'ID inválido');await exigirAlcance(id,req.demoAuth!);
+ const consolidated=(await query(`SELECT rc.*,u.nombre_completo AS confirmado_por FROM resultado_comite rc LEFT JOIN usuario u ON u.id_usuario=rc.id_coordinador_comite WHERE rc.id_propuesta=$1`,[id])).rows[0];
+ const remision=(await query(`SELECT ci.mensaje,ci.fecha_envio,u.nombre_completo AS remitido_por FROM comunicacion_institucional ci JOIN usuario u ON u.id_usuario=ci.id_emisor WHERE ci.id_propuesta=$1 AND ci.tipo='expediente_consejo' AND ci.confirmada ORDER BY ci.fecha_envio DESC LIMIT 1`,[id])).rows[0];
+ const enviado=!!(await query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${CONSEJO_ENVIADO_SQL}`,[id])).rowCount;
+ res.json({consolidado:consolidated??null,remision:remision??null,enviado});
+}));
+
 evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, asyncHandler(async(req,res)=>{
-  if(!roleOk(req.demoAuth!.role,"pi")&&!["comite_asistente","comite_evaluador"].includes(req.demoAuth!.role??"")){res.status(403).json({error:"Sin permiso para consultar el dictamen"});return;}
+  if(!roleOk(req.demoAuth!.role,"pi")&&!["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela"].includes(req.demoAuth!.role??"")){res.status(403).json({error:"Sin permiso para consultar el dictamen"});return;}
   const id=Number(req.params.id);
   if(!Number.isSafeInteger(id)||id<1){res.status(400).json({error:"ID inválido"});return;}
   await exigirAlcance(id,req.demoAuth!);
@@ -393,7 +417,7 @@ evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, async
   if(!proposal){res.status(404).json({error:"Propuesta no encontrada"});return;}
   const row=await query("SELECT * FROM dictamen_pi WHERE id_propuesta=$1",[id]);
   const raw=row.rows[0];
-  const d=["comite_asistente","comite_evaluador"].includes(req.demoAuth!.role??"")&&raw?.estado!=="emitido"?undefined:raw;
+  const d=["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela"].includes(req.demoAuth!.role??"")&&raw?.estado!=="emitido"?undefined:raw;
   const certification=(await query("SELECT * FROM pi_certificacion_no_requerido WHERE id_propuesta=$1",[id])).rows[0];
   const inReview=(await query("SELECT 1 FROM revision_expediente WHERE id_propuesta=$1 AND etapa='pi' AND resultado='en_revision'",[id])).rowCount;
   res.json({emitidoEn:d?.emitido_en??null,enRevision:Boolean(inReview),estado:proposal.requiere_dictamen_pi?d?.estado??null:certification?"no_requerido":null,fundamentoNoRequerido:certification?.fundamento??null,certificadoPor:certification?.id_certificador??null,fecha:certification?.fecha_certificacion??d?.fecha_dictamen??null,form:d?{
@@ -755,6 +779,10 @@ evaluacionesRouter.post(
         }
 
         case "send-council": {
+          if(prev!=='dictaminada'||propuesta.etapa_flujo!==3)throw new HttpError(409,'Solo puede remitir un dictamen consolidado pendiente de Consejo');
+          if(String(payload.texto??'').length>consejoLimits.remision)throw new HttpError(400,`La referencia de remisión admite como máximo ${consejoLimits.remision} caracteres`);
+          if((await client.query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${CONSEJO_ENVIADO_SQL}`,[id])).rowCount)throw new HttpError(409,'El expediente ya fue remitido al Consejo; no puede enviarlo nuevamente');
+          await client.query("INSERT INTO comunicacion_institucional(id_propuesta,tipo,id_emisor,destinatario_texto,confirmada,fecha_envio,fecha_confirmacion,mensaje) VALUES($1,'expediente_consejo',$2,'Consejo de profesores',true,NOW(),NOW(),$3)",[id,userId,str(payload.texto)||'Expediente remitido para revisión del Consejo.']);
           await advanceEstado(client, {
             idPropuesta: id,
             estadoAnterior: prev,
@@ -769,6 +797,7 @@ evaluacionesRouter.post(
 
         case "council-approve":
         case "council-reject": {
+          if(!(await client.query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${CONSEJO_ENVIADO_SQL}`,[id])).rowCount)throw new HttpError(409,'El asistente debe remitir primero el expediente al Consejo');
           const previous=await client.query("SELECT 1 FROM aval_consejo WHERE id_propuesta=$1",[id]);
           if(previous.rowCount)throw new HttpError(409,"El aval ya fue emitido. No se ha definido una reapertura de decisiones.");
           const texto = str(payload.texto);

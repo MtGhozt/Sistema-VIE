@@ -1,3 +1,4 @@
+import {ConsejoRespaldo} from "../components/evaluation/ConsejoRespaldo";
 import {MiEvaluacionResumen} from "../components/evaluation/MiEvaluacionResumen";
 import {VinculacionResumen} from "../components/evaluation/VinculacionResumen";
 import {toIan} from "../data/formWizardAdapter";
@@ -40,11 +41,12 @@ export function PropuestaDetallePage() {
   const isVinculacion=session?.viewRole==="vinculacion";
   const isAssistant=session?.viewRole==="comite_asistente";
   const isEvaluator=session?.viewRole==="comite_evaluador";
-  const comfortableReading=isVinculacion||isAssistant||isEvaluator;
+  const isCouncilAssistant=session?.viewRole==="consejo_asistente";
+  const comfortableReading=isVinculacion||isAssistant||isEvaluator||isCouncilAssistant;
   const [expandedReading,setExpandedReading]=useState(false);
   const savedReturn=(location.state as {returnTo?:string}|null)?.returnTo;
   const returnParams=new URLSearchParams(savedReturn?.split('?')[1]??'');
-  const evaluationReturn=(isAssistant||isEvaluator)&&Boolean(savedReturn?.startsWith('/evaluaciones?')&&returnParams.get('propuesta')===String(proposalId)&&Array.from(returnParams.keys()).every(key=>['propuesta','evaluacion'].includes(key))&&(!returnParams.has('evaluacion')||['pendiente','en_progreso','completada'].includes(returnParams.get('evaluacion')??'')));
+  const evaluationReturn=(isAssistant||isEvaluator||isCouncilAssistant)&&Boolean(savedReturn?.startsWith('/evaluaciones?')&&returnParams.get('propuesta')===String(proposalId)&&Array.from(returnParams.keys()).every(key=>['propuesta','evaluacion'].includes(key))&&(!returnParams.has('evaluacion')||['pendiente','en_progreso','completada'].includes(returnParams.get('evaluacion')??'')));
   const backTo=evaluationReturn?savedReturn!:comfortableReading?(savedReturn&&/^\/historico(?:\?|$)/.test(savedReturn)?savedReturn:"/historico"):"/propuestas";
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
@@ -289,6 +291,7 @@ export function PropuestaDetallePage() {
         />
       </section>
 
+      {isCouncilAssistant&&<ConsejoRespaldo id={detail.id}/>}
       {isEvaluator&&<MiEvaluacionResumen id={detail.id}/>}
       {comfortableReading&&<VinculacionResumen id={detail.id}/>}
       <div className={`wizard-layout wizard-layout-wide${expandedReading?" expediente-expanded":""}`}>

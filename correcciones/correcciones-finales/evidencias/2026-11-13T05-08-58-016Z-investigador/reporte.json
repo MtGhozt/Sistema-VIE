@@ -1,0 +1,107 @@
+{
+  "run": "2026-11-13T05-08-58-016Z",
+  "capturas": false,
+  "fixtures": [
+    68,
+    69
+  ],
+  "results": [
+    {
+      "name": "Datos de prueba: fixture completo permite todas las secciones 0–14",
+      "status": "PASA"
+    },
+    {
+      "name": "Siguiente: resumen de todos los errores, campo rojo, índice rojo y no avanza",
+      "status": "PASA"
+    },
+    {
+      "name": "Guardar borrador vacío: muestra campos requeridos sin perder el formulario",
+      "status": "PASA"
+    },
+    {
+      "name": "Fechas DD/MM/YYYY y botón Calendario con navegador en inglés",
+      "status": "PASA"
+    },
+    {
+      "name": "Contrapartida: opciones No / Sí en orden y estado de gestión se conserva",
+      "status": "PASA"
+    },
+    {
+      "name": "Índice verde y navegación a resumen con fixture válido",
+      "status": "PASA"
+    },
+    {
+      "name": "Resumen: cuenta palabras, barra azul y no permite exceder 500",
+      "status": "PASA"
+    },
+    {
+      "name": "Institución externa: escritura persiste en formulario, API y recarga",
+      "status": "PASA"
+    },
+    {
+      "name": "Horas negativas/decimales: señala campo y bloquea Siguiente",
+      "status": "PASA"
+    },
+    {
+      "name": "Nombramiento: dos fechas, calendario y rechazo del fin anterior",
+      "status": "PASA"
+    },
+    {
+      "name": "CONS: explicación documentada y campo contextual",
+      "status": "PASA"
+    },
+    {
+      "name": "API: horas decimales y negativas no se guardan",
+      "status": "PASA"
+    },
+    {
+      "name": "Plan: meses decimales documentados, proyecto corto limita a su duración real",
+      "status": "PASA"
+    },
+    {
+      "name": "API: plan corto acepta 0,07 y rechaza 1 mes; acortar proyecto revierte cambios",
+      "status": "PASA"
+    },
+    {
+      "name": "Actividades/riesgos/divulgación/ética/hoja de ruta: límites y barras azules",
+      "status": "PASA"
+    },
+    {
+      "name": "Cédula: máscara X-XXXX-XXXX y errores de formato",
+      "status": "PASA"
+    },
+    {
+      "name": "Expediente: secciones contraíbles funcionan y datos permanecen en solo lectura",
+      "status": "PASA"
+    },
+    {
+      "name": "Revisión final: contenedores desplegables y tamaño de letra",
+      "status": "PASA"
+    },
+    {
+      "name": "Filtros: estado desde Inicio y búsqueda se conservan al recargar y limpiar",
+      "status": "PASA"
+    },
+    {
+      "name": "Presupuesto: valores inválidos se señalan y PIELS conserva ₡15 millones documentados",
+      "status": "PASA"
+    },
+    {
+      "name": "API: límites de texto, cédula, presupuesto y fechas rechazan sin cambios parciales",
+      "status": "PASA"
+    },
+    {
+      "name": "Subsanación: acceso directo a objetivos, guía y solo secciones autorizadas",
+      "status": "PASA"
+    },
+    {
+      "name": "Subsanación: guardar conserva respuesta y problema tras recargar",
+      "status": "PASA"
+    },
+    {
+      "name": "Subsanación: no habilita campos ajenos y reenvía a la misma instancia",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

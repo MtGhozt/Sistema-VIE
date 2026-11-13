@@ -14,9 +14,9 @@
     "baseline:api": "node scripts/baseline-flow.mjs",
     "regression:decisions": "node scripts/regression-decisions.mjs",
     "regression:completion": "node scripts/regression-completion.mjs",
-    "regression:completion-ui": "node scripts/regression-completion-ui.mjs",
+    "regression:completion-ui": "node scripts/verificar-actual.mjs --ui",
     "regression:api": "node scripts/regression-api.mjs",
-    "regression:ui": "node scripts/regression-ui.mjs",
+    "regression:ui": "node scripts/verificar-actual.mjs --ui",
     "test:fresh-schema": "node scripts/test-fresh-schema.mjs",
     "test:lifecycle": "node scripts/test-lifecycle.mjs",
     "baseline:ui": "node scripts/baseline-ui.mjs",
@@ -26,7 +26,8 @@
     "regression:vie-final": "node scripts/regression-vie-final.mjs",
     "regression:investigador-final": "node scripts/regression-investigador-final.mjs",
     "regression:investigador-ajustes": "node scripts/regression-investigador-ajustes.mjs",
-    "regression:vinculacion-final": "node scripts/regression-vinculacion-final.mjs"
+    "regression:vinculacion-final": "node scripts/regression-vinculacion-final.mjs",
+    "test:actual": "node scripts/verificar-actual.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.10",

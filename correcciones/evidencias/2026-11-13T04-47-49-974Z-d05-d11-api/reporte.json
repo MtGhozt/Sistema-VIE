@@ -1,0 +1,100 @@
+{
+  "run": "2026-11-13T04-47-49-974Z",
+  "scope": "D05–D11, API real, archivos locales, rubricación individual y recorrido hasta cierre; SQL solo lee resultados.",
+  "results": [
+    {
+      "name": "Guardar borrador parcial persiste y abstract solo se exige al enviar",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: carga, descarga binaria exacta y versión concurrente",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: otra instancia de API recupera el binario persistido en disco",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: no acepta rutas, extensión falsa, tamaño excesivo ni borrador ajeno",
+      "status": "PASA"
+    },
+    {
+      "name": "Plantilla oficial XLSX se descarga y acepta como adjunto real",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: retiro lógico conserva versión y bloquea descarga",
+      "status": "PASA"
+    },
+    {
+      "name": "Rúbrica oficial: 100 puntos, tres evaluadores y escalas completas",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: borrador individual guardado/releído y notas de usuarios separadas",
+      "status": "PASA"
+    },
+    {
+      "name": "Versionado: nueva rúbrica no altera la que utiliza un expediente iniciado",
+      "status": "PASA"
+    },
+    {
+      "name": "Consolidación: promedio de tres notas y requisito regular desfavorable",
+      "status": "PASA"
+    },
+    {
+      "name": "Recomendación negativa informa al Consejo y no crea resolución CIE",
+      "status": "PASA"
+    },
+    {
+      "name": "Reconsideración: solicitud, autorización y conservación de decisión anterior",
+      "status": "FALLA",
+      "detail": "POST /evaluaciones/propuestas/1538/acciones: 409 {\"error\":\"El asistente debe remitir primero el expediente al Consejo\"}; esperado 200"
+    },
+    {
+      "name": "Precondiciones VIE/CIE: comunicación, checklist y remisión reales",
+      "status": "FALLA",
+      "detail": "POST /evaluaciones/propuestas/1538/acciones: 409 {\"error\":\"Se requiere un aval aprobado antes de comunicarlo a VIE\"}; esperado 200"
+    },
+    {
+      "name": "Subsanación documental: solo archivos autorizados y reenvío a Comité",
+      "status": "FALLA",
+      "detail": "POST /evaluaciones/propuestas/1560/acciones: 409 {\"error\":\"La revisión de completitud ya terminó y la propuesta está en el Cuerpo Evaluador; no puede devolverla desde recepción\"}; esperado 200"
+    },
+    {
+      "name": "Subsanación tras una nota entregada abre otro ciclo y rechaza guardados antiguos",
+      "status": "FALLA",
+      "detail": "POST /evaluaciones/propuestas/1564/acciones: 409 {\"error\":\"La revisión de completitud ya terminó y la propuesta está en el Cuerpo Evaluador; no puede devolverla desde recepción\"}; esperado 200"
+    },
+    {
+      "name": "Desarrollo tecnológico: activo de lista 5.5.a más académicos por cada diez horas",
+      "status": "FALLA",
+      "detail": "POST /propuestas/1566/enviar: 400 {\"error\":\"Período de nombramiento: indique inicio y fin reales en DD/MM/YYYY, con año entre 2000 y 2100 y fin igual o posterior al inicio.\"}; esperado 200"
+    },
+    {
+      "name": "Admin: CRUD de catálogos con bajas lógicas y protección por rol",
+      "status": "PASA"
+    },
+    {
+      "name": "Catálogo de modalidades y baja de rúbrica conservan versiones y nombres reales",
+      "status": "PASA"
+    },
+    {
+      "name": "Admin: alta, edición, rol, escuela, contraseña y baja de usuario",
+      "status": "PASA"
+    },
+    {
+      "name": "Admin no puede retirar su propio acceso ni usar una acción override",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: sustitución auditada conserva borradores y excluye notas del miembro retirado",
+      "status": "PASA"
+    },
+    {
+      "name": "Formulario: titularidad CONS se guarda y se exige al enviar",
+      "status": "FALLA",
+      "detail": "POST /propuestas/1583/enviar: 400 {\"error\":\"Período de nombramiento: indique inicio y fin reales en DD/MM/YYYY, con año entre 2000 y 2100 y fin igual o posterior al inicio.\"}; esperado 200"
+    }
+  ]
+}

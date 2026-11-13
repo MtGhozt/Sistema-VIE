@@ -1,3 +1,6 @@
+import {ConsejoRespaldo} from "./ConsejoRespaldo";
+import {VinculacionResumen} from "./VinculacionResumen";
+import consejoTextLimits from "../../../../shared/consejo-text-limits.json";
 import comiteTextLimits from "../../../../shared/comite-text-limits.json";
 import {Link} from "react-router-dom";
 import {WordBudget} from "../WordBudget";
@@ -20,7 +23,7 @@ import {
   getRubricForModalidad,
   getRubricSections,
 } from "../../data/evaluationRubrics";
-import { IconClipboard, IconFile, IconShield } from "../icons";
+import { IconFile, IconShield } from "../icons";
 import { ProcessTimeline } from "../ProcessTimeline";
 import { CaseFile } from "./CaseFile";
 import { SimpleModal } from "./SimpleModal";
@@ -823,63 +826,12 @@ export function ConsejoAsistentePanel({
   proposal: DemoProposal;
   onAction: ActionHandler;
 }) {
-  const avg = proposal.evaluacionComite?.average;
-  return (
-    <div className="split-review">
-      <CaseFile proposal={proposal} />
-      <article className="card review-panel">
-        <PanelIntro
-          title="Preparar expediente para sesión"
-          description="Verifique que el expediente recibido del Comité esté listo para el Consejo."
-        />
-        <div className="document-list compact">
-          <div className="document-row">
-            <IconClipboard size={18} />
-            <div>
-              <strong>Calificación del Comité Técnico</strong>
-              <span>{avg == null ? "Sin nota registrada" : `${avg}% · consolidada`}</span>
-            </div>
-            <span className="badge badge-primary">Recibida</span>
-          </div>
-          <div className="document-row">
-            <IconFile size={18} />
-            <div>
-              <strong>Oficio del Comité</strong>
-              <span>{proposal.oficioComite || "Sin oficio registrado"}</span>
-            </div>
-            <span className="badge badge-primary">Adjunto</span>
-          </div>
-          <div className="document-row">
-            <IconShield size={18} />
-            <div>
-              <strong>Dictamen de PI</strong>
-              <span>
-                {proposal.piRequired
-                  ? proposal.oficioPI || "Sin dictamen registrado"
-                  : proposal.piAcreditada ? "No requerido (certificado)" : "Falta certificación"}
-              </span>
-            </div>
-            <span className="badge badge-primary">Verificado</span>
-          </div>
-        </div>
-        <label className="field">
-          <span className="field-label">Sesión del Consejo</span>
-          <select className="input" defaultValue="0">
-            <option>Sesión ordinaria — 22 Sep 2026</option>
-            <option>Sesión extraordinaria — 25 Sep 2026</option>
-          </select>
-        </label>
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={proposal.estado==='Aval rechazado'}
-            onClick={() => onAction("send-council")}
-        >
-          Enviar al Consejo
-        </button>
-      </article>
-    </div>
-  );
+  const [texto,setTexto]=useState(''),[sending,setSending]=useState(false);
+  return <div className="split-review council-assistant-workspace"><CaseFile proposal={proposal}/><article className="card review-panel"><PanelIntro title="Preparar expediente para sesión" description="Consulte el expediente y sus respaldos antes de remitir. La aprobación o rechazo del aval corresponde al Consejo de profesores."/>
+    {proposal.numericId&&<><ConsejoRespaldo id={proposal.numericId}/><VinculacionResumen id={proposal.numericId}/></>}
+    <label className="field"><span className="field-label">Referencia de sesión o nota de remisión</span><small>Opcional: indique la sesión si ya se conoce o una nota de preparación. No asigna una fecha ni constituye un aval.</small><textarea aria-label="Referencia de sesión o nota de remisión" className="input textarea" value={texto} maxLength={consejoTextLimits.remision} aria-describedby="consejo-remision-budget" onChange={e=>setTexto(e.target.value)}/><WordBudget id="consejo-remision-budget" value={texto} maxWords={consejoTextLimits.remision} unit="caracteres"/></label>
+    <button type="button" className="btn btn-primary" disabled={sending||proposal.estado!=='Dictaminada'} onClick={async()=>{if(sending)return;setSending(true);try{await onAction('send-council',{texto});}finally{setSending(false);}}}>{sending?'Enviando…':'Enviar al Consejo'}</button>
+  </article></div>;
 }
 
 export function ConsejoPanel({

@@ -1,0 +1,57 @@
+{
+  "run": "2026-11-13T04-52-52-911Z",
+  "capturas": false,
+  "secuencial": true,
+  "base": "fondos_vie_test",
+  "estado": "FALLA",
+  "suites": [
+    {
+      "suite": "test-fresh-schema",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {},
+      "report": "2026-11-13T04-52-52-966Z-esquema-nuevo",
+      "log": "test-fresh-schema.txt"
+    },
+    {
+      "suite": "regression-api",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 33
+      },
+      "report": "correcciones/evidencias/2026-11-13T04-52-53-464Z-regresion-api",
+      "log": "regression-api.txt"
+    },
+    {
+      "suite": "regression-decisions",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 14
+      },
+      "report": "correcciones/evidencias/2026-11-13T04-52-56-111Z-decisiones-d01-d04",
+      "log": "regression-decisions.txt"
+    },
+    {
+      "suite": "regression-completion",
+      "status": "FALLA",
+      "exit": 1,
+      "counts": {
+        "PASA": 19,
+        "FALLA": 3
+      },
+      "report": "correcciones/evidencias/2026-11-13T04-52-59-384Z-d05-d11-api",
+      "log": "regression-completion.txt"
+    }
+  ],
+  "pendientes": [
+    "regression-merge-ian",
+    "regression-convocatoria-requisitos",
+    "regression-vie-final",
+    "regression-investigador-final",
+    "regression-investigador-ajustes",
+    "regression-vinculacion-final",
+    "baseline-flow"
+  ]
+}

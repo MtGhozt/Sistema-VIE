@@ -1,3 +1,4 @@
+import {CONSEJO_FILTROS} from "../consejoEstado.js";
 import {estadoEvaluadorSql,asignadoEvaluadorSql} from "../evaluadorEstado.js";
 import {COMITE_DEVUELTA_SQL} from "../comiteEstado.js";
 import {ESTADO_PI_SQL,ESTADOS_PI} from "../estadoPi.js";
@@ -220,6 +221,8 @@ historicoRouter.get(
     if(filtros.comite&&filtros.comite!=="devueltas")throw new HttpError(400,"Seleccione un filtro de devoluciones del Comité válido.");
     if(filtros.pi&&!Object.hasOwn(ESTADOS_PI,filtros.pi))throw new HttpError(400,"Seleccione un estado de PI válido.");
     const { where, values } = buildWhere(filtros);
+    const consejo=String(q.consejo??'');
+    if(consejo){if(!Object.hasOwn(CONSEJO_FILTROS,consejo))throw new HttpError(400,'Filtro del Consejo inválido');where.push(`(${CONSEJO_FILTROS[consejo]})`);}
     const personal=String(q.evaluacion??'');
     if(personal){
       if(req.demoAuth!.role!=='comite_evaluador'||!['pendiente','en_progreso','completada'].includes(personal))throw new HttpError(400,'Filtro de evaluación individual inválido');

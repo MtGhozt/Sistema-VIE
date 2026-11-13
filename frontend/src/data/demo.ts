@@ -77,7 +77,7 @@ export const HOME_BY_ROLE: Record<RoleId, HomeSummary> = {
     stats: [
       ["Recibidos", "4"],
       ["Pendientes de preparar", "2"],
-      ["Listos para sesión", "2"],
+      ["En Consejo", "2"],
       ["Enviados", "9"],
     ],
   },

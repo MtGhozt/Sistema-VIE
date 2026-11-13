@@ -1,0 +1,96 @@
+{
+  "run": "2026-11-13T05-05-06-015Z",
+  "capturas": false,
+  "secuencial": true,
+  "base": "fondos_vie_test",
+  "estado": "FALLA",
+  "suites": [
+    {
+      "suite": "test-lifecycle",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 12
+      },
+      "report": "correcciones/evidencias/2026-11-13T05-05-06-042Z-ciclo-instalacion",
+      "log": "test-lifecycle.txt"
+    },
+    {
+      "suite": "test-fresh-schema",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 1
+      },
+      "report": "correcciones/evidencias/2026-11-13T05-05-06-245Z-esquema-nuevo",
+      "log": "test-fresh-schema.txt"
+    },
+    {
+      "suite": "regression-api",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 33
+      },
+      "report": "correcciones/evidencias/2026-11-13T05-05-06-818Z-regresion-api",
+      "log": "regression-api.txt"
+    },
+    {
+      "suite": "regression-decisions",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 14
+      },
+      "report": "correcciones/evidencias/2026-11-13T05-05-10-123Z-decisiones-d01-d04",
+      "log": "regression-decisions.txt"
+    },
+    {
+      "suite": "regression-completion",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 22
+      },
+      "report": "correcciones/evidencias/2026-11-13T05-05-14-676Z-d05-d11-api",
+      "log": "regression-completion.txt"
+    },
+    {
+      "suite": "regression-merge-ian",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 8
+      },
+      "report": "correcciones/evidencias/2026-11-13T05-05-18-918Z-merge-ian",
+      "log": "regression-merge-ian.txt"
+    },
+    {
+      "suite": "regression-convocatoria-requisitos",
+      "status": "PASA",
+      "exit": 0,
+      "counts": {
+        "PASA": 15
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T05-05-23-018Z-requisitos-convocatoria",
+      "log": "regression-convocatoria-requisitos.txt"
+    },
+    {
+      "suite": "regression-vie-final",
+      "status": "FALLA",
+      "exit": 1,
+      "counts": {
+        "PASA": 5,
+        "FALLA": 9
+      },
+      "report": "correcciones/correcciones-finales/evidencias/2026-11-13T05-05-24-735Z-vie-publicacion",
+      "log": "regression-vie-final.txt"
+    }
+  ],
+  "pendientes": [
+    "regression-investigador-final",
+    "regression-investigador-ajustes",
+    "regression-vinculacion-final",
+    "baseline-flow"
+  ]
+}

@@ -11,7 +11,7 @@ Uso: ./instalar.sh [--pruebas] [--verificar] [--con-navegador] [--simular]
 
 Instala dependencias del proyecto, compila, levanta PostgreSQL y aplica migraciones.
   --pruebas        Base aislada fondos_vie_test, puerto 55432.
-  --verificar      Ejecuta las regresiones API, D01–D11 y Chromium; requiere --pruebas.
+  --verificar      Reinicia la BD aislada y ejecuta la batería actual completa; requiere --pruebas.
   --con-navegador  Descarga Chromium de Playwright (implícito con --verificar).
   --simular        Muestra las acciones sin instalar ni modificar datos.
   --help           Muestra esta ayuda.
@@ -64,15 +64,9 @@ if "$DRY_RUN"; then printf 'Simular: aplicar migraciones al perfil %s (sin mostr
 else DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" db:migrate; fi
 if "$BROWSER"; then run "${PNPM_CMD[@]}" exec playwright install chromium; fi
 if "$VERIFY"; then
-  if "$DRY_RUN"; then printf 'Simular: ejecutar test:fresh-schema, regression:api, regression:decisions, regression:completion, regression:ui, regression:completion-ui y regression:merge-ian en fondos_vie_test.\n'
+  if "$DRY_RUN"; then printf 'Simular: reiniciar fondos_vie_test, cargar 16 escenarios y ejecutar verificar-actual.sh secuencialmente, sin capturas.\n'
   else
-    TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" test:fresh-schema
-    TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:api
-    TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:decisions
-    TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:completion
-    TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:ui
-    TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:completion-ui
-    TEST_DATABASE_URL="$DB_URL" "${PNPM_CMD[@]}" regression:merge-ian
+    TEST_DATABASE_URL="$DB_URL" "$ROOT_DIR/verificar-actual.sh" --reiniciar
   fi
 fi
 if "$DRY_RUN"; then printf 'Simulación completada; no se instaló ni modificó el proyecto.\n'; exit 0; fi

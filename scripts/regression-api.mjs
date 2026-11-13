@@ -35,7 +35,9 @@ async function draft() {
 }
 // Precondiciones sintéticas de pruebas aisladas; baseline-flow recorre las transiciones reales.
 async function stageFixture(id){const p=(await env.pool.query('SELECT etapa_flujo FROM propuesta WHERE id_propuesta=$1',[id])).rows[0];if(p.etapa_flujo>0)await env.pool.query('UPDATE propuesta SET fecha_envio=NOW() WHERE id_propuesta=$1',[id]);
+ if(p.etapa_flujo>=2)await env.pool.query("INSERT INTO revision_expediente(id_propuesta,etapa,ciclo,id_revisor,resultado,fecha_inicio,fecha_fin) SELECT $1,'comite',1,id_usuario,'completo',NOW(),NOW() FROM usuario WHERE correo_institucional='comite_asistente@tec.ac.cr' ON CONFLICT DO NOTHING",[id]);
  if(p.etapa_flujo>=3)await env.pool.query("INSERT INTO resultado_comite(id_propuesta,recomendacion,calificacion_promedio,fundamento) VALUES($1,'recomienda',80,'Fixture de ruta') ON CONFLICT DO NOTHING",[id]);
+ if(p.etapa_flujo>=3)await env.pool.query("INSERT INTO comunicacion_institucional(id_propuesta,tipo,id_emisor,confirmada,fecha_envio) SELECT $1,'expediente_consejo',id_usuario,true,NOW() FROM usuario WHERE correo_institucional='consejo_asistente@tec.ac.cr'",[id]);
  if(p.etapa_flujo>=4){await env.pool.query("INSERT INTO aval_consejo(id_propuesta,resultado,observaciones) VALUES($1,'aprueba','Fixture de ruta') ON CONFLICT DO NOTHING",[id]);await env.pool.query("INSERT INTO comunicacion_institucional(id_propuesta,tipo,id_emisor,confirmada,fecha_envio) SELECT $1,'aval_consejo',id_usuario,true,NOW() FROM usuario WHERE correo_institucional='direccion_escuela@tec.ac.cr'",[id]);}
  if(p.etapa_flujo>=5)await env.pool.query("INSERT INTO propuesta_historial_estado(id_propuesta,estado_nuevo,fecha_hora,observacion) VALUES($1,'avalada',NOW(),'Expediente remitido al CIE')",[id]);
 }
@@ -113,7 +115,7 @@ try {
   await check('Vinculación recupera el dictamen emitido y no mezcla propuestas',async()=>{
     const id=await draft(),other=await draft();await env.pool.query('DELETE FROM pi_certificacion_no_requerido WHERE id_propuesta=ANY($1::int[])',[[id,other]]);await env.pool.query("UPDATE propuesta SET requiere_dictamen_pi=true,estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=ANY($1::int[])",[[id,other]]);
     const form={potencial:'Sí',innovacion:'No',tipoActivo:'Activo propio',tipoPI:'Autoría',novedad:'Novedad propia',titularidad:'Titularidad propia',divulgacion:'Recomendación propia',confidencialidad:'Análisis propio',analisis:'Dictamen humano propio',recomendaciones:'Recomendación humana',oficio:`CV-RG-${id}`,fecha:'2026-10-31'};
-    await action(id,'vinculacion','pi',form);const saved=await call(`/evaluaciones/propuestas/${id}/pi`,'vinculacion');assert.deepEqual(saved.form,form);assert.equal((await call(`/evaluaciones/propuestas/${other}/pi`,'vinculacion')).form,null);
+    await action(id,'vinculacion','pi',form);const saved=await call(`/evaluaciones/propuestas/${id}/pi`,'vinculacion');const {oficio,fecha,...content}=form;const {oficio:assigned,fecha:issued,...stored}=saved.form;assert.deepEqual(stored,content);assert.match(assigned,/^CV-\d{4}-\d+$/);assert.notEqual(assigned,oficio);assert.notEqual(issued,fecha);assert.ok(saved.emitidoEn);assert.equal((await call(`/evaluaciones/propuestas/${other}/pi`,'vinculacion')).form,null);
     await call(`/evaluaciones/propuestas/${id}/pi`,'investigador','GET',undefined,403);
   });
   await check('Checklist VIE persiste y bloquea remisión incompleta',async()=>{

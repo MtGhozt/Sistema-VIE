@@ -1,0 +1,14 @@
+PASA ayuda sin dependencias
+PASA rechazar flags desconocidos
+PASA verificar solo permite base aislada
+PASA instalación simulada no ejecuta comandos
+PASA instalación usa lockfile y compila antes de migrar
+PASA perfil aislado y health antes de migrar
+PASA batería actual y navegador después de instalar
+PASA desinstalación simulada no toca datos ni dependencias
+PASA detener conserva dependencias y volumen por defecto
+PASA desinstalar elimina únicamente directorios generados
+PASA sin purga no solicita borrar el volumen
+PASA borrado de datos requiere flag explícito
+12 comprobaciones PASA. Docker/pnpm fueron dobles de prueba; no se retiraron dependencias reales.
+Evidencia: correcciones/evidencias/2026-11-13T05-05-06-042Z-ciclo-instalacion

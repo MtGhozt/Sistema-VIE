@@ -1,0 +1,77 @@
+{
+  "run": "2026-11-13T05-05-24-735Z",
+  "fechaEscenarioCR": "2026-11-11",
+  "capturas": false,
+  "scope": "VIE Publicación: acceso, inicio, listado, creación, edición, revisión, acciones, histórico y notificaciones; Chromium en locale en-US; API propia y PostgreSQL aislado.",
+  "fixtures": [
+    18
+  ],
+  "results": [
+    {
+      "name": "Acceso: mensajes propios en español con navegador en inglés",
+      "status": "PASA"
+    },
+    {
+      "name": "Crear: pantalla propia, campos señalados y validación de fechas antes de guardar",
+      "status": "FALLA",
+      "detail": "expect(page).toHaveURL(expected) failed\n\nExpected pattern: /\\/convocatorias\\/\\d+$/\nReceived string:  \"http://127.0.0.1:41009/convocatorias/nueva\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"toHaveURL\" with timeout 5000ms\n    14 × locator resolved to <html lang=\"es\">…</html>\n       - unexpected value \"http://127.0.0.1:41009/convocatorias/nueva\"\n"
+    },
+    {
+      "name": "Edición y recarga: conserva actividades e identificadores internos sin mostrarlos",
+      "status": "FALLA",
+      "detail": "The expression evaluated to a falsy value:\n\n  assert.ok(created)\n"
+    },
+    {
+      "name": "Revisión móvil: fechas legibles DD-MM-AAAA y cronograma sin desbordar",
+      "status": "FALLA",
+      "detail": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Cronograma y responsables', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('heading', { name: 'Cronograma y responsables', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: 'Cronograma y responsables', exact: true })\n"
+    },
+    {
+      "name": "Publicar/cerrar/eliminar: confirmaciones reales, cancelación y mensajes de éxito",
+      "status": "FALLA",
+      "detail": "locator.click: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Publicar', exact: true })\u001b[22m\n"
+    },
+    {
+      "name": "Filtros independientes: limpiar o plegar uno conserva el otro",
+      "status": "FALLA",
+      "detail": "{\"error\":\"La apertura no puede estar en el pasado. Indique 12/11/2026 o una fecha posterior.\"}\n\n400 !== 201\n"
+    },
+    {
+      "name": "Inicio: prioridades de cierre reales, incluye hoy en Costa Rica y excluye vencidas/borradores/cerradas",
+      "status": "FALLA",
+      "detail": "{\"error\":\"La apertura no puede estar en el pasado. Indique 12/11/2026 o una fecha posterior.\"}\n\n400 !== 201\n"
+    },
+    {
+      "name": "API: publicar vuelve a validar el cronograma almacenado y revierte una transición inválida",
+      "status": "FALLA",
+      "detail": "{\"error\":\"La apertura no puede estar en el pasado. Indique 12/11/2026 o una fecha posterior.\"}\n\n400 !== 201\n"
+    },
+    {
+      "name": "Histórico y notificaciones: filtros separados, fechas y pantallas accesibles al rol",
+      "status": "PASA"
+    },
+    {
+      "name": "Calendario nativo: selección asistida, botón y límites de las actividades",
+      "status": "PASA"
+    },
+    {
+      "name": "API: presupuesto obligatorio, cero explícito y rechazo de nulo sin cambiar el valor",
+      "status": "FALLA",
+      "detail": "{\"error\":\"La apertura no puede estar en el pasado. Indique 12/11/2026 o una fecha posterior.\"}\n\n400 !== 201\n"
+    },
+    {
+      "name": "API: crear, editar, acortar período y agregar actividades rechaza fechas fuera del intervalo sin cambios parciales",
+      "status": "PASA"
+    },
+    {
+      "name": "Permisos de pantallas nuevas: investigador consulta pero no publica ni edita",
+      "status": "FALLA",
+      "detail": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Datos de la convocatoria', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('heading', { name: 'Datos de la convocatoria', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: 'Datos de la convocatoria', exact: true })\n"
+    },
+    {
+      "name": "Fallo de servidor: respuesta sin JSON no muestra Service Unavailable en inglés",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

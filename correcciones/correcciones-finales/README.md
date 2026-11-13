@@ -32,3 +32,7 @@ La evidencia se guarda en `evidencias/` con fecha UTC. Las fechas de estos docum
 - [Asistente del Comité Técnico](ASISTENTE-COMITE-TECNICO.md): acceso destacado, lectura ampliable, regreso a la evaluación y consulta del dictamen PI. Pendiente de revisión manual. Vinculación aceptado por el usuario.
 
 - [Cuerpo Evaluador del Comité Técnico](CUERPO-EVALUADOR-COMITE-TECNICO.md): indicadores personales, Histórico, lectura ampliable y rúbrica con contadores, nota y progreso. Pendiente de aceptación manual.
+
+- [Asistente del Consejo de Escuela](ASISTENTE-CONSEJO-ESCUELA.md): alcance del rol, indicadores, prioridades, respaldos, remisión y reinicio reproducible de datos. Pendiente de aceptación manual.
+
+- [Datos demo actuales](DATOS-DE-PRUEBA.md): inventario de los 16 casos cargados tras el reinicio de desarrollo y pruebas. Validación integrada: 12 baterías aprobadas (270 comprobaciones y 6 casos no aplicables).

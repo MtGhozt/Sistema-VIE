@@ -222,6 +222,8 @@ export function ComiteAsistentePanel({
   const [motivo, setMotivo] = useState(
     "Falta completar documentación requerida por el Comité Técnico.",
   );
+  const [enviado,setEnviado]=useState(false),[checking,setChecking]=useState(true),[statusError,setStatusError]=useState(''),[sending,setSending]=useState(false);
+  useEffect(()=>{let active=true;setChecking(true);apiJson<{enviado:boolean}>(`/api/evaluaciones/propuestas/${proposal.numericId}/comite`).then(d=>{if(active)setEnviado(d.enviado);}).catch(e=>{if(active)setStatusError(e.message);}).finally(()=>{if(active)setChecking(false);});return()=>{active=false;};},[proposal.numericId]);
   const allOk = Object.values(checks).every(Boolean);
 
   return (
@@ -232,13 +234,17 @@ export function ComiteAsistentePanel({
           title="Checklist de completitud"
           description="Verifique la documentación formal antes de iniciar la evaluación técnica."
         />
-        {proposal.numericId&&<ComiteConsolidado id={proposal.numericId} confirm={texto=>onAction("committee-confirm",{texto})}/>}
+        {enviado&&proposal.numericId&&<ComiteConsolidado id={proposal.numericId} confirm={texto=>onAction("committee-confirm",{texto})}/>}
+        {statusError&&<p role="alert">{statusError}</p>}
+        {checking?<p role="status">Consultando estado de recepción…</p>:<p role="status" className={enviado?'badge badge-success':'badge'}>{enviado?'Enviada al Cuerpo Evaluador · recepción completada':'Pendiente de revisión de completitud'}</p>}
+        {enviado&&<p>La propuesta está en evaluación técnica. Aquí puede dar seguimiento a las evaluaciones y confirmar su consolidado cuando estén completas.</p>}
         <div className="checklist" role="group" aria-label="Checklist de completitud">
           {Object.entries(checks).map(([name, ok]) => (
             <label key={name} className="check-row">
               <input
                 type="checkbox"
                 checked={ok}
+                disabled={enviado||checking||Boolean(statusError)||sending}
                 onChange={() =>
                   setChecks((c) => ({ ...c, [name]: !c[name] }))
                 }
@@ -251,10 +257,11 @@ export function ComiteAsistentePanel({
             </label>
           ))}
         </div>
-        <div className="action-row">
+        {!enviado&&<div className="action-row">
           <button
             type="button"
             className="btn btn-secondary"
+            disabled={checking||Boolean(statusError)||sending}
             onClick={() => setReturnOpen(true)}
           >
             Devolver con observaciones
@@ -262,14 +269,14 @@ export function ComiteAsistentePanel({
           <button
             type="button"
             className="btn btn-primary"
-            disabled={!allOk}
-            onClick={() => onAction("committee-ready")}
+            disabled={!allOk||checking||Boolean(statusError)||sending}
+            onClick={async () => {if(sending)return;setSending(true);try{if(await onAction("committee-ready"))setEnviado(true);}finally{setSending(false);}}}
           >
-            Enviar a evaluación
+            {sending?"Enviando…":"Enviar a evaluación"}
           </button>
-        </div>
+        </div>}
         <SimpleModal
-          open={returnOpen}
+          open={returnOpen&&!enviado}
           title="Devolver propuesta"
           description="Registre claramente los faltantes que debe atender la persona investigadora."
           onClose={() => setReturnOpen(false)}

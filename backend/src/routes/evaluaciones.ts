@@ -1,3 +1,5 @@
+import {COMITE_ENVIADO_SQL} from "../comiteEstado.js";
+import comiteLimits from "../../../shared/comite-text-limits.json" with {type:"json"};
 import piLimits from "../../../shared/pi-text-limits.json" with { type: "json" };
 import { alcancePropuestas, exigirAlcance, etapaRol } from "../alcancePropuestas.js";
 import { seccionesSubsanacion } from "../subsanacion.js";
@@ -70,11 +72,13 @@ type BandejaRow = {
   coordinador_correo: string;
   fecha_resolucion: string | null;
   vie_checks: Record<string,boolean>;
+  comite_enviado:boolean;
 };
 
 const BANDEJA_SQL = `
   SELECT
     p.id_propuesta,
+    (${COMITE_ENVIADO_SQL}) AS comite_enviado,
     p.codigo,
     p.titulo,
     p.modalidad,mc.nombre AS modalidad_nombre,
@@ -114,6 +118,7 @@ const BANDEJA_SQL = `
 
 function mapBandeja(row: BandejaRow) {
   return {
+    comiteEnviado:row.comite_enviado,
     id: row.id_propuesta,
     codigo: row.codigo,
     titulo: row.titulo,
@@ -191,11 +196,12 @@ function bandejaClause(role: string | null | undefined): {
         params: [],
       };
     case "comite_asistente":
-    case "comite_evaluador":
       return {
         sql: ` AND p.etapa_flujo BETWEEN 1 AND 2 AND p.estado_actual IN ('enviada', 'en_evaluacion', 'dictaminada')`,
         params: [],
       };
+    case "comite_evaluador":
+      return {sql:` AND p.etapa_flujo=2 AND p.estado_actual='en_evaluacion' AND ${COMITE_ENVIADO_SQL}`,params:[]};
     case "consejo_asistente":
     case "consejo":
     case "direccion_escuela":
@@ -302,6 +308,10 @@ evaluacionesRouter.get(
     if(requestedView && (authenticatedRole!=="admin" || !EVALUATION_VIEWS.has(requestedView))){res.status(403).json({error:"Vista de evaluación no permitida"});return;}
     const role = requestedView || authenticatedRole;
     const clause = bandejaClause(role);
+    const comiteFilter=String(req.query.comite??'');
+    if(comiteFilter&&(!['recepcion','enviadas'].includes(comiteFilter)||role!=='comite_asistente'))throw new HttpError(400,'Filtro de fase del Comité inválido');
+    if(comiteFilter)clause.sql+=` AND ${comiteFilter==='recepcion'?'NOT ':''}(${COMITE_ENVIADO_SQL})`;
+
     const scope = alcancePropuestas(req.demoAuth!,clause.params.length+1);
     if(authenticatedRole==='comite_evaluador'){scope.params.push(req.demoAuth!.userId);scope.sql+=` AND EXISTS(SELECT 1 FROM comite_miembro cm WHERE cm.id_propuesta=p.id_propuesta AND cm.id_usuario=$${clause.params.length+scope.params.length})`;}
 
@@ -316,7 +326,9 @@ evaluacionesRouter.get(
        LIMIT 100`,
       params,
     );
+    const comiteEnviadas=role==='comite_asistente'?Number((await query(`SELECT count(*) AS total FROM propuesta p WHERE p.estado_actual IN ('enviada','en_evaluacion') AND p.etapa_flujo BETWEEN 1 AND 2 AND ${scope.sql} AND ${COMITE_ENVIADO_SQL}`,[...clause.params,...scope.params])).rows[0].total):undefined;
     res.json({
+      comiteEnviadas,
       role,
       items: result.rows.map(mapBandeja),
       total: result.rows.length,
@@ -449,7 +461,7 @@ evaluacionesRouter.post('/evaluaciones/propuestas/:id/comite/reemplazo',requireD
 evaluacionesRouter.get('/evaluaciones/propuestas/:id/comite',requireDemoAuth,asyncHandler(async(req,res)=>{
  const id=Number(req.params.id);await exigirAlcance(id,req.demoAuth!);
  if(!['comite_asistente','comite_evaluador','admin'].includes(req.demoAuth!.role!))throw new HttpError(403,'La consolidación pertenece al Comité');
- const ciclo=(await query('SELECT ciclo_evaluacion FROM propuesta WHERE id_propuesta=$1',[id])).rows[0].ciclo_evaluacion;const anteriores=(await query("SELECT e.ciclo,u.nombre_completo,e.estado,e.puntaje_total FROM evaluacion e JOIN usuario u ON u.id_usuario=e.id_evaluador WHERE e.id_propuesta=$1 AND e.instancia='comite' AND e.ciclo<$2 ORDER BY e.ciclo,e.id_evaluador",[id,ciclo])).rows;res.json({ciclo,anteriores,miembros:await committeeStatus(pool,id),confirmado:!!(await query('SELECT 1 FROM resultado_comite WHERE id_propuesta=$1',[id])).rowCount});
+ const ciclo=(await query('SELECT ciclo_evaluacion FROM propuesta WHERE id_propuesta=$1',[id])).rows[0].ciclo_evaluacion;const anteriores=(await query("SELECT e.ciclo,u.nombre_completo,e.estado,e.puntaje_total FROM evaluacion e JOIN usuario u ON u.id_usuario=e.id_evaluador WHERE e.id_propuesta=$1 AND e.instancia='comite' AND e.ciclo<$2 ORDER BY e.ciclo,e.id_evaluador",[id,ciclo])).rows;const enviado=!!(await query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${COMITE_ENVIADO_SQL}`,[id])).rowCount;res.json({enviado,ciclo,anteriores,miembros:await committeeStatus(pool,id),confirmado:!!(await query('SELECT 1 FROM resultado_comite WHERE id_propuesta=$1',[id])).rowCount});
 }));
 
 /**
@@ -515,10 +527,12 @@ evaluacionesRouter.post(
           : certification && String(certification.fundamento??"").trim() && certification.id_certificador && certification.fecha_certificacion;
         if(!valid) throw new HttpError(409,locked.rows[0].requiere_dictamen_pi?"Se requiere dictamen PI emitido antes de avanzar":"Falta certificar PI no requerido con fundamento y responsable");
       }
+      const instance=role==="cie" || role==="admin"&&payload.instancia==="cie"?"cie":"comite";
+      if((action==='committee-score'||action==='committee-confirm'||action==='save-rubric'&&instance==='comite')&&!(await client.query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${COMITE_ENVIADO_SQL}`,[id])).rowCount)throw new HttpError(409,'El asistente debe enviar primero la propuesta al Cuerpo Evaluador');
+      if(action==='committee-confirm'&&String(payload.texto??'').length>comiteLimits.fundamento)throw new HttpError(400,`El fundamento del dictamen consolidado admite como máximo ${comiteLimits.fundamento} caracteres`);
       const ranges:Record<string,[number,number]>={"pi-start":[1,5],pi:[1,5],"pi-not-required":[1,5],"committee-confirm":[2,2],"committee-ready":[1,2],"committee-score":[1,2],"send-council":[2,3],"council-approve":[3,3],"council-reject":[3,3],"communicate-aval":[3,4],"vie-checklist":[4,4],"vie-observation":[4,4],"send-cie":[4,4],"cie-approve":[5,5],"cie-reject":[5,5]};
       const range=ranges[action];
       if(range&&(propuesta.etapa_flujo<range[0]||propuesta.etapa_flujo>range[1])) throw new HttpError(409,"La acción no corresponde a la instancia actual del expediente");
-      const instance=role==="cie" || role==="admin"&&payload.instancia==="cie"?"cie":"comite";
       if(action==="save-rubric"&&propuesta.etapa_flujo!==(instance==="cie"?5:2)) throw new HttpError(409,"La evaluación no corresponde a la instancia actual");
       if((action==="committee-score"||action==="save-rubric"&&instance==="comite")&&(await client.query("SELECT 1 FROM resultado_comite WHERE id_propuesta=$1",[id])).rowCount) throw new HttpError(409,"El dictamen del Comité está cerrado; no puede sobrescribirse");
 
@@ -620,6 +634,7 @@ evaluacionesRouter.post(
         }
 
         case "committee-ready": {
+          if((await client.query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${COMITE_ENVIADO_SQL}`,[id])).rowCount)throw new HttpError(409,"La propuesta ya fue enviada al Cuerpo Evaluador; no puede enviarse nuevamente");
           await assignCommittee(client,id,propuesta.id_escuela);
           await proposalRubric(client,id,locked.rows[0].modalidad);
 
@@ -650,6 +665,7 @@ evaluacionesRouter.post(
         case "return": {
           const instancia=role==="gestora_vie"?"vie":role==="admin"&&payload.instancia==="vie"?"vie":"comite";
           if(instancia==="vie"?propuesta.etapa_flujo!==4:![1,2].includes(propuesta.etapa_flujo)) throw new HttpError(409,"Solo puede devolver desde su instancia actual");
+          if(instancia==="comite"&&(await client.query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${COMITE_ENVIADO_SQL}`,[id])).rowCount)throw new HttpError(409,"La revisión de completitud ya terminó y la propuesta está en el Cuerpo Evaluador; no puede devolverla desde recepción");
           if(instancia==="comite"&&(await client.query("SELECT 1 FROM resultado_comite WHERE id_propuesta=$1",[id])).rowCount) throw new HttpError(409,"El dictamen del Comité ya está cerrado");
           const texto=str(payload.texto);
           const secciones=payload.secciones;

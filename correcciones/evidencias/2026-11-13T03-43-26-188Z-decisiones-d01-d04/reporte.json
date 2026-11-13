@@ -1,0 +1,12 @@
+{
+  "run": "2026-11-13T03-43-26-188Z",
+  "scope": "D01–D04 autorizadas. Recorridos principales por API; SQL solo para escenarios de ámbito, eventos privados y contador anual. Usa la rúbrica versionada actual para sus precondiciones; D05–D11 tienen batería específica.",
+  "created": [],
+  "results": [
+    {
+      "name": "Entorno/recorrido",
+      "status": "BLOQUEADO",
+      "detail": "POST /convocatorias: {\"error\":\"Presupuesto indefinido: indique 0 o un monto mayor que 0.\"}\n\n400 !== 201\n"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import type {RubricSection} from "../data/evaluationRubrics";
 import { apiJson } from "./client";
 
 export type EvaluacionBandejaItem = {
+  comiteEnviado?:boolean;
   id: number;
   codigo: string;
   titulo: string;
@@ -31,6 +32,7 @@ export type EvaluacionBandejaItem = {
 };
 
 export type EvaluacionBandejaResponse = {
+  comiteEnviadas?:number;
   role: string;
   items: EvaluacionBandejaItem[];
   total: number;
@@ -86,8 +88,8 @@ export function postEvaluacionIA(idPropuesta: number) {
   );
 }
 
-export function fetchEvaluacionBandeja(view?: string, propuesta?:string|null) {
-  const params=new URLSearchParams();if(view)params.set("vista",view);if(propuesta)params.set("propuesta",propuesta);
+export function fetchEvaluacionBandeja(view?: string, propuesta?:string|null,comite?:string|null) {
+  const params=new URLSearchParams();if(view)params.set("vista",view);if(propuesta)params.set("propuesta",propuesta);if(comite)params.set("comite",comite);
   return apiJson<EvaluacionBandejaResponse>(`/api/evaluaciones/bandeja${params.size?"?"+params.toString():""}`);
 }
 

@@ -132,7 +132,7 @@ type BandejaEntry = {
 export function EvaluacionesPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
-  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");
+  const [search,setSearch]=useSearchParams();const requested=search.get("propuesta");const comiteFilter=search.get("comite");
   const { showToast } = useToast();
   const [bandeja, setBandeja] = useState<BandejaEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState("");
@@ -148,7 +148,7 @@ export function EvaluacionesPage() {
     setLoading(true);
     setBandejaNote(null);
     try {
-      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested);
+      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter);
       const entries: BandejaEntry[] = res.items.map((item) => ({
         key: item.codigo, numericId: item.id, demo: bandejaToDemoProposal(item), api: item,
       }));
@@ -164,7 +164,7 @@ export function EvaluacionesPage() {
     } finally {
       setLoading(false);
     }
-  }, [session, role,requested]);
+  }, [session, role,requested,comiteFilter]);
 
   useEffect(() => {
     void loadBandeja();
@@ -302,6 +302,7 @@ export function EvaluacionesPage() {
     return (
       <section className="card empty-state">
         <h1 className="sr-only">{title}</h1>
+        {role==='comite_asistente'&&comiteFilter&&<Link className="btn btn-secondary" to="/evaluaciones">Ver todas las fases del Comité</Link>}
         <strong>{bandejaNote ? "No se pudo consultar la bandeja" : "No hay propuestas disponibles"}</strong>
         {bandejaNote && <p role="alert">{bandejaNote}</p>}
         <button type="button" className="btn btn-secondary" onClick={() => void loadBandeja()}>Actualizar bandeja</button>{role==="vinculacion"&&<Link className="btn btn-secondary" to="/historico">Consultar histórico de PI</Link>}
@@ -334,6 +335,7 @@ export function EvaluacionesPage() {
         </div>
       </header>
 
+      {role==='comite_asistente'&&<label className="field"><span className="field-label">Fase del Comité</span><select className="input" aria-label="Fase del Comité" value={comiteFilter??''} onChange={e=>setSearch(e.target.value?{comite:e.target.value}:{})}><option value="">Todas las fases</option><option value="recepcion">Pendientes de completitud</option><option value="enviadas">Enviadas al Cuerpo Evaluador</option></select></label>}
       {EVAL_ROLES.includes(role) || role === "admin" ? (
         <>
           {role !== "admin" && (

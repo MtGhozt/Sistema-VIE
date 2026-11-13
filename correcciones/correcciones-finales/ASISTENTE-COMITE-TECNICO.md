@@ -32,3 +32,37 @@ Se comprobó lectura en 390 px sin desbordamiento horizontal, contenido en solo 
 - [ ] Ocultar/restaurar el índice, seleccionar secciones y ampliar ancho/letra.
 - [ ] Revisar el dictamen de PI y sus datos asociados, sin controles para modificarlo.
 - [ ] Abrir desde Histórico y regresar conservando su filtro.
+
+## Ajuste de recepción y remisión al Cuerpo Evaluador · 12/11/2026
+
+**Hallazgo:** el estado académico `en_evaluacion` ya podía asignarse después de PI. Por tanto, ese estado por sí solo no acreditaba la remisión por el asistente. Cada clic en Enviar creaba una revisión adicional y los controles de recepción permanecían activos. Además, «Listas para evaluación» no tenía un cálculo y terminaba en cero.
+
+**Corrección:** la última revisión formal de Comité distingue la recepción de la remisión. Se reutiliza `revision_expediente`; no requiere migración ni se crean revisiones nuevas para normalizar datos anteriores.
+
+- Antes de remitir: estado visible **Pendiente de revisión de completitud**, checklist editable y devolución de recepción disponible. No se permite guardar/entregar evaluación técnica ni confirmar consolidado antes de la remisión.
+- Al remitir: se asignan los evaluadores, queda registrada la revisión completa y se muestra **Enviada al Cuerpo Evaluador · recepción completada**. El asistente conserva el acceso para seguir las entregas y confirmar el consolidado.
+- Después de remitir: se ocultan Enviar y Devolver de recepción y el checklist queda en solo lectura. La API rechaza tanto una remisión repetida como una devolución de recepción, sin duplicar revisiones ni alterar el expediente. La operación usa el bloqueo transaccional existente de la propuesta.
+- El Cuerpo Evaluador solo recibe expedientes remitidos, dentro de su ámbito y asignación. La API también exige la remisión antes de guardar o entregar sus valoraciones.
+- La tarjeta **Listas para evaluación** cuenta los expedientes efectivamente remitidos sobre todo el ámbito autorizado, sin limitarse a las primeras 100 filas. Abre la bandeja filtrada a remisiones. El selector **Fase del Comité** permite distinguir recepción, remisiones y todas las fases.
+- El **Fundamento del dictamen consolidado** tiene contador de caracteres con barra azul y límite de **4.000 caracteres**, compartido entre interfaz y API. El exceso se rechaza sin recortarlo. Es un límite operativo de captura; los documentos oficiales no fijan un número para este texto.
+
+### Sustento y alcance
+
+La tarea P4.a del análisis de personas establece que el asistente revisa completitud y **después** pasa al cuerpo evaluador o devuelve por faltantes. Este ajuste responde además al pedido expreso del usuario de impedir los envíos repetidos y la devolución desde recepción una vez remitida. El estado académico general no se renombra: se añade una indicación operativa de la fase formal.
+
+No se introduce una reapertura excepcional ni se anulan evaluaciones entregadas. Si se necesitara devolver una propuesta ya remitida por una situación extraordinaria, el equipo deberá definir una acción y reglas específicas; el botón de recepción no cumplirá esa función.
+
+### Validación del ajuste
+
+- **26 comprobaciones aprobadas**, incluyendo envío único, persistencia al recargar, rechazo de devolución posterior, disponibilidad para el evaluador, conteo/filtro reales y límites del fundamento. Incluye las regresiones de lectura del asistente y Vinculación. [Reporte final](evidencias/2026-11-13T03-45-55-729Z-vinculacion/reporte.json).
+- **72 comprobaciones aprobadas, 6 no aplicables** en las rutas de aprobación, rechazo CIE y rechazo de aval. [Reporte](../evidencias/2026-11-13T03-43-42-250Z-linea-base-api/reporte.json).
+- Compilación frontend/backend y lint sin errores, con las advertencias existentes.
+- Se intentó también la batería antigua D01–D04, pero no llegó a ejecutar sus escenarios: su convocatoria de preparación carece de presupuesto y usa una apertura pasada, incompatibles con las validaciones ya aprobadas de VIE. No se cuenta como aprobada ni se modificó esa batería para forzar el resultado. [Registro del bloqueo](../evidencias/2026-11-13T03-43-26-188Z-decisiones-d01-d04/reporte.json). La devolución previa y el bloqueo posterior se verificaron expresamente en la batería final del ajuste.
+
+### Validación manual pendiente del ajuste
+
+- [ ] En recepción, revisar que pueda devolver por faltantes antes de remitir.
+- [ ] Remitir una propuesta y comprobar el cambio de fase, los evaluadores y la desaparición de las acciones de recepción.
+- [ ] Recargar y comprobar que no se pueda remitir nuevamente ni devolver desde recepción.
+- [ ] Verificar la tarjeta Listas para evaluación y el filtro de fase.
+- [ ] Comprobar el contador y límite de 4.000 caracteres del fundamento consolidado.

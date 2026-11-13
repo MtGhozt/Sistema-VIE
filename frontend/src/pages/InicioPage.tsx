@@ -547,6 +547,7 @@ function RoleHome({
     [],
   );
 
+  const [comiteEnviadas,setComiteEnviadas]=useState<number|null>(null);
   const isViePublicacion = role === "vie_publicacion";
   const isVinculacion=role==='vinculacion';
   const [piSummary,setPiSummary]=useState<ResumenVinculacion|null>(null);
@@ -565,7 +566,7 @@ function RoleHome({
         const view =
           sessionRole === "admin" && isEvalRole ? role : undefined;
         const res = await fetchEvaluacionBandeja(view);
-        if (!cancelled) setBandejaItems(res.items);
+        if (!cancelled) {setBandejaItems(res.items);setComiteEnviadas(res.comiteEnviadas??null);}
       } catch {
         if (!cancelled) setBandejaItems([]);
       }
@@ -579,6 +580,7 @@ function RoleHome({
     return home.stats.map(([label]) => {
       let value:number|string = 0;
       if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;return {label,value:piError?"—":piSummary&&state?piSummary.conteos[state]:"…"};}
+      if(role==="comite_asistente"&&label==="Listas para evaluación"){return {label,value:comiteEnviadas??"…"};}
       if (isViePublicacion) {
         value = convocatoriaStatValue(label, convocatorias);
       } else if (isEvalRole) {
@@ -586,7 +588,7 @@ function RoleHome({
       }
       return { label, value };
     });
-  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems,isVinculacion,piSummary,piError]);
+  }, [home.stats, isViePublicacion, isEvalRole, convocatorias, bandejaItems,isVinculacion,piSummary,piError,role,comiteEnviadas]);
 
   const vieTasks = useMemo(() => {
     if (!isViePublicacion) return [];
@@ -623,6 +625,7 @@ function RoleHome({
   }, [isViePublicacion, isEvalRole, bandejaItems,isVinculacion,piSummary]);
 
   function statNavigate(label: string) {
+    if(role==="comite_asistente"&&label==="Listas para evaluación"){navigate("/evaluaciones?comite=enviadas");return;}
     if(isVinculacion){const state=estadosPi.find(s=>s.indicador===label)?.valor;navigate('/historico'+(state?'?pi='+state:''));return;}
     if (isViePublicacion) {
       navigate(convocatoriaStatPath(label));

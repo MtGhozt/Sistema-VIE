@@ -1,0 +1,88 @@
+{
+  "run": "2026-11-13T03-08-58-705Z",
+  "capturas": false,
+  "fixtures": [
+    1400,
+    1401,
+    1402,
+    1403,
+    1404,
+    1405,
+    1406,
+    1407,
+    1408
+  ],
+  "results": [
+    {
+      "name": "En revisión es un registro persistido, idempotente y sin avanzar el circuito",
+      "status": "PASA"
+    },
+    {
+      "name": "API rechaza excesos sin truncar y asigna oficio e instante ignorando valores manipulados",
+      "status": "PASA"
+    },
+    {
+      "name": "Estados PI distinguen declaración, certificación, revisión y dictamen emitido",
+      "status": "PASA"
+    },
+    {
+      "name": "Indicadores y filtros usan el mismo ámbito y todos los registros, sin límite de bandeja",
+      "status": "PASA"
+    },
+    {
+      "name": "Permisos: borradores y otra escuela no se muestran; otros roles no inician PI",
+      "status": "PASA"
+    },
+    {
+      "name": "Registros emitidos/certificados no se reabren",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades: pendientes reales más antiguos; excluye decisiones PI cerradas",
+      "status": "PASA"
+    },
+    {
+      "name": "Cuatro tarjetas llevan al histórico filtrado y muestran conteos reales",
+      "status": "PASA"
+    },
+    {
+      "name": "Prioridades de Inicio muestran la razón y abren el expediente consultado",
+      "status": "PASA"
+    },
+    {
+      "name": "Filtros desplegables de PI se conservan al recargar y limpiar individualmente",
+      "status": "PASA"
+    },
+    {
+      "name": "Histórico abre pantalla completa sin diálogo, con contenido de propuesta y registro PI",
+      "status": "FALLA",
+      "detail": "expect(locator).toBeVisible() failed\n\nLocator: getByText('Análisis técnico registrado para revisar en pantalla completa.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByText('Análisis técnico registrado para revisar en pantalla completa.', { exact: true }) with timeout 5000ms\n  - waiting for getByText('Análisis técnico registrado para revisar en pantalla completa.', { exact: true })\n"
+    },
+    {
+      "name": "Lectura: ampliar ancho y letra, cambiar sección y consultar en móvil",
+      "status": "PASA"
+    },
+    {
+      "name": "Enlace a Evaluaciones selecciona el ID correcto y no incluye expediente lateral pequeño",
+      "status": "PASA"
+    },
+    {
+      "name": "Inicio explícito de revisión persiste sin emitir y sin perder el formulario al comenzar",
+      "status": "PASA"
+    },
+    {
+      "name": "Emisión vuelve a la consulta completa y actualiza histórico y conteo",
+      "status": "FALLA",
+      "detail": "expect(locator).toBeVisible() failed\n\nLocator: getByText('Texto iniciado por Vinculación.', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByText('Texto iniciado por Vinculación.', { exact: true }) with timeout 5000ms\n  - waiting for getByText('Texto iniciado por Vinculación.', { exact: true })\n"
+    },
+    {
+      "name": "Enlace inválido/cerrado no selecciona por defecto otro expediente",
+      "status": "PASA"
+    },
+    {
+      "name": "Fallo de consulta informa error sin inventar pendientes ni conteos",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

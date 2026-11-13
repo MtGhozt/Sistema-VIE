@@ -1,3 +1,4 @@
+import piLimits from "../../../shared/pi-text-limits.json" with { type: "json" };
 import { alcancePropuestas, exigirAlcance, etapaRol } from "../alcancePropuestas.js";
 import { seccionesSubsanacion } from "../subsanacion.js";
 import { readFileSync } from "node:fs";
@@ -358,7 +359,7 @@ evaluacionesRouter.get("/evaluaciones/propuestas/:id/pi", requireDemoAuth, async
   const d=row.rows[0];
   const certification=(await query("SELECT * FROM pi_certificacion_no_requerido WHERE id_propuesta=$1",[id])).rows[0];
   const inReview=(await query("SELECT 1 FROM revision_expediente WHERE id_propuesta=$1 AND etapa='pi' AND resultado='en_revision'",[id])).rowCount;
-  res.json({enRevision:Boolean(inReview),estado:proposal.requiere_dictamen_pi?d?.estado??null:certification?"no_requerido":null,fundamentoNoRequerido:certification?.fundamento??null,certificadoPor:certification?.id_certificador??null,fecha:certification?.fecha_certificacion??d?.fecha_dictamen??null,form:d?{
+  res.json({emitidoEn:d?.emitido_en??null,enRevision:Boolean(inReview),estado:proposal.requiere_dictamen_pi?d?.estado??null:certification?"no_requerido":null,fundamentoNoRequerido:certification?.fundamento??null,certificadoPor:certification?.id_certificador??null,fecha:certification?.fecha_certificacion??d?.fecha_dictamen??null,form:d?{
     potencial:d.potencial_proteccion?"Sí":"No",innovacion:d.es_innovador?"Sí":"No",tipoActivo:d.activo_identificable??"",tipoPI:d.mecanismo_pi??"",
     novedad:d.novedad??"",titularidad:d.titularidad??"",divulgacion:d.recomendaciones_divulgacion??"",confidencialidad:d.confidencialidad??"",
     analisis:d.analisis_tecnico??"",recomendaciones:d.recomendaciones_vinculacion??"",oficio:d.numero_oficio??"",fecha:d.fecha_dictamen instanceof Date?d.fecha_dictamen.toISOString().slice(0,10):String(d.fecha_dictamen??'').slice(0,10),
@@ -536,6 +537,7 @@ evaluacionesRouter.post(
         case "pi-not-required": {
           if(locked.rows[0].requiere_dictamen_pi) throw new HttpError(409,"La propuesta requiere dictamen PI; no puede omitirse");
           const fundamento=str(payload.fundamento);
+          if(fundamento.length>piLimits.fundamento)throw new HttpError(400,`El fundamento admite como máximo ${piLimits.fundamento} caracteres`);
           if(!fundamento) throw new HttpError(400,"El fundamento de PI no requerido es obligatorio");
           await client.query("INSERT INTO pi_certificacion_no_requerido(id_propuesta,id_certificador,fundamento) VALUES($1,$2,$3)",[id,userId,fundamento]);
           await advanceEstado(client,{idPropuesta:id,estadoAnterior:prev,estadoNuevo:propuesta.etapa_flujo<=1?"en_evaluacion":prev,etapa:Math.max(propuesta.etapa_flujo,2),userId,observacion:"PI no requerido: certificación registrada por Vinculación"});
@@ -552,19 +554,22 @@ evaluacionesRouter.post(
         case "pi": {
           if(!locked.rows[0].requiere_dictamen_pi) throw new HttpError(409,"Registre la certificación explícita de PI no requerido");
           if (!["Sí","No"].includes(str(payload.potencial)) || !["Sí","No"].includes(str(payload.innovacion))) throw new HttpError(400,"Indique potencial de protección e innovación del dictamen");
-          const oficio =
-            str(payload.oficio) ||
-            `CV-${new Date().getFullYear()}-${String(id).padStart(3, "0")}`;
-          const fecha = str(payload.fecha) || new Date().toISOString().slice(0, 10);
+          const fieldNames:Record<string,string>={tipoActivo:"Resultado o activo identificable",tipoPI:"Mecanismo de PI considerado",novedad:"Novedad",titularidad:"Titularidad",divulgacion:"Recomendaciones antes de divulgación pública",confidencialidad:"Confidencialidad",analisis:"Análisis técnico",recomendaciones:"Recomendaciones del Centro de Vinculación"};
+          for(const [key,limit] of Object.entries(piLimits)) {
+            if(key!=="fundamento"&&String(payload[key]??"").length>limit)throw new HttpError(400,`El campo «${fieldNames[key]??key}» admite como máximo ${limit} caracteres`);
+          }
+          const emission=(await client.query("SELECT clock_timestamp() AS instante, to_char(clock_timestamp() AT TIME ZONE 'America/Costa_Rica','YYYY') AS anio")).rows[0];
+          const oficio=`CV-${emission.anio}-${String(id).padStart(3,"0")}`;
+          const fecha=emission.instante;
           await client.query(
             `
             INSERT INTO dictamen_pi (
               id_propuesta, id_emisor, potencial_proteccion, es_innovador,
               activo_identificable, mecanismo_pi, novedad, titularidad,
               recomendaciones_divulgacion, confidencialidad, analisis_tecnico,
-              recomendaciones_vinculacion, numero_oficio, fecha_dictamen, estado
+              recomendaciones_vinculacion, numero_oficio, fecha_dictamen, emitido_en, estado
             ) VALUES (
-              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::date, 'emitido'
+              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, ($14::timestamptz AT TIME ZONE 'America/Costa_Rica')::date, $14::timestamptz, 'emitido'
             )
             ON CONFLICT (id_propuesta) DO UPDATE SET
               id_emisor = EXCLUDED.id_emisor,
@@ -580,6 +585,7 @@ evaluacionesRouter.post(
               recomendaciones_vinculacion = EXCLUDED.recomendaciones_vinculacion,
               numero_oficio = EXCLUDED.numero_oficio,
               fecha_dictamen = EXCLUDED.fecha_dictamen,
+              emitido_en = EXCLUDED.emitido_en,
               estado = 'emitido'
             `,
             [

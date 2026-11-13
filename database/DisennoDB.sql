@@ -249,6 +249,7 @@ CREATE TABLE "dictamen_pi" (
   "recomendaciones_vinculacion" text,
   "numero_oficio" varchar(40) UNIQUE,
   "fecha_dictamen" date,
+  "emitido_en" timestamptz,
   "estado" varchar(20) NOT NULL
 );
 

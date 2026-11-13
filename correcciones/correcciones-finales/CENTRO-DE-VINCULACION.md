@@ -62,3 +62,31 @@ Las primeras ejecuciones detectaron y permitieron corregir el acceso a expedient
 - [ ] Iniciar revisión y comprobar que aparezca En revisión sin emitir todavía.
 - [ ] Registrar dictamen o certificar no requerimiento; volver a consultar el resultado y los indicadores.
 - [ ] Confirmar que Evaluaciones no selecciona otro expediente cuando el solicitado ya no está pendiente.
+
+## Ajuste del formulario de dictamen · 12/11/2026
+
+- Todos los textos de captura tienen contador de caracteres con barra azul y un límite compartido entre interfaz y API: **200** para resultado/activo y mecanismo PI; **4.000** para novedad, titularidad, divulgación, confidencialidad, análisis, recomendaciones y fundamento de no requerimiento. Los dos primeros respetan las columnas existentes de BD. Las fuentes oficiales no establecen un límite para los textos narrativos: 4.000 es un límite operativo de captura, no un requisito institucional. No se agregan obligatoriedades no documentadas.
+- Las opciones binarias conservan un único selector y el orden **No / Sí**, sin respuesta inicial elegida.
+- **Resultado o activo identificable:** qué resultado podría protegerse (software, prototipo, procedimiento, etc.). **Mecanismo de PI considerado:** vía de protección analizada (patente, derecho de autor, secreto industrial, etc.). Hay ayudas visibles y se puede indicar que no aplica o está por determinar; no se obliga a elegir una protección sin sustento técnico.
+- **Número de oficio:** identificador del documento emitido por Vinculación, distinto del código PROP de la propuesta. Se asigna automáticamente al emitir con el formato local ya utilizado `CV-AAAA-ID`, sin edición por el usuario. Las disposiciones §2.10.3 y el formulario oficial exigen el oficio; no prescriben una estructura de numeración. Este formato identifica documentos del prototipo, sin atribuirles validez de oficio institucional externo.
+- **Fecha y hora:** el servidor registra el instante de emisión, sin aceptar la fecha ni el oficio enviados por el cliente. La consulta muestra fecha/hora en Costa Rica y conserva el día en `fecha_dictamen` por compatibilidad. La nueva columna `emitido_en` es nullable: los históricos conservan su fecha y oficio; no se les inventa una hora.
+- El expediente emitido muestra todo el contenido persistido en solo lectura, con sus contadores. Los textos históricos que superen los límites nuevos se conservan y señalan el exceso, sin recortarlos.
+
+La migración **011_emision_dictamen_pi.sql** se incluye en el instalador existente. En instalaciones previas debe aplicarse antes de emitir con esta versión, por ejemplo mediante `./instalar.sh` (desarrollo) o `./instalar.sh --pruebas` (entorno aislado). No requiere borrar datos.
+
+### Comprobaciones manuales del ajuste
+
+- [ ] Verificar contadores y límites de todos los textos, incluidos el fundamento y la consulta del dictamen emitido.
+- [ ] Verificar las ayudas de resultado y mecanismo y el orden No/Sí.
+- [ ] Emitir y comprobar el oficio automático y la fecha/hora real de emisión en el expediente.
+- [ ] Consultar un dictamen histórico y comprobar que no se alteraron sus datos.
+
+### Validación técnica del ajuste
+
+- **17 comprobaciones aprobadas** de Vinculación: límites de API y captura, orden No/Sí, oficio/instante automáticos incluso ante valores manipulados, consulta íntegra de lo emitido y regresión de filtros, permisos y navegación. [Reporte final](evidencias/2026-11-13T03-09-25-646Z-vinculacion/reporte.json).
+- **72 comprobaciones aprobadas y 6 no aplicables** del flujo institucional: aprobación, rechazo CIE y rechazo de aval. [Reporte](../evidencias/2026-11-13T03-10-00-275Z-linea-base-api/reporte.json).
+- Compilación frontend/backend y lint sin errores; siguen las advertencias existentes de lint y tamaño del paquete.
+- Migración 011 aplicada en las bases locales de desarrollo y pruebas. No se modificaron los oficios ni las fechas históricos.
+- La primera ejecución del ajuste detectó que el contador cambiaba el texto accesible del contenedor de consulta. Se separó el texto del indicador y la repetición aprobó todas las comprobaciones. Ambos reportes quedan conservados.
+
+Los identificadores de reporte contienen la fecha UTC del entorno de ejecución; este ajuste y su revisión se documentan con la fecha local de Costa Rica (12/11/2026). No se generaron capturas.

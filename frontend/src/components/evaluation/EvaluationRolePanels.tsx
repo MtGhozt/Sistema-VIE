@@ -1,6 +1,6 @@
 import {Link} from "react-router-dom";
-import {ConvocatoriaDateField} from "../ConvocatoriaDateField";
-import {dateFromInput,dateLabel} from "../../data/convocatoriaUi";
+import {WordBudget} from "../WordBudget";
+import piLimits from "../../../../shared/pi-text-limits.json";
 import {ConsejoReconsideracion} from "./ConsejoReconsideracion";
 import {ComiteConsolidado} from "./ComiteConsolidado";
 import seccionesSubsanacion from "../../../../shared/subsanacion-secciones.json";
@@ -70,7 +70,6 @@ export function VinculacionPanel({
     potencial:"",tipoActivo:"",tipoPI:"",innovacion:"",novedad:"",titularidad:"",divulgacion:"",confidencialidad:"",analisis:"",recomendaciones:"",oficio:"",fecha:"",
   });
   const [enRevision,setEnRevision]=useState(false);
-  const [dateError,setDateError]=useState("");
   const [piEstado,setPiEstado]=useState<string|null>(null);
   const [fundamento,setFundamento]=useState("");
   const [loading, setLoading] = useState(Boolean(proposal.numericId));
@@ -111,7 +110,7 @@ export function VinculacionPanel({
         {!enRevision&&!loading&&!loadError&&!["emitido","no_requerido"].includes(piEstado??"")&&<button type="button" className="btn btn-secondary" onClick={async()=>{if(await onAction("pi-start"))setEnRevision(true);}}>Iniciar revisión de PI</button>}
         {piEstado && <p role="status">Registro PI: {piEstado}. Las decisiones emitidas no se sobrescriben.</p>}
         <fieldset className="stack-md" disabled={loading||Boolean(loadError)||["emitido","no_requerido"].includes(piEstado??"")} style={{border:0,padding:0,margin:0,minWidth:0}}>
-          {!proposal.piRequired ? <div className="stack-md"><p>La propuesta declara que no requiere dictamen. Vinculación debe certificarlo antes de que el expediente avance.</p><label className="field"><span className="field-label">Fundamento de PI no requerido</span><textarea aria-label="Fundamento de PI no requerido" className="input textarea" value={fundamento} onChange={e=>setFundamento(e.target.value)}/></label><button type="button" className="btn btn-primary" disabled={!fundamento.trim()} onClick={async()=>{if(await onAction("pi-not-required",{fundamento}))setPiEstado("no_requerido");}}>Certificar PI no requerido</button></div> : <>
+          {!proposal.piRequired ? <div className="stack-md"><p>La propuesta declara que no requiere dictamen. Vinculación debe certificarlo antes de que el expediente avance.</p><label className="field"><span className="field-label">Fundamento de PI no requerido</span><textarea aria-label="Fundamento de PI no requerido" className="input textarea" maxLength={piLimits.fundamento} aria-describedby="pi-fundamento-budget" value={fundamento} onChange={e=>setFundamento(e.target.value)}/><WordBudget id="pi-fundamento-budget" value={fundamento} maxWords={piLimits.fundamento} unit="caracteres"/></label><button type="button" className="btn btn-primary" disabled={!fundamento.trim()} onClick={async()=>{if(await onAction("pi-not-required",{fundamento}))setPiEstado("no_requerido");}}>Certificar PI no requerido</button></div> : <>
           <div className="form-grid two-col">
             <label className="field">
               <span className="field-label">¿Existe potencial de protección?</span>
@@ -121,8 +120,8 @@ export function VinculacionPanel({
                 onChange={(e) => set("potencial", e.target.value)}
               >
                 <option value="" disabled>Seleccionar…</option>
-                <option>Sí</option>
                 <option>No</option>
+                <option>Sí</option>
               </select>
             </label>
             <label className="field">
@@ -135,25 +134,27 @@ export function VinculacionPanel({
                 onChange={(e) => set("innovacion", e.target.value)}
               >
                 <option value="" disabled>Seleccionar…</option>
-                <option>Sí</option>
                 <option>No</option>
+                <option>Sí</option>
               </select>
             </label>
             <label className="field">
               <span className="field-label">Resultado o activo identificable</span>
-              <input
+              <small id="pi-tipoActivo-help">Indique qué resultado podría protegerse: por ejemplo, software, prototipo o procedimiento. Si no aplica, indíquelo.</small>
+              <input aria-label="Resultado o activo identificable" maxLength={piLimits.tipoActivo} aria-describedby="pi-tipoActivo-help pi-tipoActivo-budget"
                 className="input"
                 value={form.tipoActivo}
                 onChange={(e) => set("tipoActivo", e.target.value)}
-              />
+              /><WordBudget id="pi-tipoActivo-budget" value={form.tipoActivo} maxWords={piLimits.tipoActivo} unit="caracteres"/>
             </label>
             <label className="field">
               <span className="field-label">Mecanismo de PI considerado</span>
-              <input
+              <small id="pi-tipoPI-help">Indique la vía de protección considerada: patente, derecho de autor, secreto industrial u otra. Si no aplica o está por determinar, indíquelo.</small>
+              <input aria-label="Mecanismo de PI considerado" maxLength={piLimits.tipoPI} aria-describedby="pi-tipoPI-help pi-tipoPI-budget"
                 className="input"
                 value={form.tipoPI}
                 onChange={(e) => set("tipoPI", e.target.value)}
-              />
+              /><WordBudget id="pi-tipoPI-budget" value={form.tipoPI} maxWords={piLimits.tipoPI} unit="caracteres"/>
             </label>
           </div>
           {(
@@ -181,29 +182,18 @@ export function VinculacionPanel({
             <label key={key} className="field">
               <span className="field-label">{label}</span>
               <textarea
-                aria-label={label} className="input textarea"
+                aria-label={label} maxLength={piLimits[key]} aria-describedby={`pi-${key}-budget`} className="input textarea"
                 rows={rows}
                 value={form[key]}
                 onChange={(e) => set(key, e.target.value)}
-              />
+              /><WordBudget id={`pi-${key}-budget`} value={form[key]} maxWords={piLimits[key]} unit="caracteres"/>
             </label>
           ))}
-          <div className="form-grid two-col">
-            <label className="field">
-              <span className="field-label">Número de oficio</span>
-              <input aria-label="Número de oficio"
-                className="input"
-                value={form.oficio}
-                onChange={(e) => set("oficio", e.target.value)}
-              />
-            </label>
-            <ConvocatoriaDateField id="fecha-pi" label="Fecha del dictamen (día/mes/año)" value={/^\d{4}-/.test(form.fecha)?dateLabel(form.fecha):form.fecha} onChange={v=>{set('fecha',dateFromInput(v)??v);setDateError('');}} error={dateError}/>
-
-          </div>
+          <p className="pi-scope-note">El número de oficio y la fecha y hora de emisión se asignan automáticamente al emitir el dictamen. Podrá consultar todo el contenido registrado en el expediente.</p>
           <button
             type="button"
             className="btn btn-primary"
-            onClick={async () => {if(form.fecha&&!/^\d{4}-\d{2}-\d{2}$/.test(form.fecha)){setDateError("Indique una fecha real en DD/MM/YYYY.");return;}if(await onAction("pi", form))setPiEstado("emitido");}}
+            onClick={async () => {const {oficio: _oficio,fecha: _fecha,...contenido}=form;if(await onAction("pi", contenido))setPiEstado("emitido");}}
           >
             Emitir y registrar dictamen
           </button></>}

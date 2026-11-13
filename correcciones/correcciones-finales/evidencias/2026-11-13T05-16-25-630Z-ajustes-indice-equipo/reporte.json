@@ -1,0 +1,50 @@
+{
+  "run": "2026-11-13T05-16-25-630Z",
+  "capturas": false,
+  "fixtures": [
+    70
+  ],
+  "results": [
+    {
+      "name": "Iniciales nuevas se vinculan al ID aunque el servidor normalice el nombre",
+      "status": "PASA"
+    },
+    {
+      "name": "CONS editable sin bloquear el campo y persiste con las iniciales",
+      "status": "PASA"
+    },
+    {
+      "name": "Nombramiento: calendarios visibles, seleccionables y fechas persisten en móvil",
+      "status": "PASA"
+    },
+    {
+      "name": "Nombramiento vacío permite borrador, bloquea Siguiente y envío; error de rango se señala",
+      "status": "PASA"
+    },
+    {
+      "name": "Índice: botón completado verde, sección actual blanca, scroll hasta el paso 17",
+      "status": "PASA"
+    },
+    {
+      "name": "Opciones: umbrales oficiales, repetición, activo PI obligatorio y precisión de opción 2 tecnológica",
+      "status": "PASA"
+    },
+    {
+      "name": "Consulta: visitar una sección incompleta no la pinta de verde",
+      "status": "PASA"
+    },
+    {
+      "name": "Corrección: guardar solo objetivos deja resumen rojo y objetivos azul, incluso tras recarga",
+      "status": "PASA"
+    },
+    {
+      "name": "Corrección: edición devuelve a rojo; guardado inválido no confirma ni sobrescribe el servidor",
+      "status": "PASA"
+    },
+    {
+      "name": "Corrección: confirmar resumen deja ambas azules sin emitir aval ni avanzar de instancia",
+      "status": "PASA"
+    }
+  ],
+  "errors": []
+}

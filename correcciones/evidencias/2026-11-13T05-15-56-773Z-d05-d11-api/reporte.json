@@ -1,0 +1,94 @@
+{
+  "run": "2026-11-13T05-15-56-773Z",
+  "scope": "D05–D11, API real, archivos locales, rubricación individual y recorrido hasta cierre; SQL solo lee resultados.",
+  "results": [
+    {
+      "name": "Guardar borrador parcial persiste y abstract solo se exige al enviar",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: carga, descarga binaria exacta y versión concurrente",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: otra instancia de API recupera el binario persistido en disco",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: no acepta rutas, extensión falsa, tamaño excesivo ni borrador ajeno",
+      "status": "PASA"
+    },
+    {
+      "name": "Plantilla oficial XLSX se descarga y acepta como adjunto real",
+      "status": "PASA"
+    },
+    {
+      "name": "Archivos: retiro lógico conserva versión y bloquea descarga",
+      "status": "PASA"
+    },
+    {
+      "name": "Rúbrica oficial: 100 puntos, tres evaluadores y escalas completas",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: borrador individual guardado/releído y notas de usuarios separadas",
+      "status": "PASA"
+    },
+    {
+      "name": "Versionado: nueva rúbrica no altera la que utiliza un expediente iniciado",
+      "status": "PASA"
+    },
+    {
+      "name": "Consolidación: promedio de tres notas y requisito regular desfavorable",
+      "status": "PASA"
+    },
+    {
+      "name": "Recomendación negativa informa al Consejo y no crea resolución CIE",
+      "status": "PASA"
+    },
+    {
+      "name": "Reconsideración: solicitud, autorización y conservación de decisión anterior",
+      "status": "PASA"
+    },
+    {
+      "name": "Precondiciones VIE/CIE: comunicación, checklist y remisión reales",
+      "status": "PASA"
+    },
+    {
+      "name": "Subsanación documental: solo archivos autorizados y reenvío a Comité",
+      "status": "PASA"
+    },
+    {
+      "name": "Después de remitir, recepción no devuelve ni abre ciclos sobre evaluaciones entregadas",
+      "status": "PASA"
+    },
+    {
+      "name": "Desarrollo tecnológico: activo de lista 5.5.a más académicos por cada diez horas",
+      "status": "PASA"
+    },
+    {
+      "name": "Admin: CRUD de catálogos con bajas lógicas y protección por rol",
+      "status": "PASA"
+    },
+    {
+      "name": "Catálogo de modalidades y baja de rúbrica conservan versiones y nombres reales",
+      "status": "PASA"
+    },
+    {
+      "name": "Admin: alta, edición, rol, escuela, contraseña y baja de usuario",
+      "status": "PASA"
+    },
+    {
+      "name": "Admin no puede retirar su propio acceso ni usar una acción override",
+      "status": "PASA"
+    },
+    {
+      "name": "Comité: sustitución auditada conserva borradores y excluye notas del miembro retirado",
+      "status": "PASA"
+    },
+    {
+      "name": "Formulario: titularidad CONS se guarda y se exige al enviar",
+      "status": "PASA"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import {getFormStepStatus,type FormWizardState,FORM_WIZARD_STEPS} from './formWizardIan';
 import {activityFitsProject,isValidProjectDateRange} from './dateRules';
 import {dateFromInput} from './convocatoriaUi';
+import {isValidMoneyString,moneyToNumber} from './moneyFormat';
 import {countWords,FIELD_WORD_LIMITS} from './textLimits';
 export type ProposalIssue={step:number;label:string;message:string};
 export function proposalIssues(step:number,f:FormWizardState,hasConvocatoria:boolean,draft=false):ProposalIssue[]{
@@ -32,8 +33,9 @@ export function proposalIssues(step:number,f:FormWizardState,hasConvocatoria:boo
  if(step===2){
   if(!draft&&!f.teamTec.length)add('Equipo TEC','Agregue al menos una persona investigadora TEC.');
   f.teamTec.forEach((m,i)=>{for(const [label,value] of [['Nombre y apellidos',m.nombre],['ID ORCID',m.orcid],['Instancia académica',m.instancia],['Condición o rol',m.rol]])required(`${label}, persona TEC ${i+1}`,value);
-   if(m.orcid&&!/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(m.orcid))add(`ID ORCID, persona TEC ${i+1}`,'Use el formato ORCID 0000-0000-0000-0000 (último carácter puede ser X).');
-   const [a,b]=m.periodo.split(' / ');if((!draft||m.periodo)&&(!dateFromInput(a??'')||!dateFromInput(b??'')||!isValidProjectDateRange(dateFromInput(a??'')??'',dateFromInput(b??'')??''))){add(`Inicio de nombramiento, persona TEC ${i+1}`,'Complete inicio y fin del nombramiento en DD/MM/YYYY; fin no puede ser anterior a inicio.');add(`Fin de nombramiento, persona TEC ${i+1}`,'Revise el período de nombramiento.');}
+   // En borrador no bloquear ORCID a medias ni periodos incompletos; sí al enviar/avanzar.
+   if(!draft&&m.orcid&&!/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(m.orcid))add(`ID ORCID, persona TEC ${i+1}`,'Use el formato ORCID 0000-0000-0000-0000 (último carácter puede ser X).');
+   const [a,b]=m.periodo.split(' / ');if(!draft&&m.periodo&&(!dateFromInput(a??'')||!dateFromInput(b??'')||!isValidProjectDateRange(dateFromInput(a??'')??'',dateFromInput(b??'')??''))){add(`Inicio de nombramiento, persona TEC ${i+1}`,'Complete inicio y fin del nombramiento en DD/MM/YYYY; fin no puede ser anterior a inicio.');add(`Fin de nombramiento, persona TEC ${i+1}`,'Revise el período de nombramiento.');}
    m.horas.forEach((h,j)=>{required(`Tipo de horas ${j+1}, persona TEC ${i+1}`,h.tipo);if(h.cantidad!==''&&(!Number.isInteger(Number(h.cantidad))||Number(h.cantidad)<0)||!draft&&h.cantidad==='')add(`Cantidad de horas ${j+1}, persona TEC ${i+1}`,'Indique horas enteras, cero o mayores; no se admiten negativos ni decimales.');});
    if(m.horas.some(h=>h.tipo==='CONS'&&Number(h.cantidad)>0))required(`Titular de horas CONS, persona TEC ${i+1}`,m.titularCons??'');
   });
@@ -50,9 +52,9 @@ export function proposalIssues(step:number,f:FormWizardState,hasConvocatoria:boo
   a.riesgos.forEach((r,j)=>{required(`Riesgo identificado, riesgo ${j+1} de la actividad ${i+1}`,r.riesgo);required(`Medidas de mitigación, riesgo ${j+1} de la actividad ${i+1}`,r.mitigacion);required(`Responsable de la gestión del riesgo ${j+1} de la actividad ${i+1}`,r.responsable);});
  });}
  if(step===7){
-  const validMoney=(value:string)=>!value.trim()||/^\d+(?:\.\d{1,2})?$/.test(value.trim())&&Number(value)<=999999999999.99;
-  f.presupuestoAnual.forEach((r,i)=>{if(!validMoney(r.operativo))add(`Presupuesto operativo ${r.anio}`,'Indique un monto no negativo, máximo dos decimales y hasta ₡999 999 999 999,99.');if(!validMoney(r.duraderos)||i>0&&Number(r.duraderos)>0)add(`Presupuesto de bienes duraderos ${r.anio}`,'Revise el monto: no negativo, hasta dos decimales y solo en el primer año.');});
-  f.financiamiento.forEach(source=>{if([source.anio1,source.anio2,source.anio3].some(v=>Number(v)>0))required(`Oficio y entidad emisora: ${source.tipo}`,source.oficio);});
+  const validMoney=(value:string)=>!value.trim()||isValidMoneyString(value);
+  f.presupuestoAnual.forEach((r,i)=>{if(!validMoney(r.operativo))add(`Presupuesto operativo ${r.anio}`,'Indique un monto no negativo, máximo dos decimales y hasta ₡999 999 999 999,99.');if(!validMoney(r.duraderos)||i>0&&moneyToNumber(r.duraderos)>0)add(`Presupuesto de bienes duraderos ${r.anio}`,'Revise el monto: no negativo, hasta dos decimales y solo en el primer año.');});
+  f.financiamiento.forEach(source=>{if([source.anio1,source.anio2,source.anio3].some(v=>moneyToNumber(v)>0))required(`Oficio y entidad emisora: ${source.tipo}`,source.oficio);});
  }
  if(step===11&&!draft){const e=f.aspectosEticos;const values=[e.seresHumanos,e.biodiversidad,e.animales,e.territoriosIndigenas];if(values.every(v=>v==='No'))required('Justificación de exención ética',e.exencionJustificacion);if(values.includes('Sí')){required('Nombre o número del comité/ente y estado del trámite del aval',e.detalleAval);if(e.entesRegulatorios.includes('otro'))required('Especifique el otro ente',e.otroEnte);if(e.territoriosIndigenas==='Sí')required('Consulta previa y consentimiento libre e informado',e.consultaConsentimiento);}}
  if(step===10)for(const [key,label] of Object.entries({divulgacionCientifica:'Divulgación científica o técnica',canalesInstitucionales:'Canales institucionales',eventosSocializacion:'Eventos de socialización',mediosMasivos:'Medios masivos'}))required(label,f.divulgacion[key as keyof typeof f.divulgacion]);

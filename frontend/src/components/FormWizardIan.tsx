@@ -37,7 +37,14 @@ import {
   planHorizonMonths,
 } from "../data/dateRules";
 import { formatCRC } from "../data/proposalView";
+import {
+  formatMoneyInput,
+  moneyToNumber,
+  parseMoneyInput,
+} from "../data/moneyFormat";
 import { CollapsibleBlock } from "./CollapsibleBlock";
+import { PersonPicker } from "./PersonPicker";
+import { formatOrcidInput } from "../data/orcidFormat";
 import { RemoveIconButton } from "./ConfirmDialog";
 
 import { WordBudget } from "./WordBudget";
@@ -70,37 +77,6 @@ function tipoInnovacionValue(value: string): TipoInnovacion {
 
 function nivelTrlValue(value: string): NivelTrl {
   return TRL_LEVELS.find((nivel) => nivel.value === value)?.value ?? "";
-}
-
-function formatOrcidInput(input: HTMLInputElement): string {
-  const cursorPosition = input.selectionStart ?? input.value.length;
-  const inputBeforeCursor = input.value
-    .slice(0, cursorPosition)
-    .toUpperCase()
-    .replace(/[^0-9X]/g, "");
-  const characters = input.value.toUpperCase().replace(/[^0-9X]/g, "");
-  const digits = characters.replace(/\D/g, "").slice(0, 16);
-  const value =
-    characters.endsWith("X") && digits.length === 15
-      ? `${digits}X`
-      : digits;
-  const digitsBeforeCursor = inputBeforeCursor.replace(/X/g, "").length;
-  const cursorCharacters = Math.min(
-    digitsBeforeCursor +
-      (inputBeforeCursor.endsWith("X") && value.endsWith("X") ? 1 : 0),
-    value.length,
-  );
-  const formatted =
-    value.match(/.{1,4}/g)?.join("-") ?? "";
-  const formattedCursor =
-    cursorCharacters === 0
-      ? 0
-      : cursorCharacters + Math.floor((cursorCharacters - 1) / 4);
-
-  requestAnimationFrame(() =>
-    input.setSelectionRange(formattedCursor, formattedCursor),
-  );
-  return formatted;
 }
 
 function QuestionBlock({
@@ -936,20 +912,26 @@ export function FormWizardIan({
                     />
                   </div>
                   <div className="team-member-fields team-tec-fields">
-                    <label className="team-member-field">
-                      <span className="field-label">Nombre y apellidos</span>
-                      <FormInput
-                        className="input"
+                    <div className="team-member-field">
+                      <PersonPicker
+                        label="Nombre y apellidos"
+                        ariaLabel={`Nombre y apellidos, persona TEC ${memberIndex + 1}`}
                         value={member.nombre}
-                        maxLength={150}
-                        aria-label={`Nombre y apellidos, persona TEC ${memberIndex + 1}`}
-                        onChange={(event) =>
+                        includeCatalog
+                        onChangeNombre={(nombre) =>
+                          patchTeamTec(member.id, { nombre, idUsuario: null })
+                        }
+                        onPick={(person) =>
                           patchTeamTec(member.id, {
-                            nombre: event.target.value,
+                            nombre: person.nombre,
+                            iniciales: person.iniciales || member.iniciales,
+                            orcid: person.orcid || member.orcid,
+                            instancia: person.instancia || member.instancia,
+                            idUsuario: person.idUsuario ?? null,
                           })
                         }
                       />
-                    </label>
+                    </div>
                     <label className="team-member-field">
                       <span className="field-label">Iniciales</span>
                       <FormInput
@@ -1126,22 +1108,21 @@ export function FormWizardIan({
                       <ConvocatoriaDateField id={`${member.id}-periodo-inicio`} required label={`Inicio de nombramiento, persona TEC ${memberIndex+1}`} value={member.periodo.includes(' / ')?member.periodo.split(' / ')[0]:''} onChange={v=>patchAppointment(member.id,v,member.periodo.split(' / ')[1]??'')}/>
                       <ConvocatoriaDateField id={`${member.id}-periodo-fin`} required label={`Fin de nombramiento, persona TEC ${memberIndex+1}`} value={member.periodo.includes(' / ')?member.periodo.split(' / ')[1]:''} min={dateFromInput(member.periodo.split(' / ')[0])??undefined} onChange={v=>patchAppointment(member.id,member.periodo.includes(' / ')?member.periodo.split(' / ')[0]:'',v)}/>
                     </div>
-                    <label className="team-member-field">
+                    <div className="team-member-field">
                       <span className="field-hint">CONS: horas del régimen de Investigador Consolidado. Indique quién aporta estas horas; complete solo si asignó horas CONS.</span>
-                      <span className="field-label">
-                        Dependencia o persona que aporta horas CONS (si aplica)
-                      </span>
-                      <FormInput
-                        aria-label={`Titular de horas CONS, persona TEC ${memberIndex + 1}`}
-                        className="input"
-                        maxLength={150} value={member.titularCons ?? ""}
-                        onChange={(event) =>
-                          patchTeamTec(member.id, {
-                            titularCons: event.target.value,
-                          })
+                      <PersonPicker
+                        label="Dependencia o persona que aporta horas CONS (si aplica)"
+                        ariaLabel={`Titular de horas CONS, persona TEC ${memberIndex + 1}`}
+                        value={member.titularCons ?? ""}
+                        includeCatalog
+                        onChangeNombre={(nombre) =>
+                          patchTeamTec(member.id, { titularCons: nombre })
+                        }
+                        onPick={(person) =>
+                          patchTeamTec(member.id, { titularCons: person.nombre })
                         }
                       />
-                    </label>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -1200,26 +1181,39 @@ export function FormWizardIan({
                     />
                   </div>
                   <div className="team-member-fields team-external-fields">
-                    <label className="team-member-field">
-                      <span className="field-label">
-                        Nombre completo del colaborador externo
-                      </span>
-                      <FormInput
-                        className="input"
+                    <div className="team-member-field">
+                      <PersonPicker
+                        label="Nombre completo del colaborador externo"
+                        ariaLabel={`Nombre completo, colaborador externo ${memberIndex + 1}`}
                         value={member.nombre}
-                        maxLength={150}
-                        aria-label={`Nombre completo, colaborador externo ${memberIndex + 1}`}
-                        onChange={(event) =>
+                        includeCatalog={false}
+                        onChangeNombre={(nombre) =>
                           patch({
                             teamExternal: form.teamExternal.map((item) =>
                               item.id === member.id
-                                ? { ...item, nombre: event.target.value }
+                                ? { ...item, nombre, idUsuario: null }
+                                : item,
+                            ),
+                          })
+                        }
+                        onPick={(person) =>
+                          patch({
+                            teamExternal: form.teamExternal.map((item) =>
+                              item.id === member.id
+                                ? {
+                                    ...item,
+                                    nombre: person.nombre,
+                                    iniciales: person.iniciales || item.iniciales,
+                                    orcid: person.orcid || item.orcid,
+                                    institucion: person.instancia || item.institucion,
+                                    idUsuario: person.idUsuario ?? null,
+                                  }
                                 : item,
                             ),
                           })
                         }
                       />
-                    </label>
+                    </div>
                     <label className="team-member-field">
                       <span className="field-label">Iniciales</span>
                       <FormInput
@@ -1849,22 +1843,20 @@ export function FormWizardIan({
                         />
                       </label>
                     </div>
-                    <label className="field">
-                      <span className="field-label">
-                        Responsable de la gestión del riesgo
-                      </span>
-                      <FormInput
-                        aria-label={`Responsable de la gestión del riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
-                        className="input"
-                        value={risk.responsable}
-                        maxLength={150}
-                        onChange={(event) =>
-                          patchPlanRisk(activity.id, risk.id, {
-                            responsable: event.target.value,
-                          })
-                        }
-                      />
-                    </label>
+                    <PersonPicker
+                      label="Responsable de la gestión del riesgo"
+                      ariaLabel={`Responsable de la gestión del riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
+                      value={risk.responsable}
+                      includeCatalog={false}
+                      onChangeNombre={(nombre) =>
+                        patchPlanRisk(activity.id, risk.id, { responsable: nombre })
+                      }
+                      onPick={(person) =>
+                        patchPlanRisk(activity.id, risk.id, {
+                          responsable: person.nombre,
+                        })
+                      }
+                    />
                   </div>
                 ))}
               </section>
@@ -1881,16 +1873,17 @@ export function FormWizardIan({
     const annualTotals = BUDGET_YEARS.map((_, index) =>
       form.financiamiento.reduce(
         (total, source) =>
-          total + Number([source.anio1, source.anio2, source.anio3][index] || 0),
+          total +
+          moneyToNumber([source.anio1, source.anio2, source.anio3][index] || 0),
         0,
       ),
     );
     const budgetTotals = form.presupuestoAnual.reduce(
       (totals, row, index) => ({
-        operativo: totals.operativo + Number(row.operativo || 0),
+        operativo: totals.operativo + moneyToNumber(row.operativo || 0),
         duraderos:
           totals.duraderos +
-          (index === 0 ? Number(row.duraderos || 0) : 0),
+          (index === 0 ? moneyToNumber(row.duraderos || 0) : 0),
       }),
       { operativo: 0, duraderos: 0 },
     );
@@ -1926,17 +1919,21 @@ export function FormWizardIan({
                       <FormInput
                         id={`budget-operativo-${row.anio}`} aria-label={`Presupuesto operativo ${row.anio}`}
                         className="input"
-                        type="number"
-                        min="0"
-                        max="999999999999.99"
-                        step="0.01"
-                        value={row.operativo||"0"}
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        value={formatMoneyInput(row.operativo || "0")}
                         onChange={(event) =>
                           patch({
                             presupuestoAnual: form.presupuestoAnual.map(
                               (budget) =>
                                 budget.anio === row.anio
-                                  ? { ...budget, operativo: event.target.value||"0" }
+                                  ? {
+                                      ...budget,
+                                      operativo:
+                                        parseMoneyInput(event.target.value) ||
+                                        "0",
+                                    }
                                   : budget,
                             ),
                           })
@@ -1950,18 +1947,26 @@ export function FormWizardIan({
                       <FormInput
                         id={`budget-durable-${row.anio}`} aria-label={`Presupuesto de bienes duraderos ${row.anio}`}
                         className="input"
-                        type="number"
-                        min="0"
-                        max="999999999999.99"
-                        step="0.01"
-                        value={index === 0 ? row.duraderos||"0" : "0"}
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        value={
+                          index === 0
+                            ? formatMoneyInput(row.duraderos || "0")
+                            : "0"
+                        }
                         disabled={index > 0}
                         onChange={(event) =>
                           patch({
                             presupuestoAnual: form.presupuestoAnual.map(
                               (budget) =>
                                 budget.anio === row.anio
-                                  ? { ...budget, duraderos: event.target.value||"0" }
+                                  ? {
+                                      ...budget,
+                                      duraderos:
+                                        parseMoneyInput(event.target.value) ||
+                                        "0",
+                                    }
                                   : budget,
                             ),
                           })
@@ -1970,8 +1975,10 @@ export function FormWizardIan({
                     </td>
                     <td>
                       {formatCRC(
-                        Number(row.operativo || 0) +
-                          (index === 0 ? Number(row.duraderos || 0) : 0),
+                        moneyToNumber(row.operativo || 0) +
+                          (index === 0
+                            ? moneyToNumber(row.duraderos || 0)
+                            : 0),
                       )}
                     </td>
                   </tr>
@@ -2036,11 +2043,10 @@ export function FormWizardIan({
                           <FormInput
                             id={`financing-${source.tipo}-${yearKey}`}
                             className="input"
-                            type="number"
-                            min="0"
-                            max="999999999999.99"
-                            step="0.01"
-                            value={source[yearKey]||"0"}
+                            type="text"
+                            inputMode="decimal"
+                            autoComplete="off"
+                            value={formatMoneyInput(source[yearKey] || "0")}
                             onChange={(event) =>
                               patch({
                                 financiamiento: form.financiamiento.map(
@@ -2048,7 +2054,10 @@ export function FormWizardIan({
                                     item.tipo === source.tipo
                                       ? {
                                           ...item,
-                                          [yearKey]: event.target.value||"0",
+                                          [yearKey]:
+                                            parseMoneyInput(
+                                              event.target.value,
+                                            ) || "0",
                                         }
                                       : item,
                                 ),
@@ -3133,23 +3142,27 @@ export function FormWizardIan({
             la veracidad de los informes de avance y finales.
           </p>
         </section>
-        <label className="field">
-          <span className="field-label">Nombre completo de la persona coordinadora</span>
-          <FormInput
-            aria-label="Nombre completo de la persona coordinadora"
-            className="input"
-            maxLength={150}
-            value={declaration.nombreCompleto}
-            onChange={(event) =>
-              patch({
-                declaracionJurada: {
-                  ...declaration,
-                  nombreCompleto: event.target.value,
-                },
-              })
-            }
-          />
-        </label>
+        <PersonPicker
+          label="Nombre completo de la persona coordinadora"
+          ariaLabel="Nombre completo de la persona coordinadora"
+          value={declaration.nombreCompleto}
+          includeCatalog={false}
+          onChangeNombre={(nombre) =>
+            patch({
+              declaracionJurada: { ...declaration, nombreCompleto: nombre },
+            })
+          }
+          onPick={(person) =>
+            patch({
+              declaracionJurada: {
+                ...declaration,
+                nombreCompleto: person.nombre,
+                cedula: person.cedula || declaration.cedula,
+                firma: person.nombre,
+              },
+            })
+          }
+        />
         <label className="field">
           <span className="field-label">Número de cédula</span>
           <FormInput

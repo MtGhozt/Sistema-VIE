@@ -452,7 +452,7 @@ function RubricPanel({
               Definición versionada basada en la rúbrica oficial Fondos VIE 2027. Escala: 0, 6, 8 o 10. Los requisitos obligatorios con 0 o 6 y el incumplimiento de productos determinan una recomendación desfavorable. La nota y su justificación son humanas.
             </p>
           </div>
-          <div className="score-ring" role="img" aria-label={`Calificación ponderada: ${average} de ${availablePoints}`} style={{background:`radial-gradient(closest-side, white 78%, transparent 80%),conic-gradient(var(--blue) ${availablePoints?average/availablePoints*100:0}%, var(--ink-08) 0)`}}>
+          <div className="score-ring" role="img" aria-label={`Calificación ponderada: ${average} de ${availablePoints}`} style={{background:`radial-gradient(closest-side, var(--white) 78%, transparent 80%),conic-gradient(var(--blue) ${availablePoints?average/availablePoints*100:0}%, var(--ink-08) 0)`}}>
             <strong>{average}</strong>
             <span>/ {availablePoints} puntos incluidos</span>
             <small>{recommendation}</small>

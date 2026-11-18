@@ -26,6 +26,7 @@ import {
   type PropuestaDetalle,
 } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
+import { useFontSize } from "../a11y/FontSizeContext";
 import { useToast } from "../components/toast/ToastContext";
 import {
   DEFAULT_FORM_WIZARD_STATE,
@@ -62,7 +63,7 @@ export function PropuestaDetallePage() {
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [idConvocatoria, setIdConvocatoria] = useState<number | "">("");
   const [step, setStep] = useState(0);
-  const [fontSize,setFontSize]=useState(16);
+  const {fontSize}=useFontSize();
   const [loading, setLoading] = useState(true);
   const [reconsideracion, setReconsideracion] = useState("");
   const [requestedReconsideration,setRequestedReconsideration]=useState(false);
@@ -212,6 +213,37 @@ export function PropuestaDetallePage() {
         </p>
       )}
 
+      <aside className="readonly-banner" role="status" aria-live="polite">
+        <div>
+          <strong>Está en modo solo lectura</strong>
+          {canEdit && isDraft ? (
+            <p>
+              Este expediente no se edita aquí. Para continuar el borrador, usá{" "}
+              <Link to={`/propuestas/nueva?edit=${detail.id}`}>Editar borrador</Link>.
+            </p>
+          ) : canEdit && isCorrection ? (
+            <p>
+              Hay observaciones pendientes. Volvé a editar con{" "}
+              <Link to={`/propuestas/nueva?edit=${detail.id}`}>Editar propuesta</Link>{" "}
+              para subsanar y reenviar.
+            </p>
+          ) : (
+            <p>
+              El contenido ya está en el flujo de evaluación o resolución. No se
+              puede modificar hasta una eventual devolución por subsanación.
+            </p>
+          )}
+        </div>
+        {canEdit && (isDraft || isCorrection) && (
+          <Link
+            to={`/propuestas/nueva?edit=${detail.id}`}
+            className="btn btn-primary"
+          >
+            {isDraft ? "Editar borrador" : "Editar propuesta"}
+          </Link>
+        )}
+      </aside>
+
       {detail.estadoActual === "rechazo_aval" && canEdit && (
         <section className="card stack-md">
           <h2>Solicitar reconsideración al Consejo</h2>
@@ -337,7 +369,7 @@ export function PropuestaDetallePage() {
           <div className="wizard-card-head institutional-form-head">
             <div>
               <span className="eyebrow">
-                {FORM_META.shortLabel} · Solo lectura · Paso {step + 1} de{" "}
+                {FORM_META.shortLabel} · Paso {step + 1} de{" "}
                 {FORM_WIZARD_STEPS.length}
               </span>
               <h1 className="sr-only">
@@ -349,13 +381,13 @@ export function PropuestaDetallePage() {
             </div>
             <div className="form-code">
               <strong>{FORM_META.code}</strong>
-              <span role="status" aria-live="polite">
-                Solo lectura
+              <span className="readonly-badge" role="status" aria-live="polite">
+                MODO SOLO LECTURA
               </span>
             </div>
           </div>
 
-          <div className="action-row" aria-label="Tamaño del texto"><button type="button" className="btn btn-secondary" onClick={()=>setStep(7)}>Ver presupuesto</button><button type="button" className="btn btn-secondary" onClick={()=>{setStep(15);requestAnimationFrame(()=>document.getElementById('expediente-documentos')?.scrollIntoView({behavior:'smooth',block:'start'}));}}>Ver documentos del expediente</button>{comfortableReading&&<><button type="button" className="btn btn-secondary" onClick={()=>setExpandedReading(v=>!v)} aria-pressed={expandedReading}>{expandedReading?"Mostrar índice lateral":"Ampliar área de lectura"}</button><label className="field"><span className="field-label">Sección del expediente</span><select aria-label="Sección del expediente" className="input" value={step} onChange={e=>setStep(Number(e.target.value))}>{FORM_WIZARD_STEPS.map((name,i)=><option key={name} value={i}>{String(i+1).padStart(2,'0')} · {name}</option>)}</select></label></>}<button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
+          <div className="action-row" aria-label="Navegación del expediente"><button type="button" className="btn btn-secondary" onClick={()=>setStep(7)}>Ver presupuesto</button><button type="button" className="btn btn-secondary" onClick={()=>{setStep(15);requestAnimationFrame(()=>document.getElementById('expediente-documentos')?.scrollIntoView({behavior:'smooth',block:'start'}));}}>Ver documentos del expediente</button>{comfortableReading&&<><button type="button" className="btn btn-secondary" onClick={()=>setExpandedReading(v=>!v)} aria-pressed={expandedReading}>{expandedReading?"Mostrar índice lateral":"Ampliar área de lectura"}</button><label className="field"><span className="field-label">Sección del expediente</span><select aria-label="Sección del expediente" className="input" value={step} onChange={e=>setStep(Number(e.target.value))}>{FORM_WIZARD_STEPS.map((name,i)=><option key={name} value={i}>{String(i+1).padStart(2,'0')} · {name}</option>)}</select></label></>}</div>
           <div className="wizard-body" style={{fontSize,"--proposal-reading-size":`${fontSize}px`} as CSSProperties}>
             <FormWizardStepContent
               readOnly

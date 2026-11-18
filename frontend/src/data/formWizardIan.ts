@@ -63,6 +63,7 @@ export type TeamHourDraft = {
 export type TeamTecDraft = {
   id: string;
   participantId?: number;
+  idUsuario?: number | null;
   titularCons?:string;
   nombre: string;
   iniciales: string;
@@ -76,6 +77,7 @@ export type TeamTecDraft = {
 export type TeamExternalDraft = {
   id: string;
   participantId?: number;
+  idUsuario?: number | null;
   nombre: string;
   iniciales: string;
   orcid: string;

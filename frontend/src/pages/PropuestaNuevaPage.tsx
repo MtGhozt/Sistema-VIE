@@ -17,6 +17,7 @@ import {
   type PropuestaDetalle,
 } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
+import { useFontSize } from "../a11y/FontSizeContext";
 import { FormWizardStepContent } from "../components/FormWizardStepContent";
 import { SimpleModal } from "../components/evaluation/SimpleModal";
 import { WizardLineSteps } from "../components/WizardLineSteps";
@@ -48,7 +49,7 @@ export function PropuestaNuevaPage() {
   const [respuesta,setRespuesta]=useState("");
   const [dirtySections,setDirtySections]=useState<number[]>([]);
   const [checkedSteps,setCheckedSteps]=useState<Record<number,boolean>>({});
-  const [fontSize,setFontSize]=useState(16);
+  const {fontSize}=useFontSize();
   const validationPanel=useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormWizardState>(DEFAULT_FORM_WIZARD_STATE);
@@ -232,8 +233,20 @@ export function PropuestaNuevaPage() {
     setFailure(null);
     if (!canCreate) {reportFailure('Ingresá como investigador para crear propuestas','guardar');return;}
     const sectionsToSave=allowedSteps?[...new Set([...dirtySections,...(allowedSteps.includes(step)?[step]:[])])]:undefined;
-    const draftErrors=(sectionsToSave??Array.from({length:15},(_,i)=>i)).flatMap(s=>proposalIssues(s,toIan(form),idConvocatoria!=='',!subsanacion));
-    if(showIssues(draftErrors,Boolean(subsanacion)))return;
+    if(subsanacion){
+      const draftErrors=(sectionsToSave??[]).flatMap(s=>proposalIssues(s,toIan(form),idConvocatoria!=='',false));
+      if(showIssues(draftErrors,true))return;
+    }else{
+      // Borrador incompleto: solo nombre + convocatoria; validación estricta al enviar.
+      if(!form.titulo.trim()){
+        reportFailure('Indicá al menos el nombre del proyecto para guardar el borrador.','guardar');
+        return;
+      }
+      if(idConvocatoria===''){
+        reportFailure('Seleccioná una convocatoria para guardar el borrador.','guardar');
+        return;
+      }
+    }
     setSaving(true);
     setSaveStatus('Guardando…');
     try {
@@ -246,6 +259,39 @@ export function PropuestaNuevaPage() {
       navigate(exit?`/propuestas/${saved.id}`:`/propuestas/nueva?edit=${saved.id}`, { replace: true });
     } catch (err) {
       reportFailure(err,'guardar');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onLeaveSaving() {
+    if (blocker.state !== "blocked") return;
+    if (!canCreate) {
+      reportFailure('Ingresá como investigador para crear propuestas','guardar');
+      return;
+    }
+    if (!form.titulo.trim() || idConvocatoria === "") {
+      reportFailure(
+        "Para salir guardando indicá el nombre del proyecto y la convocatoria.",
+        "guardar",
+      );
+      blocker.reset();
+      return;
+    }
+    const sectionsToSave = allowedSteps
+      ? [...new Set([...dirtySections, ...(allowedSteps.includes(step) ? [step] : [])])]
+      : undefined;
+    setSaving(true);
+    setSaveStatus("Guardando…");
+    try {
+      await persistDraft(sectionsToSave);
+      setSaveStatus("Borrador guardado en el servidor");
+      showToast("Borrador guardado", "success");
+      allowLeaveRef.current = true;
+      if (blocker.state === "blocked") blocker.proceed();
+    } catch (err) {
+      reportFailure(err, "guardar");
+      if (blocker.state === "blocked") blocker.reset();
     } finally {
       setSaving(false);
     }
@@ -380,7 +426,6 @@ export function PropuestaNuevaPage() {
             </div>
           </div>
 
-          <div className="action-row" aria-label="Tamaño del texto"><button type="button" className="btn btn-secondary" disabled={fontSize<=14} onClick={()=>setFontSize(v=>v-2)}>Reducir letra</button><button type="button" className="btn btn-secondary" disabled={fontSize>=24} onClick={()=>setFontSize(v=>v+2)}>Ampliar letra</button></div>
           {subsanacion && <div className="stack-md correction-guide" role="note"><p><strong>Subsanación para {subsanacion.instancia}:</strong> {subsanacion.motivo}</p><p>Rojo: corrección pendiente o error. Azul: corrección guardada y validada en el formulario; no implica aprobación de la instancia. Verde: sección completa. Al modificar una corrección guardada vuelve a quedar pendiente.</p><div className="action-row">{seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=><button key={s.codigo} type="button" aria-label={s.etiqueta} className={`btn btn-secondary ${correctedSteps.includes(s.paso)?"correction-saved":"correction-pending"}`} onClick={()=>setStep(s.paso)}>{s.etiqueta} · {correctedSteps.includes(s.paso)?"Guardada y validada":"Pendiente de corrección"}</button>)}</div><p>Edite únicamente: {seccionesSubsanacion.filter(s=>subsanacion.secciones.includes(s.codigo)).map(s=>s.etiqueta).join(", ")}.</p>
             <label className="field"><span className="field-label">Respuesta a las observaciones</span><textarea aria-label="Respuesta a las observaciones" className="input textarea" maxLength={5000} value={respuesta} onChange={e=>setRespuesta(e.target.value)} required /></label></div>}
           <fieldset style={{border:0,padding:0,margin:0,minWidth:0}}>
@@ -476,7 +521,16 @@ export function PropuestaNuevaPage() {
             </button>
             <button
               type="button"
-              className="btn btn-danger"
+              className="btn btn-primary"
+              disabled={saving}
+              onClick={() => void onLeaveSaving()}
+            >
+              {saving ? "Guardando…" : "Salir guardando"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={saving}
               onClick={() => {
                 if (blocker.state === "blocked") blocker.proceed();
               }}
@@ -487,8 +541,8 @@ export function PropuestaNuevaPage() {
         }
       >
         <p>
-          Tenés cambios sin guardar en el formulario. Si salís ahora (por
-          ejemplo a Notificaciones) se perderán.
+          Tenés cambios sin guardar. Podés seguir editando, guardar el borrador
+          incompleto y salir, o salir sin guardar.
         </p>
       </SimpleModal>
     </>

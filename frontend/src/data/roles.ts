@@ -24,8 +24,10 @@ export type NavKey =
   | "/propuestas"
   | "/evaluaciones"
   | "/historico"
+  | "/estadisticas"
   | "/notificaciones"
-  | "/administracion";
+  | "/administracion"
+  | "/perfil";
 
 export const ROLES: RoleDef[] = [
   { id: "vie_publicacion", label: "VIE — Publicación", short: "VIE" },
@@ -72,63 +74,72 @@ export const ROLES: RoleDef[] = [
 
 export const NAV_ITEMS: { to: NavKey; label: string; icon: string }[] = [
   { to: "/inicio", label: "Inicio", icon: "home" },
-  { to: "/convocatorias", label: "Convocatorias", icon: "megaphone" },
+  { to: "/convocatorias", label: "Convocatorias Fondos", icon: "megaphone" },
   { to: "/propuestas", label: "Propuestas", icon: "file" },
   { to: "/evaluaciones", label: "Evaluaciones", icon: "clipboard" },
   { to: "/historico", label: "Histórico", icon: "archive" },
+  { to: "/estadisticas", label: "Estadísticas", icon: "chart" },
   { to: "/notificaciones", label: "Notificaciones", icon: "bell" },
 ];
 
 /** Rutas visibles por rol (admin = todas + administración) */
+function withStats(routes: NavKey[]): NavKey[] {
+  const out = [...routes];
+  const hist = out.indexOf("/historico");
+  if (hist >= 0) out.splice(hist + 1, 0, "/estadisticas");
+  else out.push("/estadisticas");
+  return out;
+}
+
 export const ROUTES_BY_ROLE: Record<RoleId, NavKey[]> = {
-  vie_publicacion: [
+  vie_publicacion: withStats([
     "/inicio",
     "/convocatorias",
     "/historico",
     "/notificaciones",
-  ],
-  investigador: [
+  ]),
+  investigador: withStats([
     "/inicio",
     "/convocatorias",
     "/propuestas",
     "/historico",
     "/notificaciones",
-  ],
-  vinculacion: ["/inicio", "/evaluaciones", "/historico", "/notificaciones"],
-  comite_asistente: [
+  ]),
+  vinculacion: withStats(["/inicio", "/evaluaciones", "/historico", "/notificaciones"]),
+  comite_asistente: withStats([
     "/inicio",
     "/evaluaciones",
     "/historico",
     "/notificaciones",
-  ],
-  comite_evaluador: [
+  ]),
+  comite_evaluador: withStats([
     "/inicio",
     "/evaluaciones",
     "/historico",
     "/notificaciones",
-  ],
-  consejo_asistente: [
+  ]),
+  consejo_asistente: withStats([
     "/inicio",
     "/evaluaciones",
     "/historico",
     "/notificaciones",
-  ],
-  consejo: ["/inicio", "/evaluaciones", "/historico", "/notificaciones"],
-  direccion_escuela: [
+  ]),
+  consejo: withStats(["/inicio", "/evaluaciones", "/historico", "/notificaciones"]),
+  direccion_escuela: withStats([
     "/inicio",
     "/evaluaciones",
     "/historico",
     "/notificaciones",
-  ],
-  gestora_vie: ["/inicio", "/evaluaciones", "/historico", "/notificaciones"],
-  cie: ["/inicio", "/evaluaciones", "/historico", "/notificaciones"],
-  direccion_investigacion: [
+  ]),
+  gestora_vie: withStats(["/inicio", "/evaluaciones", "/historico", "/notificaciones"]),
+  cie: withStats(["/inicio", "/evaluaciones", "/historico", "/notificaciones"]),
+  direccion_investigacion: withStats([
     "/inicio",
     "/evaluaciones",
     "/historico",
     "/notificaciones",
-  ],
-  admin: [
+  ]),
+  admin: withStats([
     "/inicio",
     "/convocatorias",
     "/propuestas",
@@ -136,7 +147,7 @@ export const ROUTES_BY_ROLE: Record<RoleId, NavKey[]> = {
     "/historico",
     "/notificaciones",
     "/administracion",
-  ],
+  ]),
 };
 
 export function getRole(id: string): RoleDef {

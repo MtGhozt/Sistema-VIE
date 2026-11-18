@@ -1,0 +1,9 @@
+{
+  "run": "2026-11-13T15-03-11-810Z",
+  "perfil": "desarrollo",
+  "base": "fondos_vie",
+  "cantidad": 16,
+  "reinicio": true,
+  "carga": false,
+  "error": "El reinicio terminó, pero la carga no se completó. Revise el reporte del cargador; los registros parciales se conservan."
+}

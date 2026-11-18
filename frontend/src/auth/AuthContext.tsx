@@ -36,6 +36,7 @@ type AuthContextValue = {
   loginWithRole: (email: string, password: string, roleCode: RoleId) => Promise<void>;
   logout: () => void;
   setViewRole: (role: RoleId) => void;
+  updateSessionName: (name: string) => void;
   isAdminSession: boolean;
 };
 
@@ -133,15 +134,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const updateSessionName = useCallback((name: string) => {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, name };
+      persistSession(next);
+      return next;
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       session,
       loginWithRole,
       logout,
       setViewRole,
+      updateSessionName,
       isAdminSession: session?.role === "admin",
     }),
-    [session, loginWithRole, logout, setViewRole],
+    [session, loginWithRole, logout, setViewRole, updateSessionName],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -51,6 +51,8 @@ __pycache__/
 # Archivos persistidos en ejecución (conservar al actualizar)
 var/documentos/
 var/documentos-pruebas/
+var/perfiles/
+var/perfiles-pruebas/
 
 # Reportes de lotes de demostración generados localmente
 var/datos-demo/

@@ -22,6 +22,10 @@ export function setDemoAuth(auth: DemoAuthHeaders | null) {
   demoAuth = auth;
 }
 
+export function getDemoAuth(): DemoAuthHeaders | null {
+  return demoAuth;
+}
+
 export async function apiJson<T>(
   path: string,
   init?: RequestInit,

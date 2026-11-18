@@ -1,3 +1,5 @@
+import { RemoveIconButton } from "./ConfirmDialog";
+
 /** Editor de ítems del formulario; los requisitos se validan también en el servidor. */
 export function EditableRows<T extends object>({ title, rows, fields, blank, onChange }: {
   title: string; rows: T[]; fields: { key: keyof T; label: string; type?: "number"; options?: string[]; optionLabels?:Record<string,string> }[];
@@ -9,7 +11,7 @@ export function EditableRows<T extends object>({ title, rows, fields, blank, onC
         {f.options ? <select className="input" value={String(row[f.key]??'')} onChange={e=>onChange(rows.map((r,i)=>i===index?{...r,[f.key]:e.target.value}:r))}>{f.options.map(o=><option key={o} value={o}>{f.optionLabels?.[o]??o}</option>)}</select>
         : <input className="input" type={f.type??'text'} step={f.type==='number'?'any':undefined} value={(row[f.key]??'') as string|number} onChange={e=>onChange(rows.map((r,i)=>i===index?{...r,[f.key]:f.type==='number'?Number(e.target.value):e.target.value}:r))}/>}
       </label>)}</div>
-      <button type="button" className="btn btn-secondary" aria-label={`Quitar ${title} ${index + 1}`} onClick={()=>onChange(rows.filter((_,i)=>i!==index))}>Quitar ítem</button>
+      <RemoveIconButton ariaLabel={`Quitar ${title} ${index + 1}`} confirmWhat={`${title} ${index + 1}`} onConfirm={()=>onChange(rows.filter((_,i)=>i!==index))} />
     </fieldset>)}
     <button type="button" className="btn btn-secondary" onClick={()=>onChange([...rows,blank()])}>Agregar ítem · {title}</button>
   </div>;

@@ -6,7 +6,7 @@ import {DocumentosPanel} from "../components/DocumentosPanel";
 import {downloadFile,apiJson} from "../api/client";
 import seccionesSubsanacion from "../../../shared/subsanacion-secciones.json";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useBlocker, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { fetchConvocatorias, type Convocatoria } from "../api/convocatorias";
 import {
@@ -18,6 +18,7 @@ import {
 } from "../api/propuestas";
 import { useAuth } from "../auth/AuthContext";
 import { FormWizardStepContent } from "../components/FormWizardStepContent";
+import { SimpleModal } from "../components/evaluation/SimpleModal";
 import { WizardLineSteps } from "../components/WizardLineSteps";
 import { useToast } from "../components/toast/ToastContext";
 import {
@@ -163,6 +164,27 @@ export function PropuestaNuevaPage() {
     setSaveStatus("Cambios sin guardar");
   }
 
+  const allowLeaveRef = useRef(false);
+  const hasUnsavedChanges =
+    saveStatus === "Cambios sin guardar" || saveStatus === "Guardando…";
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      hasUnsavedChanges &&
+      !allowLeaveRef.current &&
+      (currentLocation.pathname !== nextLocation.pathname ||
+        currentLocation.search !== nextLocation.search),
+  );
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   function draftPayload() {
     return {
       ...form.detallesFormulario,
@@ -220,6 +242,7 @@ export function PropuestaNuevaPage() {
       setSaveStatus(subsanacion?'Correcciones guardadas en el servidor':'Borrador guardado en el servidor');
       showToast(subsanacion?'Correcciones guardadas':'Borrador guardado', 'success');
       if(isEditing&&!exit)setReload(r=>r+1);
+      allowLeaveRef.current = true;
       navigate(exit?`/propuestas/${saved.id}`:`/propuestas/nueva?edit=${saved.id}`, { replace: true });
     } catch (err) {
       reportFailure(err,'guardar');
@@ -249,11 +272,12 @@ export function PropuestaNuevaPage() {
       setSaveStatus('Borrador guardado; enviando…');
       const sent = await enviarPropuesta(saved.id,subsanacion?respuesta:undefined);
       showToast(`Propuesta ${sent.codigo} enviada a revisión`, 'success');
+      allowLeaveRef.current = true;
       navigate(`/propuestas/${sent.id}`, { replace: true });
     } catch (err) {
       reportFailure(err,saved?'enviar':'guardar',saved);
       // Permite corregir/reintentar sobre el mismo registro si el primer envío falla.
-      if(saved&&!isEditing)navigate(`/propuestas/nueva?edit=${saved.id}`,{replace:true});
+      if(saved&&!isEditing){allowLeaveRef.current=true;navigate(`/propuestas/nueva?edit=${saved.id}`,{replace:true});}
     } finally {
       setSaving(false);
     }
@@ -433,6 +457,40 @@ export function PropuestaNuevaPage() {
           </div>
         </section>
       </div>
+      <SimpleModal
+        open={blocker.state === "blocked"}
+        title="Cambios sin guardar"
+        onClose={() => {
+          if (blocker.state === "blocked") blocker.reset();
+        }}
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                if (blocker.state === "blocked") blocker.reset();
+              }}
+            >
+              Seguir editando
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={() => {
+                if (blocker.state === "blocked") blocker.proceed();
+              }}
+            >
+              Salir sin guardar
+            </button>
+          </>
+        }
+      >
+        <p>
+          Tenés cambios sin guardar en el formulario. Si salís ahora (por
+          ejemplo a Notificaciones) se perderán.
+        </p>
+      </SimpleModal>
     </>
   );
 }

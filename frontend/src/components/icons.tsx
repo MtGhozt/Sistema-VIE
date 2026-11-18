@@ -90,6 +90,24 @@ export function IconLogout(p: IconProps) {
     </Svg>
   );
 }
+/** Basurero relleno, bien visible a 20px. */
+export function IconTrash(p: IconProps) {
+  return (
+    <svg
+      width={p.size ?? 20}
+      height={p.size ?? 20}
+      viewBox="0 0 24 24"
+      className={p.className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        fill="currentColor"
+        d="M9 2h6v2h5v2H4V4h5V2zm1 6h2v10h-2V8zm4 0h2v10h-2V8zM7 8h2v10H7V8zm-1 14h12l1-12H5l1 12z"
+      />
+    </svg>
+  );
+}
 export function IconShield(p: IconProps) {
   return (
     <Svg {...p}>

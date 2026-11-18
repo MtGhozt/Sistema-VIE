@@ -19,7 +19,12 @@ export function ConvocatoriaDateField({id,label,value,onChange,min='2000-01-01',
         aria-describedby={`${id}-hint${error?` ${id}-error`:''}`}
         onChange={e=>{const digits=e.target.value.replace(/\D/g,'').slice(0,8);onChange([digits.slice(0,2),digits.slice(2,4),digits.slice(4)].filter(Boolean).join('/'));}}/>
       <div className="calendar-picker-control">
-        <button className="btn btn-secondary" type="button" disabled={disabled} aria-label={`Abrir calendario: ${label}`} onClick={()=>{try{calendar.current?.showPicker();}catch{calendar.current?.focus();}}}>Calendario</button>
+        <button className="btn btn-secondary btn-calendar-icon" type="button" disabled={disabled} aria-label={`Abrir calendario: ${label}`} title="Abrir calendario" onClick={()=>{try{calendar.current?.showPicker();}catch{calendar.current?.focus();}}}>
+          <svg className="calendar-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
+            <path d="M3 10h18M8 3v4M16 3v4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </button>
         <input ref={calendar} className="calendar-picker-native" type="date" aria-label={`Seleccionar fecha en calendario: ${label}`} tabIndex={-1}
           value={iso} min={min} max={max} disabled={disabled}
           onChange={e=>{const selected=e.target.value;onChange(selected?selected.split('-').reverse().join('/'):'');}}/>

@@ -94,7 +94,7 @@ export async function savePropuestaCampos(id: number, body: Record<string, unkno
     const start=iso(d.inicio),end=iso(d.fin),horizon=horizonteProyecto(start,end);
     if(!horizon)throw new HttpError(400,'Fechas del proyecto: la finalización no puede ser anterior al inicio.');
     const outside=await execute('SELECT 1 FROM actividad_plan WHERE id_propuesta=$1 AND mes_inicio+duracion_meses-1>$2::numeric LIMIT 1',[id,horizon]);
-    if(outside.rowCount)throw new HttpError(400,'Plan de acción: una actividad excede la duración real del proyecto; para actividades diarias use días ÷ 30.');
+    if(outside.rowCount)throw new HttpError(400,'Plan de acción: una actividad excede la duración del proyecto en meses enteros.');
   }
 
 }

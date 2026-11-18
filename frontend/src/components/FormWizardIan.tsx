@@ -34,10 +34,11 @@ import {
 import {
   DATE_YEAR_MAX,
   DATE_YEAR_MIN,
-  projectDurationMonths,
+  planHorizonMonths,
 } from "../data/dateRules";
 import { formatCRC } from "../data/proposalView";
 import { CollapsibleBlock } from "./CollapsibleBlock";
+import { RemoveIconButton } from "./ConfirmDialog";
 
 import { WordBudget } from "./WordBudget";
 
@@ -922,20 +923,17 @@ export function FormWizardIan({
                 <article className="team-member-card" key={member.id}>
                   <div className="team-member-card-header">
                     <h4>Persona investigadora TEC {memberIndex + 1}</h4>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      aria-label={`Quitar persona TEC ${memberIndex + 1}${member.nombre ? `: ${member.nombre}` : ""}`}
-                      onClick={() =>
+                    <RemoveIconButton
+                      ariaLabel={`Quitar persona TEC ${memberIndex + 1}${member.nombre ? `: ${member.nombre}` : ""}`}
+                      confirmWhat={`a la persona TEC ${memberIndex + 1}${member.nombre ? ` (${member.nombre})` : ""}`}
+                      onConfirm={() =>
                         patch({
                           teamTec: form.teamTec.filter(
                             (item) => item.id !== member.id,
                           ),
                         })
                       }
-                    >
-                      Quitar persona
-                    </button>
+                    />
                   </div>
                   <div className="team-member-fields team-tec-fields">
                     <label className="team-member-field">
@@ -1090,20 +1088,17 @@ export function FormWizardIan({
                               }
                             />
                             {member.horas.length > 1 && (
-                              <button
-                                type="button"
-                                className="btn btn-secondary"
-                                aria-label={`Quitar tipo de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
-                                onClick={() =>
+                              <RemoveIconButton
+                                ariaLabel={`Quitar tipo de horas ${hourIndex + 1}, persona TEC ${memberIndex + 1}`}
+                                confirmWhat={`el tipo de horas ${hourIndex + 1} de la persona TEC ${memberIndex + 1}`}
+                                onConfirm={() =>
                                   patchTeamTec(member.id, {
                                     horas: member.horas.filter(
                                       (_, index) => index !== hourIndex,
                                     ),
                                   })
                                 }
-                              >
-                                Quitar
-                              </button>
+                              />
                             )}
                           </div>
                         ))}
@@ -1192,20 +1187,17 @@ export function FormWizardIan({
                 <article className="team-member-card" key={member.id}>
                   <div className="team-member-card-header">
                     <h4>Colaborador/a externo/a {memberIndex + 1}</h4>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      aria-label={`Quitar colaborador externo ${memberIndex + 1}${member.nombre ? `: ${member.nombre}` : ""}`}
-                      onClick={() =>
+                    <RemoveIconButton
+                      ariaLabel={`Quitar colaborador externo ${memberIndex + 1}${member.nombre ? `: ${member.nombre}` : ""}`}
+                      confirmWhat={`al colaborador/a externo/a ${memberIndex + 1}${member.nombre ? ` (${member.nombre})` : ""}`}
+                      onConfirm={() =>
                         patch({
                           teamExternal: form.teamExternal.filter(
                             (item) => item.id !== member.id,
                           ),
                         })
                       }
-                    >
-                      Quitar colaborador/a
-                    </button>
+                    />
                   </div>
                   <div className="team-member-fields team-external-fields">
                     <label className="team-member-field">
@@ -1497,7 +1489,7 @@ export function FormWizardIan({
         iniciales: member.iniciales,
       })),
     ];
-    const horizonMonths = projectDurationMonths(form.inicio, form.fin);
+    const horizonMonths = planHorizonMonths(form.inicio, form.fin);
     const planMax = horizonMonths || 36;
 
     return (
@@ -1509,9 +1501,9 @@ export function FormWizardIan({
           {horizonMonths > 0
             ? ` (${horizonMonths} mes${horizonMonths === 1 ? "" : "es"} entre inicio y fin)`
             : ""}
-          ; ninguna actividad puede salir de ese rango. Cada actividad debe tener
-          al menos una persona responsable y un riesgo con su medida de
-          mitigación.
+          ; ninguna actividad puede salir de ese rango. Duración e inicio se
+          indican en meses enteros. Cada actividad debe tener al menos una
+          persona responsable y un riesgo con su medida de mitigación.
         </p>
         <div className="page-heading">
           <div>
@@ -1577,20 +1569,17 @@ export function FormWizardIan({
                       : ""}
                   </button>
                 </h3>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  aria-label={`Quitar actividad ${activityIndex + 1}`}
-                  onClick={() =>
+                <RemoveIconButton
+                  ariaLabel={`Quitar actividad ${activityIndex + 1}`}
+                  confirmWhat={`la actividad ${activityIndex + 1}`}
+                  onConfirm={() =>
                     patch({
                       planAccion: form.planAccion.filter(
                         (item) => item.id !== activity.id,
                       ),
                     })
                   }
-                >
-                  Quitar actividad
-                </button>
+                />
               </div>
               {!collapsedActivities[activity.id] && (
               <>
@@ -1624,14 +1613,14 @@ export function FormWizardIan({
                 </label>
                 <label className="field">
                   <span className="field-label">
-                    Mes de inicio (1–{Math.ceil(planMax)} del proyecto)
+                    Mes de inicio (1–{planMax} del proyecto)
                   </span>
                   <FormInput
                     aria-label={`Mes de inicio, actividad ${activityIndex + 1}`}
                     className="input"
                     type="number"
                     min="1"
-                    max={Math.ceil(planMax)}
+                    max={planMax}
                     step="1"
                     value={activity.mesInicio}
                     onChange={(event) =>
@@ -1643,15 +1632,15 @@ export function FormWizardIan({
                 </label>
                 <label className="field">
                   <span className="field-label">
-                    Duración (meses; días ÷ 30 · máx. {planMax})
+                    Duración (meses enteros · máx. {planMax})
                   </span>
                   <FormInput
                     aria-label={`Duración en meses, actividad ${activityIndex + 1}`}
                     className="input"
                     type="number"
-                    min="0.01"
+                    min="1"
                     max={planMax}
-                    step="0.01"
+                    step="1"
                     value={activity.duracionMeses}
                     onChange={(event) =>
                       patchPlanActivity(activity.id, {
@@ -1766,20 +1755,17 @@ export function FormWizardIan({
                         ))}
                       </FormSelect>
                     </label>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      aria-label={`Quitar participante ${assignmentIndex + 1} de actividad ${activityIndex + 1}`}
-                      onClick={() =>
+                    <RemoveIconButton
+                      ariaLabel={`Quitar participante ${assignmentIndex + 1} de actividad ${activityIndex + 1}`}
+                      confirmWhat={`al participante ${assignmentIndex + 1} de la actividad ${activityIndex + 1}`}
+                      onConfirm={() =>
                         patchPlanActivity(activity.id, {
                           participantes: activity.participantes.filter(
                             (item) => item.id !== assignment.id,
                           ),
                         })
                       }
-                    >
-                      Quitar
-                    </button>
+                    />
                   </div>
                 ))}
                 {teamMembers.length === 0 && (
@@ -1819,20 +1805,17 @@ export function FormWizardIan({
                   <div className="form-section-block action-plan-risk" id={`risk-${activity.id}-${riskIndex}`} key={risk.id}>
                     <div className="page-heading">
                       <h5>Riesgo {riskIndex + 1}</h5>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        aria-label={`Quitar riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
-                        onClick={() =>
+                      <RemoveIconButton
+                        ariaLabel={`Quitar riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
+                        confirmWhat={`el riesgo ${riskIndex + 1} de la actividad ${activityIndex + 1}`}
+                        onConfirm={() =>
                           patchPlanActivity(activity.id, {
                             riesgos: activity.riesgos.filter(
                               (item) => item.id !== risk.id,
                             ),
                           })
                         }
-                      >
-                        Quitar riesgo
-                      </button>
+                      />
                     </div>
                     <div className="form-grid">
                       <label className="field">
@@ -2363,11 +2346,10 @@ export function FormWizardIan({
                         </FormSelect>
                       </td>
                       <td>
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          aria-label={`Quitar producto académico ${index + 1}`}
-                          onClick={() =>
+                        <RemoveIconButton
+                          ariaLabel={`Quitar producto académico ${index + 1}`}
+                          confirmWhat={`el producto académico ${index + 1}`}
+                          onConfirm={() =>
                             patch({
                               productosAcademicos:
                                 form.productosAcademicos.filter(
@@ -2375,9 +2357,7 @@ export function FormWizardIan({
                                 ),
                             })
                           }
-                        >
-                          Quitar
-                        </button>
+                        />
                       </td>
                     </tr>
                   ))}
@@ -2516,20 +2496,17 @@ export function FormWizardIan({
                           />
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            aria-label={`Quitar activo ${index + 1}`}
-                            onClick={() =>
+                          <RemoveIconButton
+                            ariaLabel={`Quitar activo ${index + 1}`}
+                            confirmWhat={`el activo ${index + 1}`}
+                            onConfirm={() =>
                               patch({
                                 activosPI: form.activosPI.filter(
                                   (item) => item.id !== asset.id,
                                 ),
                               })
                             }
-                          >
-                            Quitar
-                          </button>
+                          />
                         </td>
                       </tr>
                     ))}
@@ -2576,20 +2553,17 @@ export function FormWizardIan({
                     }
                   />
                 </label>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  aria-label={`Quitar producto adicional ${index + 1}`}
-                  onClick={() =>
+                <RemoveIconButton
+                  ariaLabel={`Quitar producto adicional ${index + 1}`}
+                  confirmWhat={`el producto adicional ${index + 1}`}
+                  onConfirm={() =>
                     patch({
                       productosAdicionales: form.productosAdicionales.filter(
                         (item) => item.id !== product.id,
                       ),
                     })
                   }
-                >
-                  Quitar
-                </button>
+                />
               </div>
             ))}
             {form.productosAdicionales.length < 2 && (
@@ -3239,7 +3213,24 @@ export function FormWizardIan({
     );
   }
 
-  if (step === 15) return <div className="stack-md">{documentos??<p>Guarde el borrador para adjuntar documentos.</p>}<p>PDF, DOCX y XLSX hasta 10 MiB. Imágenes y videos fuera del alcance de esta entrega.</p></div>;
+  if (step === 15) {
+    return (
+      <div className="stack-md">
+        {documentos ??
+          (readOnly ? (
+            <p role="status">Los documentos del expediente aparecen a continuación.</p>
+          ) : (
+            <p>Guarde el borrador para adjuntar documentos.</p>
+          ))}
+        {!readOnly && (
+          <p>
+            PDF, DOCX y XLSX hasta 10 MiB. Imágenes y videos fuera del alcance de
+            esta entrega.
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="review-summary stack-md">

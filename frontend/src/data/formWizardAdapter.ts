@@ -8,7 +8,8 @@ export function toIan(f:Form):Ian {
  const extra=Object.assign({},...Object.values(f.detallesFormulario??{})) as Partial<Ian>;
  const base={...structuredClone(defaults),...extra};
  const objectives=[...new Set(f.actividades.map(a=>a.objetivo))];
- base.objetivosEspecificos=Array.from({length:Math.max(3,extra.objetivosEspecificos?.length??0,f.objetivosRegistrados.length)},(_,i)=>({id:`objetivo-${i}`,descripcion:extra.objetivosEspecificos?.[i]?.descripcion??f.objetivosRegistrados.find(o=>o.numero===i+1)?.descripcion??objectives[i]??''}));
+ // El formulario oficial exige exactamente 3 objetivos; filas extra del plan no deben romper el estado del paso 04.
+ base.objetivosEspecificos=Array.from({length:3},(_,i)=>({id:`objetivo-${i}`,descripcion:extra.objetivosEspecificos?.[i]?.descripcion??f.objetivosRegistrados.find(o=>o.numero===i+1)?.descripcion??objectives[i]??''}));
  const oldTeam=[...(base.teamTec??[]),...(base.teamExternal??[])];
  const team=f.equipo.map((p,i)=>{
   const normalHours=p.horas.map(h=>({tipo:(String(h.tipo)==='DOC'?'DOC VIE':String(h.tipo)==='VIE-Centros'?'VIE-Centro':h.tipo) as Ian['teamTec'][number]['horas'][number]['tipo'],cantidad:String(h.cantidad)}));

@@ -43,7 +43,14 @@ export function projectDurationMonths(inicio: string, fin: string): number {
   return Math.min(PLAN_MAX_MONTHS,Number((days/30).toFixed(2)));
 }
 
-/** Una actividad (mes inicio + duración) cabe en el horizonte del proyecto. */
+/** Horizonte usable del plan en meses enteros (mín. 1 si hay fechas válidas). */
+export function planHorizonMonths(inicio: string, fin: string): number {
+  const horizon = projectDurationMonths(inicio, fin);
+  if (horizon <= 0) return 0;
+  return Math.max(1, Math.ceil(horizon));
+}
+
+/** Una actividad (mes inicio + duración enteros) cabe en el horizonte del proyecto. */
 export function activityFitsProject(
   mesInicio: number,
   duracionMeses: number,
@@ -53,11 +60,18 @@ export function activityFitsProject(
   if (!Number.isFinite(mesInicio) || !Number.isFinite(duracionMeses)) {
     return false;
   }
-  if (!Number.isInteger(mesInicio) || mesInicio < 1 || duracionMeses < 0.01) return false;
-  const horizon = projectDurationMonths(inicio, fin);
+  if (
+    !Number.isInteger(mesInicio) ||
+    mesInicio < 1 ||
+    !Number.isInteger(duracionMeses) ||
+    duracionMeses < 1
+  ) {
+    return false;
+  }
+  const horizon = planHorizonMonths(inicio, fin);
   if (horizon <= 0) return false;
   const endMonth = mesInicio + duracionMeses - 1;
-  return endMonth <= horizon + 1e-9;
+  return endMonth <= horizon;
 }
 
 /** Presentación día/mes/año en español de Costa Rica. */

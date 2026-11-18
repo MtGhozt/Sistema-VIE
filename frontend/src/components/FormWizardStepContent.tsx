@@ -60,7 +60,11 @@ export function FormWizardStepContent(props: {
         />
       </fieldset></ProposalReadOnly.Provider>
       {/* Fuera del fieldset disabled para permitir descargas en solo lectura */}
-      {readOnly && props.step === 15 && props.documentos}
+      {readOnly && props.step === 15 && (
+        <div className="expediente-documentos-host" id="expediente-documentos">
+          {props.documentos}
+        </div>
+      )}
     </>
   );
 }

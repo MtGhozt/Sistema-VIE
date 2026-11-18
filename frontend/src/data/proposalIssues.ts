@@ -44,7 +44,7 @@ export function proposalIssues(step:number,f:FormWizardState,hasConvocatoria:boo
  if(step===5)narrative('Metodología',f.metodologia,FIELD_WORD_LIMITS.metodologia);
  if(step===6){if(!draft&&!f.planAccion.length)add('Plan de acción','Agregue una actividad, participantes y al menos un riesgo.');f.planAccion.forEach((a,i)=>{
   required(`Descripción de la actividad ${i+1}`,a.actividad);required(`Resultado esperado, actividad ${i+1}`,a.resultadoEsperado);required(`Objetivo asociado, actividad ${i+1}`,a.objetivoNumero);
-  if((!draft||a.mesInicio||a.duracionMeses)&&!activityFitsProject(Number(a.mesInicio),Number(a.duracionMeses),f.inicio,f.fin))add(`Duración en meses, actividad ${i+1}`,'La actividad debe caber en las fechas del proyecto. Inicio: mes correlativo entero; duración positiva en meses (días ÷ 30, admite decimales).');
+  if(a.mesInicio!==''&&a.duracionMeses!==''&&!activityFitsProject(Number(a.mesInicio),Number(a.duracionMeses),f.inicio,f.fin))add(`Duración en meses, actividad ${i+1}`,'La actividad debe caber en las fechas del proyecto. Inicio y duración: meses enteros positivos (1, 2, 3…).');
   if(!draft&&(!a.participantes.length||a.participantes.some(p=>!p.teamMemberId||!p.responsabilidad)))add(`Participantes de actividad ${i+1}`,'Asigne una persona del equipo y su responsabilidad.');
   if(!draft&&!a.riesgos.length)add(`Riesgos de actividad ${i+1}`,'Registre al menos un riesgo por actividad.');
   a.riesgos.forEach((r,j)=>{required(`Riesgo identificado, riesgo ${j+1} de la actividad ${i+1}`,r.riesgo);required(`Medidas de mitigación, riesgo ${j+1} de la actividad ${i+1}`,r.mitigacion);required(`Responsable de la gestión del riesgo ${j+1} de la actividad ${i+1}`,r.responsable);});

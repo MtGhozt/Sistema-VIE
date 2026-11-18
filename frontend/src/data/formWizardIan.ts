@@ -257,7 +257,7 @@ export type GraphicResource = {
 import {
   activityFitsProject,
   isValidProjectDateRange,
-  projectDurationMonths,
+  planHorizonMonths,
 } from "./dateRules";
 import { FIELD_WORD_LIMITS, countWords } from "./textLimits";
 
@@ -630,8 +630,8 @@ export function getFormStepStatus(
         hasText(form.problema, form.objetivoGeneral) &&
         countWords(form.problema) <= FIELD_WORD_LIMITS.problema &&
         countWords(form.objetivoGeneral) <= FIELD_WORD_LIMITS.objetivoGeneral &&
-        form.objetivosEspecificos.length === 3 &&
-        form.objetivosEspecificos.every(
+        form.objetivosEspecificos.slice(0, 3).length === 3 &&
+        form.objetivosEspecificos.slice(0, 3).every(
           (objective) =>
             objective.descripcion.trim() &&
             countWords(objective.descripcion) <=
@@ -649,7 +649,7 @@ export function getFormStepStatus(
         countWords(form.metodologia) <= FIELD_WORD_LIMITS.metodologia;
       break;
     case 6: {
-      const horizon = projectDurationMonths(form.inicio, form.fin);
+      const horizon = planHorizonMonths(form.inicio, form.fin);
       complete =
         horizon > 0 &&
         form.planAccion.length > 0 &&

@@ -36,7 +36,7 @@ export function toIan(f:Form):Ian {
  productosAdicionales:f.compromisos.filter(p=>p.ambito==='adicional').map((p,i)=>({id:`adicional-${i}`,descripcion:p.descripcion})),
  divulgacion:extra.divulgacion??{...base.divulgacion,divulgacionCientifica:f.divulgacion},hojaRuta:extra.hojaRuta??{...base.hojaRuta,lineaInvestigacion:f.hojaRuta},
  aspectosEticos:{...base.aspectosEticos,entesRegulatorios:f.permisos.map(p=>p.ente),detalleAval:extra.aspectosEticos?.detalleAval??f.permisos[0]?.detalle??'',seresHumanos:f.aspectosEticos.humanos?'Sí':'No',biodiversidad:f.aspectosEticos.biodiversidad?'Sí':'No',animales:f.aspectosEticos.animales?'Sí':'No',territoriosIndigenas:f.aspectosEticos.indigenas?'Sí':'No',exencionJustificacion:f.aspectosEticos.exencion},
- resguardoProductos:{...base.resguardoProductos,depositoRepositorio:f.resguardoRepositorio?'Sí':'No',entregaRespaldoSoftware:f.resguardoTecnico?'Sí':'No'},declaracionJurada:{nombreCompleto:'',cedula:'',firma:'',...base.declaracionJurada,acepta:f.declaracion}};
+ resguardoProductos:{...base.resguardoProductos,depositoRepositorio:f.resguardoRepositorio?'Sí':'No',entregaRespaldoSoftware:f.resguardoTecnico?'Sí':'No'},declaracionJurada:{...base.declaracionJurada,acepta:f.declaracion}};
 }
 export function applyIan(f:Form,partial:Partial<Ian>,step:number):Partial<Form> {
  const previous=toIan(f),n={...previous,...partial};const out:Partial<Form>={};

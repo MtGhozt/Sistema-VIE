@@ -2,6 +2,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { ContrastProvider } from "./a11y/ContrastContext";
+import { ThemeProvider } from "./a11y/ThemeContext";
+import { FontSizeProvider } from "./a11y/FontSizeContext";
 import { AuthProvider } from "./auth/AuthContext";
 import { NotificationsProvider } from "./notifications/NotificationsContext";
 import { ConfirmProvider } from "./components/ConfirmDialog";
@@ -15,20 +17,26 @@ import "./index.css";
 import "./styles/a11y.css";
 import "./styles/reading.css";
 import "./styles/correcciones-finales.css";
+import "./styles/theme-dark.css";
+import "./styles/ux-extensions.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ContrastProvider>
-      <AuthProvider>
-        <NotificationsProvider>
-          <ToastProvider>
-            <ConfirmProvider>
-              <RouterProvider router={router} />
-              <ToastHost />
-            </ConfirmProvider>
-          </ToastProvider>
-        </NotificationsProvider>
-      </AuthProvider>
-    </ContrastProvider>
+    <ThemeProvider>
+      <ContrastProvider>
+        <FontSizeProvider>
+          <AuthProvider>
+            <NotificationsProvider>
+              <ToastProvider>
+                <ConfirmProvider>
+                  <RouterProvider router={router} />
+                  <ToastHost />
+                </ConfirmProvider>
+              </ToastProvider>
+            </NotificationsProvider>
+          </AuthProvider>
+        </FontSizeProvider>
+      </ContrastProvider>
+    </ThemeProvider>
   </StrictMode>,
 );

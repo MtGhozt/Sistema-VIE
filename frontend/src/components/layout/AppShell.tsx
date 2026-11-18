@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { useNotifications } from "../../notifications/NotificationsContext";
 import {
@@ -16,9 +16,11 @@ import {
   NavIcon,
 } from "../icons";
 import { useContrast } from "../../a11y/ContrastContext";
-import { ContrastToggle } from "../a11y/ContrastToggle";
+import { FontSizeDock } from "../a11y/FontSizeDock";
 import { TecLogo } from "../TecLogo";
+import { ConfigGearLink } from "./ConfigGearLink";
 import { NotificationBell } from "./NotificationBell";
+import { fetchPerfilFotoBlob } from "../../api/perfil";
 
 const SIDEBAR_KEY = "vie-sidebar-collapsed";
 
@@ -34,6 +36,7 @@ export function AppShell() {
       return false;
     }
   });
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -42,6 +45,31 @@ export function AppShell() {
       /* ignore */
     }
   }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl: string | null = null;
+    if (!session?.userId) {
+      setAvatarUrl(null);
+      return;
+    }
+    void fetchPerfilFotoBlob(session.userId)
+      .then((url) => {
+        if (!active) {
+          if (url) URL.revokeObjectURL(url);
+          return;
+        }
+        objectUrl = url;
+        setAvatarUrl(url);
+      })
+      .catch(() => {
+        if (active) setAvatarUrl(null);
+      });
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [session?.userId, session?.name]);
 
   if (!session) return null;
 
@@ -168,9 +196,9 @@ export function AppShell() {
             </div>
           </div>
           <div className="topbar-actions">
-            {isAdminSession && (
-              <label className="admin-role-switch">
-                <span>Vista actual</span>
+            {isAdminSession ? (
+              <label className="admin-role-switch current-role-chip">
+                <span>Vista</span>
                 <select
                   value={viewRole === "admin" ? "admin" : viewRole}
                   onChange={(e) => setViewRole(e.target.value as RoleId)}
@@ -184,24 +212,30 @@ export function AppShell() {
                   <option value="admin">Super Admin</option>
                 </select>
               </label>
+            ) : (
+              <div className="current-role-chip">
+                <span>Rol</span>
+                <strong>{roleDef.short}</strong>
+              </div>
             )}
-            <ContrastToggle compact />
-            <div className="current-role-chip">
-              <span>Rol</span>
-              <strong>{roleDef.short}</strong>
-            </div>
             <NotificationBell />
-            <div className="user-chip">
+            <ConfigGearLink />
+            <Link to="/perfil" className="user-chip" title="Mi perfil">
               <div className="avatar" aria-hidden>
-                {personName.slice(0, 1)}
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="avatar-img" />
+                ) : (
+                  personName.slice(0, 1)
+                )}
               </div>
               <div>
                 <strong>{personName}</strong>
                 <span>{personTitle}</span>
               </div>
-            </div>
+            </Link>
           </div>
         </header>
+        <FontSizeDock />
         <div
           className="contrast-announce"
           role="status"

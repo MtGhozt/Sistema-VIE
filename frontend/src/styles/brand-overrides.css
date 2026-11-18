@@ -135,11 +135,18 @@
   right: 0;
   z-index: 40;
   width: min(360px, calc(100vw - 40px));
-  background: #fff;
+  background: var(--white);
+  color: var(--ink);
   border: 1px solid var(--ink-08);
   border-radius: 12px;
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+.topbar-icon {
+  background: var(--white);
+  color: var(--ink);
+  border: 1px solid var(--ink-15);
 }
 
 .notif-popover-head {
@@ -537,7 +544,7 @@ fieldset.wizard-readonly[disabled] .radio-choice {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #fff !important;
+  background: var(--white) !important;
   border: 2px solid var(--blue-mid) !important;
   font-size: 0.85rem;
   font-weight: 700;
@@ -659,7 +666,7 @@ fieldset.wizard-readonly[disabled] .radio-choice {
 
 .admin-flow-cards button {
   border: 1px solid var(--ink-08);
-  background: #fff;
+  background: var(--white);
   min-height: 86px;
   padding: 12px;
   border-radius: 8px;
@@ -717,7 +724,7 @@ fieldset.wizard-readonly[disabled] .radio-choice {
   width: 100%;
   text-align: left;
   border: 1px solid var(--ink-08);
-  background: #fff;
+  background: var(--white);
   border-radius: 10px;
   padding: 14px 16px;
   cursor: pointer;
@@ -863,39 +870,49 @@ fieldset.wizard-readonly[disabled] .radio-choice {
   font-size: var(--font-size-sm);
 }
 
-/* Contador de palabras con barra que se rellena */
+/* Contador N/máx en esquina inferior derecha del cuadro (sin barra) */
+.field:has(> textarea):has(> .word-budget),
+.field:has(> .textarea):has(> .word-budget),
+label.field:has(textarea):has(.word-budget) {
+  position: relative;
+}
+
+.field:has(> textarea):has(> .word-budget) > textarea,
+.field:has(> .textarea):has(> .word-budget) > textarea,
+label.field:has(textarea):has(.word-budget) textarea {
+  padding-bottom: 1.75rem;
+}
+
 .word-budget {
-  display: grid;
-  gap: 6px;
-  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  margin: -1.55rem 10px 0.35rem 0;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
 }
 
-.word-budget-track {
-  height: 6px;
-  border-radius: 999px;
-  background: var(--ink-08, rgba(23, 33, 43, 0.08));
-  overflow: hidden;
-}
-
-.word-budget-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--blue, #0b4f8a);
-  transition: width 160ms ease;
-}
-
-.word-budget-over .word-budget-fill {
-  background: var(--danger, #b00020);
+.field:has(> textarea):has(> .word-budget) > .word-budget,
+.field:has(> .textarea):has(> .word-budget) > .word-budget,
+label.field:has(textarea):has(.word-budget) > .word-budget {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  margin: 0;
 }
 
 .word-budget-label {
   font-size: var(--font-size-xs, 0.75rem);
   color: var(--ink-55, rgba(23, 33, 43, 0.55));
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--white, #fff) 82%, transparent);
+  padding: 0 4px;
+  border-radius: 4px;
 }
 
 .word-budget-over .word-budget-label {
   color: var(--danger, #b00020);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Inputs / labels / body: misma familia y escala por rol */

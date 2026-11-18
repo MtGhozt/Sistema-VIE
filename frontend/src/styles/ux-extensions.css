@@ -1,0 +1,722 @@
+/* Perfil, estadísticas, PersonPicker, dock tipográfico */
+
+.user-chip {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 10px;
+  padding: 4px 6px;
+  transition: background 0.15s ease;
+}
+
+.user-chip:hover {
+  background: var(--ink-08);
+}
+
+.avatar {
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.font-size-dock {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  top: auto;
+  transform: none;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.font-size-dock:hover,
+.font-size-dock:focus-within {
+  opacity: 1;
+}
+
+.font-size-dock-btn {
+  width: auto;
+  min-width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-55);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.font-size-dock-btn sup {
+  font-size: 0.55em;
+  font-weight: 700;
+  vertical-align: super;
+  line-height: 0;
+}
+
+.font-size-dock-up {
+  font-size: 1.05rem;
+}
+
+.font-size-dock-down {
+  font-size: 0.78rem;
+}
+
+.font-size-dock-btn:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.font-size-dock-btn:hover:not(:disabled) {
+  color: var(--blue);
+  background: transparent;
+}
+
+.settings-menu {
+  position: relative;
+}
+
+.settings-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 45;
+  width: min(300px, calc(100vw - 32px));
+  background: var(--white);
+  border: 1px solid var(--ink-08);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  color: var(--ink);
+}
+
+.settings-popover-head {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--ink-08);
+}
+
+.settings-popover-head strong {
+  font-size: 0.9rem;
+}
+
+.settings-group {
+  border: 0;
+  margin: 0;
+  padding: 12px 14px;
+  min-width: 0;
+}
+
+.settings-group + .settings-group {
+  border-top: 1px solid var(--ink-08);
+}
+
+.settings-group legend {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-55);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.settings-row .input {
+  width: auto;
+  min-width: 120px;
+  min-height: 36px;
+  padding: 6px 10px;
+}
+
+.settings-toggle-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+}
+
+.settings-font-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.settings-font-row .btn {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.settings-popover-foot {
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--ink-08);
+  text-align: center;
+}
+
+.settings-popover-foot a {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.perfil-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.perfil-avatar-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.perfil-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--blue-soft);
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 800;
+  overflow: hidden;
+}
+
+.perfil-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.perfil-roles {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.perfil-recientes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.perfil-recientes li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ink-08);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.chart-card h3 {
+  margin: 0;
+}
+
+.bar-chart {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bar-chart li {
+  display: grid;
+  grid-template-columns: minmax(90px, 140px) 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.bar-chart-label {
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-chart-track {
+  height: 10px;
+  background: var(--ink-08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.bar-chart-fill {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+  border-radius: inherit;
+}
+
+.bar-chart-value {
+  font-weight: 700;
+  font-size: 0.85rem;
+  min-width: 2ch;
+  text-align: right;
+}
+
+.line-chart {
+  width: 100%;
+  height: auto;
+}
+
+.line-chart-legend,
+.pie-legend {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.line-chart-legend li,
+.pie-legend li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+}
+
+.donut-chart-wrap,
+.pie-chart-wrap {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.donut-visual {
+  position: relative;
+  width: 150px;
+  height: 150px;
+}
+
+.donut-chart,
+.pie-chart {
+  width: 150px;
+  height: 150px;
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-center strong {
+  font-size: 1.25rem;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.donut-center span {
+  font-size: 0.7rem;
+  color: var(--ink-55);
+  margin-top: 4px;
+}
+
+.pie-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.column-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  min-height: 160px;
+  padding: 8px 4px 0;
+}
+
+.column-chart-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 160px;
+}
+
+.column-chart-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.column-chart-bar {
+  width: min(36px, 70%);
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, var(--blue-strong), var(--blue));
+  min-height: 8px;
+}
+
+.column-chart-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.column-chart-label {
+  font-size: 0.72rem;
+  color: var(--ink-55);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-empty {
+  margin: 18px 0;
+}
+
+.person-picker {
+  position: relative;
+}
+
+.person-picker-control {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+}
+
+.person-picker-control .input {
+  padding-right: 42px;
+}
+
+.person-picker-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-55);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.person-picker-toggle:hover {
+  color: var(--blue);
+  background: var(--ink-08);
+}
+
+.person-picker-chevron {
+  display: inline-flex;
+  transition: transform 0.15s ease;
+}
+
+.person-picker-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Ocultar spinners nativos (cuadrado blanco en dark) */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  display: none;
+}
+
+input[type="file"]::file-selector-button {
+  appearance: none;
+  border: 1px solid var(--ink-15);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--ink);
+  padding: 8px 12px;
+  margin-right: 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.person-picker-pin.pinned {
+  color: var(--blue);
+}
+
+.person-picker-pin svg {
+  display: block;
+}
+
+.person-picker-list {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--white);
+  border: 1px solid var(--ink-15);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  max-height: 280px;
+  overflow: auto;
+}
+
+.person-picker-list > li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.person-picker-option {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.person-picker-option:hover {
+  background: var(--blue-soft);
+}
+
+.person-picker-option span {
+  font-size: 0.8rem;
+  color: var(--ink-55);
+}
+
+.person-picker-tag {
+  font-weight: 600;
+  color: var(--blue);
+  font-size: 0.85em;
+}
+
+.person-picker-pin {
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.person-picker-empty {
+  padding: 12px;
+  color: var(--ink-55);
+  font-size: 0.9rem;
+}
+
+.configuracion-page .config-block {
+  display: grid;
+  gap: 8px;
+}
+
+.theme-segment {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0;
+  border: 1px solid var(--ink-15);
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 360px;
+  background: var(--ink-08);
+}
+
+.theme-segment-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-70);
+  min-height: 44px;
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 600;
+}
+
+.theme-segment-btn.active {
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink-15);
+}
+
+.config-guest-shell {
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+.config-guest-bar {
+  display: flex;
+  justify-content: flex-start;
+  padding: 16px 24px;
+}
+
+.login-form-panel {
+  position: relative;
+}
+
+.login-config-gear {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+}
+
+.readonly-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--warning, #c9851a);
+  background: var(--warning-soft, rgba(224, 168, 74, 0.18));
+  color: var(--ink);
+}
+
+.readonly-banner strong {
+  display: block;
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+
+.readonly-banner p {
+  margin: 0;
+  color: var(--ink-70);
+}
+
+.readonly-banner a {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.readonly-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--warning-soft, rgba(224, 168, 74, 0.22));
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.stat-trend {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--blue-strong, var(--blue));
+}
+
+/* Selector de vista (Super Admin): mismo chip que el rol */
+.admin-role-switch.current-role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--ink-15);
+  border-radius: 8px;
+  background: var(--canvas);
+  cursor: pointer;
+}
+
+.admin-role-switch.current-role-chip > span {
+  font-size: 9px;
+  color: var(--ink-55);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.admin-role-switch.current-role-chip select {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0;
+  min-height: 0;
+  max-width: 160px;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .perfil-layout,
+  .charts-grid,
+  .pie-chart-wrap,
+  .donut-chart-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .font-size-dock {
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .readonly-banner {
+    flex-direction: column;
+  }
+}

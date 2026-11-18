@@ -9,7 +9,8 @@ import {
   IconLock,
   IconMail,
 } from "../components/icons";
-import { ContrastToggle } from "../components/a11y/ContrastToggle";
+import { ConfigGearLink } from "../components/layout/ConfigGearLink";
+import { FontSizeDock } from "../components/a11y/FontSizeDock";
 import { TecLogo } from "../components/TecLogo";
 import { useToast } from "../components/toast/ToastContext";
 import { isRoleId, type RoleId } from "../data/roles";
@@ -136,14 +137,15 @@ export function LoginPage() {
           </div>
         </div>
         <div className="login-footer">
-          <div style={{ marginBottom: 10 }}>
-            <ContrastToggle />
-          </div>
           Vicerrectoría de Investigación y Extensión · Prototipo académico
         </div>
       </div>
 
       <main className="login-form-panel" id="contenido" tabIndex={-1}>
+        <div className="login-config-gear">
+          <ConfigGearLink />
+        </div>
+        <FontSizeDock />
         <form className="login-form" noValidate onSubmit={onSubmit}>
           <div className="login-form-title">
             <span className="eyebrow">Acceso institucional</span>

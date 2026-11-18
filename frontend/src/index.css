@@ -76,7 +76,7 @@
 }
 
 .team-member-card {
-  background: #fff;
+  background: var(--white);
   border: 1px solid var(--ink-15);
   border-radius: 12px;
   padding: 18px;

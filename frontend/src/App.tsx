@@ -1,13 +1,16 @@
 import type { ReactNode } from "react";
 import {
+  Link,
   Navigate,
   Outlet,
   createBrowserRouter,
 } from "react-router-dom";
 import { RouteAnnouncer } from "./a11y/RouteAnnouncer";
 import { useAuth } from "./auth/AuthContext";
+import { FontSizeDock } from "./components/a11y/FontSizeDock";
 import { AppShell } from "./components/layout/AppShell";
 import { AdministracionPage } from "./pages/AdministracionPage";
+import { ConfiguracionPage } from "./pages/ConfiguracionPage";
 import { ConvocatoriasPage } from "./pages/ConvocatoriasPage";
 import { EvaluacionesPage } from "./pages/EvaluacionesPage";
 import {
@@ -17,6 +20,8 @@ import {
 import { InicioPage } from "./pages/InicioPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotificacionesPage } from "./pages/NotificacionesPage";
+import { PerfilPage } from "./pages/PerfilPage";
+import { EstadisticasPage } from "./pages/EstadisticasPage";
 import { PropuestaDetallePage } from "./pages/PropuestaDetallePage";
 import { PropuestaNuevaPage } from "./pages/PropuestaNuevaPage";
 import { PropuestasPage } from "./pages/PropuestasPage";
@@ -58,11 +63,35 @@ function AuthenticatedLayout() {
   );
 }
 
+/** Configuración accesible desde login (sin shell) o autenticado (con AppShell). */
+function ConfiguracionLayout() {
+  const { session } = useAuth();
+  if (session) return <AppShell />;
+  return (
+    <div className="config-guest-shell">
+      <header className="config-guest-bar">
+        <Link to="/login" className="btn btn-ghost">
+          Volver al inicio de sesión
+        </Link>
+      </header>
+      <main className="content" id="contenido" tabIndex={-1}>
+        <Outlet />
+      </main>
+      <FontSizeDock />
+    </div>
+  );
+}
+
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
       { path: "/login", element: <LoginPage /> },
+      {
+        path: "/configuracion",
+        element: <ConfiguracionLayout />,
+        children: [{ index: true, element: <ConfiguracionPage /> }],
+      },
       {
         element: <AuthenticatedLayout />,
         children: [
@@ -80,6 +109,8 @@ export const router = createBrowserRouter([
           { path: "/evaluaciones", element: <EvaluacionesPage /> },
           { path: "/historico", element: <HistoricoPage /> },
           { path: "/historico/:codigo", element: <HistoricoDetallePage /> },
+          { path: "/estadisticas", element: <EstadisticasPage /> },
+          { path: "/perfil", element: <PerfilPage /> },
           { path: "/notificaciones", element: <NotificacionesPage /> },
           {
             path: "/administracion",

@@ -73,11 +73,69 @@ export function IconBell(p: IconProps) {
     </Svg>
   );
 }
+export function IconChart(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M4 19V5" />
+      <path d="M4 19h16" />
+      <path d="M8 16V10" />
+      <path d="M12 16V7" />
+      <path d="M16 16v-4" />
+    </Svg>
+  );
+}
+
+/** Tuerca / engranaje de configuración (no sol). */
 export function IconSettings(p: IconProps) {
   return (
     <Svg {...p}>
       <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.87 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+    </Svg>
+  );
+}
+
+export function IconPin(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M12 17v5" />
+      <path d="M15 4H9l-.5 5.5L6 12v1h12v-1l-2.5-2.5L15 4Z" />
+    </Svg>
+  );
+}
+
+/** Chincheta con rayita: acción de despinear. */
+export function IconPinOff(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M12 17v5" />
+      <path d="M15 4H9l-.5 5.5L6 12v1h12v-1l-2.5-2.5L15 4Z" />
+      <path d="M4 4l16 16" />
+    </Svg>
+  );
+}
+
+export function IconChevronDown(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="m6 9 6 6 6-6" />
+    </Svg>
+  );
+}
+
+export function IconSun(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </Svg>
+  );
+}
+
+export function IconMoon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5Z" />
     </Svg>
   );
 }
@@ -173,6 +231,7 @@ const MAP = {
   file: IconFile,
   clipboard: IconClipboard,
   archive: IconArchive,
+  chart: IconChart,
   bell: IconBell,
   settings: IconSettings,
 } as const;

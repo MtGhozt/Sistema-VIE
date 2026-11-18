@@ -17,12 +17,13 @@ async function check(name,fn){try{await fn();results.push({name,status:'PASA'});
 async function call(route,role,method='GET',body,status=200){const user=sessions.get(role);const r=await fetch(env.api+route,{method,headers:{'Content-Type':'application/json',...(user?{'X-Demo-User-Id':String(user.id),'X-Demo-Role':user.roleCode}:{})},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(10000)});const data=await r.json();assert.equal(r.status,status,`${method} ${route}: ${JSON.stringify(data)}`);return data;}
 async function action(id,role,operation,payload={},status=200){
  if(['save-rubric','committee-score'].includes(operation)&&payload.ciclo===undefined&&status!==403){const instance=role==='cie'||payload.instancia==='cie'?'cie':'comite';const meta=await call(`/evaluaciones/propuestas/${id}/rubrica?instancia=${instance}`,role);payload={...payload,ciclo:meta.ciclo};}
+ if(operation==='committee-ready'&&payload.completitudConfirmada!==true&&!(payload.checks&&Object.values(payload.checks).length&&Object.values(payload.checks).every(Boolean)))payload={...payload,completitudConfirmada:true};
  return call(`/evaluaciones/propuestas/${id}/acciones`,role,'POST',{action:operation,payload},status);
 }
 const patch=(id,data,status=200)=>call(`/propuestas/${id}`,'investigador','PATCH',data,status);
 const send=(id,respuesta,status=200)=>call(`/propuestas/${id}/enviar`,'investigador','POST',{respuesta},status);
 const detail=(id,role='investigador',status=200)=>call(`/propuestas/${id}`,role,'GET',undefined,status);
-const create=async(role='investigador',pi=false)=>{const p=await call('/propuestas',role,'POST',{...demoProposal({user:{id:sessions.get(role).id},batch:run}),formularioGenerales:{q8:pi?'Sí':'No'},titulo:`D01–D04 ${run}`,idConvocatoria:conv.id,modalidad:'aplicada',declaracion:true,resumen:'Resumen original',abstractEn:'Own abstract',keywordsEs:'agua,suelo,clima,riesgo',requiereDictamenPi:pi,preguntasGenerales:[{numero:8,respuesta:pi?'Sí':'No',detalle:null}]},201);created.push(p.id);return p;};
+const create=async(role='investigador',pi=false)=>{const p=await call('/propuestas',role,'POST',{...demoProposal({user:{id:sessions.get(role).id},batch:run}),formularioGenerales:{q8:pi?'Sí':'No'},titulo:`D01–D04 ${run}`,idConvocatoria:conv.id,modalidad:'aplicada',declaracion:true,resumen:'Resumen original',abstractEn:'Own abstract',keywordsEs:'agua,suelo,clima,riesgo',requiereDictamenPi:pi,preguntasGenerales:Array.from({length:8},(_,i)=>({numero:i+1,respuesta:i===7?(pi?'Sí':'No'):'No',detalle:null})),formularioGenerales:{q8:pi?'Sí':'No',q9:'No'}},201);created.push(p.id);return p;};
 const keys=['propuesta','pi','evaluacion_comite','oficio_comite','aval','respaldos'];
 try{
   env=await testEnvironment();

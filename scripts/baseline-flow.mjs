@@ -50,7 +50,7 @@ const { rubricCriteria } = await import('../backend/dist/rubricas.js');
 const demoScores = Object.fromEntries(rubricCriteria('aplicada').map(c => [c.key, { score: 8, reason: 'Justificación de prueba API' }]));
 const routes = [
   ['pi', 'vinculacion', { oficio: `CV-${Date.now()}`, potencial: 'Sí', innovacion:'No', analisis: 'Dictamen de prueba' }],
-  ['committee-ready', 'comite_asistente', {}],
+  ['committee-ready', 'comite_asistente', {completitudConfirmada:true}],
   ['save-rubric', 'comite_evaluador', { scores: demoScores }],
   ['committee-score', 'comite_evaluador', { scores: demoScores }],
   ['committee-score', 'e2', {scores:demoScores}],

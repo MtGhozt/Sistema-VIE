@@ -1,4 +1,5 @@
 import {HttpError} from './middleware/HttpError.js';
+import {OBJETIVO_ESPECIFICO_MAX_WORDS} from './propuestaLimites.js';
 /** Cada complemento pertenece a una sección autorizable en subsanación. */
 export const camposComplementarios:Record<string,string[]>={
  formularioGenerales:['titulo','modalidad','inicio','fin','q1','q1Entidad','q1Estado','q1Contrapartida','q2','q2Proyecto','q2Relacion','q3','q3Detalle','q4','q4Ambito','q5','q5Convenio','q6','q6Persona','q6Programa','q6Universidad','q7','q7Detalle','q8','q8Oficio','q9','q9Tipo','trlEsperado'],
@@ -28,5 +29,5 @@ export function validarComplemento(name:string,value:unknown){
  if(['formularioDivulgacion','formularioHojaRuta','formularioEtica'].includes(name)){
   const visitBounded=(v:unknown)=>{if(typeof v==='string'&&v.length>5000)throw new HttpError(400,'Cada campo de divulgación, hoja de ruta o ética admite hasta 5000 caracteres.');if(v&&typeof v==='object')Object.values(v).forEach(visitBounded);};visitBounded(value);
  }
- if(name==='formularioObjetivos'&&Array.isArray(raw.objetivosEspecificos)&&raw.objetivosEspecificos.some((o:{descripcion?:string})=>String(o.descripcion??'').trim().split(/\s+/u).filter(Boolean).length>120))throw new HttpError(400,'Cada objetivo específico admite hasta 120 palabras en el formulario.');
+ if(name==='formularioObjetivos'&&Array.isArray(raw.objetivosEspecificos)&&raw.objetivosEspecificos.some((o:{descripcion?:string})=>String(o.descripcion??'').trim().split(/\s+/u).filter(Boolean).length>OBJETIVO_ESPECIFICO_MAX_WORDS))throw new HttpError(400,`Cada objetivo específico admite hasta ${OBJETIVO_ESPECIFICO_MAX_WORDS} palabras en el formulario.`);
 }

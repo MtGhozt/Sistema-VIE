@@ -1,6 +1,6 @@
 -- Sugerencia de evaluación generada por IA para revisión del Comité Técnico.
 -- Es un insumo separado de la nota humana: nunca modifica evaluacion ni su puntaje.
-CREATE TABLE evaluacion_ia (
+CREATE TABLE IF NOT EXISTS evaluacion_ia (
   id_evaluacion_ia bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   id_propuesta int NOT NULL REFERENCES propuesta(id_propuesta) ON DELETE CASCADE,
   id_rubrica int NOT NULL REFERENCES rubrica(id_rubrica),

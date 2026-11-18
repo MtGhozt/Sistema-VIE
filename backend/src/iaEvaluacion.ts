@@ -554,6 +554,12 @@ export async function generateEvaluacionIA(id: number, userId: number): Promise<
     if (lastError instanceof HttpError) throw lastError;
     throw new HttpError(502, "La IA no devolvió una evaluación completa. Reintente la generación.");
   }
+  if (!normalized.completa) {
+    throw new HttpError(
+      502,
+      "La IA no devolvió una evaluación completa (faltan criterios o puntajes inválidos). Reintente la generación.",
+    );
+  }
 
   const total = weightedTotal(normalized.criterios);
   const recommendation: "RECOMIENDA" | "NO RECOMIENDA" =

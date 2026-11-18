@@ -33,6 +33,30 @@ async function draft() {
   await assignCommittee(env.pool,id,school);await proposalRubric(env.pool,id,'aplicada');
   return id;
 }
+/** Cumple espejo IAN mínimo exigido en POST /enviar (equipo, narrativa, plan, productos, ética, presupuesto, Q1–Q9). */
+async function readyToSend(id){
+  const u=sessions.get('investigador');
+  await patch(id,{
+    fechaInicio:'2027-01-15',fechaFin:'2028-06-30',
+    problema:'Problema de regresión con texto suficiente para el envío.',
+    objetivoGeneral:'Objetivo general de regresión para el envío.',
+    metodologia:'Metodología de regresión descrita para el envío.',
+    abstractEn:'Regression abstract in English for the send gate.',
+    estadoArte:'Estado del arte de regresión con antecedentes suficientes.',
+    referencias:'Referencia de regresión (2024). Expediente sintético.',
+    hojaRuta:'Hoja de ruta de regresión: diagnóstico, prototipo y transferencia.',
+    divulgacion:'Plan de divulgación de regresión para seminario y canales internos.',
+    resguardoRepositorio:true,
+    presupuesto:[{anio:2027,operativo:1000,duraderos:0}],
+    aspectosEticos:{humanos:false,biodiversidad:false,animales:false,indigenas:false,exencion:'Datos ficticios de regresión; sin involucramiento sensible.'},
+    formularioGenerales:{q9:'No'},
+    preguntasGenerales:Array.from({length:8},(_,i)=>({numero:i+1,respuesta:i===7?'No':'No',detalle:null})),
+    equipo:[{tipo:'funcionario_tec',idUsuario:u.id,nombre:u.name,orcid:'0000-0000-0000-0001',instancia:'Escuela',rol:'Coordinación',periodo:'01/01/2027 / 31/12/2027',horas:[{tipo:'VIE',cantidad:10}]}],
+    compromisos:[{ambito:'basica_aplicada',codigo:'opcion_1',descripcion:'Producto académico de regresión',cantidad:1,dictamen:null}],
+  });
+  const member=(await detail(id)).equipo[0];
+  await patch(id,{actividades:[{objetivo:'Objetivo específico',actividad:'Actividad de regresión',resultado:'Resultado',responsabilidad:'Ejecuta',inicio:1,duracion:1,participantes:[member.id],riesgos:[{riesgo:'Riesgo',mitigacion:'Mitigación',responsable:'Responsable'}]}]});
+}
 // Precondiciones sintéticas de pruebas aisladas; baseline-flow recorre las transiciones reales.
 async function stageFixture(id){const p=(await env.pool.query('SELECT etapa_flujo FROM propuesta WHERE id_propuesta=$1',[id])).rows[0];if(p.etapa_flujo>0)await env.pool.query('UPDATE propuesta SET fecha_envio=NOW() WHERE id_propuesta=$1',[id]);
  if(p.etapa_flujo>=2)await env.pool.query("INSERT INTO revision_expediente(id_propuesta,etapa,ciclo,id_revisor,resultado,fecha_inicio,fecha_fin) SELECT $1,'comite',1,id_usuario,'completo',NOW(),NOW() FROM usuario WHERE correo_institucional='comite_asistente@tec.ac.cr' ON CONFLICT DO NOTHING",[id]);
@@ -46,6 +70,7 @@ const patch=(id,data,status=200)=>call(`/propuestas/${id}`,'investigador','PATCH
 const detail=id=>call(`/propuestas/${id}`,'investigador');
 async function action(id,role,operation,payload={},status=200){
  if(['save-rubric','committee-score'].includes(operation)&&payload.ciclo===undefined&&status!==403){const instance=role==='cie'||payload.instancia==='cie'?'cie':'comite';const meta=await call(`/evaluaciones/propuestas/${id}/rubrica?instancia=${instance}`,role);payload={...payload,ciclo:meta.ciclo};}
+ if(operation==='committee-ready'&&payload.completitudConfirmada!==true&&!(payload.checks&&Object.values(payload.checks).length&&Object.values(payload.checks).every(Boolean)))payload={...payload,completitudConfirmada:true};
  return call(`/evaluaciones/propuestas/${id}/acciones`,role,'POST',{action:operation,payload},status);
 }
 try {
@@ -88,7 +113,26 @@ try {
     const id=await draft();await patch(id,{keywordsEs:'uno,dos,tres,cuatro'});await call(`/propuestas/${id}/enviar`,'investigador','POST',undefined,400);
     await patch(id,{declaracion:true,resumen:Array(501).fill('palabra').join(' ')},400);assert.equal((await detail(id)).declaracion,false);await patch(id,{declaracion:true});await call(`/propuestas/${id}/enviar`,'investigador','POST',undefined,400);
     for (const n of [3,7]) {await patch(id,{resumen:'Resumen',keywordsEs:Array.from({length:n},(_,i)=>`termino${i}`).join(',')});await call(`/propuestas/${id}/enviar`,'investigador','POST',undefined,400);}
-    await patch(id,{resumen:Array(500).fill('palabra').join(' '),keywordsEs:'uno,dos,tres,cuatro'});const sent=await call(`/propuestas/${id}/enviar`,'investigador','POST');assert.equal(sent.estadoActual,'enviada');
+    await patch(id,{resumen:Array(500).fill('palabra').join(' '),keywordsEs:'uno,dos,tres,cuatro'});await readyToSend(id);const sent=await call(`/propuestas/${id}/enviar`,'investigador','POST');assert.equal(sent.estadoActual,'enviada');
+  });
+  await check('Enviar sin narrativa/plan/resguardo queda rechazado',async()=>{
+    const id=await draft();
+    await patch(id,{declaracion:true,resumen:'Resumen corto',keywordsEs:'uno,dos,tres,cuatro',abstractEn:'Abstract'});
+    const denied=await call(`/propuestas/${id}/enviar`,'investigador','POST',undefined,400);
+    assert.match(String(denied.error??denied),/Fechas|Equipo|Problema|Plan|Resguardo|Productos|ORCID|Ética|Presupuesto|Divulgación|Hoja de ruta|Preguntas|Estado del arte|Referencias/);
+  });
+  await check('Committee-ready exige confirmación de checklist',async()=>{
+    const id=await draft();
+    await patch(id,{declaracion:true,resumen:'Resumen checklist',keywordsEs:'uno,dos,tres,cuatro'});
+    await readyToSend(id);
+    await call(`/propuestas/${id}/enviar`,'investigador','POST');
+    const denied=await call(`/evaluaciones/propuestas/${id}/acciones`,'comite_asistente','POST',{action:'committee-ready',payload:{}},400);
+    assert.match(String(denied.error??denied),/checklist|completitud/i);
+    await call(`/evaluaciones/propuestas/${id}/acciones`,'comite_asistente','POST',{action:'committee-ready',payload:{completitudConfirmada:true}});
+  });
+  await check('Histórico rechaza estado desconocido',async()=>{
+    const denied=await call('/historico/propuestas?estado=estado_inventado','investigador','GET',undefined,400);
+    assert.match(String(denied.error??denied),/Estado/);
   });
   await check('Guardar rúbrica conserva criterios y separa instancias y usuarios',async()=>{
     const {rubricCriteria}=await import('../backend/dist/rubricas.js');
@@ -105,7 +149,7 @@ try {
     const result=await env.pool.query('SELECT calificacion_promedio,recomendacion FROM resultado_comite WHERE id_propuesta=$1',[id]);assert.notEqual(Number(result.rows[0].calificacion_promedio),99);assert.equal(result.rows[0].recomendacion,'no_recomienda');
   });
   await check('Envío concurrente produce un solo evento de historial',async()=>{
-    const id=await draft();await patch(id,{declaracion:true,resumen:'Resumen para prueba concurrente',keywordsEs:'uno,dos,tres,cuatro'});
+    const id=await draft();await patch(id,{declaracion:true,resumen:'Resumen para prueba concurrente',keywordsEs:'uno,dos,tres,cuatro'});await readyToSend(id);
     const u=sessions.get('investigador');
     const responses=await Promise.all([1,2].map(()=>fetch(`${env.api}/propuestas/${id}/enviar`,{method:'POST',headers:{'X-Demo-User-Id':String(u.id),'X-Demo-Role':u.roleCode}})));
     assert.equal(responses.filter(r=>r.status===200).length,1);assert.ok(responses.every(r=>[200,400,409].includes(r.status)));
@@ -128,7 +172,7 @@ try {
     await action(id,'gestora_vie','send-cie');
   });
   await check('Dos devoluciones conservan ciclos independientes',async()=>{
-    const id=await draft();await patch(id,{declaracion:true,resumen:'Resumen para prueba concurrente',keywordsEs:'uno,dos,tres,cuatro'});await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);await stageFixture(id);
+    const id=await draft();await patch(id,{declaracion:true,resumen:'Resumen para prueba concurrente',keywordsEs:'uno,dos,tres,cuatro'});await readyToSend(id);await env.pool.query("UPDATE propuesta SET estado_actual='enviada',etapa_flujo=1 WHERE id_propuesta=$1",[id]);await stageFixture(id);
     await action(id,'comite_asistente','return',{texto:'Primera devolución',secciones:['resumen']});
     await patch(id,{resumen:'Corrección uno'});await call(`/propuestas/${id}/enviar`,'investigador','POST',{respuesta:'Atendida primera devolución'});
     await action(id,'comite_asistente','return',{texto:'Segunda devolución',secciones:['resumen']});

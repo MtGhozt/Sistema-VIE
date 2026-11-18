@@ -12,6 +12,8 @@ services:
       - vie_test_pgdata:/var/lib/postgresql/data
       - ./database/DisennoDB.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
+      - ./database/docker-init/03-aplicar-migraciones.sh:/docker-entrypoint-initdb.d/03-aplicar-migraciones.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vie -d fondos_vie_test"]
       interval: 5s

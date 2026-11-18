@@ -14,12 +14,11 @@ healthRouter.get("/health", asyncHandler(async (_req, res) => {
       database: "up",
       serverTime: result.rows[0]?.now ?? null,
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "unknown error";
+  } catch {
     res.status(503).json({
       status: "error",
       database: "down",
-      message,
+      message: "No hay conexión con PostgreSQL",
     });
   }
 }));

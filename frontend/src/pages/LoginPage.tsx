@@ -224,9 +224,10 @@ export function LoginPage() {
                 Cuenta demo: contraseña <code>prototipo2026</code>.
               </span>
             </div>
-            <label className="field">
+            <label className="field" htmlFor="login-rol">
               <span className="field-label">Rol</span>
               <select
+                id="login-rol"
                 className="input"
                 value={role}
                 disabled={roleOptions.length === 0}

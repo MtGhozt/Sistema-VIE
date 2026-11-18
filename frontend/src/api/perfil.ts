@@ -58,6 +58,7 @@ function authHeaders(extra?: HeadersInit): Headers {
   if (auth) {
     headers.set("X-Demo-User-Id", String(auth.userId));
     headers.set("X-Demo-Role", auth.role);
+    if (auth.sessionToken) headers.set("X-Demo-Session", auth.sessionToken);
   }
   return headers;
 }

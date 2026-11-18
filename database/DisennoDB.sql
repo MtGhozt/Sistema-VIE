@@ -690,3 +690,174 @@ ALTER TABLE "resolucion_cie" ADD FOREIGN KEY ("id_responsable") REFERENCES "usua
 ALTER TABLE "notificacion" ADD FOREIGN KEY ("id_usuario_destino") REFERENCES "usuario" ("id_usuario") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "notificacion" ADD FOREIGN KEY ("id_propuesta") REFERENCES "propuesta" ("id_propuesta") DEFERRABLE INITIALLY IMMEDIATE;
+
+
+
+-- =============================================================================
+-- DDL incorporado desde migraciones 003-014 (idempotente).
+-- Se aplica al final de DisennoDB.sql en volumenes nuevos.
+-- Las migraciones siguen existiendo para volumenes ya creados (tambien idempotentes).
+-- Sin INSERT/UPDATE/DELETE de datos: eso permanece en migrations/ + seed.sql.
+-- =============================================================================
+
+-- 003
+CREATE TABLE IF NOT EXISTS propuesta_consecutivo_anual (
+  anio integer PRIMARY KEY CHECK (anio BETWEEN 1900 AND 9999),
+  ultimo bigint NOT NULL CHECK (ultimo >= 0)
+);
+CREATE TABLE IF NOT EXISTS propuesta_asignacion (
+  id_propuesta int NOT NULL REFERENCES propuesta(id_propuesta) ON DELETE CASCADE,
+  id_usuario int NOT NULL REFERENCES usuario(id_usuario),
+  rol varchar(40) NOT NULL REFERENCES rol(codigo),
+  PRIMARY KEY(id_propuesta,id_usuario,rol)
+);
+CREATE TABLE IF NOT EXISTS propuesta_subsanacion (
+  id_subsanacion int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id_propuesta int NOT NULL REFERENCES propuesta(id_propuesta) ON DELETE CASCADE,
+  instancia varchar(20) NOT NULL,
+  rol_destino varchar(40) NOT NULL REFERENCES rol(codigo),
+  estado_retorno varchar(40) NOT NULL,
+  etapa_retorno smallint NOT NULL,
+  secciones text[] NOT NULL CHECK (cardinality(secciones)>0),
+  campos_atendidos text[] NOT NULL DEFAULT '{}',
+  motivo text NOT NULL CHECK (length(trim(motivo))>0),
+  id_devuelta_por int NOT NULL REFERENCES usuario(id_usuario),
+  fecha_devolucion timestamptz NOT NULL DEFAULT NOW(),
+  fecha_reenvio timestamptz,
+  respuesta text
+);
+CREATE UNIQUE INDEX IF NOT EXISTS propuesta_subsanacion_activa
+  ON propuesta_subsanacion(id_propuesta) WHERE fecha_reenvio IS NULL;
+ALTER TABLE dictamen_pi ADD COLUMN IF NOT EXISTS fundamento_no_requerido text;
+ALTER TABLE propuesta_historial_estado ADD COLUMN IF NOT EXISTS etapa_evento smallint;
+DO $ BEGIN
+  ALTER TABLE propuesta_historial_estado
+    ADD CONSTRAINT propuesta_historial_estado_etapa_evento_check
+    CHECK (etapa_evento BETWEEN 0 AND 6);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $;
+
+-- 004
+CREATE TABLE IF NOT EXISTS pi_certificacion_no_requerido (
+  id_propuesta int PRIMARY KEY REFERENCES propuesta(id_propuesta) ON DELETE CASCADE,
+  id_certificador int NOT NULL REFERENCES usuario(id_usuario),
+  fundamento text NOT NULL CHECK (length(trim(fundamento))>0),
+  fecha_certificacion timestamptz NOT NULL DEFAULT NOW()
+);
+
+-- 005
+ALTER TABLE rubrica ADD COLUMN IF NOT EXISTS version integer NOT NULL DEFAULT 1;
+ALTER TABLE rubrica ADD COLUMN IF NOT EXISTS definicion jsonb;
+ALTER TABLE rubrica ADD COLUMN IF NOT EXISTS activa boolean NOT NULL DEFAULT true;
+ALTER TABLE propuesta ADD COLUMN IF NOT EXISTS id_rubrica_actual int REFERENCES rubrica(id_rubrica);
+CREATE TABLE IF NOT EXISTS comite_miembro (
+  id_propuesta int REFERENCES propuesta(id_propuesta),
+  id_usuario int REFERENCES usuario(id_usuario),
+  PRIMARY KEY(id_propuesta,id_usuario)
+);
+ALTER TABLE evaluacion ADD COLUMN IF NOT EXISTS productos_cumplen boolean NOT NULL DEFAULT false;
+CREATE TABLE IF NOT EXISTS auditoria_operacion (
+  id_auditoria bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id_usuario int NOT NULL REFERENCES usuario(id_usuario),
+  accion text NOT NULL,
+  entidad text NOT NULL,
+  id_entidad int,
+  motivo text NOT NULL,
+  datos jsonb NOT NULL DEFAULT '{}',
+  fecha timestamptz NOT NULL DEFAULT NOW()
+);
+ALTER TABLE propuesta_documento ADD COLUMN IF NOT EXISTS bytes bigint;
+ALTER TABLE propuesta_documento ADD COLUMN IF NOT EXISTS sha256 varchar(64);
+ALTER TABLE propuesta_documento ADD COLUMN IF NOT EXISTS id_cargada_por int REFERENCES usuario(id_usuario);
+ALTER TABLE propuesta_documento ADD COLUMN IF NOT EXISTS retirada boolean NOT NULL DEFAULT false;
+CREATE UNIQUE INDEX IF NOT EXISTS documento_version_real
+  ON propuesta_documento(id_propuesta,nombre,numero_version) WHERE sha256 IS NOT NULL;
+ALTER TABLE linea_investigacion ADD COLUMN IF NOT EXISTS activo boolean NOT NULL DEFAULT true;
+CREATE TABLE IF NOT EXISTS modalidad_catalogo(
+  codigo varchar(40) PRIMARY KEY,
+  nombre text NOT NULL,
+  activo boolean NOT NULL DEFAULT true
+);
+CREATE TABLE IF NOT EXISTS reconsideracion_aval (
+  id_reconsideracion int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id_propuesta int NOT NULL REFERENCES propuesta(id_propuesta),
+  id_solicitante int NOT NULL REFERENCES usuario(id_usuario),
+  motivo text NOT NULL CHECK(length(trim(motivo))>0),
+  fecha_solicitud timestamptz NOT NULL DEFAULT NOW(),
+  id_autorizador int REFERENCES usuario(id_usuario),
+  fundamento text,
+  fecha_autorizacion timestamptz
+);
+CREATE UNIQUE INDEX IF NOT EXISTS reconsideracion_pendiente
+  ON reconsideracion_aval(id_propuesta) WHERE fecha_autorizacion IS NULL;
+
+-- 006
+ALTER TABLE propuesta_participante ADD COLUMN IF NOT EXISTS titular_cons varchar(150);
+
+-- 007
+ALTER TABLE propuesta ADD COLUMN IF NOT EXISTS ciclo_evaluacion integer NOT NULL DEFAULT 1;
+ALTER TABLE evaluacion ADD COLUMN IF NOT EXISTS ciclo integer NOT NULL DEFAULT 1;
+ALTER TABLE evaluacion ADD COLUMN IF NOT EXISTS productos_verificados boolean NOT NULL DEFAULT false;
+
+-- 008
+ALTER TABLE propuesta ADD COLUMN IF NOT EXISTS formulario_detalle jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+-- 010
+CREATE TABLE IF NOT EXISTS evaluacion_ia (
+  id_evaluacion_ia bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id_propuesta int NOT NULL REFERENCES propuesta(id_propuesta) ON DELETE CASCADE,
+  id_rubrica int NOT NULL REFERENCES rubrica(id_rubrica),
+  ciclo int NOT NULL CHECK (ciclo > 0),
+  proveedor varchar(40) NOT NULL,
+  modelo varchar(160) NOT NULL,
+  resultado jsonb NOT NULL,
+  puntaje_total numeric(5,2) NOT NULL CHECK (puntaje_total BETWEEN 0 AND 100),
+  recomendacion varchar(20) NOT NULL CHECK (recomendacion IN ('RECOMIENDA', 'NO RECOMIENDA')),
+  resumen text NOT NULL,
+  generado_por int NOT NULL REFERENCES usuario(id_usuario),
+  fecha_generacion timestamptz NOT NULL DEFAULT NOW(),
+  UNIQUE (id_propuesta, id_rubrica, ciclo)
+);
+COMMENT ON TABLE evaluacion_ia IS 'Sugerencia automatizada no vinculante; la evaluacion oficial sigue siendo la humana registrada en evaluacion/evaluacion_puntaje.';
+
+-- 011 (columna ya en DisennoDB; COMMENT opcional)
+COMMENT ON COLUMN dictamen_pi.emitido_en IS 'Marca temporal de emision del dictamen de PI.';
+
+-- 012
+CREATE INDEX IF NOT EXISTS comunicacion_expediente_tipo_fecha
+  ON comunicacion_institucional(id_propuesta,tipo,fecha_envio DESC) WHERE confirmada;
+CREATE INDEX IF NOT EXISTS reconsideracion_expediente_fecha
+  ON reconsideracion_aval(id_propuesta,fecha_autorizacion DESC);
+CREATE INDEX IF NOT EXISTS asignacion_usuario_rol_expediente
+  ON propuesta_asignacion(id_usuario,rol,id_propuesta);
+CREATE INDEX IF NOT EXISTS documento_expediente_version
+  ON propuesta_documento(id_propuesta,nombre,numero_version DESC);
+
+-- 013
+ALTER TABLE usuario
+  ADD COLUMN IF NOT EXISTS foto_ruta varchar(255),
+  ADD COLUMN IF NOT EXISTS preferencias jsonb NOT NULL DEFAULT '{}'::jsonb;
+CREATE TABLE IF NOT EXISTS usuario_contacto_pineado (
+  id_contacto INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  id_usuario int NOT NULL REFERENCES usuario (id_usuario) ON DELETE CASCADE,
+  nombre_completo varchar(150) NOT NULL,
+  orcid char(19),
+  instancia_o_institucion varchar(200),
+  id_usuario_referido int REFERENCES usuario (id_usuario) ON DELETE SET NULL,
+  fecha timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT usuario_contacto_pineado_usuario_nombre_key UNIQUE (id_usuario, nombre_completo)
+);
+CREATE INDEX IF NOT EXISTS usuario_contacto_pineado_usuario_idx
+  ON usuario_contacto_pineado (id_usuario, fecha DESC);
+
+-- 014
+CREATE UNIQUE INDEX IF NOT EXISTS evaluacion_unica_ciclo
+  ON evaluacion (id_propuesta, id_evaluador, instancia, id_rubrica, ciclo);
+CREATE INDEX IF NOT EXISTS propuesta_escuela_estado_envio_idx
+  ON propuesta (id_escuela, estado_actual, fecha_envio DESC NULLS LAST);
+CREATE INDEX IF NOT EXISTS propuesta_convocatoria_idx ON propuesta (id_convocatoria);
+CREATE INDEX IF NOT EXISTS propuesta_coordinador_idx ON propuesta (id_coordinador);
+CREATE INDEX IF NOT EXISTS propuesta_historial_propuesta_fecha_idx
+  ON propuesta_historial_estado (id_propuesta, fecha_hora DESC);
+CREATE INDEX IF NOT EXISTS propuesta_linea_linea_idx
+  ON propuesta_linea (id_linea_investigacion);

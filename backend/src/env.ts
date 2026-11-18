@@ -17,13 +17,33 @@ function trimmed(name: string): string {
   return (process.env[name] ?? "").trim();
 }
 
+const nodeEnv = process.env.NODE_ENV ?? "development";
+const isProd = nodeEnv === "production";
+
+function boolEnv(name: string, fallback: boolean): boolean {
+  const raw = process.env[name];
+  if (raw == null || raw.trim() === "") return fallback;
+  return !["0", "false", "no", "off"].includes(raw.trim().toLowerCase());
+}
+
 export const env = {
   port: Number(process.env.PORT ?? 3000),
   databaseUrl: required(
     "DATABASE_URL",
-    "postgresql://vie:vie@localhost:5432/fondos_vie",
+    isProd ? undefined : "postgresql://vie:vie@localhost:5432/fondos_vie",
   ),
-  nodeEnv: process.env.NODE_ENV ?? "development",
+  nodeEnv,
+  /**
+   * Headers X-Demo-User-Id / X-Demo-Role sin token.
+   * Activo por defecto fuera de producción (scripts de regresión).
+   * En producción exige X-Demo-Session emitido por /demo/login.
+   */
+  allowHeaderAuth: boolEnv("ALLOW_HEADER_AUTH", !isProd),
+  /** Orígenes CORS permitidos (coma-separados). Vacío = localhost de Vite/API. */
+  corsOrigins: (process.env.CORS_ORIGINS ?? "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   /** Proveedor de IA: "gemini" (Google) u "openai" (API compatible). */
   aiProvider: (process.env.AI_PROVIDER ?? "gemini").toLowerCase(),
   /** Clave de Google AI Studio; nunca se envía al frontend. */

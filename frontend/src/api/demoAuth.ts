@@ -5,7 +5,6 @@ export type DemoRoleRow = {
   nombre: string;
   correo_institucional: string;
   nombre_completo: string;
-  id_usuario: number;
 };
 
 export type DemoLoginResponse = {
@@ -16,6 +15,7 @@ export type DemoLoginResponse = {
     roleCode: string;
     roleName: string;
   };
+  sessionToken?: string;
   mode: "demo";
 };
 
@@ -39,4 +39,8 @@ export function postDemoLogin(email: string, password: string, roleCode: string)
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password, roleCode }),
   });
+}
+
+export function postDemoLogout() {
+  return apiJson<void>("/api/demo/logout", { method: "POST" });
 }

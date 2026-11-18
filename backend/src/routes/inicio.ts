@@ -32,10 +32,8 @@ inicioRouter.get(
         ? Math.floor(daysRaw)
         : 7;
 
-    const scopeAuth =
-      auth.role === "admin"
-        ? { role: "admin" as const, userId: auth.userId! }
-        : { role, userId: auth.userId! };
+    // Admin con «Vista actual» debe ver KPIs del rol simulado, no el alcance global.
+    const scopeAuth = { role, userId: auth.userId! };
     const scope = alcancePropuestas(scopeAuth);
     const dayParam = scope.params.length + 1;
 

@@ -56,7 +56,20 @@ export function PropuestaDetallePage() {
   const savedReturn=(location.state as {returnTo?:string}|null)?.returnTo;
   const returnParams=new URLSearchParams(savedReturn?.split('?')[1]??'');
   const evaluationReturn=(isResearchDirection||isCie||isGestora||isAssistant||isEvaluator||isCouncilAssistant||isDirection)&&Boolean(savedReturn?.startsWith('/evaluaciones?')&&returnParams.get('propuesta')===String(proposalId)&&Array.from(returnParams.keys()).every(key=>['propuesta','evaluacion','consejo','direccion','cie','notificacion'].includes(key))&&(!returnParams.has('evaluacion')||['pendiente','en_progreso','completada'].includes(returnParams.get('evaluacion')??''))&&(!returnParams.has('consejo')||['aval_pendiente','reconsideracion','pendientes'].includes(returnParams.get('consejo')??''))&&(!returnParams.has('direccion')||returnParams.get('direccion')==='por_comunicar')&&(!returnParams.has('cie')||['pendientes','en_evaluacion'].includes(returnParams.get('cie')??''))&&(!returnParams.has('notificacion')||returnParams.get('notificacion')==='pendientes'));
-  const backTo=evaluationReturn?savedReturn!:comfortableReading?(savedReturn&&/^\/historico(?:\?|$)/.test(savedReturn)?savedReturn:"/historico"):"/propuestas";
+  const fromHistorico = Boolean(savedReturn && /^\/historico(?:\?|$)/.test(savedReturn));
+  // Lectura unificada desde Histórico: todos los roles vuelven al listado filtrado.
+  const backTo = evaluationReturn
+    ? savedReturn!
+    : fromHistorico
+      ? savedReturn!
+      : comfortableReading
+        ? "/historico"
+        : "/propuestas";
+  const backLabel = evaluationReturn
+    ? "Evaluaciones"
+    : fromHistorico || comfortableReading
+      ? "Histórico"
+      : "Propuestas";
   const { showToast } = useToast();
   const [detail, setDetail] = useState<PropuestaDetalle | null>(null);
   const [form, setForm] = useState<FormWizardState>(DEFAULT_FORM_WIZARD_STATE);
@@ -167,7 +180,7 @@ export function PropuestaDetallePage() {
   return (
     <div className={comfortableReading?"pi-expediente":undefined} style={{"--proposal-reading-size":`${fontSize}px`} as CSSProperties}>
       <div className="breadcrumbs">
-        <Link to={backTo}>{evaluationReturn?"Evaluaciones":comfortableReading?"Histórico":"Propuestas"}</Link>
+        <Link to={backTo}>{backLabel}</Link>
         <span>/</span>
         <span>{detail.codigo}</span>
       </div>

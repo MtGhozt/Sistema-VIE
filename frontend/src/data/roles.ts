@@ -157,3 +157,40 @@ export function getRole(id: string): RoleDef {
 export function isRoleId(id: string): id is RoleId {
   return ROLES.some((r) => r.id === id);
 }
+
+/** Prefijos siempre permitidos a cualquier sesión autenticada (no viven en el menú). */
+const ALWAYS_AUTH_PREFIXES = ["/perfil", "/configuracion"] as const;
+
+/** Mapea pathname a la clave de menú que lo autoriza (o null si no aplica). */
+export function navKeyForPath(pathname: string): NavKey | null {
+  const path = pathname.split("?")[0] || "/";
+  if (path === "/inicio" || path.startsWith("/inicio/")) return "/inicio";
+  if (path === "/convocatorias" || path.startsWith("/convocatorias/"))
+    return "/convocatorias";
+  if (path === "/propuestas" || path.startsWith("/propuestas/"))
+    return "/propuestas";
+  if (path === "/evaluaciones" || path.startsWith("/evaluaciones/"))
+    return "/evaluaciones";
+  if (path === "/historico" || path.startsWith("/historico/"))
+    return "/historico";
+  if (path === "/estadisticas" || path.startsWith("/estadisticas/"))
+    return "/estadisticas";
+  if (path === "/notificaciones" || path.startsWith("/notificaciones/"))
+    return "/notificaciones";
+  if (path === "/administracion" || path.startsWith("/administracion/"))
+    return "/administracion";
+  if (path === "/perfil" || path.startsWith("/perfil/")) return "/perfil";
+  return null;
+}
+
+/** True si el rol puede abrir la ruta (menú + perfil/config). Backend sigue siendo la fuente de verdad. */
+export function roleCanAccessPath(role: RoleId, pathname: string): boolean {
+  const path = pathname.split("?")[0] || "/";
+  if (ALWAYS_AUTH_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))) {
+    return true;
+  }
+  const key = navKeyForPath(path);
+  if (!key) return false;
+  if (key === "/perfil") return true;
+  return ROUTES_BY_ROLE[role]?.includes(key) ?? false;
+}

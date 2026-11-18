@@ -4,11 +4,13 @@ import {
   Navigate,
   Outlet,
   createBrowserRouter,
+  useLocation,
 } from "react-router-dom";
 import { RouteAnnouncer } from "./a11y/RouteAnnouncer";
 import { useAuth } from "./auth/AuthContext";
 import { FontSizeDock } from "./components/a11y/FontSizeDock";
 import { AppShell } from "./components/layout/AppShell";
+import { roleCanAccessPath } from "./data/roles";
 import { AdministracionPage } from "./pages/AdministracionPage";
 import { ConfiguracionPage } from "./pages/ConfiguracionPage";
 import { ConvocatoriasPage } from "./pages/ConvocatoriasPage";
@@ -32,17 +34,39 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return children;
 }
 
+function AccessDenied({ message }: { message: string }) {
+  return (
+    <section className="card">
+      <h1>Acceso restringido</h1>
+      <p role="alert">{message}</p>
+      <p>
+        <Link to="/inicio" className="btn btn-secondary">
+          Volver al inicio
+        </Link>
+      </p>
+    </section>
+  );
+}
+
 function RequireAdmin({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   if (session?.role !== "admin")
     return (
-      <section className="card">
-        <h1>Acceso restringido</h1>
-        <p role="alert">
-          La administración requiere el rol Super Administrador.
-        </p>
-      </section>
+      <AccessDenied message="La administración requiere el rol Super Administrador." />
     );
+  return children;
+}
+
+/** Bloquea deep-links a módulos fuera del menú del rol (el API sigue autorizando). */
+function RequireRoleNav({ children }: { children: ReactNode }) {
+  const { session } = useAuth();
+  const { pathname } = useLocation();
+  if (!session) return <Navigate to="/login" replace />;
+  if (!roleCanAccessPath(session.role, pathname)) {
+    return (
+      <AccessDenied message="Su rol de demo no incluye este módulo. Use el menú lateral o cambie de rol en el inicio de sesión." />
+    );
+  }
   return children;
 }
 
@@ -95,30 +119,35 @@ export const router = createBrowserRouter([
       {
         element: <AuthenticatedLayout />,
         children: [
-          { path: "/inicio", element: <InicioPage /> },
-          { path: "/convocatorias", element: <ConvocatoriasPage /> },
-          { path: "/convocatorias/nueva", element: <ConvocatoriasPage /> },
-          { path: "/convocatorias/:id", element: <ConvocatoriasPage /> },
           {
-            path: "/convocatorias/:id/editar",
-            element: <ConvocatoriasPage />,
-          },
-          { path: "/propuestas", element: <PropuestasPage /> },
-          { path: "/propuestas/nueva", element: <PropuestaNuevaPage /> },
-          { path: "/propuestas/:id", element: <PropuestaDetallePage /> },
-          { path: "/evaluaciones", element: <EvaluacionesPage /> },
-          { path: "/historico", element: <HistoricoPage /> },
-          { path: "/historico/:codigo", element: <HistoricoDetallePage /> },
-          { path: "/estadisticas", element: <EstadisticasPage /> },
-          { path: "/perfil", element: <PerfilPage /> },
-          { path: "/notificaciones", element: <NotificacionesPage /> },
-          {
-            path: "/administracion",
-            element: (
-              <RequireAdmin>
-                <AdministracionPage />
-              </RequireAdmin>
-            ),
+            element: <RequireRoleNav><Outlet /></RequireRoleNav>,
+            children: [
+              { path: "/inicio", element: <InicioPage /> },
+              { path: "/convocatorias", element: <ConvocatoriasPage /> },
+              { path: "/convocatorias/nueva", element: <ConvocatoriasPage /> },
+              { path: "/convocatorias/:id", element: <ConvocatoriasPage /> },
+              {
+                path: "/convocatorias/:id/editar",
+                element: <ConvocatoriasPage />,
+              },
+              { path: "/propuestas", element: <PropuestasPage /> },
+              { path: "/propuestas/nueva", element: <PropuestaNuevaPage /> },
+              { path: "/propuestas/:id", element: <PropuestaDetallePage /> },
+              { path: "/evaluaciones", element: <EvaluacionesPage /> },
+              { path: "/historico", element: <HistoricoPage /> },
+              { path: "/historico/:codigo", element: <HistoricoDetallePage /> },
+              { path: "/estadisticas", element: <EstadisticasPage /> },
+              { path: "/perfil", element: <PerfilPage /> },
+              { path: "/notificaciones", element: <NotificacionesPage /> },
+              {
+                path: "/administracion",
+                element: (
+                  <RequireAdmin>
+                    <AdministracionPage />
+                  </RequireAdmin>
+                ),
+              },
+            ],
           },
         ],
       },

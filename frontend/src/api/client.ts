@@ -13,6 +13,8 @@ export class ApiError extends Error {
 export type DemoAuthHeaders = {
   userId: number;
   role: string;
+  /** Token opaco emitido por /api/demo/login. */
+  sessionToken?: string | null;
 };
 
 let demoAuth: DemoAuthHeaders | null = null;
@@ -26,6 +28,15 @@ export function getDemoAuth(): DemoAuthHeaders | null {
   return demoAuth;
 }
 
+function applyAuthHeaders(headers: Headers) {
+  if (!demoAuth) return;
+  headers.set("X-Demo-User-Id", String(demoAuth.userId));
+  headers.set("X-Demo-Role", demoAuth.role);
+  if (demoAuth.sessionToken) {
+    headers.set("X-Demo-Session", demoAuth.sessionToken);
+  }
+}
+
 export async function apiJson<T>(
   path: string,
   init?: RequestInit,
@@ -34,14 +45,18 @@ export async function apiJson<T>(
   if (!headers.has("Content-Type") && init?.body) {
     headers.set("Content-Type", "application/json");
   }
-  if (demoAuth) {
-    headers.set("X-Demo-User-Id", String(demoAuth.userId));
-    headers.set("X-Demo-Role", demoAuth.role);
-  }
+  applyAuthHeaders(headers);
 
   const url = `${API_BASE}${path}`;
-  let res:Response;
-  try{res=await fetch(url,{...init,headers});}catch{throw new ApiError('No se pudo confirmar la respuesta del servidor. Revise su conexión y vuelva a intentarlo.',0);}
+  let res: Response;
+  try {
+    res = await fetch(url, { ...init, headers });
+  } catch {
+    throw new ApiError(
+      "No se pudo confirmar la respuesta del servidor. Revise su conexión y vuelva a intentarlo.",
+      0,
+    );
+  }
 
   if (res.status === 204) {
     return undefined as T;
@@ -60,15 +75,35 @@ export async function apiJson<T>(
       "error" in body &&
       typeof (body as { error: unknown }).error === "string"
         ? (body as { error: string }).error
-        : ({400:'La solicitud contiene datos no válidos.',401:'Inicie sesión para continuar.',403:'No tiene permiso para realizar esta acción.',404:'No se encontró la información solicitada.',409:'Los datos entran en conflicto con un registro existente. Recargue y revise la información.',413:'La información enviada supera el tamaño permitido.'}[res.status]??'El servidor no pudo completar la solicitud. Vuelva a intentarlo en unos momentos.');
+        : (
+            {
+              400: "La solicitud contiene datos no válidos.",
+              401: "Inicie sesión para continuar.",
+              403: "No tiene permiso para realizar esta acción.",
+              404: "No se encontró la información solicitada.",
+              409: "Los datos entran en conflicto con un registro existente. Recargue y revise la información.",
+              413: "La información enviada supera el tamaño permitido.",
+              429: "Demasiadas solicitudes. Espere un momento e inténtelo de nuevo.",
+            } as Record<number, string>
+          )[res.status] ??
+          "El servidor no pudo completar la solicitud. Vuelva a intentarlo en unos momentos.";
     throw new ApiError(msg, res.status);
   }
   return body as T;
 }
 
-export async function downloadFile(path:string,name:string){
- const headers=new Headers();if(demoAuth){headers.set('X-Demo-User-Id',String(demoAuth.userId));headers.set('X-Demo-Role',demoAuth.role);}
- const response=await fetch(API_BASE+path,{headers});
- if(!response.ok){const data=await response.json().catch(()=>null);throw new ApiError(data?.error??'No se pudo descargar',response.status);}
- const url=URL.createObjectURL(await response.blob());const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
+export async function downloadFile(path: string, name: string) {
+  const headers = new Headers();
+  applyAuthHeaders(headers);
+  const response = await fetch(API_BASE + path, { headers });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new ApiError(data?.error ?? "No se pudo descargar", response.status);
+  }
+  const url = URL.createObjectURL(await response.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }

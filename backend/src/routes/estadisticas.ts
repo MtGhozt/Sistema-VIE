@@ -189,14 +189,24 @@ estadisticasRouter.get(
     }
 
     if (role === "comite_asistente" || role === "comite_evaluador") {
+      const evalScope = alcancePropuestas(
+        { role: auth.role === "admin" ? "admin" : role, userId },
+        role === "comite_evaluador" ? 2 : 1,
+      );
+      const evaluadorFilter =
+        role === "comite_evaluador" ? `AND e.id_evaluador=$1` : "";
       const evaluaciones = asSeries(
         (
           await query<{ label: string; value: string }>(
             `SELECT COALESCE(e.estado,'sin_iniciar') AS label, COUNT(*)::text AS value
              FROM evaluacion e
-             WHERE e.instancia='comite' ${role === "comite_evaluador" ? "AND e.id_evaluador=$1" : ""}
+             JOIN propuesta p ON p.id_propuesta = e.id_propuesta
+             WHERE e.instancia='comite' ${evaluadorFilter}
+               AND (${evalScope.sql})
              GROUP BY 1 ORDER BY COUNT(*) DESC`,
-            role === "comite_evaluador" ? [userId] : [],
+            role === "comite_evaluador"
+              ? [userId, ...evalScope.params]
+              : evalScope.params,
           )
         ).rows,
       );
@@ -206,10 +216,14 @@ estadisticasRouter.get(
             `SELECT width_bucket(COALESCE(e.puntaje_total,0), 0, 100, 5)::text AS bucket,
                     COUNT(*)::text AS value
              FROM evaluacion e
+             JOIN propuesta p ON p.id_propuesta = e.id_propuesta
              WHERE e.instancia='comite' AND e.puntaje_total IS NOT NULL
-               ${role === "comite_evaluador" ? "AND e.id_evaluador=$1" : ""}
+               ${evaluadorFilter}
+               AND (${evalScope.sql})
              GROUP BY 1 ORDER BY 1`,
-            role === "comite_evaluador" ? [userId] : [],
+            role === "comite_evaluador"
+              ? [userId, ...evalScope.params]
+              : evalScope.params,
           )
         ).rows.map((r) => ({
           label: `Rango ${r.label}`,

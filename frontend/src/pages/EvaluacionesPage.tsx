@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate,useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import {
   fetchEvaluacionBandeja,
   postEvaluacionAccion,
-  type EvaluacionBandejaItem,
 } from "../api/evaluaciones";
+import { EvaluacionBandejaList } from "../components/evaluation/EvaluacionBandejaList";
 import {
   AdminEvalTransversal,
   CiePanel,
@@ -20,9 +20,9 @@ import {
 } from "../components/evaluation/EvaluationRolePanels";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../components/toast/ToastContext";
-import { type DemoProposal } from "../data/demo";
 import { bandejaToDemoProposal } from "../data/evalProposal";
 import type { RoleId } from "../data/roles";
+import type { BandejaEntry } from "./evaluacionesTypes";
 
 const EVAL_HEADERS: Record<RoleId, [string, string, string]> = {
   vie_publicacion: [
@@ -122,13 +122,6 @@ const EVAL_ROLES: RoleId[] = [
   "direccion_investigacion",
 ];
 
-type BandejaEntry = {
-  key: string;
-  numericId: number | null;
-  demo: DemoProposal;
-  api: EvaluacionBandejaItem | null;
-};
-
 export function EvaluacionesPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
@@ -148,7 +141,16 @@ export function EvaluacionesPage() {
     setLoading(true);
     setBandejaNote(null);
     try {
-      const res = await fetchEvaluacionBandeja(session.role === "admin" && EVAL_ROLES.includes(role) ? role : undefined,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter,vieFilter,cieFilter,notificacionFilter);
+      // Admin sin vista de evaluación: no cargar bandeja global (evita simulación engañosa).
+      if (session.role === "admin" && !EVAL_ROLES.includes(role)) {
+        setBandeja([]);
+        setSelectedKey("");
+        setBandejaNote(
+          "Seleccione en «Vista actual» un rol de evaluación para consultar su bandeja. La vista de Super Administrador no sustituye la bandeja operativa.",
+        );
+        return;
+      }
+      const res = await fetchEvaluacionBandeja(session.role === "admin" ? role : undefined,requested,comiteFilter,evaluacionFilter,consejoFilter,direccionFilter,vieFilter,cieFilter,notificacionFilter);
       const entries: BandejaEntry[] = res.items.map((item) => ({
         key: item.codigo, numericId: item.id, demo: bandejaToDemoProposal(item), api: item,
       }));
@@ -328,6 +330,14 @@ export function EvaluacionesPage() {
   const proposal = selected.demo;
   const panelProps = { proposal, onAction };
 
+  function selectEntry(entry: BandejaEntry) {
+    setSelectedKey(entry.key);
+    const params = new URLSearchParams(search);
+    if (entry.numericId != null) params.set("propuesta", String(entry.numericId));
+    else params.delete("propuesta");
+    setSearch(params, { replace: true });
+  }
+
   return (
     <>
       <header className="page-header">
@@ -335,85 +345,158 @@ export function EvaluacionesPage() {
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
           <p>{description}</p>
-          <p className="muted" style={{ marginTop: 8, fontSize: 13 }}>
+          <p className="muted eval-bandeja-note">
             Expedientes desde PostgreSQL · las acciones se persisten.
           </p>
           {bandejaNote && (
-            <p className="field-hint" role="status" style={{ marginTop: 8 }}>
+            <p className="field-hint eval-bandeja-note" role="status">
               {bandejaNote}
             </p>
           )}
         </div>
+        <div className="page-actions">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => void loadBandeja()}
+            disabled={busy || loading}
+          >
+            Actualizar bandeja
+          </button>
+        </div>
       </header>
 
-      {role==='consejo'&&<label className="field"><span>Trabajo del Consejo</span><select aria-label="Trabajo del Consejo" className="input" value={consejoFilter??''} onChange={e=>setSearch(e.target.value?{consejo:e.target.value}:{})}><option value="">Pendientes y reconsideraciones</option><option value="aval_pendiente">Pendientes de aval</option><option value="reconsideracion">Reconsideraciones solicitadas</option></select></label>}
-      {role==='comite_evaluador'&&<label className="field"><span>Mi evaluación</span><select aria-label="Mi evaluación" className="input" value={evaluacionFilter??''} onChange={e=>setSearch(e.target.value?{evaluacion:e.target.value}:{})}><option value="">Pendientes y borradores</option><option value="pendiente">Pendientes de evaluar</option><option value="en_progreso">Borradores de evaluación</option><option value="completada">Evaluaciones entregadas (solo lectura)</option></select></label>}
-      {role==='comite_asistente'&&<label className="field"><span className="field-label">Fase del Comité</span><select className="input" aria-label="Fase del Comité" value={comiteFilter??''} onChange={e=>setSearch(e.target.value?{comite:e.target.value}:{})}><option value="">Todas las fases</option><option value="recepcion">Pendientes de completitud</option><option value="reenviadas">Reenviadas por revisar</option><option value="enviadas">Enviadas al Cuerpo Evaluador</option></select></label>}
-      {EVAL_ROLES.includes(role) || role === "admin" ? (
-        <>
-          {role !== "admin" && (
-            <div className={["comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion"].includes(role)?"evaluation-selector evaluator-selector":"evaluation-selector"}>
-              <span>Expediente activo</span>
-              <select
-                className="input"
-                value={selected.key}
-                onChange={e=>{setSelectedKey(e.target.value);const item=bandeja.find(p=>p.key===e.target.value);if(item){const params=new URLSearchParams(search);params.set("propuesta",String(item.numericId));setSearch(params,{replace:true});}}}
-                aria-label="Expediente activo"
-                disabled={busy}
-              >
-                {bandeja.map((e) => (
-                  <option key={e.key} value={e.key}>
-                    {e.key} — {e.demo.titulo}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+      {role === "consejo" && (
+        <label className="field eval-filter-field">
+          <span className="field-label">Trabajo del Consejo</span>
+          <select
+            aria-label="Trabajo del Consejo"
+            className="input"
+            value={consejoFilter ?? ""}
+            onChange={(e) =>
+              setSearch(e.target.value ? { consejo: e.target.value } : {})
+            }
+          >
+            <option value="">Pendientes y reconsideraciones</option>
+            <option value="aval_pendiente">Pendientes de aval</option>
+            <option value="reconsideracion">Reconsideraciones solicitadas</option>
+          </select>
+        </label>
+      )}
+      {role === "comite_evaluador" && (
+        <label className="field eval-filter-field">
+          <span className="field-label">Mi evaluación</span>
+          <select
+            aria-label="Mi evaluación"
+            className="input"
+            value={evaluacionFilter ?? ""}
+            onChange={(e) =>
+              setSearch(e.target.value ? { evaluacion: e.target.value } : {})
+            }
+          >
+            <option value="">Pendientes y borradores</option>
+            <option value="pendiente">Pendientes de evaluar</option>
+            <option value="en_progreso">Borradores de evaluación</option>
+            <option value="completada">Evaluaciones entregadas (solo lectura)</option>
+          </select>
+        </label>
+      )}
+      {role === "comite_asistente" && (
+        <label className="field eval-filter-field">
+          <span className="field-label">Fase del Comité</span>
+          <select
+            className="input"
+            aria-label="Fase del Comité"
+            value={comiteFilter ?? ""}
+            onChange={(e) =>
+              setSearch(e.target.value ? { comite: e.target.value } : {})
+            }
+          >
+            <option value="">Todas las fases</option>
+            <option value="recepcion">Pendientes de completitud</option>
+            <option value="reenviadas">Reenviadas por revisar</option>
+            <option value="enviadas">Enviadas al Cuerpo Evaluador</option>
+          </select>
+        </label>
+      )}
 
-          {role === "vinculacion" && <VinculacionPanel key={selected.key} {...panelProps} />}
-          {role === "comite_asistente" && (
-            <ComiteAsistentePanel key={selected.key} {...panelProps} />
-          )}
-          {role === "comite_evaluador" && (
-            <ComiteEvaluadorPanel key={selected.key} {...panelProps} />
-          )}
-          {role === "consejo_asistente" && (
-            <ConsejoAsistentePanel key={selected.key} {...panelProps} />
-          )}
-          {role === "consejo" && <ConsejoPanel key={selected.key} {...panelProps} />}
-          {role === "direccion_escuela" && (
-            <DireccionEscuelaPanel key={selected.key} {...panelProps} />
-          )}
-          {role === "gestora_vie" && <GestoraViePanel key={selected.key} {...panelProps} />}
-          {role === "cie" && <CiePanel key={selected.key} {...panelProps} />}
-          {role === "direccion_investigacion" && (
-            <DireccionInvestigacionPanel key={selected.key} {...panelProps} />
-          )}
-          {role === "admin" && (
-            <>
-              <div className="evaluation-selector">
-                <span>Expediente activo</span>
-                <select
-                  className="input"
-                  value={selected.key}
-                  onChange={e=>{setSelectedKey(e.target.value);const item=bandeja.find(p=>p.key===e.target.value);if(item){const params=new URLSearchParams(search);params.set("propuesta",String(item.numericId));setSearch(params,{replace:true});}}}
-                  aria-label="Expediente activo"
-                  disabled={busy}
-                >
-                  {bandeja.map((e) => (
-                    <option key={e.key} value={e.key}>
-                      {e.key} — {e.demo.titulo}
-                    </option>
-                  ))}
-                </select>
+      {EVAL_ROLES.includes(role) ? (
+        <>
+          <EvaluacionBandejaList
+            entries={bandeja}
+            selectedKey={selected.key}
+            disabled={busy}
+            onSelect={selectEntry}
+          />
+
+          <div className="evaluation-selector eval-quick-select">
+            <span>Expediente activo</span>
+            <select
+              className="input"
+              value={selected.key}
+              onChange={(e) => {
+                const item = bandeja.find((p) => p.key === e.target.value);
+                if (item) selectEntry(item);
+              }}
+              aria-label="Expediente activo"
+              disabled={busy}
+            >
+              {bandeja.map((e) => (
+                <option key={e.key} value={e.key}>
+                  {e.key} — {e.demo.titulo}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <section
+            className="eval-work-panel"
+            aria-labelledby="eval-work-heading"
+          >
+            <div className="section-title">
+              <div>
+                <h2 id="eval-work-heading">Expediente en trabajo</h2>
+                <p>
+                  {selected.key} — {proposal.titulo}
+                </p>
               </div>
-              <AdminEvalTransversal proposal={proposal} />
-              <p className="muted" style={{ marginTop: 16, fontSize: 13 }}>
-                Cambie «Vista actual» en la barra superior para operar cada
-                etapa con el panel completo del prototipo.
-              </p>
-            </>
-          )}
+            </div>
+
+            {role === "vinculacion" && (
+              <VinculacionPanel key={selected.key} {...panelProps} />
+            )}
+            {role === "comite_asistente" && (
+              <ComiteAsistentePanel key={selected.key} {...panelProps} />
+            )}
+            {role === "comite_evaluador" && (
+              <ComiteEvaluadorPanel key={selected.key} {...panelProps} />
+            )}
+            {role === "consejo_asistente" && (
+              <ConsejoAsistentePanel key={selected.key} {...panelProps} />
+            )}
+            {role === "consejo" && (
+              <ConsejoPanel key={selected.key} {...panelProps} />
+            )}
+            {role === "direccion_escuela" && (
+              <DireccionEscuelaPanel key={selected.key} {...panelProps} />
+            )}
+            {role === "gestora_vie" && (
+              <GestoraViePanel key={selected.key} {...panelProps} />
+            )}
+            {role === "cie" && <CiePanel key={selected.key} {...panelProps} />}
+            {role === "direccion_investigacion" && (
+              <DireccionInvestigacionPanel key={selected.key} {...panelProps} />
+            )}
+            {role === "admin" && (
+              <>
+                <AdminEvalTransversal proposal={proposal} />
+                <p className="muted eval-bandeja-note">
+                  Cambie «Vista actual» en la barra superior para operar cada
+                  etapa con el panel completo del prototipo.
+                </p>
+              </>
+            )}
+          </section>
         </>
       ) : (
         <section className="card">

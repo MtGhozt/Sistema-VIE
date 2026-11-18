@@ -1,6 +1,6 @@
 # PostgreSQL — Sistema VIE (prototipo)
 # Uso: docker compose up -d
-# Primero solo crea el volumen vacío; el init corre DisennoDB.sql + seed.sql
+# Primer init: DisennoDB.sql + seed.sql + migraciones 001–N (volumen vacío).
 
 services:
   db:
@@ -17,6 +17,8 @@ services:
       - vie_pgdata:/var/lib/postgresql/data
       - ./database/DisennoDB.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
+      - ./database/docker-init/03-aplicar-migraciones.sh:/docker-entrypoint-initdb.d/03-aplicar-migraciones.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vie -d fondos_vie"]
       interval: 5s

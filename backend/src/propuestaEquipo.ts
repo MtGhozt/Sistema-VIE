@@ -1,4 +1,5 @@
 import type { query } from "./db.js";
+import { validarOrcidOpcional } from "./ianEnviarValidacion.js";
 import { HttpError } from "./middleware/HttpError.js";
 const TIPOS_HORA = new Set(["VIE", "VIE-Centros", "CONS", "REC", "DOC", "VIESA"]);
 export async function saveEquipo(id: number, raw: unknown, execute: typeof query) {
@@ -17,6 +18,7 @@ export async function saveEquipo(id: number, raw: unknown, execute: typeof query
     }
     if(nombre.length>150||instancia.length>200)throw new HttpError(400,'Nombre o institución excede el límite de 150/200 caracteres.');
     validarNombramiento(row.periodo);
+    validarOrcidOpcional(row.orcid);
     if(row.iniciales!==undefined&&(typeof row.iniciales!=='string'||row.iniciales.length>10))throw new HttpError(400,'Las iniciales admiten hasta 10 caracteres.');
     if (!nombre) throw new HttpError(400, "Cada participante requiere un nombre");
     const values = [nombre, row.orcid || null, instancia || null, row.rol || null, row.periodo || null, row.tipo, userId];

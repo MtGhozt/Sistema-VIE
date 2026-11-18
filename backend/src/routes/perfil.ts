@@ -245,6 +245,22 @@ perfilRouter.get(
   asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) throw new HttpError(400, "id inválido");
+    const viewerId = req.demoAuth!.userId!;
+    const viewerRole = req.demoAuth!.role!;
+    // Propia, admin, o misma escuela: evita enumerar fotos de usuarios ajenos.
+    if (id !== viewerId && viewerRole !== "admin") {
+      const allowed = await query(
+        `SELECT 1
+         FROM usuario target
+         JOIN usuario viewer ON viewer.id_usuario = $2 AND viewer.activo = true
+         WHERE target.id_usuario = $1
+           AND target.activo = true
+           AND target.id_escuela IS NOT NULL
+           AND target.id_escuela = viewer.id_escuela`,
+        [id, viewerId],
+      );
+      if (!allowed.rowCount) throw new HttpError(403, "No tiene permiso para ver esta foto");
+    }
     const row = (
       await query<{ foto_ruta: string | null }>(
         "SELECT foto_ruta FROM usuario WHERE id_usuario=$1 AND activo=true",
@@ -323,16 +339,16 @@ perfilRouter.get(
       )
     ).rows;
 
+    // Catálogo amplio sin cédula: la PII completa queda en «usted» y contactos pineados.
     const catalogo = (
       await query<{
         id: number;
         nombre: string;
         orcid: string | null;
-        cedula: string | null;
         instancia: string | null;
         roles: string[];
       }>(
-        `SELECT u.id_usuario AS id, u.nombre_completo AS nombre, u.orcid, u.cedula,
+        `SELECT u.id_usuario AS id, u.nombre_completo AS nombre, u.orcid,
           e.nombre AS instancia,
           ARRAY(SELECT r.codigo FROM usuario_rol ur JOIN rol r ON r.id_rol=ur.id_rol WHERE ur.id_usuario=u.id_usuario) AS roles
          FROM usuario u
@@ -374,7 +390,6 @@ perfilRouter.get(
         idUsuario: p.id,
         nombre: p.nombre,
         orcid: p.orcid,
-        cedula: p.cedula,
         instancia: p.instancia,
         roles: p.roles,
         etiqueta: "catalogo",

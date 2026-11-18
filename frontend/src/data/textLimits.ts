@@ -1,27 +1,29 @@
 /**
  * Límites de extensión del formulario oficial VIE
  * (`docs/oficiales-vie/.../4- Formulario Proyecto Investigacion`).
- * Una sola fuente: UI, validación y mensajes leen de aquí.
+ * Fuente compartida: `shared/ian-field-word-limits.json` (FE + BE).
  */
-export const WORDS_PER_PAGE = 500;
+import ianLimits from "../../../shared/ian-field-word-limits.json";
+
+export const WORDS_PER_PAGE = ianLimits.wordsPerPage;
 
 export const FIELD_WORD_LIMITS = {
   /** Resumen ES — «Máximo 500 palabras». */
-  resumen: 500,
+  resumen: ianLimits.resumen,
   /** Abstract EN — misma extensión orientativa que el resumen. */
-  abstract: 500,
+  abstract: ianLimits.abstract,
   /** Problema — «Máximo una página». */
-  problema: WORDS_PER_PAGE,
+  problema: ianLimits.problema,
   /** Estado del arte — «Máximo dos páginas». */
-  estadoArte: WORDS_PER_PAGE * 2,
+  estadoArte: ianLimits.estadoArte,
   /** Metodología — sin tope oficial; tope de sección narrativa (1 pág.). */
-  metodologia: WORDS_PER_PAGE,
+  metodologia: ianLimits.metodologia,
   /** Objetivo general — párrafo corto. */
-  objetivoGeneral: 200,
+  objetivoGeneral: ianLimits.objetivoGeneral,
   /** Cada objetivo específico. */
-  objetivoEspecifico: 120,
+  objetivoEspecifico: ianLimits.objetivoEspecifico,
   /** Referencias — listado largo permitido. */
-  referencias: WORDS_PER_PAGE * 2,
+  referencias: ianLimits.referencias,
 } as const;
 
 export type FieldWordLimitKey = keyof typeof FIELD_WORD_LIMITS;

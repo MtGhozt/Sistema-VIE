@@ -96,6 +96,13 @@ export function PropuestaNuevaPage() {
   function showIssues(items:ProposalIssue[],full=true){if(!items.length)return false;setCheckedSteps(prev=>({...prev,...Object.fromEntries(items.map(i=>[i.step,full]))}));setStep(items[0].step);requestAnimationFrame(()=>validationPanel.current?.focus());return true;}
   function attemptStep(target:number){if(allowedSteps){setStep(target);return;}const issues=Array.from({length:target},(_,s)=>proposalIssues(s,toIan(form),idConvocatoria!=="")).flat();if(!showIssues(issues))setStep(target);}
   const progressPct = Math.round(stepStates.slice(0,15).filter(state=>state==='complete'||state==='corrected').length/15*100);
+  const incompleteCount = stepStates
+    .slice(0, 15)
+    .filter((state) => state !== "complete" && state !== "corrected").length;
+  const firstIncompleteStep = stepStates.findIndex(
+    (state, index) =>
+      index < 15 && state !== "complete" && state !== "corrected",
+  );
 
   useEffect(()=>{
     if(isEditing||!session)return;
@@ -387,6 +394,24 @@ export function PropuestaNuevaPage() {
           >
             <div style={{ width: `${progressPct}%` }} />
           </div>
+          {!subsanacion && incompleteCount > 0 && (
+            <div className="wizard-progress-actions">
+              <p className="wizard-incomplete-hint" role="status">
+                {incompleteCount === 1
+                  ? "Queda 1 sección por completar antes del envío."
+                  : `Quedan ${incompleteCount} secciones por completar antes del envío.`}
+              </p>
+              {firstIncompleteStep >= 0 && firstIncompleteStep !== step && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => attemptStep(firstIncompleteStep)}
+                >
+                  Ir a la siguiente sección incompleta
+                </button>
+              )}
+            </div>
+          )}
           <details className="wizard-index" open><summary>Secciones del formulario</summary><WizardLineSteps
             steps={FORM_WIZARD_STEPS}
             states={stepStates} markedSteps={allowedSteps??undefined}

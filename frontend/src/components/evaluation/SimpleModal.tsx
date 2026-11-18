@@ -6,6 +6,8 @@ type SimpleModalProps = {
   title: string;
   description?: string;
   onClose: () => void;
+  /** Si es true, un clic fuera del diálogo cierra. Por defecto false para no perder trabajo. */
+  closeOnBackdrop?: boolean;
   footer?: ReactNode;
   bodyClassName?: string;
   children: ReactNode;
@@ -53,6 +55,7 @@ export function SimpleModal({
   title,
   description,
   onClose,
+  closeOnBackdrop = false,
   footer,
   bodyClassName,
   children,
@@ -133,7 +136,11 @@ export function SimpleModal({
   if (!open) return null;
 
   return createPortal(
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onClick={closeOnBackdrop ? onClose : undefined}
+    >
       <div
         className="modal"
         role="dialog"

@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { postDemoLogin } from "../api/demoAuth";
+import { postDemoLogin, postDemoLogout } from "../api/demoAuth";
 import { setDemoAuth } from "../api/client";
 import { SESSION_KEY } from "../data/demo";
 import { getRole, isRoleId, type RoleId } from "../data/roles";
@@ -20,6 +20,8 @@ export type Session = {
   role: RoleId;
   /** Vista operativa (admin puede cambiarla). */
   viewRole: RoleId;
+  /** Token opaco de sesión emitido por el backend. */
+  sessionToken: string | null;
 };
 
 type StoredSession = {
@@ -29,6 +31,7 @@ type StoredSession = {
   roleName: string;
   role: string;
   viewRole?: string;
+  sessionToken?: string | null;
 };
 
 type AuthContextValue = {
@@ -67,6 +70,7 @@ function readSession(): Session | null {
       roleName: parsed.roleName ?? getRole(parsed.role).label,
       role: parsed.role,
       viewRole,
+      sessionToken: typeof parsed.sessionToken === "string" ? parsed.sessionToken : null,
     };
   } catch {
     return null;
@@ -81,6 +85,7 @@ function persistSession(session: Session) {
     roleName: session.roleName,
     role: session.role,
     viewRole: session.viewRole,
+    sessionToken: session.sessionToken,
   };
   localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
 }
@@ -90,7 +95,11 @@ function syncDemoAuth(session: Session | null) {
     setDemoAuth(null);
     return;
   }
-  setDemoAuth({ userId: session.userId, role: session.role });
+  setDemoAuth({
+    userId: session.userId,
+    role: session.role,
+    sessionToken: session.sessionToken,
+  });
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -113,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       roleName: data.user.roleName,
       role,
       viewRole: role,
+      sessionToken: data.sessionToken ?? null,
     };
     persistSession(next);
     syncDemoAuth(next);
@@ -120,6 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    void postDemoLogout().catch(() => {
+      /* el cierre local no depende del servidor */
+    });
     localStorage.removeItem(SESSION_KEY);
     syncDemoAuth(null);
     setSession(null);

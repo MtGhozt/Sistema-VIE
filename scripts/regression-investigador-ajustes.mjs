@@ -11,7 +11,7 @@ const nav=()=>page.getByRole('navigation',{name:'Pasos del formulario',exact:tru
 async function step(i){await nav().getByRole('button').nth(i).click();}
 async function edit(id=p.id){await page.goto(`${env.uiOrigin}/propuestas/nueva?edit=${id}`);await expect(page.getByLabel('Nombre del proyecto',{exact:true})).toBeVisible();}
 async function save(){await page.getByRole('button',{name:'Guardar borrador',exact:true}).click();await expect(page.getByText('Borrador guardado en el servidor',{exact:true})).toBeVisible();}
-async function action(id,action,role,payload){return api(`/evaluaciones/propuestas/${id}/acciones`,role,'POST',{action,payload});}
+async function action(id,action,role,payload={}){if(action==='committee-ready'&&payload.completitudConfirmada!==true&&!(payload.checks&&Object.values(payload.checks).length&&Object.values(payload.checks).every(Boolean)))payload={...payload,completitudConfirmada:true};return api(`/evaluaciones/propuestas/${id}/acciones`,role,'POST',{action,payload});}
 try{
  env=await testEnvironment({ui:true});for(const role of ['investigador','vie_publicacion','vinculacion','comite_asistente'])sessions.set(role,(await api('/demo/login',null,'POST',{email:`${role}@tec.ac.cr`,password:'prototipo2026',roleCode:role})).user);
  const u=sessions.get('investigador'),person=(await env.pool.query('SELECT nombre_completo AS nombre FROM usuario WHERE id_usuario=$1',[u.id])).rows[0];

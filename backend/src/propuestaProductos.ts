@@ -1,11 +1,22 @@
+import productCodes from "../../shared/ian-product-codes.json" with { type: "json" };
 import type { query } from "./db.js";
 import { HttpError } from "./middleware/HttpError.js";
 export async function saveProductos(id:number,raw:unknown,execute:typeof query){
   if(raw===undefined)return;
   if(!Array.isArray(raw))throw new HttpError(400,"Compromisos inválidos");
   const retained:number[]=[];
+  let adicionales=0;
   for(const r of raw){
-    if(!['basica_aplicada','desarrollo_tecnologico','adicional','activo_pi'].includes(r.ambito)||!String(r.codigo??'').trim()||!String(r.descripcion??'').trim()||!Number.isInteger(Number(r.cantidad))||Number(r.cantidad)<1)throw new HttpError(400,"Indique ámbito, opción, descripción y cantidad positiva del producto");
+    if(!['basica_aplicada','desarrollo_tecnologico','adicional','activo_pi'].includes(r.ambito)||!String(r.codigo??'').trim()||!String(r.descripcion??'').trim()||!Number.isInteger(Number(r.cantidad))||Number(r.cantidad)<1||Number(r.cantidad)>productCodes.maxQuantity)throw new HttpError(400,`Indique ámbito, opción, descripción y cantidad entera entre 1 y ${productCodes.maxQuantity}`);
+    if(r.ambito==='adicional'){
+      adicionales+=1;
+      if(adicionales>productCodes.maxAdicionales)throw new HttpError(400,`Productos adicionales: admiten como máximo ${productCodes.maxAdicionales}.`);
+      if(String(r.descripcion).trim().length>productCodes.maxAdicionalDescription)throw new HttpError(400,`Productos adicionales: la descripción admite hasta ${productCodes.maxAdicionalDescription} caracteres.`);
+    }
+    if(r.ambito==='activo_pi'){
+      const dictamen=String(r.dictamen??'').trim();
+      if(dictamen.length>productCodes.maxDictamenLength)throw new HttpError(400,`Activos PI: el dictamen admite hasta ${productCodes.maxDictamenLength} caracteres.`);
+    }
     const values=[r.ambito,r.codigo,r.descripcion,r.cantidad,r.dictamen||null];
     if(r.id){
       const updated=await execute<{id_producto:number}>("UPDATE propuesta_producto SET ambito=$1,codigo_opcion=$2,descripcion=$3,cantidad=$4,dictamen_consecutivo=$5 WHERE id_producto=$6 AND id_propuesta=$7 RETURNING id_producto",[...values,r.id,id]);

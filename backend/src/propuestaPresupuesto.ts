@@ -1,3 +1,4 @@
+import productCodes from "../../shared/ian-product-codes.json" with { type: "json" };
 import type { query } from "./db.js";
 import { HttpError } from "./middleware/HttpError.js";
 const money=(v:number)=>Number.isFinite(v)&&v>=0&&v<=999999999999.99&&Number(v.toFixed(2))===v;
@@ -26,6 +27,9 @@ export async function savePresupuesto(id: number, body: Record<string, unknown>,
     await execute("DELETE FROM propuesta_financiamiento WHERE id_propuesta=$1",[id]);
     for (const r of body.fuentes) {
       if (!['externo','contrapartida','cofinanciamiento'].includes(r.tipo) || !Number.isInteger(Number(r.anio)) || !money(Number(r.monto))) throw new HttpError(400,"Fuente o monto inválido");
+      const oficio=String(r.oficio??'');
+      if(oficio.length>productCodes.maxOficioLength)throw new HttpError(400,`Financiamiento: el oficio admite hasta ${productCodes.maxOficioLength} caracteres.`);
+      if(Number(r.monto)>0&&!oficio.trim())throw new HttpError(400,'Financiamiento: indique el oficio cuando hay aportes.');
       await execute("INSERT INTO propuesta_financiamiento(id_propuesta,tipo,anio,monto,numero_oficio) VALUES($1,$2,$3,$4,$5)",[id,r.tipo,r.anio,r.monto,r.oficio||null]);
     }
   }

@@ -7,9 +7,19 @@
 > **Post-auditoría · 2026-11-09:** CU2 (equipo, plan, presupuesto, adjuntos) y CU3/CU4 están **persistidos** (D01–D11 + MERGE-IAN). CaseFile de Evaluaciones carga el detalle real vía API. Prioridad de cierre: [correcciones/PRIORIDAD-POST-AUDITORIA.md](correcciones/PRIORIDAD-POST-AUDITORIA.md). Este resumen corto no sustituye ESTADO-DE-REVISION ni MERGE-IAN.
 >
 > **Correcciones finales · 2026-11-11:** perfil VIE Publicación — pantallas propias, validación en español, fechas `DD/MM/YYYY`, presupuesto/cronograma obligatorios. Ver [correcciones/correcciones-finales/README.md](correcciones/correcciones-finales/README.md) y `pnpm regression:vie-final`.
+>
+> **Auditoría integral · 2026-11-18:** sesión opaca (`X-Demo-Session`), CORS restringido, PII reducida, UNIQUE evaluación + índices (`014`), responsive sin `min-width` forzado, modal sin cierre accidental, CIE bloqueado si rúbrica &lt;100. Informe: [correcciones/AUDITORIA-INTEGRAL-2026-11-18.md](correcciones/AUDITORIA-INTEGRAL-2026-11-18.md). Prueba: `pnpm regression:seguridad-sesion`.
+>
+> **Continuación · 2026-11-18 (tarde):** bandeja de Evaluaciones con tabla/lista seleccionable; Docker init aplica migraciones tras seed; wizard con acceso a la siguiente sección incompleta.
+>
+> **Continuación · 2026-11-18 (noche):** Histórico unificado (todos los roles → expediente completo); `FormWizardIan` dividido en `formWizard/Step00`–`Step15`.
+>
+> **Continuación · 2026-11-18 (madrugada):** Steps tipados; paneles/bandeja partidos; Helmet; esquema 003–014.
+>
+> **2.ª auditoría integral · 2026-11-18 (noche):** desinfló cierres de la 1.ª (gate `/enviar`, vista admin, IA admin, histórico); correcciones + informe [correcciones/AUDITORIA-INTEGRAL-2-2026-11-18.md](correcciones/AUDITORIA-INTEGRAL-2-2026-11-18.md). Regresiones API usan `backend/dist` → hace falta `pnpm --filter sistema-vie-backend run build`.
 
 
-Última actualización: 2026-11-11 (VIE Publicación + docs alineados post-pull)
+Última actualización: 2026-11-18 (2.ª auditoría integral + correcciones)
 
 ## Lectura para el equipo
 

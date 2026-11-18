@@ -25,9 +25,10 @@ export function ConvocatoriaDateField({id,label,value,onChange,min='2000-01-01',
             <path d="M3 10h18M8 3v4M16 3v4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
           </svg>
         </button>
-        <input ref={calendar} className="calendar-picker-native" type="date" aria-label={`Seleccionar fecha en calendario: ${label}`} tabIndex={-1}
+        <input ref={calendar} className="calendar-picker-native" type="date" aria-label={`Seleccionar fecha en calendario: ${label}`}
           value={iso} min={min} max={max} disabled={disabled}
-          onChange={e=>{const selected=e.target.value;onChange(selected?selected.split('-').reverse().join('/'):'');}}/>
+          onChange={e=>{const selected=e.target.value;onChange(selected?selected.split('-').reverse().join('/'):'');}}
+          onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();try{calendar.current?.showPicker();}catch{/* navegador sin showPicker */}}}}/>
       </div>
     </div>
     <span id={`${id}-hint`} className="field-hint date-field-hint">{iso?`Seleccionado: ${iso.split('-').reverse().join('/')} (día/mes/año)`:'Formato: DD/MM/YYYY · día/mes/año'}</span>

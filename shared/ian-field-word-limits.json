@@ -1,0 +1,11 @@
+{
+  "wordsPerPage": 500,
+  "resumen": 500,
+  "abstract": 500,
+  "problema": 500,
+  "estadoArte": 1000,
+  "metodologia": 500,
+  "objetivoGeneral": 200,
+  "objetivoEspecifico": 120,
+  "referencias": 1000
+}

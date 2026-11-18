@@ -7,9 +7,10 @@
 > - Commits: `2ceac07`, `082c8c0`, `156a20a`
 > - Capa CSS: `frontend/src/styles/a11y.css` (cargada al final, en `main.tsx`)
 >
-> El CSS del prototipo (`frontend/src/styles/prototipo.css`) **no se modificó**:
-> está extraído del HTML de referencia y su cabecera pide no editarlo a mano.
-> Todos los cambios viven en una capa aparte, `a11y.css`, que gana la cascada.
+> El CSS del prototipo (`frontend/src/styles/prototipo.css`) se mantiene como base visual.
+> La capa `a11y.css` gana la cascada. **2026-11-18:** se eliminó el `min-width` forzado
+> del body (1100/1180px) y se añadieron reglas de reflow tablet/móvil en `a11y.css`
+> (auditoría integral).
 
 ---
 

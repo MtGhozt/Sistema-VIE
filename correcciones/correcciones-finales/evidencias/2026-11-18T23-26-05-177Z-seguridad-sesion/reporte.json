@@ -1,0 +1,33 @@
+{
+  "run": "2026-11-18T23-26-05-177Z",
+  "results": [
+    {
+      "name": "Login emite sessionToken",
+      "status": "PASA"
+    },
+    {
+      "name": "Sesión válida autentica /propuestas",
+      "status": "PASA"
+    },
+    {
+      "name": "/demo/roles no expone id_usuario",
+      "status": "PASA"
+    },
+    {
+      "name": "/personas no expone cédula ni ORCID",
+      "status": "PASA"
+    },
+    {
+      "name": "Foto ajena sin vínculo → 403 o 404",
+      "status": "PASA"
+    },
+    {
+      "name": "Logout invalida el token de sesión",
+      "status": "PASA"
+    },
+    {
+      "name": "Headers sin token siguen válidos en desarrollo",
+      "status": "PASA"
+    }
+  ]
+}

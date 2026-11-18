@@ -97,7 +97,8 @@
 .date-control .calendar-icon { display: block; flex: 0 0 auto; }
 
 .calendar-picker-control { position: relative; }
-.calendar-picker-native { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+/* 1×1px focuseable: teclado puede llegar al date nativo; el botón visual sigue siendo el CTA principal. */
+.calendar-picker-native { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; }
 
 /* Basurero alineado con la altura del select/input (no con la etiqueta) */
 .action-plan-activity .team-hours-row,

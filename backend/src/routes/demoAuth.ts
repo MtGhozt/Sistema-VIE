@@ -2,6 +2,9 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { scrypt, timingSafeEqual } from "node:crypto";
 import { query } from "../db.js";
+import { createDemoSession, revokeDemoSession } from "../demoSessions.js";
+import { clientKey, consumeRateLimit } from "../rateLimit.js";
+import { attachDemoAuth } from "../middleware/demoAuth.js";
 
 export const demoRouter = Router();
 
@@ -26,26 +29,38 @@ function verifyPassword(password: string, storedHash: string): Promise<boolean> 
   });
 }
 
-/** Lista roles + usuarios seed para el login demo (sin password real). */
+/**
+ * Catálogo de roles demo para el selector de login.
+ * No expone id_usuario (evita enumeración de identidades).
+ */
 demoRouter.get("/demo/roles", asyncHandler(async (_req, res) => {
   const result = await query<{
     codigo: string;
     nombre: string;
     correo_institucional: string;
     nombre_completo: string;
-    id_usuario: number;
   }>(`
-    SELECT r.codigo, r.nombre, u.correo_institucional, u.nombre_completo, u.id_usuario
+    SELECT r.codigo, r.nombre, u.correo_institucional, u.nombre_completo
     FROM rol r
     JOIN usuario_rol ur ON ur.id_rol = r.id_rol
     JOIN usuario u ON u.id_usuario = ur.id_usuario
     WHERE u.correo_institucional = r.codigo || '@tec.ac.cr'
+      AND u.activo = true
     ORDER BY r.id_rol
   `);
   res.json(result.rows);
 }));
 
 demoRouter.post("/demo/login", asyncHandler(async (req, res) => {
+  const limit = consumeRateLimit(clientKey(req, "demo-login"), 20, 60_000);
+  if (!limit.ok) {
+    res.setHeader("Retry-After", String(limit.retryAfterSec));
+    res.status(429).json({
+      error: "Demasiados intentos de inicio de sesión. Espere un momento e inténtelo de nuevo.",
+    });
+    return;
+  }
+
   const email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
   const password = typeof req.body?.password === "string" ? req.body.password : "";
   const roleCode = typeof req.body?.roleCode === "string" ? req.body.roleCode.trim() : "";
@@ -78,6 +93,8 @@ demoRouter.post("/demo/login", asyncHandler(async (req, res) => {
     return;
   }
 
+  const session = createDemoSession(row.id_usuario, row.codigo);
+
   res.json({
     user: {
       id: row.id_usuario,
@@ -86,6 +103,16 @@ demoRouter.post("/demo/login", asyncHandler(async (req, res) => {
       roleCode: row.codigo,
       roleName: row.nombre,
     },
+    sessionToken: session.token,
     mode: "demo",
   });
 }));
+
+demoRouter.post(
+  "/demo/logout",
+  attachDemoAuth,
+  asyncHandler(async (req, res) => {
+    revokeDemoSession(req.demoAuth?.sessionToken ?? req.header("x-demo-session"));
+    res.sendStatus(204);
+  }),
+);

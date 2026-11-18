@@ -18,6 +18,14 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { pool, query } from "../db.js";
 import { requireDemoAuth } from "../middleware/demoAuth.js";
+import {
+  BANDEJA_SQL,
+  EVALUATION_VIEWS,
+  mapBandeja,
+  bandejaClause,
+  roleOk,
+  type BandejaRow,
+} from "../evaluacionesBandeja.js";
 
 /**
  * CU3 / CU4 — Persistencia de dictamen PI, resultado de comité, aval y resolución CIE.
@@ -33,214 +41,6 @@ import { requireDemoAuth } from "../middleware/demoAuth.js";
 export const evaluacionesRouter = Router();
 
 const VIE_ITEMS = JSON.parse(readFileSync(new URL("../../../shared/checklist-vie.json",import.meta.url),"utf8")) as {codigo:string;etiqueta:string}[];
-
-const ESTADO_LABEL: Record<string, string> = {
-  borrador: "Borrador",
-  en_subsanacion: "En subsanación",
-  enviada: "Enviada",
-  en_evaluacion: "En evaluación",
-  dictaminada: "Dictaminada",
-  avalada: "Avalada",
-  aprobada: "Aprobada",
-  rechazada: "Rechazada",
-  rechazo_aval: "Aval rechazado",
-};
-
-const MODALIDAD_LABEL: Record<string, string> = {
-  basica: "Investigación básica",
-  aplicada: "Investigación aplicada",
-  basica_aplicada: "Investigación básica y aplicada",
-  desarrollo_tecnologico: "Desarrollo tecnológico",
-  fortalecimiento: "Fortalecimiento",
-};
-
-type BandejaRow = {
-  id_propuesta: number;
-  codigo: string;
-  titulo: string;
-  modalidad: string;modalidad_nombre:string|null;
-  estado_actual: string;
-  etapa_flujo: number;
-  fecha_envio: string | null;
-  resumen: string | null;
-  abstract_en: string | null;
-  requiere_dictamen_pi: boolean;
-  pi_estado: string|null;
-  escuela_nombre: string;
-  coordinador_nombre: string;
-  convocatoria_nombre: string;
-  oficio_pi: string | null;
-  oficio_comite: string | null;
-  oficio_aval: string | null;
-  resolucion: string | null;
-  calificacion_comite: string | null;
-  notificada: boolean;
-  justificacion_aval: string | null;
-  coordinador_correo: string;
-  fecha_resolucion: string | null;
-  vie_checks: Record<string,boolean>;
-  comite_enviado:boolean;
-  fecha_comite:string|null;
-  fecha_aval:string|null;
-};
-
-const BANDEJA_SQL = `
-  SELECT
-    p.id_propuesta,
-    (${COMITE_ENVIADO_SQL}) AS comite_enviado,
-    p.codigo,
-    p.titulo,
-    p.modalidad,mc.nombre AS modalidad_nombre,
-    p.estado_actual,
-    p.etapa_flujo,
-    p.fecha_envio,
-    p.resumen,
-    p.abstract_en,
-    p.requiere_dictamen_pi,
-    CASE WHEN NOT p.requiere_dictamen_pi AND pcn.id_propuesta IS NOT NULL THEN 'no_requerido' ELSE dpi.estado END AS pi_estado,
-    e.nombre AS escuela_nombre,
-    u.nombre_completo AS coordinador_nombre,
-    u.correo_institucional AS coordinador_correo,
-    r.fecha_resolucion,
-    c.nombre AS convocatoria_nombre,
-    dpi.numero_oficio AS oficio_pi,
-    rc.numero_oficio AS oficio_comite,
-    av.numero_oficio AS oficio_aval,
-    r.numero_resolucion AS resolucion,
-    COALESCE((SELECT json_object_agg(ch.codigo_item,ch.verificado) FROM revision_checklist ch
-      WHERE ch.id_revision=(SELECT rv.id_revision FROM revision_expediente rv WHERE rv.id_propuesta=p.id_propuesta AND rv.etapa='vie' AND rv.resultado<>'devuelto' AND NOT EXISTS(SELECT 1 FROM revision_expediente newer WHERE newer.id_propuesta=rv.id_propuesta AND newer.etapa='vie' AND newer.ciclo>rv.ciclo) ORDER BY rv.ciclo DESC LIMIT 1)), '{}'::json) AS vie_checks,
-    av.observaciones AS justificacion_aval,
-    EXISTS (SELECT 1 FROM comunicacion_institucional ci WHERE ci.id_propuesta=p.id_propuesta AND ci.tipo='resolucion_cie' AND ci.confirmada=true) AS notificada,
-    av.fecha_aval,
-    rc.fecha_dictamen AS fecha_comite,
-    rc.calificacion_promedio::text AS calificacion_comite
-  FROM propuesta p
-  LEFT JOIN modalidad_catalogo mc ON mc.codigo=p.modalidad
-  JOIN escuela e ON e.id_escuela = p.id_escuela
-  JOIN usuario u ON u.id_usuario = p.id_coordinador
-  JOIN convocatoria c ON c.id_convocatoria = p.id_convocatoria
-  LEFT JOIN dictamen_pi dpi ON dpi.id_propuesta = p.id_propuesta
-  LEFT JOIN pi_certificacion_no_requerido pcn ON pcn.id_propuesta = p.id_propuesta
-  LEFT JOIN resultado_comite rc ON rc.id_propuesta = p.id_propuesta
-  LEFT JOIN aval_consejo av ON av.id_propuesta = p.id_propuesta
-  LEFT JOIN resolucion_cie r ON r.id_propuesta = p.id_propuesta
-  WHERE p.estado_actual <> 'borrador'
-`;
-
-function mapBandeja(row: BandejaRow) {
-  return {
-    fechaAval:row.fecha_aval,
-    fechaDictamenComite:row.fecha_comite,
-    comiteEnviado:row.comite_enviado,
-    id: row.id_propuesta,
-    codigo: row.codigo,
-    titulo: row.titulo,
-    modalidad: row.modalidad,
-    modalidadLabel: row.modalidad_nombre ?? MODALIDAD_LABEL[row.modalidad] ?? row.modalidad,
-    estadoActual: row.estado_actual,
-    estadoLabel: ESTADO_LABEL[row.estado_actual] ?? row.estado_actual,
-    etapaFlujo: row.etapa_flujo,
-    fechaEnvio: row.fecha_envio,
-    resumen: row.resumen,
-    abstractEn: row.abstract_en,
-    piRequired: row.requiere_dictamen_pi,
-    piEstado: row.pi_estado,
-    escuela: row.escuela_nombre,
-    investigadora: row.coordinador_nombre,
-    coordinadorCorreo: row.coordinador_correo,
-    fechaResolucion: row.fecha_resolucion,
-    convocatoria: row.convocatoria_nombre,
-    oficioPI: row.oficio_pi,
-    oficioComite: row.oficio_comite,
-    oficioAval: row.oficio_aval,
-    resolucion: row.resolucion,
-    notificada: row.notificada,
-    vieChecks: row.vie_checks,
-    justificacionAval: row.justificacion_aval,
-    evaluacionComite: row.calificacion_comite
-      ? { average: Number(row.calificacion_comite) }
-      : null,
-  };
-}
-
-/** Roles que pueden operar cada acción del prototipo. */
-const ACTION_ROLES: Record<string, Set<string>> = {
-  pi: new Set(["vinculacion", "admin"]),
-  "committee-confirm": new Set(["comite_asistente", "admin"]),
-  "request-reconsideration": new Set(["investigador"]),
-  "council-reconsider": new Set(["consejo", "admin"]),
-  "pi-start":new Set(["vinculacion","admin"]),
-  "committee-ready": new Set(["comite_asistente", "admin"]),
-  return: new Set(["comite_asistente", "gestora_vie", "admin"]),
-  "pi-not-required": new Set(["vinculacion", "admin"]),
-  "save-rubric": new Set(["comite_evaluador", "cie", "admin"]),
-  "committee-score": new Set(["comite_evaluador", "admin"]),
-  "send-council": new Set(["consejo_asistente", "admin"]),
-  "council-approve": new Set(["consejo", "admin"]),
-  "council-reject": new Set(["consejo", "admin"]),
-  "communicate-aval": new Set(["direccion_escuela", "admin"]),
-  "vie-checklist": new Set(["gestora_vie", "admin"]),
-  "vie-observation": new Set(["gestora_vie", "admin"]),
-  "send-cie": new Set(["gestora_vie", "admin"]),
-  "cie-approve": new Set(["cie", "admin"]),
-  "cie-reject": new Set(["cie", "admin"]),
-  "notify-resolution": new Set(["direccion_investigacion", "admin"]),
-};
-
-function roleOk(role: string | null | undefined, action: string) {
-  const allowed = ACTION_ROLES[action];
-  if (!allowed) return false;
-  return !!role && allowed.has(role);
-}
-
-const EVALUATION_VIEWS = new Set(["vinculacion","comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion","admin"]);
-
-/** Filtro de bandeja por rol (etapa / estado). */
-function bandejaClause(role: string | null | undefined): {
-  sql: string;
-  params: unknown[];
-} {
-  switch (role) {
-    case "vinculacion":
-      return {
-        sql: ` AND p.estado_actual IN ('enviada','en_evaluacion','dictaminada','avalada') AND
-          (p.etapa_flujo<=1 OR (p.requiere_dictamen_pi AND NOT EXISTS(SELECT 1 FROM dictamen_pi d WHERE d.id_propuesta=p.id_propuesta AND d.estado='emitido'))
-          OR (NOT p.requiere_dictamen_pi AND NOT EXISTS(SELECT 1 FROM pi_certificacion_no_requerido pc WHERE pc.id_propuesta=p.id_propuesta)))`,
-        params: [],
-      };
-    case "comite_asistente":
-      return {
-        sql: ` AND p.etapa_flujo BETWEEN 1 AND 2 AND p.estado_actual IN ('enviada', 'en_evaluacion', 'dictaminada')`,
-        params: [],
-      };
-    case "comite_evaluador":
-      return {sql:` AND p.etapa_flujo=2 AND p.estado_actual='en_evaluacion' AND ${COMITE_ENVIADO_SQL}`,params:[]};
-    case "consejo_asistente":
-      return {sql:` AND ${CONSEJO_PENDIENTE_SQL}`,params:[]};
-    case "consejo":
-      return {sql:` AND ((${CONSEJO_DECISION_FILTROS.aval_pendiente}) OR (${CONSEJO_DECISION_FILTROS.reconsideracion}))`,params:[]};
-    case "direccion_escuela":
-      return {sql:` AND ${DIRECCION_FILTROS.por_comunicar}`,params:[]};
-    case "gestora_vie":
-      return {
-        sql: ` AND p.etapa_flujo = 4 AND p.estado_actual='avalada' AND ${AVAL_COMUNICADO_SQL}`,
-        params: [],
-      };
-    case "cie":
-      return {
-        sql: ` AND (${CIE_PENDIENTE_SQL})`,
-        params: [],
-      };
-    case "direccion_investigacion":
-      return {
-        sql: ` AND (${NOTIFICACION_FILTROS.pendientes})`,
-        params: [],
-      };
-    case "admin":
-    default:
-      return { sql: "", params: [] };
-  }
-}
 
 async function loadPropuesta(id: number) {
   const result = await query<{
@@ -501,11 +301,21 @@ evaluacionesRouter.get("/evaluaciones/propuestas/:id/rubrica", requireDemoAuth, 
 }));
 
 /** Verifica que la persona pueda operar la sugerencia de IA del Comité. */
-async function exigirEvaluadorComiteIA(id: number, auth: { userId: number | null; role: string | null }) {
+async function exigirEvaluadorComiteIA(
+  id: number,
+  auth: { userId: number | null; role: string | null },
+  opts: { generar?: boolean } = {},
+) {
   await exigirAlcance(id, auth);
-  if (auth.role === "admin") return;
+  const generar = opts.generar === true;
+  if (!generar && auth.role === "admin") return;
   if (auth.role !== "comite_evaluador") {
-    throw new HttpError(403, "Solo las personas evaluadoras del Comité pueden consultar la sugerencia de IA");
+    throw new HttpError(
+      403,
+      generar
+        ? "Solo las personas evaluadoras del Comité pueden generar la sugerencia de IA"
+        : "Solo las personas evaluadoras del Comité pueden consultar la sugerencia de IA",
+    );
   }
   const assigned = await query(
     "SELECT 1 FROM comite_miembro WHERE id_propuesta=$1 AND id_usuario=$2",
@@ -518,7 +328,7 @@ async function exigirEvaluadorComiteIA(id: number, auth: { userId: number | null
 evaluacionesRouter.get("/evaluaciones/propuestas/:id/ia", requireDemoAuth, asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) { res.status(400).json({ error: "ID inválido" }); return; }
-  await exigirEvaluadorComiteIA(id, req.demoAuth!);
+  await exigirEvaluadorComiteIA(id, req.demoAuth!, { generar: false });
   const p = await query<{ modalidad: string; ciclo_evaluacion: number }>(
     "SELECT modalidad, ciclo_evaluacion FROM propuesta WHERE id_propuesta=$1",
     [id],
@@ -534,7 +344,7 @@ evaluacionesRouter.get("/evaluaciones/propuestas/:id/ia", requireDemoAuth, async
 evaluacionesRouter.post("/evaluaciones/propuestas/:id/ia", requireDemoAuth, asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isSafeInteger(id) || id < 1) { res.status(400).json({ error: "ID inválido" }); return; }
-  await exigirEvaluadorComiteIA(id, req.demoAuth!);
+  await exigirEvaluadorComiteIA(id, req.demoAuth!, { generar: true });
   if ((await query("SELECT 1 FROM resultado_comite WHERE id_propuesta=$1", [id])).rowCount) {
     throw new HttpError(409, "El dictamen del Comité ya está cerrado; no se regenera la sugerencia de IA");
   }
@@ -678,6 +488,9 @@ evaluacionesRouter.post(
           if(!locked.rows[0].requiere_dictamen_pi) throw new HttpError(409,"Registre la certificación explícita de PI no requerido");
           if (!["Sí","No"].includes(str(payload.potencial)) || !["Sí","No"].includes(str(payload.innovacion))) throw new HttpError(400,"Indique potencial de protección e innovación del dictamen");
           const fieldNames:Record<string,string>={tipoActivo:"Resultado o activo identificable",tipoPI:"Mecanismo de PI considerado",novedad:"Novedad",titularidad:"Titularidad",divulgacion:"Recomendaciones antes de divulgación pública",confidencialidad:"Confidencialidad",analisis:"Análisis técnico",recomendaciones:"Recomendaciones del Centro de Vinculación"};
+          for(const key of ["analisis","recomendaciones"] as const){
+            if(!str(payload[key]))throw new HttpError(400,`El campo «${fieldNames[key]}» es obligatorio para emitir el dictamen.`);
+          }
           for(const [key,limit] of Object.entries(piLimits)) {
             if(key!=="fundamento"&&String(payload[key]??"").length>limit)throw new HttpError(400,`El campo «${fieldNames[key]??key}» admite como máximo ${limit} caracteres`);
           }
@@ -743,6 +556,19 @@ evaluacionesRouter.post(
 
         case "committee-ready": {
           if((await client.query(`SELECT 1 FROM propuesta p WHERE p.id_propuesta=$1 AND ${COMITE_ENVIADO_SQL}`,[id])).rowCount)throw new HttpError(409,"La propuesta ya fue enviada al Cuerpo Evaluador; no puede enviarse nuevamente");
+          const checks = payload.checks;
+          let checklistOk = payload.completitudConfirmada === true;
+          if (checks && typeof checks === "object" && !Array.isArray(checks)) {
+            const entries = Object.entries(checks as Record<string, unknown>);
+            checklistOk =
+              entries.length > 0 && entries.every(([, value]) => value === true);
+          }
+          if (!checklistOk) {
+            throw new HttpError(
+              400,
+              "Confirme la checklist de completitud antes de enviar a evaluación.",
+            );
+          }
           await assignCommittee(client,id,propuesta.id_escuela);
           await proposalRubric(client,id,locked.rows[0].modalidad);
 
@@ -758,13 +584,16 @@ evaluacionesRouter.post(
             `,
             [id, userId],
           );
+          const checklistNote = checks && typeof checks === "object"
+            ? `Checklist confirmada (${Object.keys(checks as object).length} ítems)`
+            : "Completitud confirmada explícitamente";
           await advanceEstado(client, {
             idPropuesta: id,
             estadoAnterior: prev,
             estadoNuevo: "en_evaluacion",
             etapa: Math.max(propuesta.etapa_flujo, 2),
             userId,
-            observacion: "Expediente marcado completo para el cuerpo evaluador",
+            observacion: `Expediente marcado completo para el cuerpo evaluador · ${checklistNote}`,
           });
           message = "Propuesta enviada al cuerpo evaluador.";
           break;

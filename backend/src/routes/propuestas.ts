@@ -4,6 +4,8 @@ import { siguienteCodigo } from "../numeracionPropuestas.js";
 import { cargarSubsanacion, validarEdicionSubsanacion, seccionesSubsanacion } from "../subsanacion.js";
 import { HttpError } from "../middleware/HttpError.js";
 import { savePropuestaCampos } from "../propuestaCampos.js";
+import { RESUMEN_MAX_WORDS } from "../propuestaLimites.js";
+import { validarEnvioIan } from "../ianEnviarValidacion.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Router } from "express";
 import { loadPropuestaDisplay } from "../propuestaDetalle.js";
@@ -180,9 +182,10 @@ function parseKeywordInput(value: unknown): string[] | undefined {
     .filter(Boolean);
 }
 
+/** Catálogo mínimo para formularios: sin cédula ni ORCID (PII solo en perfil / sugeridas propias). */
 propuestasRouter.get("/personas", requireDemoAuth, asyncHandler(async (_req, res) => {
   const result = await query(
-    `SELECT u.id_usuario AS id, u.nombre_completo AS nombre, u.orcid, u.cedula,
+    `SELECT u.id_usuario AS id, u.nombre_completo AS nombre,
       e.nombre AS instancia,
       ARRAY(SELECT r.codigo FROM usuario_rol ur JOIN rol r ON r.id_rol=ur.id_rol WHERE ur.id_usuario=u.id_usuario) AS roles
      FROM usuario u
@@ -502,7 +505,7 @@ propuestasRouter.post(
 
     await exigirAlcance(id,req.demoAuth!);
     const saved = await transaction(async (execute) => {
-    const content = await execute<{ resumen: string | null; abstract_en:string|null; declaracion_aceptada: boolean; estado_actual:string }>("SELECT resumen, abstract_en, declaracion_aceptada, estado_actual FROM propuesta WHERE id_propuesta=$1 FOR UPDATE", [id]);
+    const content = await execute<{ resumen: string | null; abstract_en:string|null; declaracion_aceptada: boolean; estado_actual:string; modalidad:string }>("SELECT resumen, abstract_en, declaracion_aceptada, estado_actual, modalidad FROM propuesta WHERE id_propuesta=$1 FOR UPDATE", [id]);
     if (!content.rows[0] || !["borrador","en_subsanacion"].includes(content.rows[0].estado_actual)) throw new HttpError(409,"La propuesta ya fue enviada");
     if (!content.rows[0]?.declaracion_aceptada) throw new HttpError(400,"Debe aceptar la declaración jurada antes de enviar");
     if(!content.rows[0].abstract_en?.trim())throw new HttpError(400,"El abstract en inglés es obligatorio al enviar; keywords EN son opcionales");
@@ -513,9 +516,10 @@ propuestasRouter.post(
     const wordCount = (content.rows[0]?.resumen ?? "").trim().split(/\s+/u).filter(Boolean).length;
     const terms = await loadKeywords(id,execute);
     if(terms.keywordsEn.length&&(terms.keywordsEn.length<4||terms.keywordsEn.length>6))throw new HttpError(400,'Keywords EN: indique entre 4 y 6 términos en inglés o deje el campo vacío.');
-    if (wordCount > 500 || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {
-      throw new HttpError(400,"El resumen admite máximo 500 palabras y se requieren entre 4 y 6 términos clave en español.");
+    if (wordCount > RESUMEN_MAX_WORDS || terms.keywordsEs.length < 4 || terms.keywordsEs.length > 6) {
+      throw new HttpError(400,`El resumen admite máximo ${RESUMEN_MAX_WORDS} palabras y se requieren entre 4 y 6 términos clave en español.`);
     }
+    await validarEnvioIan(id, content.rows[0].modalidad, execute);
 
     if(content.rows[0].estado_actual==="en_subsanacion") {
       const correction=await cargarSubsanacion(id,execute);

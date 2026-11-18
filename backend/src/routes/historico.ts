@@ -166,6 +166,9 @@ function buildWhere(filters: {
   }
   if(filters.pi){push(`(${ESTADO_PI_SQL}) = ?`,filters.pi);clauses.push("p.estado_actual<>'borrador'");}
   if (filters.estado) {
+    if (!Object.hasOwn(ESTADO_LABEL, filters.estado)) {
+      throw new HttpError(400, "Estado de propuesta no reconocido para el filtro.");
+    }
     push("p.estado_actual = ?", filters.estado);
   }
   const anio = filtrosAnio(filters.anio);

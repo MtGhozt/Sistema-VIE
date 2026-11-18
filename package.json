@@ -33,7 +33,8 @@
     "regression:direccion-investigacion": "node scripts/regression-direccion-investigacion.mjs",
     "regression:cie": "node scripts/regression-cie.mjs",
     "regression:gestora-vie": "node scripts/regression-gestora-vie.mjs",
-    "regression:direccion-escuela": "node scripts/regression-direccion-escuela.mjs"
+    "regression:direccion-escuela": "node scripts/regression-direccion-escuela.mjs",
+    "regression:seguridad-sesion": "node scripts/regression-seguridad-sesion.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^1.0.10",

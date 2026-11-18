@@ -3,6 +3,7 @@ import { documentosRouter } from "./routes/documentos.js";
 import { HttpError } from "./middleware/HttpError.js";
 import express, { type ErrorRequestHandler } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import { healthRouter } from "./routes/health.js";
 import { demoRouter } from "./routes/demoAuth.js";
 import { convocatoriasRouter } from "./routes/convocatorias.js";
@@ -14,10 +15,42 @@ import { perfilRouter } from "./routes/perfil.js";
 import { estadisticasRouter } from "./routes/estadisticas.js";
 import { inicioRouter } from "./routes/inicio.js";
 import { attachDemoAuth } from "./middleware/demoAuth.js";
+import { env } from "./env.js";
 
 export function createApp() {
   const app = express();
-  app.use(cors());
+  app.disable("x-powered-by");
+  app.set("trust proxy", 1);
+  app.use(
+    helmet({
+      // API JSON: no sirve HTML; CSP del navegador la define el front (Vite).
+      contentSecurityPolicy: false,
+      // Front en otro origen (5173) consume el API; CORP permisivo en prototipo local.
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    }),
+  );
+  app.use(
+    cors({
+      origin(origin, callback) {
+        // Peticiones sin Origin (scripts, curl, health) se permiten.
+        if (!origin) {
+          callback(null, true);
+          return;
+        }
+        callback(null, env.corsOrigins.includes(origin));
+      },
+      allowedHeaders: [
+        "Content-Type",
+        "X-Demo-User-Id",
+        "X-Demo-Role",
+        "X-Demo-Session",
+        "X-File-Name",
+      ],
+      maxAge: 600,
+    }),
+  );
+  // Límite por defecto de Express (~100 KiB): el wizard persiste textos; anexos van por /documentos.
   app.use(express.json());
   app.use(attachDemoAuth);
 
@@ -63,6 +96,7 @@ export function createApp() {
         propuesta_participante_hora_id_participante_tipo_hora_idx:"Equipo: se repite un tipo de horas para la misma persona. Unifique esas horas.",
         propuesta_objetivo_especifico_id_propuesta_numero_idx:"Objetivos específicos: dos registros utilizan el mismo número. Recargue el expediente antes de volver a guardar.",
         actividad_plan_id_propuesta_id_objetivo_numero_idx:"Plan de acción: dos actividades utilizan el mismo número dentro de un objetivo. Recargue el expediente antes de volver a guardar.",
+        evaluacion_unica_ciclo:"Ya existe una evaluación individual para este ciclo. Recargue el expediente antes de continuar.",
       };
       const constraint=String((error as { constraint?: string })?.constraint??'');
       res.status(409).json({ error: Object.hasOwn(reasons,constraint)?reasons[constraint]:"Hay un dato duplicado que debe ser único. No se guardaron los cambios; revise los registros repetidos." });
@@ -96,6 +130,12 @@ export function createApp() {
     if (code === "28P01" || code === "3D000") {
       res.status(500).json({
         error: "Credenciales o nombre de base de datos incorrectos. Revise DATABASE_URL.",
+      });
+      return;
+    }
+    if (env.nodeEnv === "production") {
+      res.status(500).json({
+        error: "No se pudo completar la operación. Inténtelo de nuevo o contacte a soporte.",
       });
       return;
     }

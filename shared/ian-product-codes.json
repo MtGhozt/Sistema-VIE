@@ -1,0 +1,19 @@
+{
+  "basicAcademic": ["opcion_1", "opcion_2", "opcion_3"],
+  "technologyAcademic": ["opcion_1", "opcion_2", "opcion_3", "opcion_4"],
+  "technologyIpAssets": [
+    "activo_1",
+    "activo_2",
+    "activo_3",
+    "activo_4",
+    "activo_5",
+    "activo_6",
+    "activo_7",
+    "activo_8"
+  ],
+  "maxQuantity": 99,
+  "maxDictamenLength": 40,
+  "maxAdicionalDescription": 500,
+  "maxAdicionales": 2,
+  "maxOficioLength": 60
+}

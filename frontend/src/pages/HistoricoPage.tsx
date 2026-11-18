@@ -1,11 +1,9 @@
-import {DocumentosPanel} from "../components/DocumentosPanel";
 import {useAuth} from "../auth/AuthContext";
 import {PropuestaDetallePage} from "./PropuestaDetallePage";
 import {estadosPi} from "../api/vinculacion";
 import { FilterGroup } from "../components/FilterGroup";
-import {dateLabel} from "../data/convocatoriaUi";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams,useSearchParams,useNavigate } from "react-router-dom";
+import { useSearchParams,useNavigate } from "react-router-dom";
 import {
   EMPTY_HISTORICO_FILTROS,
   fetchHistorico,
@@ -15,8 +13,6 @@ import {
 } from "../api/historico";
 import { ApiError } from "../api/client";
 import { FilterPanel } from "../components/FilterPanel";
-import { ProcessTimeline } from "../components/ProcessTimeline";
-import { SimpleModal } from "../components/evaluation/SimpleModal";
 const EMPTY_OPTIONS: HistoricoOpciones = {
   escuelas: [],
   lineas: [],
@@ -28,88 +24,8 @@ function yearOf(iso: string | null) {
   return iso ? Number(iso.slice(0, 4)) : null;
 }
 
-function formatDate(iso: string | null) { return dateLabel(iso);
-}
-
-function HistoricoModal({
-  item,
-  onClose,
-}: {
-  item: HistoricoItem;
-  onClose: () => void;
-}) {
-  return (
-    <SimpleModal
-      open
-      title={item.titulo}
-      description={`${item.codigo} · Expediente histórico`}
-      onClose={onClose}
-      bodyClassName="historical-detail"
-      footer={
-        <button type="button" className="btn btn-primary" onClick={onClose}>
-          Cerrar expediente
-        </button>
-      }
-    >
-      <div className="detail-grid">
-        <div>
-          <span>Escuela</span>
-          <strong>{item.escuela}</strong>
-        </div>
-        <div>
-          <span>Persona investigadora</span>
-          <strong>{item.investigadora}</strong>
-        </div>
-        <div>
-          <span>Línea / Temática</span>
-          <strong>{item.lineas.length ? item.lineas.join(", ") : "—"}</strong>
-        </div>
-        <div>
-          <span>Modalidad</span>
-          <strong>{item.modalidadLabel}</strong>
-        </div>
-        <div>
-          <span>Resultado</span>
-          <strong>
-            <span
-              className={
-                item.estado === "aprobada"
-                  ? "badge badge-primary"
-                  : "badge"
-              }
-            >
-              {item.estadoLabel}
-            </span>
-          </strong>
-        </div>
-        <div>
-          <span>Fecha de resolución</span>
-          <strong>{formatDate(item.fechaResolucion)}</strong>
-        </div>
-      </div>
-      <h3>Ruta institucional</h3>
-      <ProcessTimeline
-        currentStep={item.etapaFlujo}
-        completed={item.estado === "aprobada" || item.estado === "rechazada"}
-      />
-      {item.documentos.length > 0 && (
-        <div className="historical-docs">
-          <strong>Documentos generados</strong>
-          {item.documentos.map((d) => (
-            <span key={d.numero}>
-              {d.tipo} · {d.numero}
-            </span>
-          ))}
-        </div>
-      )}
-      <DocumentosPanel id={item.id}/>
-    </SimpleModal>
-  );
-}
-
 export function HistoricoPage() {
-  const { codigo } = useParams();
-  const {session}=useAuth();const isVinculacion=session?.viewRole==="vinculacion";const isNotification=session?.viewRole==="direccion_investigacion";const isDirection=session?.viewRole==="direccion_escuela";const isCouncil=["consejo_asistente","consejo","direccion_escuela"].includes(session?.viewRole??"");const fullReader=isVinculacion||["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion"].includes(session?.viewRole??"");
+  const {session}=useAuth();const isVinculacion=session?.viewRole==="vinculacion";const isNotification=session?.viewRole==="direccion_investigacion";const isDirection=session?.viewRole==="direccion_escuela";const isCouncil=["consejo_asistente","consejo","direccion_escuela"].includes(session?.viewRole??"");
   const [search,setSearch]=useSearchParams();const navigate=useNavigate();
   const filtros=useMemo(()=>Object.fromEntries(Object.keys(EMPTY_HISTORICO_FILTROS).map(key=>[key,search.get(key)??''])) as HistoricoFiltros,[search]);
   const metadata=useRef({identity:'',at:0}),delay=useRef(0);
@@ -118,7 +34,6 @@ export function HistoricoPage() {
   const [opciones, setOpciones] = useState<HistoricoOpciones>(EMPTY_OPTIONS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<HistoricoItem | null>(null);
 
   const cargar = useCallback(async (f: HistoricoFiltros,signal:AbortSignal) => {
     setLoading(true);
@@ -145,13 +60,6 @@ export function HistoricoPage() {
 
   // Selecciones inmediatas; solo escritura aplazada. Cancelar evita respuestas obsoletas.
   useEffect(()=>{const controller=new AbortController();const timer=window.setTimeout(()=>void cargar(filtros,controller.signal),delay.current);return()=>{window.clearTimeout(timer);controller.abort();};},[filtros,cargar]);
-
-  // Deep-link /historico/:codigo → abre el expediente directamente.
-  useEffect(() => {
-    if (!codigo||fullReader) return;
-    const found = items.find((h) => h.codigo === codigo);
-    if (found) setSelected(found);
-  }, [codigo, items,fullReader]);
 
   const activos = useMemo(
     () => Object.values(filtros).filter(Boolean).length,
@@ -194,7 +102,15 @@ export function HistoricoPage() {
     [filtros],
   );
 
-  function openRecord(row:HistoricoItem){if(fullReader)navigate(`/historico/${encodeURIComponent(row.codigo)}`,{state:{returnTo:'/historico'+(search.toString()?'?'+search.toString():'')}});else setSelected(row);}
+  /** Todos los roles abren el mismo expediente completo (wizard en solo lectura). */
+  function openRecord(row: HistoricoItem) {
+    navigate(`/historico/${encodeURIComponent(row.codigo)}`, {
+      state: {
+        returnTo:
+          "/historico" + (search.toString() ? `?${search.toString()}` : ""),
+      },
+    });
+  }
   return (
     <>
       <header className="page-header">
@@ -323,7 +239,7 @@ export function HistoricoPage() {
             <strong>Sin resultados</strong>
             <span>
               Ninguna propuesta coincide con los filtros seleccionados.
-              Ajustá o limpiá los filtros para ampliar la búsqueda.
+              Ajuste o limpie los filtros para ampliar la búsqueda.
             </span>
           </div>
         )}
@@ -359,7 +275,6 @@ export function HistoricoPage() {
                         <button
                           type="button"
                           className="table-link"
-                          aria-haspopup={fullReader?undefined:"dialog"}
                           onClick={(e) => {
                             e.stopPropagation();
                             openRecord(row);
@@ -411,14 +326,11 @@ export function HistoricoPage() {
           </div>
         )}
       </section>
-
-      {selected && !fullReader && (
-        <HistoricoModal item={selected} onClose={() => setSelected(null)} />
-      )}
     </>
   );
 }
 
+/** Lectura unificada: el detalle siempre usa el expediente completo. */
 export function HistoricoDetallePage() {
-  const {session}=useAuth();return ["vinculacion","comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion"].includes(session?.viewRole??"")?<PropuestaDetallePage/>:<HistoricoPage/>;
+  return <PropuestaDetallePage />;
 }

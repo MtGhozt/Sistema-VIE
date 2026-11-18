@@ -12,8 +12,8 @@ Síntesis operativa de la auditoría integral del prototipo (secciones A–J, co
 | 2 | Limpiar adapters/demo muertos y etiquetar exclusiones de oficios | Evitar que el tribunal confunda plantillas con datos vivos | Implementado |
 | 3 | Alinear CONTINUIDAD + INFORME-WCAG con el producto real | Docs desfasados = riesgo en defensa del 28% a11y y del alcance | Implementado |
 | 4 | Guion / evidencia automática V01 (smoke + checklist) | Aceptación humana sigue siendo del equipo; se deja rastro ejecutable | Preparado |
-| 5 | Seed docs/notifs, UNIQUE evaluación, `propuesta_asignacion`, gate CIE | Integridad / datos de demo | Diferido (siguiente sprint) |
-| 6 | Token firmado / CORS / restringir `/demo/roles` | Solo si el API sale de localhost | Diferido (D13 vigente en clase) |
+| 5 | Seed docs/notifs, UNIQUE evaluación, `propuesta_asignacion`, gate CIE | Integridad / datos de demo | **Parcial 2026-11-18:** UNIQUE evaluación + índices en migración `014`; seed docs/asignación siguen diferidos |
+| 6 | Token firmado / CORS / restringir `/demo/roles` | Solo si el API sale de localhost | **Hecho 2026-11-18** (sesión opaca + CORS + roles sin `id_usuario`); headers legacy solo con `ALLOW_HEADER_AUTH`. Ver [AUDITORIA-INTEGRAL-2026-11-18.md](AUDITORIA-INTEGRAL-2026-11-18.md) |
 
 ## Fuera de esta iteración (explícito)
 

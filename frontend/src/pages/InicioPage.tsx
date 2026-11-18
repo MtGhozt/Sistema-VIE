@@ -12,6 +12,10 @@ import {
 } from "../api/convocatorias";
 import { apiJson } from "../api/client";
 import {
+  fetchInicioTendencias,
+  type InicioTendencias,
+} from "../api/inicio";
+import {
   fetchEvaluacionBandeja,
   type EvaluacionBandejaItem,
 } from "../api/evaluaciones";
@@ -21,6 +25,18 @@ import {
 } from "../components/ProcessTimeline";
 import { IconChevron } from "../components/icons";
 import type { RoleId } from "../data/roles";
+
+const ETAPA_POR_ROL: Partial<Record<RoleId, number>> = {
+  vinculacion: 1,
+  comite_asistente: 2,
+  comite_evaluador: 2,
+  consejo_asistente: 3,
+  consejo: 3,
+  direccion_escuela: 3,
+  gestora_vie: 4,
+  cie: 5,
+  direccion_investigacion: 6,
+};
 
 const EVAL_ROLES: RoleId[] = [
   "vinculacion",
@@ -248,10 +264,16 @@ function AdminHome({
   home,
   proposals,
   convocatorias,
+  tendencias,
+  loadError,
+  onRetry,
 }: {
   home: (typeof HOME_BY_ROLE)["admin"];
   proposals: Propuesta[];
   convocatorias: Convocatoria[];
+  tendencias: InicioTendencias | null;
+  loadError?: string;
+  onRetry?: () => void;
 }) {
   const navigate = useNavigate();
   const [userCount, setUserCount] = useState(0);
@@ -317,20 +339,39 @@ function AdminHome({
         </div>
       </header>
 
+      {loadError && (
+        <div className="card feedback-error" role="alert">
+          {loadError}
+          {onRetry && (
+            <button className="btn btn-secondary" type="button" onClick={onRetry}>
+              Reintentar
+            </button>
+          )}
+        </div>
+      )}
+
       <section className="stats-grid stats-grid-five" aria-label="Indicadores">
-        {home.stats.map(([label]) => (
-          <button
-            key={label}
-            type="button"
-            className="card stat-card"
-            onClick={() => navigate(adminStatPath(label))}
-          >
-            <div className="stat-value">
-              {adminStatValue(label, proposals, convocatorias, userCount)}
-            </div>
-            <div className="stat-label">{label}</div>
-          </button>
-        ))}
+        {home.stats.map(([label]) => {
+          const value = adminStatValue(
+            label,
+            proposals,
+            convocatorias,
+            userCount,
+          );
+          const trend = trendForLabel("admin", label, tendencias);
+          return (
+            <button
+              key={label}
+              type="button"
+              className="card stat-card"
+              onClick={() => navigate(adminStatPath(label))}
+            >
+              <div className="stat-value">{value}</div>
+              <div className="stat-label">{label}</div>
+              {trend && <div className="stat-trend">{trend}</div>}
+            </button>
+          );
+        })}
       </section>
 
       <div className="admin-dashboard-grid">
@@ -423,12 +464,159 @@ function AdminHome({
   );
 }
 
+/**
+ * Tendencia honesta: solo si hay ventana temporal (p. ej. envíos 7 días).
+ * Si no hay fecha usable, no se muestra (evita repetir el total del KPI).
+ */
+function periodTrend(
+  recentCount: number,
+  opts?: { upLabel?: string; down?: boolean; days?: number },
+): string | null {
+  if (!Number.isFinite(recentCount) || recentCount <= 0) return null;
+  const days = opts?.days ?? 7;
+  if (opts?.down) return `↓ ${recentCount} · ${days} días`;
+  return `↑ ${recentCount}${opts?.upLabel ? ` ${opts.upLabel}` : ""} · ${days} días`;
+}
+
+function countEstado(t: InicioTendencias | null, ...keys: string[]) {
+  if (!t) return 0;
+  return keys.reduce((sum, key) => sum + (t.porEstadoNuevo[key] ?? 0), 0);
+}
+
+function countEtapa(t: InicioTendencias | null, etapa: number) {
+  if (!t) return 0;
+  return t.porEtapaEvento[String(etapa)] ?? 0;
+}
+
+/** Mapea el KPI (label en español) a un delta 7d del API; null si no hay señal temporal. */
+function trendForLabel(
+  role: RoleId,
+  label: string,
+  t: InicioTendencias | null,
+): string | null {
+  if (!t) return null;
+  const l = label.toLowerCase();
+  const days = t.windowDays;
+
+  if (role === "investigador") {
+    if (l.includes("revisión") || l.includes("revision")) {
+      return periodTrend(t.envios, { upLabel: "envíos", days });
+    }
+    if (l.includes("aprobada")) {
+      return periodTrend(countEstado(t, "aprobada"), {
+        upLabel: "aprobadas",
+        days,
+      });
+    }
+    if (l.includes("rechazada")) {
+      return periodTrend(countEstado(t, "rechazada"), { down: true, days });
+    }
+    if (l.includes("corrección") || l.includes("correccion")) {
+      return periodTrend(countEstado(t, "en_subsanacion"), { days });
+    }
+    return null;
+  }
+
+  if (role === "admin") {
+    if (l.includes("propuesta") && l.includes("activ")) {
+      return periodTrend(t.envios, { upLabel: "envíos", days });
+    }
+    if (l.includes("convocatoria")) {
+      return periodTrend(t.convocatoriasPublicadas, {
+        upLabel: "publicadas",
+        days,
+      });
+    }
+    if (l.includes("resolucion")) {
+      return periodTrend(countEstado(t, "aprobada", "rechazada"), {
+        upLabel: "resoluciones",
+        days,
+      });
+    }
+    if (l.includes("accion") && l.includes("pendiente")) {
+      return periodTrend(t.envios + countEstado(t, "en_evaluacion", "enviada"), {
+        days,
+      });
+    }
+    return null;
+  }
+
+  if (role === "vie_publicacion") {
+    if (l.includes("activa")) {
+      return periodTrend(t.convocatoriasPublicadas, {
+        upLabel: "publicadas",
+        days,
+      });
+    }
+    if (l.includes("finaliz")) {
+      return periodTrend(t.convocatoriasCerradasEnVentana, {
+        down: true,
+        days,
+      });
+    }
+    return null;
+  }
+
+  if (l.includes("aprobad") || l.includes("aprobacion")) {
+    return periodTrend(countEstado(t, "aprobada"), {
+      upLabel: "aprobadas",
+      days,
+    });
+  }
+  if (l.includes("rechaz")) {
+    return periodTrend(countEstado(t, "rechazada"), { down: true, days });
+  }
+  if (
+    l.includes("devuelt") ||
+    l.includes("corrección") ||
+    l.includes("correccion") ||
+    l.includes("subsan")
+  ) {
+    return periodTrend(countEstado(t, "en_subsanacion"), { days });
+  }
+  if (l.includes("enviad") && !l.includes("recib")) {
+    return periodTrend(
+      countEstado(t, "enviada") || countEtapa(t, ETAPA_POR_ROL[role] ?? 0),
+      { days },
+    );
+  }
+  if (
+    l.includes("bandeja") ||
+    l.includes("recibid") ||
+    l.includes("pendiente") ||
+    l.includes("total")
+  ) {
+    const etapa = ETAPA_POR_ROL[role];
+    const n =
+      (etapa ? countEtapa(t, etapa) : 0) ||
+      t.envios ||
+      countEstado(t, "enviada", "en_evaluacion");
+    return periodTrend(n, { days });
+  }
+  if (l.includes("dictamin") || l.includes("avalad") || l.includes("aval ")) {
+    return periodTrend(countEstado(t, "dictaminada", "avalada"), { days });
+  }
+  if (l.includes("remitid") || l.includes("cie")) {
+    return periodTrend(countEtapa(t, 4) || countEtapa(t, 5), { days });
+  }
+  if (l.includes("notific")) {
+    return periodTrend(countEtapa(t, 6), { days });
+  }
+  return null;
+}
+
 function InvestigadorHome({
   home,
   proposals,
+  tendencias,
+  loadError,
+  onRetry,
 }: {
   home: (typeof HOME_BY_ROLE)["investigador"];
   proposals: Propuesta[];
+  tendencias: InicioTendencias | null;
+  loadError?: string;
+  onRetry?: () => void;
 }) {
   const navigate = useNavigate();
   const recent = proposals.slice(0, 2);
@@ -448,20 +636,35 @@ function InvestigadorHome({
         </div>
       </header>
 
+      {loadError && (
+        <div className="card feedback-error" role="alert">
+          {loadError}
+          {onRetry && (
+            <button className="btn btn-secondary" type="button" onClick={onRetry}>
+              Reintentar
+            </button>
+          )}
+        </div>
+      )}
+
       <section className="stats-grid stats-grid-five" aria-label="Indicadores">
-        {home.stats.map(([label]) => (
-          <button
-            key={label}
-            type="button"
-            className="card stat-card"
-            onClick={() => navigate(investigadorStatPath(label))}
-          >
-            <div className="stat-value">
-              {investigadorStatValue(label, proposals)}
-            </div>
-            <div className="stat-label">{label}</div>
-          </button>
-        ))}
+        {home.stats.map(([label]) => {
+          const trend = trendForLabel("investigador", label, tendencias);
+          return (
+            <button
+              key={label}
+              type="button"
+              className="card stat-card"
+              onClick={() => navigate(investigadorStatPath(label))}
+            >
+              <div className="stat-value">
+                {investigadorStatValue(label, proposals)}
+              </div>
+              <div className="stat-label">{label}</div>
+              {trend && <div className="stat-trend">{trend}</div>}
+            </button>
+          );
+        })}
       </section>
 
       <section className="dashboard-section">
@@ -534,10 +737,16 @@ function RoleHome({
   role,
   convocatorias,
   sessionRole,
+  tendencias,
+  loadError,
+  onRetry,
 }: {
   role: RoleId;
   convocatorias: Convocatoria[];
   sessionRole: RoleId;
+  tendencias: InicioTendencias | null;
+  loadError?: string;
+  onRetry?: () => void;
 }) {
   const navigate = useNavigate();
   const home = HOME_BY_ROLE[role];
@@ -682,23 +891,36 @@ function RoleHome({
         </div>
       </header>
 
-      {["comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion"].includes(role)&&<button type="button" className="btn btn-secondary" onClick={()=>setEvalRefresh(n=>n+1)}>Actualizar indicadores</button>}
+      {loadError && (
+        <div className="card feedback-error" role="alert">
+          {loadError}
+          {onRetry && (
+            <button className="btn btn-secondary" type="button" onClick={onRetry}>
+              Reintentar
+            </button>
+          )}
+        </div>
+      )}
       {["comite_asistente","comite_evaluador","consejo_asistente","consejo","direccion_escuela","gestora_vie","cie","direccion_investigacion"].includes(role)&&comiteError&&<p role="alert">{comiteError}</p>}
       <section
         className={`stats-grid${five ? " stats-grid-five" : ""}`}
         aria-label="Indicadores"
       >
-        {statEntries.map(({ label, value }) => (
-          <button
-            key={label}
-            type="button"
-            className="card stat-card"
-            onClick={() => statNavigate(label)}
-          >
-            <div className="stat-value">{value}</div>
-            <div className="stat-label">{label}</div>
-          </button>
-        ))}
+        {statEntries.map(({ label, value }) => {
+          const trend = trendForLabel(role, label, tendencias);
+          return (
+            <button
+              key={label}
+              type="button"
+              className="card stat-card"
+              onClick={() => statNavigate(label)}
+            >
+              <div className="stat-value">{value}</div>
+              <div className="stat-label">{label}</div>
+              {trend && <div className="stat-trend">{trend}</div>}
+            </button>
+          );
+        })}
       </section>
 
       {isVinculacion&&piError&&<div className="card feedback-error" role="alert">No se pudieron consultar los registros de PI: {piError}<button className="btn btn-secondary" onClick={()=>setPiRetry(v=>v+1)}>Reintentar consulta</button></div>}
@@ -792,6 +1014,9 @@ export function InicioPage() {
   const { session } = useAuth();
   const [proposals, setProposals] = useState<Propuesta[]>([]);
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
+  const [tendencias, setTendencias] = useState<InicioTendencias | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [retryTick, setRetryTick] = useState(0);
 
   const role = session?.viewRole;
   const sessionRole = session?.role;
@@ -802,34 +1027,74 @@ export function InicioPage() {
   const loadPropuestas = useCallback(async () => {
     if (!needsProposals) {
       setProposals([]);
-      return;
+      return true;
     }
     try {
       setProposals(await fetchPropuestas());
+      return true;
     } catch {
       setProposals([]);
+      return false;
     }
   }, [needsProposals]);
 
   const loadConvocatorias = useCallback(async () => {
     if (!needsConvocatorias) {
       setConvocatorias([]);
-      return;
+      return true;
     }
     try {
       setConvocatorias(await fetchConvocatorias());
+      return true;
     } catch {
       setConvocatorias([]);
+      return false;
     }
   }, [needsConvocatorias]);
 
-  useEffect(() => {
-    void loadPropuestas();
-  }, [loadPropuestas]);
+  const loadTendencias = useCallback(async () => {
+    if (!role || !sessionRole) {
+      setTendencias(null);
+      return true;
+    }
+    try {
+      const view =
+        sessionRole === "admin" && role !== "admin" ? role : undefined;
+      setTendencias(await fetchInicioTendencias({ view, days: 7 }));
+      return true;
+    } catch {
+      setTendencias(null);
+      return false;
+    }
+  }, [role, sessionRole]);
+
+  const reloadHome = useCallback(() => {
+    setRetryTick((n) => n + 1);
+  }, []);
 
   useEffect(() => {
-    void loadConvocatorias();
-  }, [loadConvocatorias]);
+    let cancelled = false;
+    void (async () => {
+      const [okProp, okConv, okTrend] = await Promise.all([
+        loadPropuestas(),
+        loadConvocatorias(),
+        loadTendencias(),
+      ]);
+      if (cancelled) return;
+      const parts: string[] = [];
+      if (!okProp) parts.push("propuestas");
+      if (!okConv) parts.push("convocatorias");
+      if (!okTrend) parts.push("tendencias");
+      setLoadError(
+        parts.length
+          ? `No se pudieron cargar ${parts.join(", ")}. Los indicadores pueden quedar incompletos.`
+          : "",
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loadPropuestas, loadConvocatorias, loadTendencias, retryTick]);
 
   if (!session || !role || !sessionRole) return null;
 
@@ -839,6 +1104,9 @@ export function InicioPage() {
         home={HOME_BY_ROLE.admin}
         proposals={proposals}
         convocatorias={convocatorias}
+        tendencias={tendencias}
+        loadError={loadError}
+        onRetry={reloadHome}
       />
     );
   }
@@ -848,6 +1116,9 @@ export function InicioPage() {
       <InvestigadorHome
         home={HOME_BY_ROLE.investigador}
         proposals={proposals}
+        tendencias={tendencias}
+        loadError={loadError}
+        onRetry={reloadHome}
       />
     );
   }
@@ -857,6 +1128,9 @@ export function InicioPage() {
       role={role}
       convocatorias={convocatorias}
       sessionRole={sessionRole}
+      tendencias={tendencias}
+      loadError={loadError}
+      onRetry={reloadHome}
     />
   );
 }

@@ -116,6 +116,34 @@ export function PropuestasPage() {
       <FilterPanel
         clearDisabled={!query && estado === "Todos"}
         onClear={() => setSearchParams({})}
+        chips={[
+          ...(query
+            ? [
+                {
+                  key: "q",
+                  label: `Buscar: ${query}`,
+                  onRemove: () => {
+                    const p = new URLSearchParams(searchParams);
+                    p.delete("q");
+                    setSearchParams(p);
+                  },
+                },
+              ]
+            : []),
+          ...(estado !== "Todos"
+            ? [
+                {
+                  key: "estado",
+                  label: `Estado: ${estado === "en_revision" ? "En revisión" : estado}`,
+                  onRemove: () => {
+                    const p = new URLSearchParams(searchParams);
+                    p.delete("estado");
+                    setSearchParams(p);
+                  },
+                },
+              ]
+            : []),
+        ]}
       >
         <div className="independent-filters">
           <FilterGroup title="Buscar propuesta" active={Boolean(query)} onClear={()=>{const p=new URLSearchParams(searchParams);p.delete("q");setSearchParams(p);}}><label className="field" htmlFor="prop-filtro-q">
